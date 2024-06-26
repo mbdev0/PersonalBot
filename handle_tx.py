@@ -70,15 +70,19 @@ def get_tx_info(signature) -> dict:
 	}
 
 	response = httpx.post(HTTP_NODE_URL, json=getTransaction_body)
-	
-	try:
-		isErrorPresent = response.json()["result"]["meta"]["err"]
-	except TypeError:
-		isErrorPresent = None
+	isErrorPresent = is_error_present(response.json())
 
-	if response.status_code != 200 and isErrorPresent != None:
+	if response.status_code != 200 or isErrorPresent:
 		raise Exception("Error in getting tx info")
 	return response.json()
+
+def is_error_present(response: dict) -> bool:
+    if response.get("error") is not None:
+        return True
+    result = response.get("result")
+    if result and result.get("meta") and result.get("meta").get("err") is not None:
+        return True
+    return False
 
 def get_mint_instruction_data(instruction_data: dict) -> dict:
 	program_instructions = instruction_data.get("result").get("transaction").get("message").get("instructions")
