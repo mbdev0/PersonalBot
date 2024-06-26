@@ -42,7 +42,9 @@ var (
 
 # testing for parsing the instruction data + TX's when doing GO
 
-from Models.Coin import Coin 
+from Models.Coin import Coin
+from settings import NODE_URL 
+import requests
 
 def handle_tx(signature: str):
 	pass
@@ -55,8 +57,25 @@ def handle_tx(signature: str):
 		pass
 	
 def get_tx_info(signature) -> str:
-	# send a post req to node with the body template above
-	pass
+	getTransaction_body = {
+		"jsonrpc": "2.0",
+		"id": 1,
+		"method": "getTransaction",
+		"params": [
+			f"${signature}",
+			{
+			"encoding": "json",
+			"maxSupportedTransactionVersion": 0
+			}
+		]
+	}
+
+	response = requests.post(NODE_URL, data=getTransaction_body)
+
+	isErrorPresent = response.json().get("result").get("meta").get("err")
+	if response.status_code != 200 and isErrorPresent != None:
+		raise Exception("Error in getting tx info")
+	return response.json()
 
 def is_create_tx(instruction_data: str) -> bool:
 	# CHECK IF 14 ACCOUNTS or if better way try it
