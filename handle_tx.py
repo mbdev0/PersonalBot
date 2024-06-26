@@ -43,7 +43,7 @@ var (
 # testing for parsing the instruction data + TX's when doing GO
 
 from Models.Coin import Coin 
-from settings import NODE_URL 
+from settings import HTTP_NODE_URL 
 import httpx
 
 def handle_tx(signature: str):
@@ -69,7 +69,7 @@ def get_tx_info(signature) -> dict:
 		]
 	}
 
-	response = httpx.post(NODE_URL, json=getTransaction_body)
+	response = httpx.post(HTTP_NODE_URL, json=getTransaction_body)
 	
 	try:
 		isErrorPresent = response.json()["result"]["meta"]["err"]

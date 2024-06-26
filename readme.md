@@ -6,7 +6,8 @@ Pump Fun Bot in python
 
 To run this project, you will need to add the following environment variables to your .env file at the root of your project.
 
-`NODE_URL`
+`WEBSOCKET_NODE_URL`
+`HTTP_NODE_URL`
 
 > **Solana public RPC endpoint:** https://api.devnet.solana.com
 
