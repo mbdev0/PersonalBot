@@ -43,9 +43,11 @@ var (
 # testing for parsing the instruction data + TX's when doing GO
 
 from Models.Coin import Coin 
+import httpx
+
+NODE = "https://mainnet.helius-rpc.com/?api-key=0db10f5a-ea4d-4db6-b4e1-c90a808900e6"
 
 def handle_tx(signature: str):
-	pass
 	transaction = get_tx_info(signature)
 	# check if there is a create tx
 	if is_create_tx(transaction):
@@ -56,7 +58,21 @@ def handle_tx(signature: str):
 	
 def get_tx_info(signature) -> str:
 	# send a post req to node with the body template above
-	pass
+	get_tx_body = {
+		"jsonrpc": "2.0",
+		"id": 1,
+		"method": "getTransaction",
+		"params": [
+			signature,
+			{
+				"encoding": "json",
+				"maxSupportedTransactionVersion": 0
+			}
+		]
+	}
+	response = httpx.post(NODE, json=get_tx_body)
+	if response.status_code == 200:
+		return response.json()
 
 def is_create_tx(instruction_data: str) -> bool:
 	# CHECK IF 14 ACCOUNTS or if better way try it
@@ -64,3 +80,7 @@ def is_create_tx(instruction_data: str) -> bool:
 
 def parse_tx(transaction: str) -> Coin:
 	pass # throws 
+
+
+if __name__ == "__main__":
+	handle_tx("5vQ5yPrGjE6LX5ZoLPCXK6YQtKymXLpeyVqBM6g2NUU86pvSSRVsTMG1FTyeTLPWErqSV8KAT2gD8bmEK6fzFVQg")
