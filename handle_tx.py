@@ -69,7 +69,7 @@ def get_tx_info(signature) -> dict:
 		]
 	}
 
-	response = httpx.post("https://api.devnet.solana.com", json=getTransaction_body)
+	response = httpx.post(NODE_URL, json=getTransaction_body)
 	
 	try:
 		isErrorPresent = response.json()["result"]["meta"]["err"]
