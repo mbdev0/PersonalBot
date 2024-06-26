@@ -48,37 +48,45 @@ import httpx
 
 def handle_tx(signature: str):
 	transaction = get_tx_info(signature)
-	# check if there is a create tx
-	if is_create_tx(transaction):
-		coin = parse_tx(transaction)
-		# send webhook with coin info
-		# send_webhook(coin)
-		pass
+	instruction_data = get_mint_instruction_data(transaction)
+	print(instruction_data)
+	coin = parse_tx(transaction)
+	# send webhook with coin info
+	# send_webhook(coin)
+	pass
 	
-def get_tx_info(signature) -> str:
+def get_tx_info(signature) -> dict:
 	getTransaction_body = {
 		"jsonrpc": "2.0",
 		"id": 1,
 		"method": "getTransaction",
 		"params": [
-			f"${signature}",
+			signature,
 			{
-			"encoding": "json",
-			"maxSupportedTransactionVersion": 0
+				"encoding": "json",
+				"maxSupportedTransactionVersion": 0
 			}
 		]
 	}
 
-	response = httpx.post(NODE_URL, data=getTransaction_body)
-
+	response = httpx.post(NODE_URL, json=getTransaction_body)
 	isErrorPresent = response.json().get("result").get("meta").get("err")
 	if response.status_code != 200 and isErrorPresent != None:
 		raise Exception("Error in getting tx info")
 	return response.json()
 
-def is_create_tx(instruction_data: str) -> bool:
-	# CHECK IF 14 ACCOUNTS or if better way try it
-	pass
+def get_mint_instruction_data(instruction_data: dict) -> dict:
+	program_instructions = instruction_data.get("result").get("transaction").get("message").get("instructions")
+	for instruction in program_instructions:
+		if is_create_tx(instruction):
+			return instruction
+		
+	raise Exception("No mint instruction found")
+
+def is_create_tx(instruction: dict) -> bool:
+	if instruction.get("accounts") and len(instruction.get("accounts")) == 14:
+		return True
+	return False
 
 def parse_tx(transaction: str) -> Coin:
 	pass # throws 
