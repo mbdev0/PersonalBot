@@ -30,6 +30,8 @@ from handle_tx import handle_tx
 
 #send request to get tx if no error -> check if there’s an instruction with 14 accounts -> decrypt instruction data’s first 8bytes  -> if matches create return webhook with name, symbol and ipfs url
 
+from settings import NODE_URL
+
 def on_message(ws, message):
     print(message)
     # handle tx if no error 
