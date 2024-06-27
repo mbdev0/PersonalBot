@@ -52,8 +52,8 @@ CREATE_TX_BYTES = [24, 30, 200, 40, 5, 28, 7, 119]
 def handle_tx(signature: str):
 	transaction = get_tx_info(signature)
 	instruction_data = get_mint_instruction_data(transaction)
-	print(instruction_data)
-	coin = parse_tx(transaction)
+	coin = parse_tx(instruction_data)
+	print(coin.dict())
 	# send webhook with coin info
 	# send_webhook(coin)
 	pass
@@ -104,8 +104,34 @@ def is_create_tx(instruction: dict) -> bool:
 	return False
 
 def parse_tx(instruction: dict) -> Coin:
-	pass 
+	#TODO: clean this function up if possible
 
+	data = instruction.get("data")
+	decoded_data = base58.b58decode(data)
+	byte_data = list(decoded_data)
+	byte_data = byte_data[8:]
+	
+	byte_data = [byte for byte in byte_data if byte != 0]
+	
+	name_length = byte_data[0]
+	name = byte_data[1:1+name_length]
+	
+	byte_data = byte_data[1+name_length:]
+	
+	symbol_length = byte_data[0]
+	symbol = byte_data[1:1+symbol_length]
+	
+	byte_data = byte_data[1+symbol_length:]
+	
+	uri_length = byte_data[0]
+	uri = byte_data[1:1+uri_length]
+
+	mint_name = bytes(name) 
+	mint_symbol = bytes(symbol)
+	mint_uri = bytes(uri)
+
+	coin = Coin(name=mint_name.decode('utf-8'), symbol=mint_symbol.decode('utf-8'), ipfs_url=mint_uri.decode('utf-8'))
+	return coin
 
 #if __name__ == "__main__":
 #	handle_tx("5vQ5yPrGjE6LX5ZoLPCXK6YQtKymXLpeyVqBM6g2NUU86pvSSRVsTMG1FTyeTLPWErqSV8KAT2gD8bmEK6fzFVQg")
