@@ -45,6 +45,9 @@ var (
 from Models.Coin import Coin 
 from settings import HTTP_NODE_URL 
 import httpx
+import base58
+
+CREATE_TX_BYTES = [24, 30, 200, 40, 5, 28, 7, 119]
 
 def handle_tx(signature: str):
 	transaction = get_tx_info(signature)
@@ -89,16 +92,19 @@ def get_mint_instruction_data(instruction_data: dict) -> dict:
 	for instruction in program_instructions:
 		if is_create_tx(instruction):
 			return instruction
-		
 	raise Exception("No mint instruction found")
 
 def is_create_tx(instruction: dict) -> bool:
-	if instruction.get("accounts") and len(instruction.get("accounts")) == 14:
-		return True
+	if instruction.get("data") and instruction.get("accounts") and len(instruction.get("accounts")) == 14:
+		data = instruction.get("data")
+		decoded_data = base58.b58decode(data)
+		byte_data = list(decoded_data)
+		if byte_data[:8] == CREATE_TX_BYTES:
+			return True
 	return False
 
-def parse_tx(transaction: str) -> Coin:
-	pass # throws 
+def parse_tx(instruction: dict) -> Coin:
+	pass 
 
 
 #if __name__ == "__main__":
