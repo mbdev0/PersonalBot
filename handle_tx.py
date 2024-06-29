@@ -54,6 +54,7 @@ def handle_tx(signature: str):
 	transaction = get_tx_info(signature)
 	instruction_data = get_mint_instruction_data(transaction)
 	coin = parse_tx(instruction_data)
+	fetch_ifps_links_and_update_coin(coin)
 	print(coin.dict())
 	send_telegram_webhook(coin)
 	
@@ -131,6 +132,18 @@ def parse_tx(instruction: dict) -> Coin:
 
 	coin = Coin(name=mint_name.decode('utf-8'), symbol=mint_symbol.decode('utf-8'), ipfs_url=mint_uri.decode('utf-8'))
 	return coin
+
+def fetch_ifps_links_and_update_coin(coin):
+	with httpx.Client(follow_redirects=True) as client:
+			response = client.get(coin.ipfs_url)
+			data = response.json()
+
+			# Update the coin object with the fetched data
+			# TODO : Clean this up in go, shouldn't really be having side effects happen in the same function
+			coin.telegram_url=data.get("telegram")
+			coin.twitter_url=data.get("twitter")
+			coin.website_url=data.get("website")
+			coin.image_url=data.get("image")
 
 if __name__ == "__main__":
 	handle_tx("5vQ5yPrGjE6LX5ZoLPCXK6YQtKymXLpeyVqBM6g2NUU86pvSSRVsTMG1FTyeTLPWErqSV8KAT2gD8bmEK6fzFVQg")
