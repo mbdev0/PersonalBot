@@ -43,7 +43,8 @@ var (
 # testing for parsing the instruction data + TX's when doing GO
 
 from Models.Coin import Coin 
-from settings import HTTP_NODE_URL 
+from settings import HTTP_NODE_URL
+from webhook import send_telegram_webhook
 import httpx
 import base58
 
@@ -54,9 +55,7 @@ def handle_tx(signature: str):
 	instruction_data = get_mint_instruction_data(transaction)
 	coin = parse_tx(instruction_data)
 	print(coin.dict())
-	# send webhook with coin info
-	# send_webhook(coin)
-	pass
+	send_telegram_webhook(coin)
 	
 def get_tx_info(signature) -> dict:
 	getTransaction_body = {
@@ -133,5 +132,5 @@ def parse_tx(instruction: dict) -> Coin:
 	coin = Coin(name=mint_name.decode('utf-8'), symbol=mint_symbol.decode('utf-8'), ipfs_url=mint_uri.decode('utf-8'))
 	return coin
 
-#if __name__ == "__main__":
-#	handle_tx("5vQ5yPrGjE6LX5ZoLPCXK6YQtKymXLpeyVqBM6g2NUU86pvSSRVsTMG1FTyeTLPWErqSV8KAT2gD8bmEK6fzFVQg")
+if __name__ == "__main__":
+	handle_tx("5vQ5yPrGjE6LX5ZoLPCXK6YQtKymXLpeyVqBM6g2NUU86pvSSRVsTMG1FTyeTLPWErqSV8KAT2gD8bmEK6fzFVQg")
