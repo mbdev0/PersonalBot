@@ -49,6 +49,7 @@ import httpx
 import base58
 
 CREATE_TX_BYTES = [24, 30, 200, 40, 5, 28, 7, 119]
+httpx_client = httpx.Client(timeout=20, follow_redirects=True)
 
 def handle_tx(signature: str):
 	transaction = get_tx_info(signature)
@@ -72,7 +73,7 @@ def get_tx_info(signature) -> dict:
 		]
 	}
 
-	response = httpx.post(HTTP_NODE_URL, json=getTransaction_body)
+	response = httpx_client.post(HTTP_NODE_URL, json=getTransaction_body)
 	isErrorPresent = is_error_present(response.json())
 
 	if response.status_code != 200 or isErrorPresent:
@@ -133,17 +134,15 @@ def parse_tx(instruction: dict) -> Coin:
 	coin = Coin(name=mint_name.decode('utf-8'), symbol=mint_symbol.decode('utf-8'), ipfs_url=mint_uri.decode('utf-8'))
 	return coin
 
-def fetch_ifps_links_and_update_coin(coin):
-	with httpx.Client(follow_redirects=True) as client:
-			response = client.get(coin.ipfs_url)
-			data = response.json()
+def fetch_ifps_links_and_update_coin(coin: Coin) -> None:
+	# should this be called from handle_tx or parse_tx?
 
-			# Update the coin object with the fetched data
-			# TODO : Clean this up in go, shouldn't really be having side effects happen in the same function
-			coin.telegram_url=data.get("telegram")
-			coin.twitter_url=data.get("twitter")
-			coin.website_url=data.get("website")
-			coin.image_url=data.get("image")
+	response = httpx_client.get(coin.ipfs_url)
+	data = response.json()
+	coin.telegram_url=data.get("telegram")
+	coin.twitter_url=data.get("twitter")
+	coin.website_url=data.get("website")
+	coin.image_url=data.get("image")
 
 # if __name__ == "__main__":
 # 	handle_tx("5vQ5yPrGjE6LX5ZoLPCXK6YQtKymXLpeyVqBM6g2NUU86pvSSRVsTMG1FTyeTLPWErqSV8KAT2gD8bmEK6fzFVQg")
