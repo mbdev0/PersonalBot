@@ -145,5 +145,5 @@ def fetch_ifps_links_and_update_coin(coin):
 			coin.website_url=data.get("website")
 			coin.image_url=data.get("image")
 
-if __name__ == "__main__":
-	handle_tx("5vQ5yPrGjE6LX5ZoLPCXK6YQtKymXLpeyVqBM6g2NUU86pvSSRVsTMG1FTyeTLPWErqSV8KAT2gD8bmEK6fzFVQg")
+# if __name__ == "__main__":
+# 	handle_tx("5vQ5yPrGjE6LX5ZoLPCXK6YQtKymXLpeyVqBM6g2NUU86pvSSRVsTMG1FTyeTLPWErqSV8KAT2gD8bmEK6fzFVQg")
