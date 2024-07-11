@@ -7,8 +7,7 @@ func formatCoinInfo(coin Coin) string {
 	return ""
 }
 
-
-//copied params from the py implementation adjust them as needed
+// copied params from the py implementation adjust them as needed
 func sendTelegramMessage(botToken, chatID, message string) {
 	//Send a message to the telegram bot
 }
@@ -20,5 +19,3 @@ func sendDiscordMessage(webhookURL, message string) {
 func postRequest(url string, data interface{}) {
 	// Send a post request to the url with the data
 }
-//probably some sort of main however it says duplicate main could be something to do with the fact that we are using the same package name
-
