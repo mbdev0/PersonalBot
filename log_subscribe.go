@@ -19,12 +19,12 @@ package main
 import ( //Import which websocket we wanna use aswell as OS and how we wanna load enviroment variables
 )
 
-func on_message(websocket, message) {
+func onMessage(websocket, message) {
 	// handle message
 	}
 
 
-func on_open(websocket) {
+func onOpen(websocket) {
 	// handle open
 	}
 

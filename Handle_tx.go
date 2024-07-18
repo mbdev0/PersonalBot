@@ -5,8 +5,11 @@ import (
 )
 
 //Declaing the coin struct 
+
 type Coin struct {
+ //the lint wants a comment
 }
+
 
 
 var(
@@ -21,23 +24,23 @@ func getTxinfo(signature string) {
 	// get tx info
 }
 
-func is_error(response string) {
+func isError(response string) {
 	// check if there is an error
 }
 
-func get_mint_instruction(instruction string) {
+func getMintInstruction(instruction string) {
 	// get mint instruction
 }
 
-func is_create_tx(instruction string) {
+func isCreateTx(instruction string) {
 	// check if it is a create tx
 }
 
-func parse_tx(tx string) {
+func parseTx(tx string) {
 	// parse the tx, we gonna wanna re write this function up as there is a comment that says clean it
 }
 
-func fetch_ipfs_and_update_coin_info(ipfs_url string) {
+func fetchIpfsAndUpdateCoinInfo(ipfsURL string) {
 	// theres a note that this shouldnt be named like this but we can change it later maybe embed it into handle tx
 }
 
