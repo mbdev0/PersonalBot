@@ -3,7 +3,7 @@ func GetTransaction(signature string) {
 	// instruction_data := getMintInstructionData(transaction)
 	// coin := parseInstructionData(instruction_data)
 	// ipfs := getIPFS(coin.Ipfs)
-	// combine the coin and ipfs struct into TranscationData struct and return
+	// combine the coin and ipfs struct into TransactionData struct and return
 }
 
 func getTransaction(signature string) {
