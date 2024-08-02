@@ -1,3 +1,5 @@
+package transactions
+
 func GetTransaction(signature string) {
 	// transaction := getTransaction(signature)
 	// instruction_data := getMintInstructionData(transaction)
@@ -10,14 +12,14 @@ func getTransaction(signature string) {
 	// logic to fetch the transaction using the http client
 }
 
-func getMintInstructionData(transaction dictionary) {
+func getMintInstructionData(transaction string) {
 	// logic to fetch the mint instruction data using the http client
 }
 
-func parseInstructionData(instruction_data dictionary) {
+func parseInstructionData(instruction_data string) {
 	// logic to parse the instruction data into a coin struct
 }
-\
+
 func getIPFS(ipfs_url string) {
 	// logic to parse the instruction data into a coin struct
 }
