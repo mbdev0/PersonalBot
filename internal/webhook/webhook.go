@@ -1,7 +1,7 @@
 package webhook
 
 import (
-	"pump_fun/models"
+	"pump_fun/internal/models"
 )
 
 //We are gonna need to implement the same coin struct as in the get tx function, maybe find a package that allows models?
