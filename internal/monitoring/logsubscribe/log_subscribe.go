@@ -2,12 +2,14 @@ package logsubscribe
 
 import (
 	"context"
+	"log/slog"
+
+	"pump_fun/internal/logger"
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/gagliardetto/solana-go"
 	"github.com/gagliardetto/solana-go/rpc"
 	"github.com/gagliardetto/solana-go/rpc/ws"
-
 )
 
 func LogSubscribe() {
@@ -23,7 +25,7 @@ func LogSubscribe() {
 			rpc.CommitmentConfirmed)
 
 		if err != nil {
-			panic(err)
+			logger.Log(slog.LevelError, "Error subscribing to logs")
 		}
 
 		defer sub.Unsubscribe()
@@ -31,7 +33,7 @@ func LogSubscribe() {
 		for {
 			msg, err := sub.Recv()
 			if err != nil {
-				panic(err)
+				logger.Log(slog.LevelError, "Error while streaming logs")
 			}
 
 			spew.Dump(msg)
