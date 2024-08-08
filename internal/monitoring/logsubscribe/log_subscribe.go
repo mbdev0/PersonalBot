@@ -1,29 +1,40 @@
 package logsubscribe
 
-// Previous notes : ### WHEN MOVING TO GO => HANLDE HTTP ERRORS GRACEFULLY + LOGGING
+import (
+	"context"
 
-// Log subscribe
+	"github.com/davecgh/go-spew/spew"
+	"github.com/gagliardetto/solana-go"
+	"github.com/gagliardetto/solana-go/rpc"
+	"github.com/gagliardetto/solana-go/rpc/ws"
 
-// What will it manage:
-//1) On open -> ws.send the log subscribe message
-//2) On message -> ws.recv the log message (this is where you'll
-//                  send the succesful log messages to the get tx function)
-// 2.1) If the log message has a error -> skip it
-// 3) on error -> handle the error gracefully
-// 4) on close -> handle the close gracefully
+)
 
-//send request to get tx if no error -> check if there’s an instruction with 14 accounts -> decrypt instruction data’s first 8bytes  -> if matches create return webhook with name, symbol and ipfs url
+func LogSubscribe() {
+	client, err := ws.Connect(context.Background(), helius_ws)
+	if err != nil {
+		panic(err)
+	}
 
-//Import which websocket we wanna use aswell as OS and how we wanna load enviroment variables
+	pumpfunProgramId := solana.MustPublicKeyFromBase58("6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P")
+	{
+		sub, err := client.LogsSubscribeMentions(
+			pumpfunProgramId,
+			rpc.CommitmentConfirmed)
 
-func On_Message(websocket, message string) {
-	// handle message
-}
+		if err != nil {
+			panic(err)
+		}
 
-func On_Open(websocket string, event string) {
-	// handle open
-}
+		defer sub.Unsubscribe()
 
-func Main() {
-	// connect to websocket
+		for {
+			msg, err := sub.Recv()
+			if err != nil {
+				panic(err)
+			}
+
+			spew.Dump(msg)
+		}
+	}
 }
