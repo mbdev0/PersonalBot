@@ -10,14 +10,14 @@ var (
 	slogLogger *slog.Logger
 )
 
-func InitSLog() {
+func initSLog() {
 	jsonHandler := slog.NewJSONHandler(os.Stderr, nil)
 	slogLogger = slog.New(jsonHandler)
 }
 
 func GetLogger() *slog.Logger {
 	if slogLogger == nil {
-		InitSLog()
+		initSLog()
 	}
 	return slogLogger
 }
