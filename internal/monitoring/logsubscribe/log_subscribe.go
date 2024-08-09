@@ -12,10 +12,12 @@ import (
 	"github.com/gagliardetto/solana-go/rpc/ws"
 )
 
+// No returning errors as we need to keep a continuous connection to the websocket - we can log the errors instead
 func LogSubscribe() {
-	client, err := ws.Connect(context.Background(), helius_ws)
+	ws_url := "wss://mainnet.helius-rpc.com/"
+	client, err := ws.Connect(context.Background(), ws_url)
 	if err != nil {
-		panic(err)
+		logger.Log(slog.LevelError, "Error connecting to websocket", slog.String("error", err.Error()))
 	}
 
 	pumpfunProgramId := solana.MustPublicKeyFromBase58("6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P")
@@ -25,7 +27,7 @@ func LogSubscribe() {
 			rpc.CommitmentConfirmed)
 
 		if err != nil {
-			logger.Log(slog.LevelError, "Error subscribing to logs")
+			logger.Log(slog.LevelError, "Error subscribing to logs", slog.String("error", err.Error()))
 		}
 
 		defer sub.Unsubscribe()
@@ -33,10 +35,12 @@ func LogSubscribe() {
 		for {
 			msg, err := sub.Recv()
 			if err != nil {
-				logger.Log(slog.LevelError, "Error while streaming logs")
+				logger.Log(slog.LevelError, "Error while streaming logs", slog.String("error", err.Error()))
 			}
 
-			spew.Dump(msg)
+			if msg.Value.Err == nil {
+				spew.Dump(msg.Value.Signature)
+			}
 		}
 	}
 }
