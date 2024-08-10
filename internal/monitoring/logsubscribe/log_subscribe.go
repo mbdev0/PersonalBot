@@ -3,6 +3,7 @@ package logsubscribe
 import (
 	"context"
 	"log/slog"
+	"time"
 
 	"pump_fun/internal/logger"
 
@@ -12,9 +13,16 @@ import (
 	"github.com/gagliardetto/solana-go/rpc/ws"
 )
 
+const (
+	ctxTimeout = 30 * time.Second
+	ws_url     = "wss://mainnet.helius-rpc.com/"
+)
+
 func LogSubscribe() (err error) {
-	ws_url := "wss://mainnet.helius-rpc.com/"
-	client, err := ws.Connect(context.Background(), ws_url)
+	ctx, cancel := context.WithTimeout(context.Background(), ctxTimeout)
+	defer cancel()
+
+	client, err := ws.Connect(ctx, ws_url)
 	if err != nil {
 		logger.Log(slog.LevelError, "Error connecting to websocket", slog.String("error", err.Error()))
 		return err
