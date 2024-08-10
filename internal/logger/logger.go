@@ -15,7 +15,7 @@ func initSLog() {
 	slogLogger = slog.New(jsonHandler)
 }
 
-func GetLogger() *slog.Logger {
+func getLogger() *slog.Logger {
 	if slogLogger == nil {
 		initSLog()
 	}
@@ -23,5 +23,5 @@ func GetLogger() *slog.Logger {
 }
 
 func Log(level slog.Level, msg string, attrs ...slog.Attr) {
-	GetLogger().LogAttrs(context.Background(), level, msg, attrs...)
+	getLogger().LogAttrs(context.Background(), level, msg, attrs...)
 }
