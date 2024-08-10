@@ -3,11 +3,11 @@ package transactions
 import (
 	"context"
 	"fmt"
-	"time"
-	
+
 	"github.com/gagliardetto/solana-go"
 	"github.com/gagliardetto/solana-go/rpc"
-	"golang.org/x/time/rate"
+
+	solanaclient "pump_fun/internal/solana-client"
 )
 
 func GetTransaction(signature string) {
@@ -23,13 +23,7 @@ func GetTransaction(signature string) {
 
 // TODO: Refactor the return type to make it reusable in the future, its currently coupled to the rpc package
 func getTransaction(signature string) (*rpc.GetTransactionResult, error) {
-	cluster := rpc.MainNetBeta
-
-	rpcClient := rpc.NewWithCustomRPCClient(rpc.NewWithLimiter(
-		cluster.RPC,
-		rate.Every(time.Second), 
-		5,                       
-	))
+	rpcClient := solanaclient.NewHttpClient()
 
 	version := uint64(0)
 	transaction, err := rpcClient.GetTransaction(
@@ -42,8 +36,8 @@ func getTransaction(signature string) (*rpc.GetTransactionResult, error) {
 	)
 
 	if err != nil {
-        return nil, err
-    }
+		return nil, err
+	}
 
 	return transaction, nil
 }
@@ -51,12 +45,11 @@ func getTransaction(signature string) (*rpc.GetTransactionResult, error) {
 // TODO: Refactor the return type to make it reusable in the future, its currently coupled to the solana package
 func getMintInstructionData(transaction *rpc.GetTransactionResult) ([]solana.CompiledInstruction, error) {
 	parsed, err := transaction.Transaction.GetTransaction()
-	
 	if err != nil {
-        return nil, err
-    }
+		return nil, err
+	}
 
-    return parsed.Message.Instructions, nil
+	return parsed.Message.Instructions, nil
 }
 
 func parseInstructionData(instruction_data string) {

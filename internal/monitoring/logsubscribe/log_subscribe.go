@@ -1,29 +1,56 @@
 package logsubscribe
 
-// Previous notes : ### WHEN MOVING TO GO => HANLDE HTTP ERRORS GRACEFULLY + LOGGING
+import (
+	"context"
+	"log/slog"
+	"time"
 
-// Log subscribe
+	"pump_fun/internal/logger"
 
-// What will it manage:
-//1) On open -> ws.send the log subscribe message
-//2) On message -> ws.recv the log message (this is where you'll
-//                  send the succesful log messages to the get tx function)
-// 2.1) If the log message has a error -> skip it
-// 3) on error -> handle the error gracefully
-// 4) on close -> handle the close gracefully
+	"github.com/davecgh/go-spew/spew"
+	"github.com/gagliardetto/solana-go"
+	"github.com/gagliardetto/solana-go/rpc"
+	"github.com/gagliardetto/solana-go/rpc/ws"
+)
 
-//send request to get tx if no error -> check if there’s an instruction with 14 accounts -> decrypt instruction data’s first 8bytes  -> if matches create return webhook with name, symbol and ipfs url
+const (
+	ctxTimeout = 30 * time.Second
+	ws_url     = "wss://mainnet.helius-rpc.com/"
+)
 
-//Import which websocket we wanna use aswell as OS and how we wanna load enviroment variables
+func LogSubscribe() (err error) {
+	ctx, cancel := context.WithTimeout(context.Background(), ctxTimeout)
+	defer cancel()
 
-func On_Message(websocket, message string) {
-	// handle message
-}
+	client, err := ws.Connect(ctx, ws_url)
+	if err != nil {
+		logger.Log(slog.LevelError, "Error connecting to websocket", slog.String("error", err.Error()))
+		return err
+	}
 
-func On_Open(websocket string, event string) {
-	// handle open
-}
+	// No returning errors as we need to keep a continuous connection to the websocket - we can log the errors instead
+	pumpfunProgramId := solana.MustPublicKeyFromBase58("6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P")
+	{
+		sub, err := client.LogsSubscribeMentions(
+			pumpfunProgramId,
+			rpc.CommitmentConfirmed)
 
-func Main() {
-	// connect to websocket
+		if err != nil {
+			logger.Log(slog.LevelError, "Error subscribing to logs", slog.String("error", err.Error()))
+			return err
+		}
+
+		defer sub.Unsubscribe()
+
+		for {
+			msg, err := sub.Recv()
+			if err != nil {
+				logger.Log(slog.LevelError, "Error while streaming logs", slog.String("error", err.Error()))
+			}
+
+			if msg.Value.Err == nil {
+				spew.Dump(msg.Value.Signature)
+			}
+		}
+	}
 }
