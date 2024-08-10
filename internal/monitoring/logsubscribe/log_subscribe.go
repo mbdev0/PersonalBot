@@ -12,12 +12,12 @@ import (
 	"github.com/gagliardetto/solana-go/rpc/ws"
 )
 
-func LogSubscribe() {
+func LogSubscribe() (err error) {
 	ws_url := "wss://mainnet.helius-rpc.com/"
 	client, err := ws.Connect(context.Background(), ws_url)
 	if err != nil {
 		logger.Log(slog.LevelError, "Error connecting to websocket", slog.String("error", err.Error()))
-		return
+		return err
 	}
 
 	// No returning errors as we need to keep a continuous connection to the websocket - we can log the errors instead
@@ -29,6 +29,7 @@ func LogSubscribe() {
 
 		if err != nil {
 			logger.Log(slog.LevelError, "Error subscribing to logs", slog.String("error", err.Error()))
+			return err
 		}
 
 		defer sub.Unsubscribe()

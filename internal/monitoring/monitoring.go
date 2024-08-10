@@ -1,6 +1,7 @@
 package monitoring
 
 import (
+	"fmt"
 	"pump_fun/internal/monitoring/logsubscribe"
 	"sync"
 )
@@ -15,7 +16,11 @@ func StartMonitor() {
 	if startMonitoring {
 		wg.Add(1)
 		go func() {
-			logsubscribe.LogSubscribe()
+			err := logsubscribe.LogSubscribe()
+			if err != nil {
+				// should be updated to show the error on the ui
+				fmt.Println("Error: ", err)
+			}
 			wg.Done()
 		}()
 	}
