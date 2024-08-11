@@ -1,13 +1,24 @@
 package models
 
-type Coin struct {
+type MintData struct {
+	Signature        string
+	Name             string
+	Ticker           string
+	IPFS_URL         string
+	TokenAddr        string
+	CreatorAddr      string
+	DevHoldingAmount float64
 }
 
 type IPFS struct {
+	TelegramURL string
+	TwitterURL  string
+	WebsiteURL  string
+	ImageURL    string
 }
 
 // Compositions of the two structs above
-type TransactionData struct {
-	CoinData Coin
+type Coin struct {
+	CoinData MintData
 	IPFSData IPFS
 }
