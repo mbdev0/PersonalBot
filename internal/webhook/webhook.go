@@ -1,25 +1,137 @@
 package webhook
 
 import (
+	"bytes"
+	"fmt"
+	"io"
+	"log/slog"
+	"time"
+
+	"encoding/json"
+	"net/http"
+
+	"pump_fun/internal/logger"
 	"pump_fun/internal/models"
 )
 
-//We are gonna need to implement the same coin struct as in the get tx function, maybe find a package that allows models?
+var (
+	discordWebhookURL string = "https://discord.com/api/webhooks/1234567890/abcdefg"
+)
 
-func FormatCoinInfo(coin models.Coin) string {
-	//Format the coin info
-	return ""
+func SendWebhook(coin *models.Coin) {
+	err := sendDiscordMessage(discordWebhookURL, *coin)
+
+	if err != nil {
+		logger.Log(slog.LevelError, "Error sending discord message", slog.String("error:", err.Error()))
+	}
 }
 
-// copied params from the py implementation adjust them as needed
-func SendTelegramMessage(botToken, chatID, message string) {
-	//Send a message to the telegram bot
+func sendDiscordMessage(webhookURL string, coin models.Coin) error {
+	transport := &http.Transport{
+		IdleConnTimeout: 30 * time.Second,
+	}
+	client := &http.Client{Transport: transport}
+
+	webhook := formatCoinInfo(coin)
+	marshaledWebhook, err := json.Marshal(webhook)
+
+	if err != nil {
+		logger.Log(slog.LevelError, "Error marshalling webhook", slog.String("error:", err.Error()))
+		return err
+	}
+
+	req, err := client.Post(webhookURL, "application/json", bytes.NewBuffer(marshaledWebhook))
+
+	if err != nil {
+		logger.Log(slog.LevelError, "Error sending webhook", slog.String("error:", err.Error()))
+		return err
+	}
+
+	defer req.Body.Close()
+
+	if req.StatusCode != 204 {
+
+		body, err := io.ReadAll(req.Body)
+
+		if err != nil {
+			logger.Log(slog.LevelError, "Error reading response body", slog.String("error:", err.Error()))
+			return err
+		}
+
+		if err := handleError(req, body); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
-func SendDiscordMessage(webhookURL, message string) {
-	//send a essage to the discord webhook
+func formatCoinInfo(coin models.Coin) Webhook {
+	embed := Embeds{
+		Title:  fmt.Sprintf("%s | %s ", coin.CoinData.Name, coin.CoinData.Ticker),
+		URL:    "https://pump.fun/" + coin.CoinData.TokenAddr,
+		Color:  5814783,
+		Fields: generateFields(coin),
+		Author: Author{
+			Name: "New Pairs Monitor",
+		},
+		Thumbnail: Thumbnail{
+			URL: coin.IPFSData.ImageURL,
+		},
+	}
+	webhook := Webhook{
+		Embeds: []Embeds{embed},
+	}
+	return webhook
+
 }
 
-func PostRequest(url string, data interface{}) {
-	// Send a post request to the url with the data
+func generateFields(coin models.Coin) []Fields {
+	fields := []Fields{
+		{
+			Name:  "Mint Address",
+			Value: fmt.Sprintf("`%s`", coin.CoinData.TokenAddr),
+		},
+		{
+			Name:  "Creator Address",
+			Value: fmt.Sprintf("`%s`", coin.CoinData.CreatorAddr),
+		},
+		{
+			Name:   "Dev Holding Amount",
+			Value:  fmt.Sprintf("`%s`", convertDecimalToPercentage(coin.CoinData.DevHoldingAmount)),
+			Inline: true,
+		},
+		{
+			Name:   "Is Unique Coin",
+			Value:  "not developed yet",
+			Inline: true,
+		},
+		{
+			Name:  "Socials",
+			Value: fmt.Sprintf("[Telegram](%s) | [Twitter](%s) | [Website](%s)", coin.IPFSData.TelegramURL, coin.IPFSData.TwitterURL, coin.IPFSData.WebsiteURL),
+		},
+		{
+			Name:  "Links",
+			Value: fmt.Sprintf("[SolScan](%s) | [PumpFun](%s)", "https://solscan.io/token/"+coin.CoinData.TokenAddr, "https://pump.fun/"+coin.CoinData.TokenAddr),
+		},
+	}
+	return fields
+}
+
+func convertDecimalToPercentage(decimal float64) string {
+	return fmt.Sprintf("%.2f%%", decimal*100)
+}
+
+func handleError(req *http.Response, body []byte) error {
+	switch req.StatusCode {
+	case http.StatusUnauthorized:
+		logger.Log(slog.LevelError, "Webhook doesn't exist", slog.String("error", "Unauthorized"), slog.String("url", req.Request.URL.String()))
+		return fmt.Errorf("unauthorized: %s", string(body))
+	case http.StatusTooManyRequests:
+		logger.Log(slog.LevelError, "Webhook rate limited", slog.String("error", "Rate limited"), slog.String("url", req.Request.URL.String()))
+		return fmt.Errorf("rate limited: %s", string(body))
+	default:
+		logger.Log(slog.LevelError, fmt.Sprintf("Error sending webhook, code: %d", req.StatusCode), slog.String("error", string(body)), slog.String("url", req.Request.URL.String()))
+		return fmt.Errorf("error sending webhook, code: %d, body: %s", req.StatusCode, string(body))
+	}
 }

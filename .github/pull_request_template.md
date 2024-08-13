@@ -1,12 +1,11 @@
-# Title
-PR Title
+# [Add PR Title here]
 
-## Commit History
-Commit history/What was achieved in this PR
+## What was Added/Achieved
+What was achieved in this PR/ A brief overview of what you added
 
 ## Check List
 [] - Unit Tests Passed
 [] - Comments Resolved
 [] - Has been reviewed by at least 1 person
 
-Co-Authored by: Mustafa
+Co-Authored by: <Your name here>
