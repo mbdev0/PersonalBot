@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"time"
 
+	"pump_fun/internal/config"
 	"pump_fun/internal/logger"
 
 	"github.com/davecgh/go-spew/spew"
@@ -13,9 +14,9 @@ import (
 	"github.com/gagliardetto/solana-go/rpc/ws"
 )
 
-const (
+var (
 	ctxTimeout = 30 * time.Second
-	ws_url     = "wss://mainnet.helius-rpc.com/"
+	ws_url     = config.GetConfig().WsNode
 )
 
 func LogSubscribe() (err error) {
