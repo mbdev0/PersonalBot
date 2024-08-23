@@ -1,10 +1,16 @@
 package models
 
+type DecodedInstruction struct {
+    Name        string
+    Symbol 		string
+    Uri         string
+}
+
 type MintData struct {
 	Signature        string
 	Name             string
-	Ticker           string
-	IPFS_URL         string
+	Ticker           string // Symbol
+	IPFS_URL         string // URI
 	TokenAddr        string
 	CreatorAddr      string
 	DevHoldingAmount float64
