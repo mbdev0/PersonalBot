@@ -10,12 +10,13 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"pump_fun/internal/config"
 	"pump_fun/internal/logger"
 	"pump_fun/internal/models"
 )
 
 var (
-	discordWebhookURL string = "https://discord.com/api/webhooks/1234567890/abcdefg"
+	discordWebhookURL string = config.GetConfig().Webhook
 )
 
 func SendWebhook(coin *models.Coin) {
