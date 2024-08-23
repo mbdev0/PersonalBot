@@ -24,5 +24,3 @@ func main() {
 	transaction := transactions.GetTransaction("5vQ5yPrGjE6LX5ZoLPCXK6YQtKymXLpeyVqBM6g2NUU86pvSSRVsTMG1FTyeTLPWErqSV8KAT2gD8bmEK6fzFVQg")
 	fmt.Println(transaction)
 }
-
-a
