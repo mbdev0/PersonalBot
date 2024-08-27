@@ -16,7 +16,7 @@ import (
 
 var (
 	ctxTimeout = 30 * time.Second
-	ws_url     = config.GetConfig().WsNode
+	ws_url     = config.GetConfig().WsNode //TODO: Better handling when this is null, throws "panic: runtime error: invalid memory address or nil pointer dereference"
 )
 
 func LogSubscribe() (err error) {
