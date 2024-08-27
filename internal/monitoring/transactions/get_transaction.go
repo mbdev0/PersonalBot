@@ -35,12 +35,12 @@ func getTransaction(signature string) (*solana.Transaction){
 	)
 
 	if err != nil {
-		fmt.Println("Error: ", err)
+		logger.Log(slog.LevelError, "Error getting transaction", slog.String("error: ", err.Error()))
 	}
 
 	transaction, err := solana.TransactionFromDecoder(bin.NewBinDecoder(out.Transaction.GetBinary()))
     if err != nil {
-      panic(err)
+		logger.Log(slog.LevelError, "Error decoding transaction", slog.String("error: ", err.Error()))
     }
 	return transaction
 }
@@ -49,12 +49,12 @@ func decodeCreateTransaction(transaction *solana.Transaction) models.DecodedInst
 	i0 := transaction.Message.Instructions[3]
 	progKey, err := transaction.ResolveProgramIDIndex(i0.ProgramIDIndex)
 	if err != nil {
-		panic(err)
+		logger.Log(slog.LevelError, "Error decoding program ID", slog.String("error: ", err.Error()))
 	}
 
 	accounts, err := i0.ResolveInstructionAccounts(&transaction.Message)
 	if err != nil {
-		panic(err)
+		logger.Log(slog.LevelError, "Error decoding Instruction Accounts", slog.String("error: ", err.Error()))
 	}
   
 	decodedInstruction, err := solana.DecodeInstruction(
@@ -63,7 +63,7 @@ func decodeCreateTransaction(transaction *solana.Transaction) models.DecodedInst
 		i0.Data,
 	  )
 	  if err != nil {
-		panic(err)
+		logger.Log(slog.LevelError, "Error decoding Instructions", slog.String("error: ", err.Error()))
 	  }
 
 	decodedInstructionStruct := mapToStruct(decodedInstruction)
