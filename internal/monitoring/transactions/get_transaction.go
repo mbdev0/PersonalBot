@@ -26,7 +26,13 @@ func getTransaction(signature string) (*solana.Transaction){
 
 	version := uint64(0)
 	out, err := rpcClient.GetTransaction(
-		context.Background(), //TODO: Look at the different context options
+ctxTimeout := 30 * time.Second
+ctx, cancel := context.WithTimeout(context.Background(), ctxTimeout)
+defer cancel()
+
+out, err := rpcClient.GetTransaction(
+		ctx,
+
 		solana.MustSignatureFromBase58(signature),
 		&rpc.GetTransactionOpts{
 			MaxSupportedTransactionVersion: &version,
