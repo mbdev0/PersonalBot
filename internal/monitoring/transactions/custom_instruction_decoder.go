@@ -2,10 +2,8 @@ package transactions
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"io"
-	"strings"
 
 	"github.com/gagliardetto/solana-go"
 )
@@ -16,29 +14,30 @@ type CreateInstructionArgs struct {
     Uri    string
 }
 
-func CustomInstructionDecoder(accounts []*solana.AccountMeta, data []byte) (interface{}, error) {
-    var createInstructionID = [9]byte{24, 30, 200, 40, 5, 28, 7, 119, 24}
-
-    if !bytes.Equal(data[:9], createInstructionID[:]) {
-        return nil, errors.New("invalid instruction identifier")
-    }
-
-    buf := bytes.NewBuffer(data[9:])
-
-    var args CreateInstructionArgs
+func CustomInstructionDecoder(accounts []*solana.AccountMeta, data []byte) (interface{},error) {
+    var createInstructionID = [8]byte{24, 30, 200, 40, 5, 28, 7, 119}
     var err error
 
-    args.Name, err = skipNullsReadStringAndTrimPadding(buf)
+    if !bytes.Equal(data[:8], createInstructionID[:]) {
+        fmt.Println("invalid instruction identifier")
+        return nil, err
+    }
+
+    buf := bytes.NewBuffer(data[8:])
+
+    var args CreateInstructionArgs
+    
+    args.Name,err = readStringWithLengthAtStart(buf)
     if err != nil {
         return nil, err
     }
 
-    args.Symbol, err = skipNullsReadStringAndTrimPadding(buf)
+    args.Symbol,err = readStringWithLengthAtStart(buf)
     if err != nil {
         return nil, err
     }
 
-    args.Uri, err = skipNullsReadStringAndTrimPadding(buf)
+    args.Uri,err = readStringWithLengthAtStart(buf)
     if err != nil {
         return nil, err
     }
@@ -49,20 +48,27 @@ func CustomInstructionDecoder(accounts []*solana.AccountMeta, data []byte) (inte
         "Uri":    args.Uri,
     }
 
-    return result, nil
+    return result, err
 }
 
-func skipNullsReadStringAndTrimPadding(buf *bytes.Buffer) (string, error) {
-    if err := skipLeadingNullBytes(buf); err != nil {
-        return "", err
-    }
-
-    str, err := readNullTerminatedString(buf)
+func readStringWithLengthAtStart(buf *bytes.Buffer) (string, error) {
+    lengthOfString, err := buf.ReadByte()
     if err != nil {
         return "", err
     }
 
-    return strings.TrimSpace(str), nil
+    if err := skipLeadingNullBytes(buf); err != nil {
+        return "", err
+    }
+
+    stringBytes := make([]byte, lengthOfString)
+    _, err = buf.Read(stringBytes)
+    if err != nil {
+        return "", err
+    }
+
+    str := string(stringBytes)
+    return str, nil
 }
 
 func skipLeadingNullBytes(buf *bytes.Buffer) error {

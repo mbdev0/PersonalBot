@@ -67,8 +67,6 @@ func decodeCreateTransaction(transaction *solana.Transaction) models.DecodedInst
 	  }
 
 	decodedInstructionStruct := mapToStruct(decodedInstruction)
-
-	fmt.Println("Decoded Instruction: ", decodedInstructionStruct)
 	return decodedInstructionStruct
 }
 
@@ -81,6 +79,6 @@ func mapToStruct(decodedInstruction interface{}) models.DecodedInstruction {
     return models.DecodedInstruction{
         Name:   decodedInstructionMap["Name"],
         Symbol: decodedInstructionMap["Symbol"],
-        Uri:    decodedInstructionMap["Uri"],
+        IPFS_URL:    decodedInstructionMap["Uri"],
     }
 }
