@@ -69,7 +69,7 @@ func sendDiscordMessage(webhookURL string, coin models.Coin) error {
 
 func formatCoinInfo(coin models.Coin) Webhook {
 	embed := Embeds{
-		Title:  fmt.Sprintf("%s | %s ", coin.CoinData.Name, coin.CoinData.Ticker),
+		Title:  fmt.Sprintf("%s | %s ", coin.CoinData.Name, coin.CoinData.Symbol),
 		URL:    "https://pump.fun/" + coin.CoinData.TokenAddr,
 		Color:  5814783,
 		Fields: generateFields(coin),
