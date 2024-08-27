@@ -3,7 +3,6 @@ package transactions
 import (
 	"bytes"
 	"fmt"
-	"io"
 
     "log/slog"
     "pump_fun/internal/logger"

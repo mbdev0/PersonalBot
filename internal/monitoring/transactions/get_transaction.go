@@ -2,7 +2,7 @@ package transactions
 
 import (
 	"context"
-	"fmt"
+	"time"
 
 	"github.com/gagliardetto/solana-go"
 	"github.com/gagliardetto/solana-go/rpc"
@@ -11,6 +11,8 @@ import (
 
 	bin "github.com/gagliardetto/binary"
 
+	"log/slog"
+	"pump_fun/internal/logger"
 	"pump_fun/internal/models"
 )
 
@@ -25,8 +27,13 @@ func getTransaction(signature string) (*solana.Transaction){
 	rpcClient := solanaclient.NewHttpClient()
 
 	version := uint64(0)
+	ctxTimeout := 30 * time.Second
+    ctx, cancel := context.WithTimeout(context.Background(), ctxTimeout)
+    defer cancel()
+
+
 	out, err := rpcClient.GetTransaction(
-		context.Background(), //TODO: Look at the different context options
+		ctx,
 		solana.MustSignatureFromBase58(signature),
 		&rpc.GetTransactionOpts{
 			MaxSupportedTransactionVersion: &version,
