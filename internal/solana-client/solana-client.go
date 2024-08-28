@@ -7,7 +7,7 @@ import (
 	"golang.org/x/time/rate"
 )
 
-var httpNodeEndpoint string = rpc.MainNetBeta.RPC 	// change as needed -> temporary solution until we have a config file set up
+var httpNodeEndpoint string = rpc.MainNetBeta.RPC // change as needed -> temporary solution until we have a config file set up
 
 func NewHttpClient() *rpc.Client {
 	rpcClient := rpc.NewWithCustomRPCClient(rpc.NewWithLimiter(

@@ -2,7 +2,6 @@ package logsubscribe
 
 import (
 	"context"
-	"log/slog"
 	"time"
 
 	"pump_fun/internal/config"
@@ -25,7 +24,7 @@ func LogSubscribe() (err error) {
 
 	client, err := ws.Connect(ctx, ws_url)
 	if err != nil {
-		logger.Log(slog.LevelError, "Error connecting to websocket", slog.String("error", err.Error()))
+		logger.Log(logger.LevelError, "Error connecting to websocket", logger.String("error", err.Error()))
 		return err
 	}
 
@@ -37,7 +36,7 @@ func LogSubscribe() (err error) {
 			rpc.CommitmentConfirmed)
 
 		if err != nil {
-			logger.Log(slog.LevelError, "Error subscribing to logs", slog.String("error", err.Error()))
+			logger.Log(logger.LevelError, "Error subscribing to logs", logger.String("error", err.Error()))
 			return err
 		}
 
@@ -46,7 +45,7 @@ func LogSubscribe() (err error) {
 		for {
 			msg, err := sub.Recv()
 			if err != nil {
-				logger.Log(slog.LevelError, "Error while streaming logs", slog.String("error", err.Error()))
+				logger.Log(logger.LevelError, "Error while streaming logs", logger.String("error", err.Error()))
 			}
 
 			if msg.Value.Err == nil {

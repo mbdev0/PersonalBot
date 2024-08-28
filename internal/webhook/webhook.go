@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"log/slog"
 	"time"
 
 	"encoding/json"
@@ -23,7 +22,7 @@ func SendWebhook(coin *models.Coin) {
 	err := sendDiscordMessage(discordWebhookURL, *coin)
 
 	if err != nil {
-		logger.Log(slog.LevelError, "Error sending discord message", slog.String("error:", err.Error()))
+		logger.Log(logger.LevelError, "Error sending discord message", logger.String("error:", err.Error()))
 	}
 }
 
@@ -37,14 +36,14 @@ func sendDiscordMessage(webhookURL string, coin models.Coin) error {
 	marshaledWebhook, err := json.Marshal(webhook)
 
 	if err != nil {
-		logger.Log(slog.LevelError, "Error marshalling webhook", slog.String("error:", err.Error()))
+		logger.Log(logger.LevelError, "Error marshalling webhook", logger.String("error:", err.Error()))
 		return err
 	}
 
 	req, err := client.Post(webhookURL, "application/json", bytes.NewBuffer(marshaledWebhook))
 
 	if err != nil {
-		logger.Log(slog.LevelError, "Error sending webhook", slog.String("error:", err.Error()))
+		logger.Log(logger.LevelError, "Error sending webhook", logger.String("error:", err.Error()))
 		return err
 	}
 
@@ -55,7 +54,7 @@ func sendDiscordMessage(webhookURL string, coin models.Coin) error {
 		body, err := io.ReadAll(req.Body)
 
 		if err != nil {
-			logger.Log(slog.LevelError, "Error reading response body", slog.String("error:", err.Error()))
+			logger.Log(logger.LevelError, "Error reading response body", logger.String("error:", err.Error()))
 			return err
 		}
 
@@ -126,13 +125,13 @@ func convertDecimalToPercentage(decimal float64) string {
 func handleError(req *http.Response, body []byte) error {
 	switch req.StatusCode {
 	case http.StatusUnauthorized:
-		logger.Log(slog.LevelError, "Webhook doesn't exist", slog.String("error", "Unauthorized"), slog.String("url", req.Request.URL.String()))
+		logger.Log(logger.LevelError, "Webhook doesn't exist", logger.String("error", "Unauthorized"), logger.String("url", req.Request.URL.String()))
 		return fmt.Errorf("unauthorized: %s", string(body))
 	case http.StatusTooManyRequests:
-		logger.Log(slog.LevelError, "Webhook rate limited", slog.String("error", "Rate limited"), slog.String("url", req.Request.URL.String()))
+		logger.Log(logger.LevelError, "Webhook rate limited", logger.String("error", "Rate limited"), logger.String("url", req.Request.URL.String()))
 		return fmt.Errorf("rate limited: %s", string(body))
 	default:
-		logger.Log(slog.LevelError, fmt.Sprintf("Error sending webhook, code: %d", req.StatusCode), slog.String("error", string(body)), slog.String("url", req.Request.URL.String()))
+		logger.Log(logger.LevelError, fmt.Sprintf("Error sending webhook, code: %d", req.StatusCode), logger.String("error", string(body)), logger.String("url", req.Request.URL.String()))
 		return fmt.Errorf("error sending webhook, code: %d, body: %s", req.StatusCode, string(body))
 	}
 }

@@ -2,7 +2,6 @@ package config
 
 import (
 	"encoding/json"
-	"log/slog"
 	"os"
 	"pump_fun/internal/logger"
 )
@@ -12,12 +11,12 @@ var config *Config
 func LoadConfig() error {
 	file, err := os.ReadFile("configuration/config.json")
 	if err != nil {
-		logger.Log(slog.LevelError, "Error reading config file", slog.String("error: ", err.Error()))
+		logger.Log(logger.LevelError, "Error reading config file", logger.String("error: ", err.Error()))
 		return err
 	}
 	err = json.Unmarshal(file, &config)
 	if err != nil {
-		logger.Log(slog.LevelError, "Error unmarshalling config file", slog.String("error: ", err.Error()))
+		logger.Log(logger.LevelError, "Error unmarshalling config file", logger.String("error: ", err.Error()))
 		return err
 	}
 	return nil
