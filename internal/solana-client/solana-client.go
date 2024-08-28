@@ -1,13 +1,14 @@
 package solanaclient
 
 import (
+	"pump_fun/internal/config"
 	"time"
 
 	"github.com/gagliardetto/solana-go/rpc"
 	"golang.org/x/time/rate"
 )
 
-var httpNodeEndpoint string = rpc.MainNetBeta.RPC 	// change as needed -> temporary solution until we have a config file set up
+var httpNodeEndpoint string = config.GetConfig().HttpNode
 
 func NewHttpClient() *rpc.Client {
 	rpcClient := rpc.NewWithCustomRPCClient(rpc.NewWithLimiter(

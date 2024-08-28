@@ -21,6 +21,10 @@ func main() {
 
 	monitoring.StartMonitor()
 
-	transaction := transactions.GetTransaction("5vQ5yPrGjE6LX5ZoLPCXK6YQtKymXLpeyVqBM6g2NUU86pvSSRVsTMG1FTyeTLPWErqSV8KAT2gD8bmEK6fzFVQg")
+	transaction, err := transactions.GetTransaction("5vQ5yPrGjE6LX5ZoLPCXK6YQtKymXLpeyVqBM6g2NUU86pvSSRVsTMG1FTyeTLPWErqSV8KAT2gD8bmEK6fzFVQg")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 	fmt.Println(transaction)
 }
