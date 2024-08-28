@@ -12,7 +12,7 @@ func HandleTransaction(signature string) {
 	temp_coin := models.Coin{
 		CoinData: models.MintData{
 			Name:     "PumpFun",
-			Ticker:   "PUMP",
+			Symbol:   "PUMP",
 			IPFS_URL: "https://ipfs.io/ipfs/QmZ4tZ",
 		},
 		IPFSData: models.IPFS{

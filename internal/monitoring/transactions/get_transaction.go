@@ -2,32 +2,38 @@ package transactions
 
 import (
 	"context"
-	"fmt"
+	"time"
 
 	"github.com/gagliardetto/solana-go"
 	"github.com/gagliardetto/solana-go/rpc"
 
 	solanaclient "pump_fun/internal/solana-client"
+
+	bin "github.com/gagliardetto/binary"
+
+	"log/slog"
+	"pump_fun/internal/logger"
+	"pump_fun/internal/models"
 )
 
-func GetTransaction(signature string) {
-	transaction, err := getTransaction(signature)
-	if err != nil {
-		fmt.Println("Error: ", err)
-	}
-	instruction_data, err := getMintInstructionData(transaction)
-	fmt.Println("instruction_data: ", instruction_data)
-	// ipfs := getIPFS(coin.Ipfs)
-	// combine the coin and ipfs struct into TransactionData struct and return
+func GetTransaction(signature string) models.DecodedInstruction {
+	programID := solana.MustPublicKeyFromBase58("6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P")
+    solana.RegisterInstructionDecoder(programID, CustomInstructionDecoder)
+	transaction := getTransaction(signature)
+	return decodeCreateTransaction(transaction)
 }
 
-// TODO: Refactor the return type to make it reusable in the future, its currently coupled to the rpc package
-func getTransaction(signature string) (*rpc.GetTransactionResult, error) {
+func getTransaction(signature string) (*solana.Transaction){
 	rpcClient := solanaclient.NewHttpClient()
 
 	version := uint64(0)
-	transaction, err := rpcClient.GetTransaction(
-		context.Background(),
+	ctxTimeout := 30 * time.Second
+    ctx, cancel := context.WithTimeout(context.Background(), ctxTimeout)
+    defer cancel()
+
+
+	out, err := rpcClient.GetTransaction(
+		ctx,
 		solana.MustSignatureFromBase58(signature),
 		&rpc.GetTransactionOpts{
 			MaxSupportedTransactionVersion: &version,
@@ -36,26 +42,50 @@ func getTransaction(signature string) (*rpc.GetTransactionResult, error) {
 	)
 
 	if err != nil {
-		return nil, err
+		logger.Log(slog.LevelError, "Error getting transaction", slog.String("error: ", err.Error()))
 	}
 
-	return transaction, nil
+	transaction, err := solana.TransactionFromDecoder(bin.NewBinDecoder(out.Transaction.GetBinary()))
+    if err != nil {
+		logger.Log(slog.LevelError, "Error decoding transaction", slog.String("error: ", err.Error()))
+    }
+	return transaction
 }
 
-// TODO: Refactor the return type to make it reusable in the future, its currently coupled to the solana package
-func getMintInstructionData(transaction *rpc.GetTransactionResult) ([]solana.CompiledInstruction, error) {
-	parsed, err := transaction.Transaction.GetTransaction()
+func decodeCreateTransaction(transaction *solana.Transaction) models.DecodedInstruction {
+	i0 := transaction.Message.Instructions[3]
+	progKey, err := transaction.ResolveProgramIDIndex(i0.ProgramIDIndex)
 	if err != nil {
-		return nil, err
+		logger.Log(slog.LevelError, "Error decoding program ID", slog.String("error: ", err.Error()))
 	}
 
-	return parsed.Message.Instructions, nil
+	accounts, err := i0.ResolveInstructionAccounts(&transaction.Message)
+	if err != nil {
+		logger.Log(slog.LevelError, "Error decoding Instruction Accounts", slog.String("error: ", err.Error()))
+	}
+  
+	decodedInstruction, err := solana.DecodeInstruction(
+		progKey,
+		accounts,
+		i0.Data,
+	  )
+	  if err != nil {
+		logger.Log(slog.LevelError, "Error decoding Instructions", slog.String("error: ", err.Error()))
+	  }
+
+	decodedInstructionStruct := mapToStruct(decodedInstruction)
+	return decodedInstructionStruct
 }
 
-func parseInstructionData(instruction_data string) {
-	// logic to parse the instruction data into a coin struct
-}
+func mapToStruct(decodedInstruction interface{}) models.DecodedInstruction {
+	decodedInstructionMap, ok := decodedInstruction.(map[string]string)
+	if !ok {
+		panic("decodedInstruction is not of type map[string]string")
+	}
 
-func getIPFS(ipfs_url string) {
-	// logic to parse the instruction data into a coin struct
+    return models.DecodedInstruction{
+        Name:   decodedInstructionMap["Name"],
+        Symbol: decodedInstructionMap["Symbol"],
+        IPFS_URL:    decodedInstructionMap["Uri"],
+    }
 }
