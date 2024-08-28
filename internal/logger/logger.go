@@ -3,6 +3,7 @@ package logger
 import (
 	"context"
 	"fmt"
+	"io"
 	"log/slog"
 	"os"
 	"runtime"
@@ -13,7 +14,13 @@ var (
 )
 
 func initSLog() {
-	jsonHandler := slog.NewJSONHandler(os.Stderr, nil)
+	f, err := os.OpenFile("logs.log", os.O_RDWR|os.O_CREATE, 0666)
+	if err != nil {
+		jsonHandler := slog.NewJSONHandler(os.Stderr, nil)
+		slogLogger = slog.New(jsonHandler)
+		return
+	}
+	jsonHandler := slog.NewJSONHandler(io.MultiWriter(os.Stderr, f), nil)
 	slogLogger = slog.New(jsonHandler)
 }
 
@@ -21,13 +28,24 @@ func getLogger() *slog.Logger {
 	if slogLogger == nil {
 		initSLog()
 	}
+	slog.SetDefault(slogLogger)
 	return slogLogger
 }
 
 func Log(level slog.Level, msg string, attrs ...slog.Attr) {
 	pc, file, line, ok := runtime.Caller(1)
 	if ok && level == slog.LevelError {
-		attrs[len(attrs)-1] = slog.String("Stack:", fmt.Sprintf("%s File:%s:%d", runtime.FuncForPC(pc).Name(), file, line))
+
+		var lastElement int
+		if len(attrs) == 0 {
+			lastElement = 0
+			attrs = make([]slog.Attr, 1)
+		} else {
+			lastElement = len(attrs) - 1
+		}
+
+		attrs[lastElement] = String("Stack:", fmt.Sprintf("%s File:%s:%d", runtime.FuncForPC(pc).Name(), file, line))
 	}
+
 	getLogger().LogAttrs(context.Background(), level, msg, attrs...)
 }
