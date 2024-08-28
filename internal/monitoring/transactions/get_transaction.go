@@ -16,7 +16,7 @@ import (
 	"pump_fun/internal/models"
 )
 
-func GetTransaction(signature string) interface{}{
+func GetTransaction(signature string) models.DecodedInstruction {
 	programID := solana.MustPublicKeyFromBase58("6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P")
     solana.RegisterInstructionDecoder(programID, CustomInstructionDecoder)
 	transaction := getTransaction(signature)
