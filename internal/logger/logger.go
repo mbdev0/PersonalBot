@@ -18,7 +18,7 @@ func initSLog() {
 	if err != nil {
 		jsonHandler := slog.NewJSONHandler(os.Stderr, nil)
 		slogLogger = slog.New(jsonHandler)
-		return
+		Log(slog.LevelError, "Error opening log file", String("error:", err.Error()))
 	}
 	jsonHandler := slog.NewJSONHandler(io.MultiWriter(os.Stderr, f), nil)
 	slogLogger = slog.New(jsonHandler)
@@ -41,10 +41,10 @@ func Log(level slog.Level, msg string, attrs ...slog.Attr) {
 			lastElement = 0
 			attrs = make([]slog.Attr, 1)
 		} else {
+			attrs = append(attrs, slog.Attr{})
 			lastElement = len(attrs) - 1
 		}
-
-		attrs[lastElement] = String("Stack:", fmt.Sprintf("%s File:%s:%d", runtime.FuncForPC(pc).Name(), file, line))
+		attrs[lastElement] = String("stack:", fmt.Sprintf("%s File:%s:%d", runtime.FuncForPC(pc).Name(), file, line))
 	}
 
 	getLogger().LogAttrs(context.Background(), level, msg, attrs...)
