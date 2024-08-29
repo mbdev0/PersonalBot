@@ -24,7 +24,7 @@ func LogSubscribe() (err error) {
 
 	client, err := ws.Connect(ctx, ws_url)
 	if err != nil {
-		logger.Log(logger.LevelError, "Error connecting to websocket", logger.String("error", err.Error()))
+		logger.Log(logger.LevelError, "Error connecting to websocket", logger.Error(err))
 		return err
 	}
 
@@ -36,7 +36,7 @@ func LogSubscribe() (err error) {
 			rpc.CommitmentConfirmed)
 
 		if err != nil {
-			logger.Log(logger.LevelError, "Error subscribing to logs", logger.String("error", err.Error()))
+			logger.Log(logger.LevelError, "Error subscribing to logs", logger.Error(err))
 			return err
 		}
 
@@ -45,7 +45,7 @@ func LogSubscribe() (err error) {
 		for {
 			msg, err := sub.Recv()
 			if err != nil {
-				logger.Log(logger.LevelError, "Error while streaming logs", logger.String("error", err.Error()))
+				logger.Log(logger.LevelError, "Error while streaming logs", logger.Error(err))
 			}
 
 			if msg.Value.Err == nil {

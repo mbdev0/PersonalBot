@@ -22,7 +22,7 @@ func SendWebhook(coin *models.Coin) {
 	err := sendDiscordMessage(discordWebhookURL, *coin)
 
 	if err != nil {
-		logger.Log(logger.LevelError, "Error sending discord message", logger.String("error:", err.Error()))
+		logger.Log(logger.LevelError, "Error sending discord message", logger.Error(err))
 	}
 }
 
@@ -36,14 +36,14 @@ func sendDiscordMessage(webhookURL string, coin models.Coin) error {
 	marshaledWebhook, err := json.Marshal(webhook)
 
 	if err != nil {
-		logger.Log(logger.LevelError, "Error marshalling webhook", logger.String("error:", err.Error()))
+		logger.Log(logger.LevelError, "Error marshalling webhook", logger.Error(err))
 		return err
 	}
 
 	req, err := client.Post(webhookURL, "application/json", bytes.NewBuffer(marshaledWebhook))
 
 	if err != nil {
-		logger.Log(logger.LevelError, "Error sending webhook", logger.String("error:", err.Error()))
+		logger.Log(logger.LevelError, "Error sending webhook", logger.Error(err))
 		return err
 	}
 
@@ -54,7 +54,7 @@ func sendDiscordMessage(webhookURL string, coin models.Coin) error {
 		body, err := io.ReadAll(req.Body)
 
 		if err != nil {
-			logger.Log(logger.LevelError, "Error reading response body", logger.String("error:", err.Error()))
+			logger.Log(logger.LevelError, "Error reading response body", logger.Error(err))
 			return err
 		}
 
