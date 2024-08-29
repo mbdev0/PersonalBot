@@ -7,13 +7,16 @@ import (
 )
 
 func HandleTransaction(signature string) {
-	transactions.GetTransaction(signature)
+	result, err := transactions.GetTransaction(signature)
+	if err != nil {
+		return
+	}
 
 	temp_coin := models.Coin{
 		CoinData: models.MintData{
-			Name:     "PumpFun",
-			Symbol:   "PUMP",
-			IPFS_URL: "https://ipfs.io/ipfs/QmZ4tZ",
+			Name:     result.Name,
+			Symbol:   result.Symbol,
+			IPFS_URL: result.IPFS_URL,
 		},
 		IPFSData: models.IPFS{
 			TelegramURL: "https://t.me/pumpfun",

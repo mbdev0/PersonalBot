@@ -15,14 +15,14 @@ import (
 	"pump_fun/internal/models"
 )
 
-func GetTransaction(signature string) models.DecodedInstruction {
+func GetTransaction(signature string) (models.DecodedInstruction, error) {
 	programID := solana.MustPublicKeyFromBase58("6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P")
 	solana.RegisterInstructionDecoder(programID, CustomInstructionDecoder)
 	transaction := getTransaction(signature)
 	return decodeCreateTransaction(transaction)
 }
 
-func getTransaction(signature string) *solana.Transaction {
+func getTransaction(signature string) (*solana.Transaction, error) {
 	rpcClient := solanaclient.NewHttpClient()
 
 	version := uint64(0)
@@ -40,14 +40,17 @@ func getTransaction(signature string) *solana.Transaction {
 	)
 
 	if err != nil {
+
 		logger.Log(logger.LevelError, "Error getting transaction", logger.Error(err))
+		return nil, err
 	}
 
 	transaction, err := solana.TransactionFromDecoder(bin.NewBinDecoder(out.Transaction.GetBinary()))
 	if err != nil {
 		logger.Log(logger.LevelError, "Error decoding transaction", logger.Error(err))
+		return nil, err
 	}
-	return transaction
+	return transaction, nil
 }
 
 func decodeCreateTransaction(transaction *solana.Transaction) models.DecodedInstruction {
