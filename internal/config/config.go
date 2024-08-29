@@ -24,5 +24,12 @@ func LoadConfig() error {
 }
 
 func GetConfig() *Config {
+	if config == nil {
+		err := LoadConfig()
+		if err != nil {
+			logger.Log(slog.LevelError, "Error loading config", slog.String("error: ", err.Error()))
+		}
+		return config
+	}
 	return config
 }

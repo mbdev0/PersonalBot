@@ -16,21 +16,25 @@ import (
 	"pump_fun/internal/models"
 )
 
-func GetTransaction(signature string) models.DecodedInstruction {
+func GetTransaction(signature string) (models.DecodedInstruction, error) {
 	programID := solana.MustPublicKeyFromBase58("6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P")
-    solana.RegisterInstructionDecoder(programID, CustomInstructionDecoder)
-	transaction := getTransaction(signature)
-	return decodeCreateTransaction(transaction)
+	solana.RegisterInstructionDecoder(programID, CustomInstructionDecoder)
+	transaction, err := getTransaction(signature)
+
+	if err != nil {
+		return models.DecodedInstruction{}, err
+	}
+
+	return decodeCreateTransaction(transaction), nil
 }
 
-func getTransaction(signature string) (*solana.Transaction){
+func getTransaction(signature string) (*solana.Transaction, error) {
 	rpcClient := solanaclient.NewHttpClient()
 
 	version := uint64(0)
 	ctxTimeout := 30 * time.Second
-    ctx, cancel := context.WithTimeout(context.Background(), ctxTimeout)
-    defer cancel()
-
+	ctx, cancel := context.WithTimeout(context.Background(), ctxTimeout)
+	defer cancel()
 
 	out, err := rpcClient.GetTransaction(
 		ctx,
@@ -43,13 +47,15 @@ func getTransaction(signature string) (*solana.Transaction){
 
 	if err != nil {
 		logger.Log(slog.LevelError, "Error getting transaction", slog.String("error: ", err.Error()))
+		return nil, err
 	}
 
 	transaction, err := solana.TransactionFromDecoder(bin.NewBinDecoder(out.Transaction.GetBinary()))
-    if err != nil {
+	if err != nil {
 		logger.Log(slog.LevelError, "Error decoding transaction", slog.String("error: ", err.Error()))
-    }
-	return transaction
+		return nil, err
+	}
+	return transaction, nil
 }
 
 func decodeCreateTransaction(transaction *solana.Transaction) models.DecodedInstruction {
@@ -63,15 +69,15 @@ func decodeCreateTransaction(transaction *solana.Transaction) models.DecodedInst
 	if err != nil {
 		logger.Log(slog.LevelError, "Error decoding Instruction Accounts", slog.String("error: ", err.Error()))
 	}
-  
+
 	decodedInstruction, err := solana.DecodeInstruction(
 		progKey,
 		accounts,
 		i0.Data,
-	  )
-	  if err != nil {
+	)
+	if err != nil {
 		logger.Log(slog.LevelError, "Error decoding Instructions", slog.String("error: ", err.Error()))
-	  }
+	}
 
 	decodedInstructionStruct := mapToStruct(decodedInstruction)
 	return decodedInstructionStruct
@@ -83,9 +89,9 @@ func mapToStruct(decodedInstruction interface{}) models.DecodedInstruction {
 		panic("decodedInstruction is not of type map[string]string")
 	}
 
-    return models.DecodedInstruction{
-        Name:   decodedInstructionMap["Name"],
-        Symbol: decodedInstructionMap["Symbol"],
-        IPFS_URL:    decodedInstructionMap["Uri"],
-    }
+	return models.DecodedInstruction{
+		Name:     decodedInstructionMap["Name"],
+		Symbol:   decodedInstructionMap["Symbol"],
+		IPFS_URL: decodedInstructionMap["Uri"],
+	}
 }
