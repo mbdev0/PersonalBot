@@ -18,8 +18,13 @@ import (
 func GetTransaction(signature string) (models.DecodedInstruction, error) {
 	programID := solana.MustPublicKeyFromBase58("6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P")
 	solana.RegisterInstructionDecoder(programID, CustomInstructionDecoder)
-	transaction := getTransaction(signature)
-	return decodeCreateTransaction(transaction)
+	transaction, err := getTransaction(signature)
+
+	if err != nil {
+		return models.DecodedInstruction{}, err
+	}
+
+	return decodeCreateTransaction(transaction), nil
 }
 
 func getTransaction(signature string) (*solana.Transaction, error) {
