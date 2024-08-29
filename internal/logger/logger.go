@@ -18,7 +18,7 @@ func initSLog() {
 	if err != nil {
 		jsonHandler := slog.NewJSONHandler(os.Stderr, nil)
 		slogLogger = slog.New(jsonHandler)
-		Log(slog.LevelError, "Error opening log file", String("error:", err.Error()))
+		Log(slog.LevelError, "Error opening log file", Error(err))
 	}
 	jsonHandler := slog.NewJSONHandler(io.MultiWriter(os.Stderr, f), nil)
 	slogLogger = slog.New(jsonHandler)
