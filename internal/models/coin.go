@@ -1,9 +1,9 @@
 package models
 
 type DecodedInstruction struct {
-    Name        string
-    Symbol 		string
-    IPFS_URL    string
+	Name     string
+	Symbol   string
+	IPFS_URL string
 }
 
 type MintData struct {

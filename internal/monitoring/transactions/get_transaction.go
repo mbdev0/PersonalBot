@@ -11,7 +11,6 @@ import (
 
 	bin "github.com/gagliardetto/binary"
 
-	"log/slog"
 	"pump_fun/internal/logger"
 	"pump_fun/internal/models"
 )
@@ -46,13 +45,14 @@ func getTransaction(signature string) (*solana.Transaction, error) {
 	)
 
 	if err != nil {
-		logger.Log(slog.LevelError, "Error getting transaction", slog.String("error: ", err.Error()))
+
+		logger.Log(logger.LevelError, "Error getting transaction", logger.Error(err))
 		return nil, err
 	}
 
 	transaction, err := solana.TransactionFromDecoder(bin.NewBinDecoder(out.Transaction.GetBinary()))
 	if err != nil {
-		logger.Log(slog.LevelError, "Error decoding transaction", slog.String("error: ", err.Error()))
+		logger.Log(logger.LevelError, "Error decoding transaction", logger.Error(err))
 		return nil, err
 	}
 	return transaction, nil
@@ -62,12 +62,12 @@ func decodeCreateTransaction(transaction *solana.Transaction) models.DecodedInst
 	i0 := transaction.Message.Instructions[3]
 	progKey, err := transaction.ResolveProgramIDIndex(i0.ProgramIDIndex)
 	if err != nil {
-		logger.Log(slog.LevelError, "Error decoding program ID", slog.String("error: ", err.Error()))
+		logger.Log(logger.LevelError, "Error decoding program ID", logger.Error(err))
 	}
 
 	accounts, err := i0.ResolveInstructionAccounts(&transaction.Message)
 	if err != nil {
-		logger.Log(slog.LevelError, "Error decoding Instruction Accounts", slog.String("error: ", err.Error()))
+		logger.Log(logger.LevelError, "Error decoding Instruction Accounts", logger.Error(err))
 	}
 
 	decodedInstruction, err := solana.DecodeInstruction(
@@ -76,7 +76,7 @@ func decodeCreateTransaction(transaction *solana.Transaction) models.DecodedInst
 		i0.Data,
 	)
 	if err != nil {
-		logger.Log(slog.LevelError, "Error decoding Instructions", slog.String("error: ", err.Error()))
+		logger.Log(logger.LevelError, "Error decoding Instructions", logger.Error(err))
 	}
 
 	decodedInstructionStruct := mapToStruct(decodedInstruction)
