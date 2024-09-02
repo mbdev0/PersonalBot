@@ -7,6 +7,7 @@ import (
 	"github.com/gagliardetto/solana-go"
 	"github.com/gagliardetto/solana-go/rpc"
 
+	"pump_fun/internal/models"
 	solanaclient "pump_fun/internal/solana-client"
 
 	bin "github.com/gagliardetto/binary"
@@ -78,4 +79,25 @@ func DecodeInstruction(i0 solana.CompiledInstruction, transaction *solana.Transa
 	}
 
 	return decodedInstruction
+}
+
+// TODO: Remove DecodedInstruction and update this to be parse to MintData
+func ParseTransaction(transaction *solana.Transaction) models.DecodedInstruction {
+	i0 := transaction.Message.Instructions[3]
+	decodedInstruction := DecodeInstruction(i0, transaction)
+	decodedInstructionStruct := mapToStruct(decodedInstruction)
+	return decodedInstructionStruct
+}
+
+func mapToStruct(decodedInstruction interface{}) models.DecodedInstruction {
+	decodedInstructionMap, ok := decodedInstruction.(map[string]string)
+	if !ok {
+		panic("decodedInstruction is not of type map[string]string")
+	}
+
+	return models.DecodedInstruction{
+		Name:     decodedInstructionMap["Name"],
+		Symbol:   decodedInstructionMap["Symbol"],
+		IPFS_URL: decodedInstructionMap["IPFS_URL"],
+	}
 }

@@ -11,7 +11,7 @@ func HandleTransaction(signature string) {
 	if err != nil {
 		return
 	}
-	result := transactions.GetCreateTransaction(transaction)
+	result := transactions.ParseTransaction(transaction)
 
 	temp_coin := models.Coin{
 		CoinData: models.MintData{
