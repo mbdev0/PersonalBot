@@ -8,7 +8,7 @@ import (
 	"github.com/gagliardetto/solana-go"
 )
 
-func DecodeCreateTransaction(transaction *solana.Transaction) models.DecodedInstruction {
+func GetCreateTransaction(transaction *solana.Transaction) models.DecodedInstruction {
 	i0 := transaction.Message.Instructions[3]
 	decodedInstruction := DecodeInstruction(i0, transaction)
 	decodedInstructionStruct := mapToStruct(decodedInstruction)
