@@ -1,58 +1,41 @@
 package transactions
 
 import (
-	"bytes"
-	"fmt"
-
+	"errors"
 	"pump_fun/internal/logger"
 
 	"github.com/gagliardetto/solana-go"
 )
 
-// TODO: Remove this duplication
-type CreateInstructionArgs struct {
-	Name   string
-	Symbol string
-	Uri    string
+type InstructionDecoder func(accounts []*solana.AccountMeta, data []byte) (interface{}, error)
+
+type CustomInstructionDecoderDecider struct {
+	Decoders map[[8]byte]InstructionDecoder
+}
+
+func (c *CustomInstructionDecoderDecider) GetDecodeInstruction(key [8]byte) (InstructionDecoder, error) {
+	decoder, ok := c.Decoders[key]
+	if ok {
+		return decoder, nil
+	}
+	return nil, errors.New("strategy not found")
 }
 
 func CustomInstructionDecoder(accounts []*solana.AccountMeta, data []byte) (interface{}, error) {
-	var createInstructionID = [8]byte{24, 30, 200, 40, 5, 28, 7, 119}
-	var err error
-
-	if !bytes.Equal(data[:8], createInstructionID[:]) {
-		logger.Log(logger.LevelInfo, "Invalid instruction identifier")
-		return nil, fmt.Errorf("invalid instruction identifier")
-
+	decoders := CustomInstructionDecoderDecider{
+		Decoders: map[[8]byte]InstructionDecoder{
+			{24, 30, 200, 40, 5, 28, 7, 119}: CreateInstructionDecoder, //TODO: Add a buy instruction decoder in next PR
+		},
 	}
 
-	buf := bytes.NewBuffer(data[8:])
+	// Convert []byte to [8]byte, TODO: Find a better fix for this
+	var key [8]byte
+	copy(key[:], data[:8])
 
-	var args CreateInstructionArgs
-
-	args.Name, err = readStringWithLengthAtStart(buf)
+	decoderStrategy, err := decoders.GetDecodeInstruction(key)
 	if err != nil {
-		logger.Log(logger.LevelError, "Error reading the Name", logger.Error(err))
+		logger.Log(logger.LevelWarn, "Strategy not found for: "+string(key[:]), logger.Error(err))
 		return nil, err
 	}
-
-	args.Symbol, err = readStringWithLengthAtStart(buf)
-	if err != nil {
-		logger.Log(logger.LevelError, "Error reading the Symbol", logger.Error(err))
-		return nil, err
-	}
-
-	args.Uri, err = readStringWithLengthAtStart(buf)
-	if err != nil {
-		logger.Log(logger.LevelError, "Error reading the URI", logger.Error(err))
-		return nil, err
-	}
-
-	result := map[string]string{
-		"Name":   args.Name,
-		"Symbol": args.Symbol,
-		"Uri":    args.Uri,
-	}
-
-	return result, err
+	return decoderStrategy(accounts, data)
 }
