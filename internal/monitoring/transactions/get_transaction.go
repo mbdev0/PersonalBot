@@ -15,16 +15,16 @@ import (
 	"pump_fun/internal/models"
 )
 
-func GetTransaction(signature string) (models.DecodedInstruction, error) {
+func GetTransaction(signature string) (*solana.Transaction, error) {
 	programID := solana.MustPublicKeyFromBase58("6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P")
 	solana.RegisterInstructionDecoder(programID, CustomInstructionDecoder)
 	transaction, err := getTransaction(signature)
 
 	if err != nil {
-		return models.DecodedInstruction{}, err
+		return nil, err
 	}
 
-	return decodeCreateTransaction(transaction), nil
+	return transaction, nil
 }
 
 func getTransaction(signature string) (*solana.Transaction, error) {
@@ -58,7 +58,7 @@ func getTransaction(signature string) (*solana.Transaction, error) {
 	return transaction, nil
 }
 
-func decodeCreateTransaction(transaction *solana.Transaction) models.DecodedInstruction {
+func DecodeCreateTransaction(transaction *solana.Transaction) models.DecodedInstruction {
 	i0 := transaction.Message.Instructions[3]
 	progKey, err := transaction.ResolveProgramIDIndex(i0.ProgramIDIndex)
 	if err != nil {

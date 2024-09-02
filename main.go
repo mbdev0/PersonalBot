@@ -26,5 +26,6 @@ func main() {
 		fmt.Println(err)
 		return
 	}
-	fmt.Println(transaction)
+	decodedTransaction := transactions.DecodeCreateTransaction(transaction)
+	fmt.Println(decodedTransaction)
 }
