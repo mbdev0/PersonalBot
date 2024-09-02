@@ -58,8 +58,7 @@ func getTransaction(signature string) (*solana.Transaction, error) {
 	return transaction, nil
 }
 
-func DecodeCreateTransaction(transaction *solana.Transaction) models.DecodedInstruction {
-	i0 := transaction.Message.Instructions[3]
+func DecodeInstruction(i0 solana.CompiledInstruction, transaction *solana.Transaction) interface{} {
 	progKey, err := transaction.ResolveProgramIDIndex(i0.ProgramIDIndex)
 	if err != nil {
 		logger.Log(logger.LevelError, "Error decoding program ID", logger.Error(err))
@@ -79,6 +78,12 @@ func DecodeCreateTransaction(transaction *solana.Transaction) models.DecodedInst
 		logger.Log(logger.LevelError, "Error decoding Instructions", logger.Error(err))
 	}
 
+	return decodedInstruction
+}
+
+func DecodeCreateTransaction(transaction *solana.Transaction) models.DecodedInstruction {
+	i0 := transaction.Message.Instructions[3]
+	decodedInstruction := DecodeInstruction(i0, transaction)
 	decodedInstructionStruct := mapToStruct(decodedInstruction)
 	return decodedInstructionStruct
 }
