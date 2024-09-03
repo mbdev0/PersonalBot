@@ -14,11 +14,10 @@ import (
 	"pump_fun/internal/models"
 )
 
-var (
-	discordWebhookURL string = config.GetConfig().Webhook
-)
-
 func SendWebhook(coin *models.Coin) {
+
+	discordWebhookURL := config.GetConfig().Webhook
+
 	err := sendDiscordMessage(discordWebhookURL, *coin)
 
 	if err != nil {
