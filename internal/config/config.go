@@ -27,6 +27,7 @@ func GetConfig() *Config {
 		err := LoadConfig()
 		if err != nil {
 			logger.Log(logger.LevelError, "Error loading config", logger.Error(err))
+			return &Config{}
 		}
 		return config
 	}
