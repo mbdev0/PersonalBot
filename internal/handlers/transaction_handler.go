@@ -7,11 +7,10 @@ import (
 )
 
 func HandleTransaction(signature string) {
-	transaction, err := transactions.GetTransaction(signature)
+	result, err := transactions.GetTransaction(signature)
 	if err != nil {
 		return
 	}
-	result := transactions.ParseTransaction(transaction)
 
 	temp_coin := models.Coin{
 		CoinData: models.MintData{

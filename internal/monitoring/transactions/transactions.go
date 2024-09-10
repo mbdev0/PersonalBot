@@ -16,7 +16,7 @@ import (
 	"pump_fun/internal/logger"
 )
 
-func GetTransaction(signature string) (*solana.Transaction, error) {
+func GetTransaction(signature string) (*models.DecodedInstruction, error) {
 	programID := solana.MustPublicKeyFromBase58(constants.ProgramID)
 	solana.RegisterInstructionDecoder(programID, CustomInstructionDecoder)
 	transaction, err := getTransaction(signature)
@@ -25,7 +25,7 @@ func GetTransaction(signature string) (*solana.Transaction, error) {
 		return nil, err
 	}
 
-	return transaction, nil
+	return ParseTransaction(transaction), nil
 }
 
 func getTransaction(signature string) (*solana.Transaction, error) {
@@ -83,11 +83,11 @@ func DecodeInstruction(compiledInstruction solana.CompiledInstruction, transacti
 }
 
 // TODO: Remove DecodedInstruction and update this to be parse to MintData
-func ParseTransaction(transaction *solana.Transaction) models.DecodedInstruction {
+func ParseTransaction(transaction *solana.Transaction) *models.DecodedInstruction {
 	compiledInstruction := transaction.Message.Instructions[3]
 	decodedInstruction := DecodeInstruction(compiledInstruction, transaction)
 	decodedInstructionStruct := mapToStruct(decodedInstruction)
-	return decodedInstructionStruct
+	return &decodedInstructionStruct
 }
 
 func mapToStruct(decodedInstruction interface{}) models.DecodedInstruction {
