@@ -7,6 +7,7 @@ import (
 	"github.com/gagliardetto/solana-go"
 	"github.com/gagliardetto/solana-go/rpc"
 
+	"pump_fun/internal/constants"
 	"pump_fun/internal/models"
 	solanaclient "pump_fun/internal/solana-client"
 
@@ -16,7 +17,7 @@ import (
 )
 
 func GetTransaction(signature string) (*solana.Transaction, error) {
-	programID := solana.MustPublicKeyFromBase58("6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P")
+	programID := solana.MustPublicKeyFromBase58(constants.ProgramID)
 	solana.RegisterInstructionDecoder(programID, CustomInstructionDecoder)
 	transaction, err := getTransaction(signature)
 
@@ -58,13 +59,13 @@ func getTransaction(signature string) (*solana.Transaction, error) {
 	return transaction, nil
 }
 
-func DecodeInstruction(i0 solana.CompiledInstruction, transaction *solana.Transaction) interface{} {
-	progKey, err := transaction.ResolveProgramIDIndex(i0.ProgramIDIndex)
+func DecodeInstruction(compiledInstruction solana.CompiledInstruction, transaction *solana.Transaction) interface{} {
+	progKey, err := transaction.ResolveProgramIDIndex(compiledInstruction.ProgramIDIndex)
 	if err != nil {
 		logger.Log(logger.LevelError, "Error decoding program ID", logger.Error(err))
 	}
 
-	accounts, err := i0.ResolveInstructionAccounts(&transaction.Message)
+	accounts, err := compiledInstruction.ResolveInstructionAccounts(&transaction.Message)
 	if err != nil {
 		logger.Log(logger.LevelError, "Error decoding Instruction Accounts", logger.Error(err))
 	}
@@ -72,7 +73,7 @@ func DecodeInstruction(i0 solana.CompiledInstruction, transaction *solana.Transa
 	decodedInstruction, err := solana.DecodeInstruction(
 		progKey,
 		accounts,
-		i0.Data,
+		compiledInstruction.Data,
 	)
 	if err != nil {
 		logger.Log(logger.LevelError, "Error decoding Instructions", logger.Error(err))
@@ -83,8 +84,8 @@ func DecodeInstruction(i0 solana.CompiledInstruction, transaction *solana.Transa
 
 // TODO: Remove DecodedInstruction and update this to be parse to MintData
 func ParseTransaction(transaction *solana.Transaction) models.DecodedInstruction {
-	i0 := transaction.Message.Instructions[3]
-	decodedInstruction := DecodeInstruction(i0, transaction)
+	compiledInstruction := transaction.Message.Instructions[3]
+	decodedInstruction := DecodeInstruction(compiledInstruction, transaction)
 	decodedInstructionStruct := mapToStruct(decodedInstruction)
 	return decodedInstructionStruct
 }
