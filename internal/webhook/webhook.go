@@ -15,10 +15,11 @@ import (
 )
 
 var (
-	discordWebhookURL string = config.GetConfig().Webhook
+	discordWebhookURL = config.GetConfig().Webhook
 )
 
 func SendWebhook(coin *models.Coin) {
+
 	err := sendDiscordMessage(discordWebhookURL, *coin)
 
 	if err != nil {
