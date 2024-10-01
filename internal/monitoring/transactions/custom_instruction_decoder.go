@@ -2,6 +2,7 @@ package transactions
 
 import (
 	"errors"
+	"pump_fun/internal/constants"
 	"pump_fun/internal/logger"
 
 	"github.com/gagliardetto/solana-go"
@@ -24,7 +25,7 @@ func (c *CustomInstructionDecoderDecider) GetDecodeInstruction(key [8]byte) (Ins
 func CustomInstructionDecoder(accounts []*solana.AccountMeta, data []byte) (interface{}, error) {
 	decoders := CustomInstructionDecoderDecider{
 		Decoders: map[[8]byte]InstructionDecoder{
-			{24, 30, 200, 40, 5, 28, 7, 119}: CreateInstructionDecoder, //TODO: Add a buy instruction decoder in next PR
+			constants.CreateInstructionDiscriminator: CreateInstructionDecoder, //TODO: Add a buy instruction decoder in next PR
 		},
 	}
 
