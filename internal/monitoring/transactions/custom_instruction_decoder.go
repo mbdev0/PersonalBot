@@ -1,7 +1,7 @@
 package transactions
 
 import (
-	"errors"
+	"fmt"
 	"pump_fun/internal/constants"
 	"pump_fun/internal/logger"
 
@@ -19,7 +19,7 @@ func (c *CustomInstructionDecoderDecider) GetDecodeInstruction(key [8]byte) (Ins
 	if ok {
 		return decoder, nil
 	}
-	return nil, errors.New("strategy not found")
+	return nil, fmt.Errorf("strategy not found")
 }
 
 func CustomInstructionDecoder(accounts []*solana.AccountMeta, data []byte) (interface{}, error) {
