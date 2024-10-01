@@ -35,7 +35,7 @@ func CustomInstructionDecoder(accounts []*solana.AccountMeta, data []byte) (inte
 
 	decoderStrategy, err := decoders.GetDecodeInstruction(key)
 	if err != nil {
-		logger.Log(logger.LevelWarn, "Strategy not found for: "+string(key[:]), logger.Error(err))
+		logger.Log(logger.LevelWarn, "Strategy not found for: "+string(key[:]))
 		return nil, err
 	}
 	return decoderStrategy(accounts, data)
