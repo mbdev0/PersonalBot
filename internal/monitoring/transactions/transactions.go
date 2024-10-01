@@ -7,24 +7,25 @@ import (
 	"github.com/gagliardetto/solana-go"
 	"github.com/gagliardetto/solana-go/rpc"
 
+	"pump_fun/internal/constants"
+	"pump_fun/internal/models"
 	solanaclient "pump_fun/internal/solana-client"
 
 	bin "github.com/gagliardetto/binary"
 
 	"pump_fun/internal/logger"
-	"pump_fun/internal/models"
 )
 
-func GetTransaction(signature string) (models.DecodedInstruction, error) {
-	programID := solana.MustPublicKeyFromBase58("6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P")
+func GetTransaction(signature string) (*models.DecodedInstruction, error) {
+	programID := solana.MustPublicKeyFromBase58(constants.ProgramID)
 	solana.RegisterInstructionDecoder(programID, CustomInstructionDecoder)
 	transaction, err := getTransaction(signature)
 
 	if err != nil {
-		return models.DecodedInstruction{}, err
+		return nil, err
 	}
 
-	return decodeCreateTransaction(transaction), nil
+	return ParseTransaction(transaction), nil
 }
 
 func getTransaction(signature string) (*solana.Transaction, error) {
@@ -58,14 +59,13 @@ func getTransaction(signature string) (*solana.Transaction, error) {
 	return transaction, nil
 }
 
-func decodeCreateTransaction(transaction *solana.Transaction) models.DecodedInstruction {
-	i0 := transaction.Message.Instructions[3]
-	progKey, err := transaction.ResolveProgramIDIndex(i0.ProgramIDIndex)
+func DecodeInstruction(compiledInstruction solana.CompiledInstruction, transaction *solana.Transaction) interface{} {
+	progKey, err := transaction.ResolveProgramIDIndex(compiledInstruction.ProgramIDIndex)
 	if err != nil {
 		logger.Log(logger.LevelError, "Error decoding program ID", logger.Error(err))
 	}
 
-	accounts, err := i0.ResolveInstructionAccounts(&transaction.Message)
+	accounts, err := compiledInstruction.ResolveInstructionAccounts(&transaction.Message)
 	if err != nil {
 		logger.Log(logger.LevelError, "Error decoding Instruction Accounts", logger.Error(err))
 	}
@@ -73,14 +73,21 @@ func decodeCreateTransaction(transaction *solana.Transaction) models.DecodedInst
 	decodedInstruction, err := solana.DecodeInstruction(
 		progKey,
 		accounts,
-		i0.Data,
+		compiledInstruction.Data,
 	)
 	if err != nil {
 		logger.Log(logger.LevelError, "Error decoding Instructions", logger.Error(err))
 	}
 
+	return decodedInstruction
+}
+
+// TODO: Remove DecodedInstruction and update this to be parse to MintData
+func ParseTransaction(transaction *solana.Transaction) *models.DecodedInstruction {
+	compiledInstruction := transaction.Message.Instructions[3]
+	decodedInstruction := DecodeInstruction(compiledInstruction, transaction)
 	decodedInstructionStruct := mapToStruct(decodedInstruction)
-	return decodedInstructionStruct
+	return &decodedInstructionStruct
 }
 
 func mapToStruct(decodedInstruction interface{}) models.DecodedInstruction {
@@ -92,6 +99,6 @@ func mapToStruct(decodedInstruction interface{}) models.DecodedInstruction {
 	return models.DecodedInstruction{
 		Name:     decodedInstructionMap["Name"],
 		Symbol:   decodedInstructionMap["Symbol"],
-		IPFS_URL: decodedInstructionMap["Uri"],
+		IPFS_URL: decodedInstructionMap["IPFS_URL"],
 	}
 }

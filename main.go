@@ -4,8 +4,8 @@ package main
 import (
 	"fmt"
 	"pump_fun/internal/config"
+	"pump_fun/internal/handlers"
 	"pump_fun/internal/monitoring"
-	"pump_fun/internal/monitoring/transactions"
 )
 
 func main() {
@@ -21,10 +21,5 @@ func main() {
 
 	monitoring.StartMonitor()
 
-	transaction, err := transactions.GetTransaction("5vQ5yPrGjE6LX5ZoLPCXK6YQtKymXLpeyVqBM6g2NUU86pvSSRVsTMG1FTyeTLPWErqSV8KAT2gD8bmEK6fzFVQg")
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	fmt.Println(transaction)
+	handlers.HandleTransaction("5vQ5yPrGjE6LX5ZoLPCXK6YQtKymXLpeyVqBM6g2NUU86pvSSRVsTMG1FTyeTLPWErqSV8KAT2gD8bmEK6fzFVQg")
 }

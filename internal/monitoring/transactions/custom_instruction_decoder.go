@@ -1,94 +1,42 @@
 package transactions
 
 import (
-	"bytes"
 	"fmt"
-
+	"pump_fun/internal/constants"
 	"pump_fun/internal/logger"
 
 	"github.com/gagliardetto/solana-go"
 )
 
-// TODO: Remove this duplication
-type CreateInstructionArgs struct {
-	Name   string
-	Symbol string
-	Uri    string
+type InstructionDecoder func(accounts []*solana.AccountMeta, data []byte) (interface{}, error)
+
+type CustomInstructionDecoderDecider struct {
+	Decoders map[[8]byte]InstructionDecoder
+}
+
+func (c *CustomInstructionDecoderDecider) GetDecodeInstruction(discriminator [8]byte) (InstructionDecoder, error) {
+	decoder, ok := c.Decoders[discriminator]
+	if ok {
+		return decoder, nil
+	}
+	return nil, fmt.Errorf("strategy not found")
 }
 
 func CustomInstructionDecoder(accounts []*solana.AccountMeta, data []byte) (interface{}, error) {
-	var createInstructionID = [8]byte{24, 30, 200, 40, 5, 28, 7, 119}
-	var err error
-
-	if !bytes.Equal(data[:8], createInstructionID[:]) {
-		logger.Log(logger.LevelInfo, "Invalid instruction identifier")
-		return nil, fmt.Errorf("invalid instruction identifier")
-
+	decoders := CustomInstructionDecoderDecider{
+		Decoders: map[[8]byte]InstructionDecoder{
+			constants.CreateInstructionDiscriminator: CreateInstructionDecoder, //TODO: Add a buy instruction decoder in next PR
+		},
 	}
 
-	buf := bytes.NewBuffer(data[8:])
+	// Convert []byte to [8]byte, TODO: Find a better fix for this
+	var discriminator [8]byte
+	copy(discriminator[:], data[:8])
 
-	var args CreateInstructionArgs
-
-	args.Name, err = readStringWithLengthAtStart(buf)
+	decoderStrategy, err := decoders.GetDecodeInstruction(discriminator)
 	if err != nil {
-		logger.Log(logger.LevelError, "Error reading the Name", logger.Error(err))
+		logger.Log(logger.LevelWarn, "Strategy not found for: "+string(discriminator[:]))
 		return nil, err
 	}
-
-	args.Symbol, err = readStringWithLengthAtStart(buf)
-	if err != nil {
-		logger.Log(logger.LevelError, "Error reading the Symbol", logger.Error(err))
-		return nil, err
-	}
-
-	args.Uri, err = readStringWithLengthAtStart(buf)
-	if err != nil {
-		logger.Log(logger.LevelError, "Error reading the URI", logger.Error(err))
-		return nil, err
-	}
-
-	result := map[string]string{
-		"Name":   args.Name,
-		"Symbol": args.Symbol,
-		"Uri":    args.Uri,
-	}
-
-	return result, err
-}
-
-func readStringWithLengthAtStart(buf *bytes.Buffer) (string, error) {
-	lengthOfString, err := buf.ReadByte()
-	if err != nil {
-		logger.Log(logger.LevelError, "Error getting length of string", logger.Error(err))
-		return "", err
-	}
-
-	if err := skipLeadingNullBytes(buf); err != nil {
-		logger.Log(logger.LevelError, "Error skipping null bytes", logger.Error(err))
-		return "", err
-	}
-
-	stringBytes := make([]byte, lengthOfString)
-	_, err = buf.Read(stringBytes)
-	if err != nil {
-		logger.Log(logger.LevelError, "Error reading string", logger.Error(err))
-		return "", err
-	}
-
-	str := string(stringBytes)
-	return str, nil
-}
-
-func skipLeadingNullBytes(buf *bytes.Buffer) error {
-	for {
-		if buf.Len() == 0 {
-			return fmt.Errorf("buffer is empty")
-		}
-		if buf.Bytes()[0] != '\x00' {
-			break
-		}
-		buf.Next(1)
-	}
-	return nil
+	return decoderStrategy(accounts, data)
 }
