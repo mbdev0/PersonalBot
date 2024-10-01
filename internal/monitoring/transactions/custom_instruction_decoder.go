@@ -14,8 +14,8 @@ type CustomInstructionDecoderDecider struct {
 	Decoders map[[8]byte]InstructionDecoder
 }
 
-func (c *CustomInstructionDecoderDecider) GetDecodeInstruction(key [8]byte) (InstructionDecoder, error) {
-	decoder, ok := c.Decoders[key]
+func (c *CustomInstructionDecoderDecider) GetDecodeInstruction(discriminator [8]byte) (InstructionDecoder, error) {
+	decoder, ok := c.Decoders[discriminator]
 	if ok {
 		return decoder, nil
 	}
@@ -30,12 +30,12 @@ func CustomInstructionDecoder(accounts []*solana.AccountMeta, data []byte) (inte
 	}
 
 	// Convert []byte to [8]byte, TODO: Find a better fix for this
-	var key [8]byte
-	copy(key[:], data[:8])
+	var discriminator [8]byte
+	copy(discriminator[:], data[:8])
 
-	decoderStrategy, err := decoders.GetDecodeInstruction(key)
+	decoderStrategy, err := decoders.GetDecodeInstruction(discriminator)
 	if err != nil {
-		logger.Log(logger.LevelWarn, "Strategy not found for: "+string(key[:]))
+		logger.Log(logger.LevelWarn, "Strategy not found for: "+string(discriminator[:]))
 		return nil, err
 	}
 	return decoderStrategy(accounts, data)
