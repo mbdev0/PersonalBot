@@ -13,7 +13,7 @@ var (
 	ws_url = config.GetConfig().WsNode
 )
 
-func Geyser_Stream_Transactions() error {
+func Geyser_Stream_Transactions(transaction_chan chan TransactionNotification) error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -37,8 +37,8 @@ func Geyser_Stream_Transactions() error {
 			},
 			map[string]interface{}{
 				"commitment":                     "confirmed",
-				"encoding":                       "jsonParsed",
 				"transactionDetails":             "full",
+				"encoding":                       "jsonParsed",
 				"maxSupportedTransactionVersion": 0,
 			},
 		},
@@ -64,6 +64,7 @@ func Geyser_Stream_Transactions() error {
 			return err
 		}
 
-		fmt.Println(out.Params.Result.Transaction.TransactionDetails.Message.Instructions)
+		// fmt.Println(out.Params.Result.Transaction.TransactionDetails.Message.Instructions)
+		transaction_chan <- out
 	}
 }
