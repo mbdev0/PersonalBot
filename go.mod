@@ -3,7 +3,9 @@ module pump_fun
 go 1.22.5
 
 require (
+	github.com/coder/websocket v1.8.12
 	github.com/davecgh/go-spew v1.1.1
+	github.com/gagliardetto/binary v0.8.0
 	github.com/gagliardetto/solana-go v1.11.0
 	golang.org/x/time v0.0.0-20191024005414-555d28b269f0
 )
@@ -14,7 +16,6 @@ require (
 	github.com/blendle/zapdriver v1.3.1 // indirect
 	github.com/buger/jsonparser v1.1.1 // indirect
 	github.com/fatih/color v1.9.0 // indirect
-	github.com/gagliardetto/binary v0.8.0 // indirect
 	github.com/gagliardetto/treeout v0.1.4 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/gorilla/rpc v1.2.0 // indirect

@@ -17,6 +17,8 @@ import (
 )
 
 func GetTransaction(signature string) (*models.DecodedInstruction, error) {
+	return nil, nil
+
 	programID := solana.MustPublicKeyFromBase58(constants.ProgramID)
 	solana.RegisterInstructionDecoder(programID, CustomInstructionDecoder)
 	transaction, err := getTransaction(signature)

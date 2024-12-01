@@ -2,7 +2,7 @@ package monitoring
 
 import (
 	"fmt"
-	"pump_fun/internal/monitoring/logsubscribe"
+	"pump_fun/internal/monitoring/geyser"
 	"sync"
 )
 
@@ -16,7 +16,8 @@ func StartMonitor() {
 	if startMonitoring {
 		wg.Add(1)
 		go func() {
-			err := logsubscribe.LogSubscribe()
+			err := geyser.Geyser_Stream_Transactions()
+			// err := logsubscribe.LogSubscribe()
 			if err != nil {
 				// should be updated to show the error on the ui
 				fmt.Println("Error: ", err)

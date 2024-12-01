@@ -28,7 +28,6 @@ func LogSubscribe() (err error) {
 		return err
 	}
 
-	// No returning errors as we need to keep a continuous connection to the websocket - we can log the errors instead
 	pumpfunProgramId := solana.MustPublicKeyFromBase58("6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P")
 	{
 		sub, err := client.LogsSubscribeMentions(
