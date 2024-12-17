@@ -5,6 +5,7 @@ import (
 	"pump_fun/internal/logger"
 	"pump_fun/internal/models"
 	"pump_fun/internal/monitoring/geyser"
+	"pump_fun/internal/monitoring/transactions/decoder"
 	"pump_fun/internal/webhook"
 	"sync"
 )
@@ -22,6 +23,10 @@ func StartMonitor() {
 			transaction_notification_chan := make(chan geyser.TransactionNotification, 1000)
 			coinStructChan := make(chan models.Coin, 1000)
 
+			d := &decoder.Decoder{}
+			createInstructionDecoder := &decoder.CreateInstructionDecoder{}
+			d.SetDecodingStrategy(createInstructionDecoder)
+
 			go func() {
 				err := geyser.Geyser_Stream_Transactions(transaction_notification_chan)
 				if err != nil {
@@ -29,18 +34,17 @@ func StartMonitor() {
 				}
 			}()
 
-			// we should then pass the transaction to a handler which will decrypt the transaction and return a struct
-
 			go func() {
 				for transaction := range transaction_notification_chan {
 					go func() {
-						handlers.HandleTransactionNotification(transaction, coinStructChan)
+						handlers.HandleTransactionNotification(d, transaction, coinStructChan)
 					}()
 				}
 
 			}()
 
 			for coinStruct := range coinStructChan {
+				logger.Log(logger.LevelInfo, "Coin Struct: ", logger.String("Coin", coinStruct.CoinData.Name))
 				go func() {
 
 					webhook.SendWebhook(&coinStruct)

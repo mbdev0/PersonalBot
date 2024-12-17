@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"pump_fun/internal/config"
+	"pump_fun/internal/constants"
 
 	"github.com/coder/websocket"
 	"github.com/coder/websocket/wsjson"
@@ -32,7 +33,7 @@ func Geyser_Stream_Transactions(transaction_chan chan TransactionNotification) e
 			map[string]interface{}{
 				"failed": false,
 				"accountInclude": []interface{}{
-					"6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P",
+					constants.ProgramID,
 				},
 			},
 			map[string]interface{}{
@@ -64,7 +65,6 @@ func Geyser_Stream_Transactions(transaction_chan chan TransactionNotification) e
 			return err
 		}
 
-		// fmt.Println(out.Params.Result.Transaction.TransactionDetails.Message.Instructions)
 		transaction_chan <- out
 	}
 }
