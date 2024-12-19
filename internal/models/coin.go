@@ -17,10 +17,10 @@ type MintData struct {
 }
 
 type IPFS struct {
-	TelegramURL string
-	TwitterURL  string
-	WebsiteURL  string
-	ImageURL    string
+	Image    string `json:"image"`
+	Twitter  string `json:"twitter"`
+	Telegram string `json:"telegram"`
+	Website  string `json:"website"`
 }
 
 // Compositions of the two structs above

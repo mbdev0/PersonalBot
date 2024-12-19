@@ -1,9 +1,9 @@
 package handlers
 
 import (
+	"fmt"
 	"pump_fun/internal/models"
 	"pump_fun/internal/monitoring/transactions"
-	"pump_fun/internal/webhook"
 )
 
 func HandleTransaction(signature string) {
@@ -11,20 +11,22 @@ func HandleTransaction(signature string) {
 	if err != nil {
 		return
 	}
+	ipfsData, err := transactions.GetIPFSData(result.IPFS_URL)
 
-	temp_coin := models.Coin{
+	if err != nil {
+		fmt.Println("Error getting IPFS data", err)
+		return
+	}
+
+	tempCoin := models.Coin{
 		CoinData: models.MintData{
 			Name:     result.Name,
 			Symbol:   result.Symbol,
 			IPFS_URL: result.IPFS_URL,
 		},
-		IPFSData: models.IPFS{
-			TelegramURL: "https://t.me/pumpfun",
-			TwitterURL:  "https://twitter.com/pumpfun",
-			WebsiteURL:  "https://pump.fun",
-			ImageURL:    "https://pump.fun/pumpfun.png",
-		},
+		IPFSData: *ipfsData,
 	}
 
-	webhook.SendWebhook(&temp_coin)
+	fmt.Print("temp_coin\n", tempCoin, "\n\n")
+	// webhook.SendWebhook(&temp_coin)
 }

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"pump_fun/internal/config"
 	"pump_fun/internal/handlers"
-	"pump_fun/internal/monitoring"
 )
 
 func main() {
@@ -19,7 +18,7 @@ func main() {
 	fmt.Println("WS Node: ", config.WsNode)
 	fmt.Println("Webhook: ", config.Webhook)
 
-	monitoring.StartMonitor()
+	// monitoring.StartMonitor()
 
-	handlers.HandleTransaction("5vQ5yPrGjE6LX5ZoLPCXK6YQtKymXLpeyVqBM6g2NUU86pvSSRVsTMG1FTyeTLPWErqSV8KAT2gD8bmEK6fzFVQg")
+	handlers.HandleTransaction("3CahbK6dzgHFzzCKLe8yk9WTeYPUmBRDte9TzQNef489yoYbaxkxtjnpg5Y2EJ9au99gUu1zozZ6ysMYQq9sDUSG")
 }

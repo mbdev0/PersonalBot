@@ -2,6 +2,9 @@ package transactions
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/gagliardetto/solana-go"
@@ -84,7 +87,7 @@ func DecodeInstruction(compiledInstruction solana.CompiledInstruction, transacti
 
 // TODO: Remove DecodedInstruction and update this to be parse to MintData
 func ParseTransaction(transaction *solana.Transaction) *models.DecodedInstruction {
-	compiledInstruction := transaction.Message.Instructions[3]
+	compiledInstruction := transaction.Message.Instructions[2]
 	decodedInstruction := DecodeInstruction(compiledInstruction, transaction)
 	decodedInstructionStruct := mapToStruct(decodedInstruction)
 	return &decodedInstructionStruct
@@ -101,4 +104,23 @@ func mapToStruct(decodedInstruction interface{}) models.DecodedInstruction {
 		Symbol:   decodedInstructionMap["Symbol"],
 		IPFS_URL: decodedInstructionMap["IPFS_URL"],
 	}
+}
+
+func GetIPFSData(ipfsURL string) (*models.IPFS, error) {
+	resp, err := http.Get(ipfsURL)
+	if err != nil {
+		return nil, fmt.Errorf("failed to make HTTP request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+
+	var ipfsData models.IPFS
+	if err := json.NewDecoder(resp.Body).Decode(&ipfsData); err != nil {
+		return nil, fmt.Errorf("failed to decode JSON: %w", err)
+	}
+
+	return &ipfsData, nil
 }
