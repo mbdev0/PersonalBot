@@ -7,17 +7,14 @@ import (
 
 	"pump_fun/internal/constants"
 	"pump_fun/internal/models"
-	"pump_fun/internal/monitoring/geyser"
 	"pump_fun/internal/monitoring/transactions/decoder"
 
 	"pump_fun/internal/logger"
 )
 
-func DecryptTransactionNotification(decoder *decoder.Decoder, transaction geyser.TransactionNotification, coinStructChan chan models.Coin) {
+func DecryptTransactionNotification(decoder *decoder.Decoder, transaction models.TransactionNotification, coinStructChan chan models.Coin) {
 
 	// accounts := transaction.Params.Result.Transaction.TransactionDetails.Message.AccountKeys
-	// need to loop thorugh all instructions and decode the instruction that matches the discriminator
-
 	compiled_instruction := findInstruction(transaction)
 
 	if len(compiled_instruction.Data) < 8 {
@@ -44,7 +41,7 @@ func DecryptTransactionNotification(decoder *decoder.Decoder, transaction geyser
 
 }
 
-func findInstruction(transaction geyser.TransactionNotification) geyser.Instruction {
+func findInstruction(transaction models.TransactionNotification) models.Instruction {
 	for _, instruction := range transaction.Params.Result.Transaction.TransactionDetails.Message.Instructions {
 		if len(instruction.Data) < 8 {
 			continue
@@ -53,7 +50,7 @@ func findInstruction(transaction geyser.TransactionNotification) geyser.Instruct
 		instructionData, err := base58.Decode(instruction.Data)
 		if err != nil {
 			logger.Log(logger.LevelError, "Error decoding instruction", logger.Error(err))
-			return geyser.Instruction{}
+			return models.Instruction{}
 		}
 
 		discriminator := instructionData[:8]
@@ -63,7 +60,7 @@ func findInstruction(transaction geyser.TransactionNotification) geyser.Instruct
 		}
 	}
 
-	return geyser.Instruction{}
+	return models.Instruction{}
 }
 
 func mapToStruct(decodedInstruction interface{}) models.Coin {

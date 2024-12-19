@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"pump_fun/internal/config"
 	"pump_fun/internal/constants"
+	"pump_fun/internal/models"
 
 	"github.com/coder/websocket"
 	"github.com/coder/websocket/wsjson"
@@ -14,7 +15,7 @@ var (
 	ws_url = config.GetConfig().WsNode
 )
 
-func Geyser_Stream_Transactions(transaction_chan chan TransactionNotification) error {
+func Geyser_Stream_Transactions(transaction_chan chan models.TransactionNotification) error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -57,7 +58,7 @@ func Geyser_Stream_Transactions(transaction_chan chan TransactionNotification) e
 	}
 
 	for {
-		out := TransactionNotification{}
+		out := models.TransactionNotification{}
 		err = wsjson.Read(ctx, ws, &out)
 
 		if err != nil {

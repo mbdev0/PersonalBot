@@ -19,6 +19,4 @@ func main() {
 	fmt.Println("Webhook: ", config.Webhook)
 
 	monitoring.StartMonitor()
-
-	// handlers.HandleTransaction("5vQ5yPrGjE6LX5ZoLPCXK6YQtKymXLpeyVqBM6g2NUU86pvSSRVsTMG1FTyeTLPWErqSV8KAT2gD8bmEK6fzFVQg")
 }

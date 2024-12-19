@@ -20,7 +20,7 @@ func StartMonitor() {
 	if startMonitoring {
 		wg.Add(1)
 		go func() {
-			transaction_notification_chan := make(chan geyser.TransactionNotification, 1000)
+			transaction_notification_chan := make(chan models.TransactionNotification, 1000)
 			coinStructChan := make(chan models.Coin, 1000)
 
 			d := &decoder.Decoder{}
