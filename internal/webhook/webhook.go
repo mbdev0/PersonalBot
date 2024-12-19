@@ -77,7 +77,7 @@ func formatCoinInfo(coin models.Coin) Webhook {
 			Name: "New Pairs Monitor",
 		},
 		Thumbnail: Thumbnail{
-			URL: coin.IPFSData.ImageURL,
+			URL: coin.IPFSData.Image,
 		},
 	}
 	webhook := Webhook{
@@ -109,7 +109,7 @@ func generateFields(coin models.Coin) []Fields {
 		},
 		{
 			Name:  "Socials",
-			Value: fmt.Sprintf("[Telegram](%s) | [Twitter](%s) | [Website](%s)", coin.IPFSData.TelegramURL, coin.IPFSData.TwitterURL, coin.IPFSData.WebsiteURL),
+			Value: fmt.Sprintf("[Telegram](%s) | [Twitter](%s) | [Website](%s)", coin.IPFSData.Telegram, coin.IPFSData.Twitter, coin.IPFSData.Website),
 		},
 		{
 			Name:  "Links",
