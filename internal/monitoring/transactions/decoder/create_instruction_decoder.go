@@ -1,16 +1,16 @@
-package transactions
+package decoder
 
 import (
 	"bytes"
 	"pump_fun/internal/logger"
 	"pump_fun/internal/models"
-
-	"github.com/gagliardetto/solana-go"
 )
 
-func CreateInstructionDecoder(accounts []*solana.AccountMeta, data []byte) (interface{}, error) {
-	var err error
+type CreateInstructionDecoder struct {
+}
 
+func (*CreateInstructionDecoder) Decode(data []byte) (interface{}, error) {
+	var err error
 	buf := bytes.NewBuffer(data[8:])
 
 	var args models.DecodedInstruction
