@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"strings"
 	"time"
 
 	"encoding/json"
@@ -88,6 +89,8 @@ func formatCoinInfo(coin models.Coin) Webhook {
 }
 
 func generateFields(coin models.Coin) []Fields {
+	socialsValue := buildSocials(&coin.IPFSData)
+
 	fields := []Fields{
 		{
 			Name:  "Mint Address",
@@ -109,7 +112,7 @@ func generateFields(coin models.Coin) []Fields {
 		},
 		{
 			Name:  "Socials",
-			Value: fmt.Sprintf("[Telegram](%s) | [Twitter](%s) | [Website](%s)", coin.IPFSData.TelegramURL, coin.IPFSData.TwitterURL, coin.IPFSData.WebsiteURL),
+			Value: socialsValue,
 		},
 		{
 			Name:  "Links",
@@ -117,6 +120,29 @@ func generateFields(coin models.Coin) []Fields {
 		},
 	}
 	return fields
+}
+
+func buildSocials(ipfsData *models.IPFS) string {
+	if ipfsData == nil {
+		return "N/A"
+	}
+
+	var socials []string
+	if ipfsData.TelegramURL != "" {
+		socials = append(socials, fmt.Sprintf("[Telegram](%s)", ipfsData.TelegramURL))
+	}
+	if ipfsData.TwitterURL != "" {
+		socials = append(socials, fmt.Sprintf("[Twitter](%s)", ipfsData.TwitterURL))
+	}
+	if ipfsData.WebsiteURL != "" {
+		socials = append(socials, fmt.Sprintf("[Website](%s)", ipfsData.WebsiteURL))
+	}
+
+	if len(socials) == 0 {
+		return "N/A"
+	}
+
+	return strings.Join(socials, " | ")
 }
 
 func convertDecimalToPercentage(decimal float64) string {
