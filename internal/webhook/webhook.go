@@ -89,7 +89,7 @@ func formatCoinInfo(coin models.Coin) Webhook {
 }
 
 func generateFields(coin models.Coin) []Fields {
-	socialsValue := buildSocials(coin.IPFSData)
+	socialsValue := buildSocials(&coin.IPFSData)
 
 	fields := []Fields{
 		{
