@@ -2,6 +2,9 @@ package transactions
 
 import (
 	"bytes"
+	"encoding/json"
+	"fmt"
+	"net/http"
 
 	"github.com/mr-tron/base58"
 
@@ -36,7 +39,14 @@ func DecryptTransactionNotification(decoder *decoder.Decoder, transaction models
 			logger.Log(logger.LevelError, "Error decoding instruction", logger.Error(err))
 			return
 		}
-		coinStructChan <- mapToStruct(decodedInstruction)
+
+		ipfsData, err := GetIPFSData(decodedInstruction.IPFS_URL)
+		if err != nil {
+			logger.Log(logger.LevelError, "Error getting IPFS data", logger.Error(err))
+			return
+		}
+
+		coinStructChan <- mapToStruct(decodedInstruction, *ipfsData)
 	}
 
 }
@@ -63,7 +73,7 @@ func findInstruction(transaction models.TransactionNotification) models.Instruct
 	return models.Instruction{}
 }
 
-func mapToStruct(decodedInstruction models.DecodedInstruction) models.Coin {
+func mapToStruct(decodedInstruction models.DecodedInstruction, ipfs models.IPFS) models.Coin {
 	return models.Coin{
 		CoinData: models.MintData{
 			Name:             decodedInstruction.Name,
@@ -74,10 +84,29 @@ func mapToStruct(decodedInstruction models.DecodedInstruction) models.Coin {
 			DevHoldingAmount: 0,
 		},
 		IPFSData: models.IPFS{
-			TelegramURL: "https://t.me/pumpfun",
-			TwitterURL:  "https://twitter.com",
-			WebsiteURL:  "https://pump.fun",
-			ImageURL:    "https://pump.fun/pumpfun.png",
+			TelegramURL: ipfs.TelegramURL,
+			TwitterURL:  ipfs.TwitterURL,
+			WebsiteURL:  ipfs.WebsiteURL,
+			ImageURL:    ipfs.ImageURL,
 		},
 	}
+}
+
+func GetIPFSData(ipfsURL string) (*models.IPFS, error) {
+	resp, err := http.Get(ipfsURL)
+	if err != nil {
+		return nil, fmt.Errorf("failed to make HTTP request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+
+	var ipfsData models.IPFS
+	if err := json.NewDecoder(resp.Body).Decode(&ipfsData); err != nil {
+		return nil, fmt.Errorf("failed to decode JSON: %w", err)
+	}
+
+	return &ipfsData, nil
 }
