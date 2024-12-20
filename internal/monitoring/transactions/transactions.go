@@ -63,18 +63,12 @@ func findInstruction(transaction models.TransactionNotification) models.Instruct
 	return models.Instruction{}
 }
 
-func mapToStruct(decodedInstruction interface{}) models.Coin {
-	decodedInstructionMap, ok := decodedInstruction.(map[string]string)
-	if !ok {
-		// should this be panic?
-		panic("decodedInstruction is not of type map[string]string")
-	}
-
+func mapToStruct(decodedInstruction models.DecodedInstruction) models.Coin {
 	return models.Coin{
 		CoinData: models.MintData{
-			Name:             decodedInstructionMap["Name"],
-			Symbol:           decodedInstructionMap["Symbol"],
-			IPFS_URL:         decodedInstructionMap["IPFS_URL"],
+			Name:             decodedInstruction.Name,
+			Symbol:           decodedInstruction.Symbol,
+			IPFS_URL:         decodedInstruction.IPFS_URL,
 			TokenAddr:        "",
 			CreatorAddr:      "",
 			DevHoldingAmount: 0,
