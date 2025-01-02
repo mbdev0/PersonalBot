@@ -8,5 +8,13 @@ import (
 
 func HandleTransactionNotification(decoder *decoder.Decoder, transaction models.TransactionNotification, coinStructChan chan models.Coin) {
 	coin := transactions.DecryptTransactionNotification(decoder, transaction, coinStructChan)
-	coinStructChan <- *coin
+
+	if coin != nil {
+		coin = HandleCoinFiltering(coin)
+	}
+
+	//TODO: Make a note that this check happens since I need to dereference the coin in order to send it to the channel
+	if coin != nil {
+		coinStructChan <- *coin
+	}
 }
