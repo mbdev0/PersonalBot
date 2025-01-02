@@ -7,5 +7,6 @@ import (
 )
 
 func HandleTransactionNotification(decoder *decoder.Decoder, transaction models.TransactionNotification, coinStructChan chan models.Coin) {
-	transactions.DecryptTransactionNotification(decoder, transaction, coinStructChan)
+	coin := transactions.DecryptTransactionNotification(decoder, transaction, coinStructChan)
+	coinStructChan <- *coin
 }
