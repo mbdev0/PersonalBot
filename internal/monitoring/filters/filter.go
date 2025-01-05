@@ -25,7 +25,6 @@ func (p *FilterPipeline) ApplyFilters(coin *models.Coin) *models.Coin {
 
 type Filter func(*models.Coin) *models.Coin
 
-// TODO: Look at a smart way to reduce repetition in the following functions
 func HasWebsite() Filter {
 	return func(coin *models.Coin) *models.Coin {
 		if coin.IPFSData.WebsiteURL == "" {
