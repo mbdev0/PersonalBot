@@ -1,6 +1,6 @@
 package models
 
-type DecodedInstruction struct {
+type DecodedCreateInstruction struct {
 	Name     string
 	Symbol   string
 	IPFS_URL string
