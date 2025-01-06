@@ -15,20 +15,19 @@ import (
 	"pump_fun/internal/logger"
 )
 
-func DecryptTransactionNotification(decoder *decoder.Decoder, transaction models.TransactionNotification, coinStructChan chan models.Coin) {
+func DecryptTransactionNotification(decoder *decoder.Decoder, transaction models.TransactionNotification, coinStructChan chan models.Coin) *models.Coin {
 
 	// accounts := transaction.Params.Result.Transaction.TransactionDetails.Message.AccountKeys
 	compiled_instruction := findInstruction(transaction)
-
 	if len(compiled_instruction.Data) < 8 {
-		return
+		return nil
 	}
 
 	//decode instruction from base58
 	instruction, err := base58.Decode(compiled_instruction.Data)
 	if err != nil {
 		logger.Log(logger.LevelError, "Error decoding instruction", logger.Error(err))
-		return
+		return nil
 	}
 
 	discriminator := instruction[:8]
@@ -37,18 +36,19 @@ func DecryptTransactionNotification(decoder *decoder.Decoder, transaction models
 		decodedInstruction, err := decoder.Decode(instruction)
 		if err != nil {
 			logger.Log(logger.LevelError, "Error decoding instruction", logger.Error(err))
-			return
+			return nil
 		}
 
 		ipfsData, err := GetIPFSData(decodedInstruction.IPFS_URL)
 		if err != nil {
 			logger.Log(logger.LevelError, "Error getting IPFS data", logger.Error(err))
-			return
+			return nil
 		}
 
-		coinStructChan <- mapToStruct(decodedInstruction, *ipfsData)
+		coin := mapToStruct(decodedInstruction, *ipfsData)
+		return &coin
 	}
-
+	return nil
 }
 
 func findInstruction(transaction models.TransactionNotification) models.Instruction {

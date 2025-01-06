@@ -7,5 +7,13 @@ import (
 )
 
 func HandleTransactionNotification(decoder *decoder.Decoder, transaction models.TransactionNotification, coinStructChan chan models.Coin) {
-	transactions.DecryptTransactionNotification(decoder, transaction, coinStructChan)
+	coin := transactions.DecryptTransactionNotification(decoder, transaction, coinStructChan)
+
+	if coin != nil {
+		coin = HandleCoinFiltering(coin)
+	}
+
+	if coin != nil {
+		coinStructChan <- *coin
+	}
 }
