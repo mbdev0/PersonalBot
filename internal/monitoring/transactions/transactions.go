@@ -18,7 +18,8 @@ import (
 
 func DecryptTransactionNotification(transaction models.TransactionNotification, coinStructChan chan models.Coin) *models.Coin {
 
-	coin, transactionIsCreate := findCoinData(transaction) // we decrypt in here
+	coin, transactionIsCreate := parseCoinDateAndIsCreate(transaction) // we decrypt in here
+
 	if !transactionIsCreate {
 		return nil
 	}
@@ -35,7 +36,7 @@ func DecryptTransactionNotification(transaction models.TransactionNotification, 
 	return &coin
 }
 
-func findCoinData(transaction models.TransactionNotification) (coin models.Coin, transactionIsCreate bool) {
+func parseCoinDateAndIsCreate(transaction models.TransactionNotification) (coin models.Coin, transactionIsCreate bool) {
 
 	coin = models.Coin{}
 	transactionIsCreate = false
