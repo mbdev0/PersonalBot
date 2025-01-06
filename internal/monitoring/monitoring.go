@@ -5,7 +5,6 @@ import (
 	"pump_fun/internal/logger"
 	"pump_fun/internal/models"
 	"pump_fun/internal/monitoring/geyser"
-	"pump_fun/internal/monitoring/transactions/decoder"
 	"pump_fun/internal/webhook"
 	"sync"
 )
@@ -23,10 +22,6 @@ func StartMonitor() {
 			transaction_notification_chan := make(chan models.TransactionNotification, 1000)
 			coinStructChan := make(chan models.Coin, 1000)
 
-			d := &decoder.Decoder{}
-			createInstructionDecoder := &decoder.CreateInstructionDecoder{}
-			d.SetDecodingStrategy(createInstructionDecoder)
-
 			go func() {
 				err := geyser.Geyser_Stream_Transactions(transaction_notification_chan)
 				if err != nil {
@@ -37,7 +32,7 @@ func StartMonitor() {
 			go func() {
 				for transaction := range transaction_notification_chan {
 					go func() {
-						handlers.HandleTransactionNotification(d, transaction, coinStructChan)
+						handlers.HandleTransactionNotification(transaction, coinStructChan)
 					}()
 				}
 
