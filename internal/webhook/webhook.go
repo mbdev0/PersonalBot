@@ -116,7 +116,7 @@ func generateFields(coin models.Coin) []Fields {
 		},
 		{
 			Name:  "Links",
-			Value: fmt.Sprintf("[SolScan](%s) | [PumpFun](%s)", "https://solscan.io/token/"+coin.CoinData.TokenAddr, "https://pump.fun/"+coin.CoinData.TokenAddr),
+			Value: fmt.Sprintf("[SolScan](%s) | [PumpFun](%s)", "https://solscan.io/tx/"+coin.CoinData.Signature, "https://pump.fun/"+coin.CoinData.TokenAddr),
 		},
 	}
 	return fields
