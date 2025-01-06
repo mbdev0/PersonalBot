@@ -13,6 +13,7 @@ type MintData struct {
 	IPFS_URL         string
 	TokenAddr        string
 	CreatorAddr      string
+	BondingCurveAddr string
 	DevHoldingAmount float64
 }
 

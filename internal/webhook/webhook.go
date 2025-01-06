@@ -71,7 +71,7 @@ func sendDiscordMessage(webhookURL string, coin models.Coin) error {
 func formatCoinInfo(coin models.Coin) Webhook {
 	embed := Embeds{
 		Title:  fmt.Sprintf("%s | %s ", coin.CoinData.Name, coin.CoinData.Symbol),
-		URL:    "https://pump.fun/" + coin.CoinData.TokenAddr,
+		URL:    "https://photon-sol.tinyastro.io/en/lp/" + coin.CoinData.BondingCurveAddr,
 		Color:  5814783,
 		Fields: generateFields(coin),
 		Author: Author{

@@ -9,6 +9,7 @@ import (
 	"github.com/mr-tron/base58"
 
 	"pump_fun/internal/constants"
+	"pump_fun/internal/launch"
 	"pump_fun/internal/models"
 	"pump_fun/internal/monitoring/transactions/decoder"
 
@@ -17,7 +18,6 @@ import (
 
 func DecryptTransactionNotification(transaction models.TransactionNotification, coinStructChan chan models.Coin) *models.Coin {
 
-	// accounts := transaction.Params.Result.Transaction.TransactionDetails.Message.AccountKeys => need to load pump.fun ipl to get the accounts order
 	coin, transactionIsCreate := findCoinData(transaction) // we decrypt in here
 	if !transactionIsCreate {
 		return nil
@@ -60,6 +60,12 @@ func findCoinData(transaction models.TransactionNotification) (coin models.Coin,
 				logger.Log(logger.LevelError, "Error decoding create instruction", logger.Error(err))
 				continue
 			}
+
+			idlMap := launch.GetIdlMap()
+
+			coin.CoinData.TokenAddr = instruction.Accounts[idlMap["create"].AccountMap["mint"]]
+			coin.CoinData.CreatorAddr = instruction.Accounts[idlMap["create"].AccountMap["user"]]
+			coin.CoinData.BondingCurveAddr = instruction.Accounts[idlMap["create"].AccountMap["bondingCurve"]]
 
 			transactionIsCreate = true
 		}
