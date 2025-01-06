@@ -2,7 +2,6 @@ package launch
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"os"
 	"pump_fun/internal/logger"
@@ -23,7 +22,6 @@ func GetIdlMap() map[string]IdlMap {
 	once.Do(func() {
 		loadPumpfunIdl()
 	})
-	fmt.Println(idlMapInstance)
 	return idlMapInstance
 }
 
