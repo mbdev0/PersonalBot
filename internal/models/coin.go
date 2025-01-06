@@ -1,6 +1,6 @@
 package models
 
-type DecodedInstruction struct {
+type DecodedCreateInstruction struct {
 	Name     string
 	Symbol   string
 	IPFS_URL string
@@ -13,6 +13,7 @@ type MintData struct {
 	IPFS_URL         string
 	TokenAddr        string
 	CreatorAddr      string
+	BondingCurveAddr string
 	DevHoldingAmount float64
 }
 

@@ -9,49 +9,38 @@ import (
 	"github.com/mr-tron/base58"
 
 	"pump_fun/internal/constants"
+	"pump_fun/internal/launch"
 	"pump_fun/internal/models"
 	"pump_fun/internal/monitoring/transactions/decoder"
 
 	"pump_fun/internal/logger"
 )
 
-func DecryptTransactionNotification(decoder *decoder.Decoder, transaction models.TransactionNotification, coinStructChan chan models.Coin) *models.Coin {
+func DecryptTransactionNotification(transaction models.TransactionNotification, coinStructChan chan models.Coin) *models.Coin {
 
-	// accounts := transaction.Params.Result.Transaction.TransactionDetails.Message.AccountKeys
-	compiled_instruction := findInstruction(transaction)
-	if len(compiled_instruction.Data) < 8 {
+	coin, transactionIsCreate := parseCoinDateAndIsCreate(transaction) // we decrypt in here
+
+	if !transactionIsCreate {
 		return nil
 	}
 
-	//decode instruction from base58
-	instruction, err := base58.Decode(compiled_instruction.Data)
+	ipfsData, err := GetIPFSData(coin.CoinData.IPFS_URL)
 	if err != nil {
-		logger.Log(logger.LevelError, "Error decoding instruction", logger.Error(err))
+		logger.Log(logger.LevelError, "Error getting IPFS data", logger.Error(err), logger.String("IPFS URL", coin.CoinData.IPFS_URL))
 		return nil
 	}
 
-	discriminator := instruction[:8]
+	coin.CoinData.Signature = transaction.Params.Result.Signature
+	coin.IPFSData = *ipfsData
 
-	if bytes.Equal(discriminator, constants.CreateInstructionDiscriminator[:]) {
-		decodedInstruction, err := decoder.Decode(instruction)
-		if err != nil {
-			logger.Log(logger.LevelError, "Error decoding instruction", logger.Error(err))
-			return nil
-		}
-
-		ipfsData, err := GetIPFSData(decodedInstruction.IPFS_URL)
-		if err != nil {
-			logger.Log(logger.LevelError, "Error getting IPFS data", logger.Error(err))
-			return nil
-		}
-
-		coin := mapToStruct(decodedInstruction, *ipfsData)
-		return &coin
-	}
-	return nil
+	return &coin
 }
 
-func findInstruction(transaction models.TransactionNotification) models.Instruction {
+func parseCoinDateAndIsCreate(transaction models.TransactionNotification) (coin models.Coin, transactionIsCreate bool) {
+
+	coin = models.Coin{}
+	transactionIsCreate = false
+
 	for _, instruction := range transaction.Params.Result.Transaction.TransactionDetails.Message.Instructions {
 		if len(instruction.Data) < 8 {
 			continue
@@ -60,36 +49,39 @@ func findInstruction(transaction models.TransactionNotification) models.Instruct
 		instructionData, err := base58.Decode(instruction.Data)
 		if err != nil {
 			logger.Log(logger.LevelError, "Error decoding instruction", logger.Error(err))
-			return models.Instruction{}
+			continue
 		}
 
 		discriminator := instructionData[:8]
 
 		if bytes.Equal(discriminator, constants.CreateInstructionDiscriminator[:]) {
-			return instruction
+			err = decoder.DecodeCreateInstruction(&coin, instructionData)
+
+			if err != nil {
+				logger.Log(logger.LevelError, "Error decoding create instruction", logger.Error(err))
+				continue
+			}
+
+			idlMap := launch.GetIdlMap()
+
+			coin.CoinData.TokenAddr = instruction.Accounts[idlMap["create"].AccountMap["mint"]]
+			coin.CoinData.CreatorAddr = instruction.Accounts[idlMap["create"].AccountMap["user"]]
+			coin.CoinData.BondingCurveAddr = instruction.Accounts[idlMap["create"].AccountMap["bondingCurve"]]
+
+			transactionIsCreate = true
+		}
+
+		if bytes.Equal(discriminator, constants.BuyInstructionDiscriminator[:]) {
+			err := decoder.DecodeBuyInstruction(&coin, instructionData)
+
+			if err != nil {
+				logger.Log(logger.LevelError, "Error decoding buy instruction", logger.Error(err))
+				continue
+			}
 		}
 	}
 
-	return models.Instruction{}
-}
-
-func mapToStruct(decodedInstruction models.DecodedInstruction, ipfs models.IPFS) models.Coin {
-	return models.Coin{
-		CoinData: models.MintData{
-			Name:             decodedInstruction.Name,
-			Symbol:           decodedInstruction.Symbol,
-			IPFS_URL:         decodedInstruction.IPFS_URL,
-			TokenAddr:        "",
-			CreatorAddr:      "",
-			DevHoldingAmount: 0,
-		},
-		IPFSData: models.IPFS{
-			TelegramURL: ipfs.TelegramURL,
-			TwitterURL:  ipfs.TwitterURL,
-			WebsiteURL:  ipfs.WebsiteURL,
-			ImageURL:    ipfs.ImageURL,
-		},
-	}
+	return coin, transactionIsCreate
 }
 
 func GetIPFSData(ipfsURL string) (*models.IPFS, error) {

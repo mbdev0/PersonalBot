@@ -41,3 +41,16 @@ func skipLeadingNullBytes(buf *bytes.Buffer) error {
 	}
 	return nil
 }
+
+func convertToUint64(buf *bytes.Buffer) (uint64, error) {
+	var num uint64
+	for i := 0; i < 8; i++ {
+		b, err := buf.ReadByte()
+		if err != nil {
+			logger.Log(logger.LevelError, "Error reading byte", logger.Error(err))
+			return 0, err
+		}
+		num = num | uint64(b)<<uint(8*i)
+	}
+	return num, nil
+}
