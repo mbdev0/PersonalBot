@@ -68,6 +68,14 @@ func parseCoinDateAndIsCreate(transaction models.TransactionNotification) (coin 
 			coin.CoinData.CreatorAddr = instruction.Accounts[idlMap["create"].AccountMap["user"]]
 			coin.CoinData.BondingCurveAddr = instruction.Accounts[idlMap["create"].AccountMap["bondingCurve"]]
 
+			//EXAMPLE USAGE OF GetBondingCurveAddress
+			address, err := GetBondingCurveAddress(coin.CoinData.TokenAddr)
+			if err != nil {
+				fmt.Println("ERROR FINDING PROGRAM ADDRESS\n", err)
+			} else {
+				fmt.Println("BONDING CURVE CHECK: ", coin.CoinData.TokenAddr, coin.CoinData.BondingCurveAddr, coin.CoinData.BondingCurveAddr == address)
+			}
+
 			transactionIsCreate = true
 		}
 
