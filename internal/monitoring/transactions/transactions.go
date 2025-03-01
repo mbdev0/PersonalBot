@@ -68,12 +68,8 @@ func parseCoinDateAndIsCreate(transaction models.TransactionNotification) (coin 
 			coin.CoinData.CreatorAddr = instruction.Accounts[idlMap["create"].AccountMap["user"]]
 			coin.CoinData.BondingCurveAddr = instruction.Accounts[idlMap["create"].AccountMap["bondingCurve"]]
 
-			//EXAMPLE USAGE OF FindProgramAddressSync
-			caBytes, _ := base58.Decode(coin.CoinData.TokenAddr)
-			programId, _ := base58.Decode("6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P")
-			seeds := [][]byte{[]byte("bonding-curve"), caBytes}
-
-			address, _, err := FindProgramAddressSync(seeds, programId)
+			//EXAMPLE USAGE OF GetBondingCurveAddress
+			address, err := GetBondingCurveAddress(coin.CoinData.TokenAddr)
 			if err != nil {
 				fmt.Println("ERROR FINDING PROGRAM ADDRESS\n", err)
 			} else {
