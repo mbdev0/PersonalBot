@@ -1,0 +1,56 @@
+package geyser
+
+import (
+	"context"
+	"fmt"
+	"pump_fun/internal/models"
+
+	"github.com/coder/websocket"
+	"github.com/coder/websocket/wsjson"
+)
+
+func Geyser_Stream_AccountInfo(ctx context.Context, address string, accountinfo_chan chan models.AccountSubscribeModel) error {
+
+	ws, _, err := websocket.Dial(ctx, ws_url, nil)
+	if err != nil {
+		return err
+	}
+
+	ws.SetReadLimit(65536)
+
+	err = wsjson.Write(ctx, ws, map[string]interface{}{
+		"jsonrpc": "2.0",
+		"id":      420,
+		"method":  "accountSubscribe",
+		"params": []interface{}{
+			address,
+			map[string]interface{}{
+				"commitment": "processing",
+				"encoding":   "base58",
+			},
+		},
+	})
+
+	if err != nil {
+		return err
+	}
+
+	// read first response
+	out := interface{}(nil)
+	err = wsjson.Read(ctx, ws, &out)
+	if err != nil {
+		return err
+	}
+
+	for {
+		out := models.AccountSubscribeModel{}
+		err = wsjson.Read(ctx, ws, &out)
+
+		if err != nil {
+			fmt.Println("Error reading from websocket:", err)
+			return err
+		}
+
+		accountinfo_chan <- out
+	}
+}

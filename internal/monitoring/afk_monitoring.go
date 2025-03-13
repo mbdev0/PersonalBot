@@ -12,7 +12,7 @@ import (
 // temporary bool until gui is built
 var startMonitoring bool = true
 
-func StartMonitor() {
+func StartAFKMonitor() {
 	var wg sync.WaitGroup
 
 	// start monitoring on 1 goroutine
@@ -41,7 +41,6 @@ func StartMonitor() {
 			for coinStruct := range coinStructChan {
 				logger.Log(logger.LevelInfo, "Coin Struct: ", logger.String("Coin", coinStruct.CoinData.Name))
 				go func() {
-
 					webhook.SendWebhook(&coinStruct)
 				}()
 			}

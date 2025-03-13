@@ -1,0 +1,74 @@
+package monitoring
+
+import (
+	"context"
+	"fmt"
+	"pump_fun/internal/buy"
+	"pump_fun/internal/logger"
+	"pump_fun/internal/models"
+	"pump_fun/internal/monitoring/geyser"
+)
+
+/*
+
+Example usage:
+
+	ctx, cancel := context.WithCancel(context.Background()) //we create a context
+
+	bondingCurveAddress := "5U3smn2USzQGSWfM3JmKXt9YPKpWifjxvR2aMZkQAN1S"
+	go monitoring.StartMarketCapMonitor(ctx, bondingCurveAddress) //starts monitoring of marketcap of a certain bonding address (we give bonding adress rather than CA)
+
+	tokenAmount, err, hasCompleted := buy.GetBuyTokenAmountFrom(*big.NewInt(10000000), bondingCurveAddress) //get's token amount for a certain bondingCurveAddress, we use lamports for solana
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(tokenAmount.String())
+
+	time.Sleep(time.Second * 10)
+	cancel() // this will cancel the context and thus close down the go routine from outside.. sick yeah?
+
+*/
+
+func StartMarketCapMonitor(ctx context.Context, bondingCurveAddress string) {
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		default:
+		}
+		marketCapMonitor(ctx, bondingCurveAddress)
+	}
+}
+
+func marketCapMonitor(ctx context.Context, bondingCurveAddress string) {
+	// get intial marketcap
+	marketCapInit, err, hasCompleted := buy.GetMarketCapInitial(bondingCurveAddress)
+
+	if err != nil {
+		logger.Error(err)
+		if hasCompleted {
+			logger.Info("Coin has migrated")
+			ctx.Done()
+		}
+	}
+
+	fmt.Println("INITAL: ", marketCapInit.String())
+
+	accountInfoChan := make(chan models.AccountSubscribeModel, 20)
+
+	go geyser.Geyser_Stream_AccountInfo(ctx, bondingCurveAddress, accountInfoChan)
+
+	for accountInfo := range accountInfoChan {
+		marketCap, err, hasCompleted := buy.GetMarketCapFrom(accountInfo.Params.Result.Value.Data[0])
+		if err != nil {
+			logger.Error(err)
+			if hasCompleted {
+				logger.Info("Coin has migrated")
+				ctx.Done()
+			}
+		}
+		// JUST TO TEST THAT IT WILL PRINT CORRECT VALS
+		fmt.Println(marketCap.String())
+	}
+
+}
