@@ -1,4 +1,4 @@
-package buy
+package bonding_curve_decoder
 
 import (
 	"errors"

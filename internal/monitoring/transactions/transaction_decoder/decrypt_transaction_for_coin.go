@@ -1,4 +1,4 @@
-package transactions
+package transaction_decoder
 
 import (
 	"bytes"
@@ -11,12 +11,11 @@ import (
 	"pump_fun/internal/constants"
 	"pump_fun/internal/launch/pumpfun_idl"
 	"pump_fun/internal/models"
-	"pump_fun/internal/monitoring/transactions/decoder"
 
 	"pump_fun/internal/logger"
 )
 
-func DecryptTransactionNotification(transaction models.TransactionNotification, coinStructChan chan models.Coin) *models.Coin {
+func DecryptTransactionNotificationForCoin(transaction models.TransactionNotification, coinStructChan chan models.Coin) *models.Coin {
 
 	coin, transactionIsCreate := parseCoinDataAndIsCreate(transaction)
 
@@ -55,7 +54,7 @@ func parseCoinDataAndIsCreate(transaction models.TransactionNotification) (coin 
 		discriminator := instructionData[:8]
 
 		if bytes.Equal(discriminator, constants.CreateInstructionDiscriminator[:]) {
-			err = decoder.DecodeCreateInstruction(&coin, instructionData)
+			err = DecodeCreateInstruction(&coin, instructionData)
 
 			if err != nil {
 				logger.Log(logger.LevelError, "Error decoding create instruction", logger.Error(err))
@@ -72,7 +71,7 @@ func parseCoinDataAndIsCreate(transaction models.TransactionNotification) (coin 
 		}
 
 		if bytes.Equal(discriminator, constants.BuyInstructionDiscriminator[:]) {
-			err := decoder.DecodeBuyInstruction(&coin, instructionData)
+			err := DecodeBuyInstruction(&coin, instructionData)
 
 			if err != nil {
 				logger.Log(logger.LevelError, "Error decoding buy instruction", logger.Error(err))

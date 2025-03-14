@@ -1,4 +1,4 @@
-package decoder
+package transaction_decoder
 
 import (
 	"bytes"

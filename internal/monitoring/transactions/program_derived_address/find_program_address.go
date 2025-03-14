@@ -1,4 +1,4 @@
-package transactions
+package program_derived_address
 
 import (
 	"crypto/ed25519"

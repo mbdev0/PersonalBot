@@ -2,8 +2,7 @@ package monitoring
 
 import (
 	"context"
-	"fmt"
-	"pump_fun/internal/buy"
+	"pump_fun/internal/handlers"
 	"pump_fun/internal/logger"
 	"pump_fun/internal/models"
 	"pump_fun/internal/monitoring/geyser"
@@ -41,34 +40,30 @@ func StartMarketCapMonitor(ctx context.Context, bondingCurveAddress string) {
 }
 
 func marketCapMonitor(ctx context.Context, bondingCurveAddress string) {
-	// get intial marketcap
-	marketCapInit, err, hasCompleted := buy.GetMarketCapInitial(bondingCurveAddress)
+	marketCapInit, err, hasCompleted := handlers.GetMarketCapInitial(bondingCurveAddress)
 
 	if err != nil {
 		logger.Error(err)
 		if hasCompleted {
-			logger.Info("Coin has migrated")
 			ctx.Done()
 		}
 	}
 
-	fmt.Println("INITAL: ", marketCapInit.String())
+	logger.Info("INITAL: " + marketCapInit.String())
 
 	accountInfoChan := make(chan models.AccountSubscribeModel, 20)
 
 	go geyser.Geyser_Stream_AccountInfo(ctx, bondingCurveAddress, accountInfoChan)
 
 	for accountInfo := range accountInfoChan {
-		marketCap, err, hasCompleted := buy.GetMarketCapFrom(accountInfo.Params.Result.Value.Data[0])
+		marketCap, err, hasCompleted := handlers.GetMarketCapFrom(accountInfo.Params.Result.Value.Data[0])
 		if err != nil {
 			logger.Error(err)
 			if hasCompleted {
-				logger.Info("Coin has migrated")
 				ctx.Done()
 			}
 		}
-		// JUST TO TEST THAT IT WILL PRINT CORRECT VALS
-		fmt.Println(marketCap.String())
+		logger.Info(marketCap.String())
 	}
 
 }
