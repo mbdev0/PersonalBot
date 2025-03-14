@@ -3,7 +3,6 @@ package transaction_decoder
 import (
 	"bytes"
 	"pump_fun/internal/constants"
-	"pump_fun/internal/logger"
 	"pump_fun/internal/models"
 )
 
@@ -15,7 +14,6 @@ func DecodeBuyInstruction(coin *models.Coin, data []byte) error {
 	if bytes.Equal(data[:8], constants.BuyInstructionDiscriminator[:]) {
 		err := buy_decoder(data, coin)
 		if err != nil {
-			logger.Log(logger.LevelError, "Error decoding buy instruction", logger.Error(err))
 			return err
 		}
 	}
@@ -29,7 +27,7 @@ func buy_decoder(data []byte, coinModel *models.Coin) error {
 
 	amount, err := convertToUint64(buf)
 	if err != nil {
-		logger.Log(logger.LevelError, "Error reading the amount", logger.Error(err))
+		return err
 	}
 
 	coinModel.CoinData.DevHoldingAmount = (float64(amount) / 100_000_000_000_000_000) * 100

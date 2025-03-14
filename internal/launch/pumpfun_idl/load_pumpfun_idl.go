@@ -37,7 +37,6 @@ func loadPumpfunIdl() {
 func loadIdlIntoModel() (*models.PumpFunIdl, error) {
 	jsonFile, err := os.Open("internal/launch/pumpfun_idl/pump_fun_idl.json")
 	if err != nil {
-		logger.Error(err)
 		return nil, err
 	}
 	defer jsonFile.Close()
@@ -47,7 +46,6 @@ func loadIdlIntoModel() (*models.PumpFunIdl, error) {
 	var idl models.PumpFunIdl
 	err = json.Unmarshal(byteValue, &idl)
 	if err != nil {
-		logger.Error(err)
 		return nil, err
 	}
 

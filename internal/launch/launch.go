@@ -5,11 +5,13 @@ import (
 	"pump_fun/internal/launch/config"
 	"pump_fun/internal/launch/pumpfun_idl"
 	"pump_fun/internal/launch/solana_price"
+	"pump_fun/internal/logger"
 )
 
 func LaunchOperations() {
 	err := config.LoadConfig()
 	if err != nil {
+		logger.Log(logger.LevelError, "Error reading config file", logger.Error(err))
 		return
 	}
 

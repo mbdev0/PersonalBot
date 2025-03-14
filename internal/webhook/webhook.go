@@ -38,14 +38,12 @@ func sendDiscordMessage(webhookURL string, coin models.Coin) error {
 	marshaledWebhook, err := json.Marshal(webhook)
 
 	if err != nil {
-		logger.Log(logger.LevelError, "Error marshalling webhook", logger.Error(err))
 		return err
 	}
 
 	req, err := client.Post(webhookURL, "application/json", bytes.NewBuffer(marshaledWebhook))
 
 	if err != nil {
-		logger.Log(logger.LevelError, "Error sending webhook", logger.Error(err))
 		return err
 	}
 
@@ -56,7 +54,6 @@ func sendDiscordMessage(webhookURL string, coin models.Coin) error {
 		body, err := io.ReadAll(req.Body)
 
 		if err != nil {
-			logger.Log(logger.LevelError, "Error reading response body", logger.Error(err))
 			return err
 		}
 
@@ -152,13 +149,10 @@ func convertDecimalToPercentage(decimal float64) string {
 func handleError(req *http.Response, body []byte) error {
 	switch req.StatusCode {
 	case http.StatusUnauthorized:
-		logger.Log(logger.LevelError, "Webhook doesn't exist", logger.String("error", "Unauthorized"), logger.String("url", req.Request.URL.String()))
 		return fmt.Errorf("unauthorized: %s", string(body))
 	case http.StatusTooManyRequests:
-		logger.Log(logger.LevelError, "Webhook rate limited", logger.String("error", "Rate limited"), logger.String("url", req.Request.URL.String()))
 		return fmt.Errorf("rate limited: %s", string(body))
 	default:
-		logger.Log(logger.LevelError, fmt.Sprintf("Error sending webhook, code: %d", req.StatusCode), logger.String("error", string(body)), logger.String("url", req.Request.URL.String()))
 		return fmt.Errorf("error sending webhook, code: %d, body: %s", req.StatusCode, string(body))
 	}
 }
