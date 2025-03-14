@@ -1,4 +1,4 @@
-package config
+package models
 
 type Config struct {
 	Webhook  string `json:"webhook"`

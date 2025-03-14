@@ -4,10 +4,11 @@ import (
 	"encoding/json"
 	"os"
 	"pump_fun/internal/logger"
+	"pump_fun/internal/models"
 	"sync"
 )
 
-var config *Config
+var config *models.Config
 var lock = &sync.Mutex{}
 
 func LoadConfig() error {
@@ -24,7 +25,7 @@ func LoadConfig() error {
 	return nil
 }
 
-func GetConfig() *Config {
+func GetConfig() *models.Config {
 	if config == nil {
 		lock.Lock()
 		defer lock.Unlock()
@@ -32,7 +33,7 @@ func GetConfig() *Config {
 			err := LoadConfig()
 			if err != nil {
 				logger.Log(logger.LevelError, "Error loading config", logger.Error(err))
-				return &Config{}
+				return &models.Config{}
 			}
 		}
 	}
