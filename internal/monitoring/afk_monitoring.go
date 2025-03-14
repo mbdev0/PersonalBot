@@ -15,7 +15,6 @@ var startMonitoring bool = true
 func StartAFKMonitor() {
 	var wg sync.WaitGroup
 
-	// start monitoring on 1 goroutine
 	if startMonitoring {
 		wg.Add(1)
 		go func() {

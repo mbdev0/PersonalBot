@@ -1,4 +1,4 @@
-package launch
+package pumpfun_idl
 
 import (
 	"encoding/json"

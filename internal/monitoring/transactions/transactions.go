@@ -9,7 +9,7 @@ import (
 	"github.com/mr-tron/base58"
 
 	"pump_fun/internal/constants"
-	"pump_fun/internal/launch"
+	"pump_fun/internal/launch/pumpfun_idl"
 	"pump_fun/internal/models"
 	"pump_fun/internal/monitoring/transactions/decoder"
 
@@ -18,7 +18,7 @@ import (
 
 func DecryptTransactionNotification(transaction models.TransactionNotification, coinStructChan chan models.Coin) *models.Coin {
 
-	coin, transactionIsCreate := parseCoinDateAndIsCreate(transaction) // we decrypt in here
+	coin, transactionIsCreate := parseCoinDataAndIsCreate(transaction)
 
 	if !transactionIsCreate {
 		return nil
@@ -36,7 +36,7 @@ func DecryptTransactionNotification(transaction models.TransactionNotification, 
 	return &coin
 }
 
-func parseCoinDateAndIsCreate(transaction models.TransactionNotification) (coin models.Coin, transactionIsCreate bool) {
+func parseCoinDataAndIsCreate(transaction models.TransactionNotification) (coin models.Coin, transactionIsCreate bool) {
 
 	coin = models.Coin{}
 	transactionIsCreate = false
@@ -62,19 +62,11 @@ func parseCoinDateAndIsCreate(transaction models.TransactionNotification) (coin 
 				continue
 			}
 
-			idlMap := launch.GetIdlMap()
+			idlMap := pumpfun_idl.GetIdlMap()
 
 			coin.CoinData.TokenAddr = instruction.Accounts[idlMap["create"].AccountMap["mint"]]
 			coin.CoinData.CreatorAddr = instruction.Accounts[idlMap["create"].AccountMap["user"]]
 			coin.CoinData.BondingCurveAddr = instruction.Accounts[idlMap["create"].AccountMap["bondingCurve"]]
-
-			//EXAMPLE USAGE OF GetBondingCurveAddress
-			address, err := GetBondingCurveAddress(coin.CoinData.TokenAddr)
-			if err != nil {
-				fmt.Println("ERROR FINDING PROGRAM ADDRESS\n", err)
-			} else {
-				fmt.Println("BONDING CURVE CHECK: ", coin.CoinData.TokenAddr, coin.CoinData.BondingCurveAddr, coin.CoinData.BondingCurveAddr == address)
-			}
 
 			transactionIsCreate = true
 		}

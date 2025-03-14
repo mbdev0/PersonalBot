@@ -1,4 +1,4 @@
-package rpccalls
+package rpcclient
 
 import (
 	"context"

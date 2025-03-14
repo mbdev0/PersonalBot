@@ -1,7 +1,7 @@
-package rpccalls
+package rpcclient
 
 import (
-	"pump_fun/internal/config"
+	"pump_fun/internal/launch/config"
 	"sync"
 	"time"
 

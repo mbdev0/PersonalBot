@@ -1,4 +1,4 @@
-package launch
+package solana_price
 
 import (
 	"encoding/json"

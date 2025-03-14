@@ -10,7 +10,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"pump_fun/internal/config"
+	"pump_fun/internal/launch/config"
 	"pump_fun/internal/logger"
 	"pump_fun/internal/models"
 )
