@@ -3,6 +3,7 @@ package geyser
 import (
 	"context"
 	"fmt"
+	"pump_fun/internal/constants"
 	"pump_fun/internal/models"
 
 	"github.com/coder/websocket"
@@ -16,7 +17,7 @@ func Geyser_Stream_AccountInfo(ctx context.Context, address string, accountinfo_
 		return err
 	}
 
-	ws.SetReadLimit(65536)
+	ws.SetReadLimit(constants.WebSocketReadLimit)
 
 	err = wsjson.Write(ctx, ws, map[string]interface{}{
 		"jsonrpc": "2.0",

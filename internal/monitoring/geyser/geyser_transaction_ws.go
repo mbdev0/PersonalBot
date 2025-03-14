@@ -24,7 +24,7 @@ func Geyser_Stream_Transactions(transaction_chan chan models.TransactionNotifica
 		return err
 	}
 
-	ws.SetReadLimit(65536)
+	ws.SetReadLimit(constants.WebSocketReadLimit)
 
 	err = wsjson.Write(ctx, ws, map[string]interface{}{
 		"jsonrpc": "2.0",
