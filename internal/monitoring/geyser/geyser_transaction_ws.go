@@ -50,9 +50,8 @@ func Geyser_Stream_Transactions(transaction_chan chan models.TransactionNotifica
 		return err
 	}
 
-	// read first response
-	out := interface{}(nil)
-	err = wsjson.Read(ctx, ws, &out)
+	var firstMessage interface{}
+	err = wsjson.Read(ctx, ws, &firstMessage)
 	if err != nil {
 		return err
 	}
