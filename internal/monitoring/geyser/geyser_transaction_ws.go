@@ -3,8 +3,8 @@ package geyser
 import (
 	"context"
 	"fmt"
-	"pump_fun/internal/config"
 	"pump_fun/internal/constants"
+	"pump_fun/internal/launch/config"
 	"pump_fun/internal/models"
 
 	"github.com/coder/websocket"
@@ -24,7 +24,7 @@ func Geyser_Stream_Transactions(transaction_chan chan models.TransactionNotifica
 		return err
 	}
 
-	ws.SetReadLimit(65536)
+	ws.SetReadLimit(constants.WebSocketReadLimit)
 
 	err = wsjson.Write(ctx, ws, map[string]interface{}{
 		"jsonrpc": "2.0",
@@ -50,9 +50,8 @@ func Geyser_Stream_Transactions(transaction_chan chan models.TransactionNotifica
 		return err
 	}
 
-	// read first response
-	out := interface{}(nil)
-	err = wsjson.Read(ctx, ws, &out)
+	var firstMessage interface{}
+	err = wsjson.Read(ctx, ws, &firstMessage)
 	if err != nil {
 		return err
 	}

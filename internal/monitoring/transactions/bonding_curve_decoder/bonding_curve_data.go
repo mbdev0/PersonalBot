@@ -1,12 +1,12 @@
-package buy
+package bonding_curve_decoder
 
 import (
 	"errors"
 	"fmt"
 	"math/big"
-	"pump_fun/internal/launch"
+	"pump_fun/internal/launch/solana_price"
 	"pump_fun/internal/models"
-	rpccalls "pump_fun/internal/rpc_calls"
+	rpcclient "pump_fun/internal/rpc_client"
 
 	"github.com/mr-tron/base58"
 )
@@ -30,7 +30,7 @@ func GetMarketCapFrom(bondingCurveValue string) (marketCapVal *big.Float, err er
 }
 
 func GetMarketCapInitial(bondingCurveAddress string) (marketCapVal *big.Float, err error, hasCompleted bool) {
-	bondingCurveResponse, err := rpccalls.GetAccountInfo(bondingCurveAddress)
+	bondingCurveResponse, err := rpcclient.GetAccountInfo(bondingCurveAddress)
 	if err != nil {
 		return nil, err, false
 	}
@@ -58,7 +58,7 @@ func GetMarketCapInitial(bondingCurveAddress string) (marketCapVal *big.Float, e
 
 func GetBuyTokenAmountFrom(buyInSol big.Int, bondingCurve string) (tokenAmnt *big.Int, err error, hasCompleted bool) {
 
-	bondingCurveResponse, err := rpccalls.GetAccountInfo(bondingCurve)
+	bondingCurveResponse, err := rpcclient.GetAccountInfo(bondingCurve)
 	if err != nil {
 		return nil, err, false
 	}
@@ -99,8 +99,7 @@ func getBondingCurveData(bondingCurve string) (bondingCurveData *models.BondingC
 }
 
 func getMarketCap(bondingCurve models.BondingCurve) (*big.Float, error) {
-	// This has been verified as accurate comparing against pump.funs website
-	solPrice, err := launch.GetSolPrice() // -> the 100 will be gotten from an api call that runs periodically in the background https://frontend-api-v3.pump.fun/sol-price
+	solPrice, err := solana_price.GetSolPrice()
 	if err != nil {
 		return nil, err
 	}

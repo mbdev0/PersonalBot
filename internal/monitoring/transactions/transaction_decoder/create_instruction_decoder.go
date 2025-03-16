@@ -1,4 +1,4 @@
-package decoder
+package transaction_decoder
 
 import (
 	"bytes"
@@ -16,7 +16,6 @@ func DecodeCreateInstruction(coin *models.Coin, data []byte) error {
 	if bytes.Equal(data[:8], constants.CreateInstructionDiscriminator[:]) {
 		err := create_decoder(data, coin)
 		if err != nil {
-			logger.Log(logger.LevelError, "Error decoding create instruction", logger.Error(err))
 			return err
 		}
 	}
