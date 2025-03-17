@@ -55,12 +55,12 @@ func parseCoinDataAndIsCreate(transaction models.TransactionNotification) (coin 
 		discriminator := instructionData[:8]
 
 		if bytes.Equal(discriminator, constants.CreateInstructionDiscriminator[:]) {
-			err = DecodeCreateInstruction(&coin, instructionData)
-
+			decodedInstruction, err := DecodeCreateInstruction(instructionData)
 			if err != nil {
 				logger.Log(logger.LevelError, "Error decoding create instruction", logger.Error(err))
 				continue
 			}
+			UpdateCoinFromDecodedInstruction(&coin, decodedInstruction)
 
 			idlMap := pumpfun_idl.GetIdlMap()
 

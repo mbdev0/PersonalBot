@@ -7,51 +7,44 @@ import (
 	"pump_fun/internal/models"
 )
 
-func DecodeCreateInstruction(coin *models.Coin, data []byte) error {
-
-	if len(data) < 8 {
-		return nil
+func DecodeCreateInstruction(data []byte) (*models.DecodedCreateInstruction, error) {
+	if len(data) < 8 || !bytes.Equal(data[:8], constants.CreateInstructionDiscriminator[:]) {
+		return nil, nil
 	}
 
-	if bytes.Equal(data[:8], constants.CreateInstructionDiscriminator[:]) {
-		err := create_decoder(data, coin)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func create_decoder(data []byte, coinModel *models.Coin) error {
-	var err error
 	buf := bytes.NewBuffer(data[8:])
-
 	var args models.DecodedCreateInstruction
+	var err error
 
 	args.Name, err = readStringWithLengthAtStart(buf)
 	if err != nil {
 		logger.Log(logger.LevelError, "Error reading the Name", logger.Error(err))
-		return err
+		return nil, err
 	}
 
 	args.Symbol, err = readStringWithLengthAtStart(buf)
 	if err != nil {
 		logger.Log(logger.LevelError, "Error reading the Symbol", logger.Error(err))
-		return err
+		return nil, err
 	}
 
 	args.IPFS_URL, err = readStringWithLengthAtStart(buf)
 	if err != nil {
 		logger.Log(logger.LevelError, "Error reading the URI", logger.Error(err))
-		return err
+		return nil, err
 	}
 
-	coinModel.CoinData = models.MintData{
-		Name:     args.Name,
-		Symbol:   args.Symbol,
-		IPFS_URL: args.IPFS_URL,
+	return &args, nil
+}
+
+func UpdateCoinFromDecodedInstruction(coin *models.Coin, instruction *models.DecodedCreateInstruction) {
+	if instruction == nil {
+		return
 	}
 
-	return nil
+	coin.CoinData = models.MintData{
+		Name:     instruction.Name,
+		Symbol:   instruction.Symbol,
+		IPFS_URL: instruction.IPFS_URL,
+	}
 }
