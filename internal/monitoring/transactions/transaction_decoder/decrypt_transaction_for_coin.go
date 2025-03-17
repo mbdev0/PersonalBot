@@ -40,7 +40,8 @@ func parseCoinDataAndIsCreate(transaction models.TransactionNotification) (coin 
 	coin = models.Coin{}
 	transactionIsCreate = false
 
-	for _, instruction := range transaction.Params.Result.Transaction.TransactionDetails.Message.Instructions {
+	instructions := transaction.Params.Result.Transaction.TransactionDetails.Message.Instructions
+	for _, instruction := range instructions {
 		if len(instruction.Data) < 8 {
 			continue
 		}
