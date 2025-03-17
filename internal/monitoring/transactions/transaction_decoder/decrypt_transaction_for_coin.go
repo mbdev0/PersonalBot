@@ -63,10 +63,11 @@ func parseCoinDataAndIsCreate(transaction models.TransactionNotification) (coin 
 			UpdateCoinFromDecodedInstruction(&coin, decodedInstruction)
 
 			idlMap := pumpfun_idl.GetIdlMap()
+			createAccountIDL := idlMap["create"].AccountMap
 
-			coin.CoinData.TokenAddr = instruction.Accounts[idlMap["create"].AccountMap["mint"]]
-			coin.CoinData.CreatorAddr = instruction.Accounts[idlMap["create"].AccountMap["user"]]
-			coin.CoinData.BondingCurveAddr = instruction.Accounts[idlMap["create"].AccountMap["bondingCurve"]]
+			coin.CoinData.TokenAddr = instruction.Accounts[createAccountIDL["mint"]]
+			coin.CoinData.CreatorAddr = instruction.Accounts[createAccountIDL["user"]]
+			coin.CoinData.BondingCurveAddr = instruction.Accounts[createAccountIDL["bondingCurve"]]
 
 			transactionIsCreate = true
 		}
