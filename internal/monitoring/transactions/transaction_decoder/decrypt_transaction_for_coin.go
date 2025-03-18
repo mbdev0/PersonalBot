@@ -16,7 +16,7 @@ import (
 	"pump_fun/internal/logger"
 )
 
-func DecryptTransactionNotificationForCoin(transaction models.TransactionNotification, coinStructChan chan models.Coin) *models.Coin {
+func DecryptTransactionNotificationForCoin(transaction models.TransactionNotification) *models.Coin {
 
 	coin, err := getCreatedCoinWithBuyData(transaction)
 
