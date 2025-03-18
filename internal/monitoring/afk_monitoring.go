@@ -36,7 +36,7 @@ func StartAFKMonitor() {
 	wg.Wait()
 }
 
-func MonitorTransactions(transaction_notification_chan chan models.TransactionNotification) {
+func MonitorTransactions(transaction_notification_chan chan<- models.TransactionNotification) {
 	err := geyser.Geyser_Stream_Transactions(transaction_notification_chan)
 	if err != nil {
 		logger.Error(err)
