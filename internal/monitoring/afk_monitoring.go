@@ -43,9 +43,9 @@ func MonitorTransactions(transaction_notification_chan chan<- models.Transaction
 	}
 }
 
-func ProcessAndFilterTransaction(transaction_notification_chan chan models.TransactionNotification, coinStructChan chan models.Coin) {
+func ProcessAndFilterTransaction(transaction_notification_chan <-chan models.TransactionNotification, coinStructChan chan<- models.Coin) {
 	for transaction := range transaction_notification_chan {
-		go func(transaction models.TransactionNotification, coinStructChan chan models.Coin) {
+		go func(transaction models.TransactionNotification, coinStructChan chan<- models.Coin) {
 			handlers.HandleTransactionNotification(transaction, coinStructChan)
 		}(transaction, coinStructChan)
 	}
