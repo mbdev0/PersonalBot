@@ -22,7 +22,7 @@ func StartAFKMonitor() {
 			coinStructChan := make(chan models.Coin, 1000)
 
 			go MonitorTransactions(transaction_notification_chan)
-			go ProcessAndFilterTransaction(transaction_notification_chan, coinStructChan)
+			go ProcessAndFilterTransactions(transaction_notification_chan, coinStructChan)
 			for coinStruct := range coinStructChan {
 				go func(coin models.Coin) {
 					webhook.SendWebhook(&coin)
@@ -43,7 +43,7 @@ func MonitorTransactions(transaction_notification_chan chan<- models.Transaction
 	}
 }
 
-func ProcessAndFilterTransaction(transaction_notification_chan <-chan models.TransactionNotification, coinStructChan chan<- models.Coin) {
+func ProcessAndFilterTransactions(transaction_notification_chan <-chan models.TransactionNotification, coinStructChan chan<- models.Coin) {
 	for transaction := range transaction_notification_chan {
 		go func(transaction models.TransactionNotification, coinStructChan chan<- models.Coin) {
 			handlers.HandleTransactionNotification(transaction, coinStructChan)
