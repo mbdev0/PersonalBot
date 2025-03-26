@@ -96,8 +96,7 @@ func createCoinFromInstruction(instruction models.Instruction, instructionData [
 }
 
 func assignCoinAddresses(coin *models.Coin, instruction models.Instruction) {
-	idlMap := pumpfun_idl.GetIdlMap()
-	createAccountIDL := idlMap["create"].AccountMap
+	createAccountIDL := pumpfun_idl.GetIdlMap()["create"].AccountMap
 
 	coin.CoinData.TokenAddr = instruction.Accounts[createAccountIDL["mint"]]
 	coin.CoinData.CreatorAddr = instruction.Accounts[createAccountIDL["user"]]
