@@ -33,7 +33,7 @@ func buy_decoder(data []byte, coinModel *models.Coin) error {
 		return err
 	}
 
-	coinModel.CoinData.DevHoldingAmount = (float64(amount) / 100_000_000_000_000_000) * 100
+	coinModel.CoinData.DevHoldingAmount = (float64(amount) / 1e17) * 100
 
 	return nil
 }
@@ -50,5 +50,5 @@ func ExtractBuyAmountFromBuyInstruction(data []byte) (float64, error) {
 		return 0, err
 	}
 
-	return (float64(amount) / 100_000_000_000_000_000) * 100, nil
+	return (float64(amount) / 1e17) * 100, nil
 }
