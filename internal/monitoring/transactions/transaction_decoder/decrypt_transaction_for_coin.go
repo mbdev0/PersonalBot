@@ -74,7 +74,7 @@ func getCreatedCoinWithBuyData(transaction models.TransactionNotification) (mode
 	}
 
 	if !createTransactionFound {
-		return models.Coin{}, errors.New("create instruction is not found")
+		return coin, errors.New("create instruction is not found")
 	}
 
 	coin.CoinData.DevHoldingAmount = devHoldingAmount
