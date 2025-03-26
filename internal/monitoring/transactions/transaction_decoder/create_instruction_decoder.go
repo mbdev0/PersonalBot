@@ -8,7 +8,8 @@ import (
 )
 
 func DecodeCreateInstruction(data []byte) (*models.DecodedCreateInstruction, error) {
-	if len(data) < 8 || !bytes.Equal(data[:8], constants.CreateInstructionDiscriminator[:]) {
+	isCreate := len(data) < 8 || !bytes.Equal(data[:8], constants.CreateInstructionDiscriminator[:])
+	if isCreate {
 		return nil, nil
 	}
 
