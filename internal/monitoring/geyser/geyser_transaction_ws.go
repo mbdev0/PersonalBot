@@ -34,7 +34,7 @@ func Geyser_Stream_Transactions(transaction_chan chan models.TransactionNotifica
 			map[string]interface{}{
 				"failed": false,
 				"accountInclude": []interface{}{
-					constants.ProgramID,
+					constants.Program,
 				},
 			},
 			map[string]interface{}{

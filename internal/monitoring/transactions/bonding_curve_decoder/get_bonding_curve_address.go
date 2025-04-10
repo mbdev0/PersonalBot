@@ -7,21 +7,21 @@ import (
 	"github.com/mr-tron/base58"
 )
 
-/*
-
-EXAMPLE
-address, err := bonding_curve_decoder.GetBondingCurveAddress(coin.CoinData.TokenAddr)
-if err != nil {
-	fmt.Println("ERROR FINDING PROGRAM ADDRESS\n", err)
-} else {
-	fmt.Println(address)
-}
-*/
-
-func GetBondingCurveAddress(tokenAddress string) (string, error) {
+func GetBondingCurveAddress(tokenAddress string) (bondingCurveAddress string, err error) {
 	caBytes, _ := base58.Decode(tokenAddress)
-	programId, _ := base58.Decode(constants.ProgramID)
+	programId, _ := base58.Decode(constants.Program)
 	seeds := [][]byte{[]byte("bonding-curve"), caBytes}
 	address, _, err := program_derived_address.FindProgramAddressSync(seeds, programId)
+	return address, err
+}
+
+func GetAssociatedBondingCurveAddress(bondingCurveAddr string, tokenAddress string) (associatedBondingCurveAddress string, err error) {
+	caBytes, _ := base58.Decode(tokenAddress)
+	tokenProgram, _ := base58.Decode(constants.TokenProgram)
+	bondingCurve, _ := base58.Decode(bondingCurveAddr)
+	associatedTokenProgram, _ := base58.Decode(constants.AssociatedTokenProgram)
+
+	seeds := [][]byte{bondingCurve, tokenProgram, caBytes}
+	address, _, err := program_derived_address.FindProgramAddressSync(seeds, associatedTokenProgram)
 	return address, err
 }
