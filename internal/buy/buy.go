@@ -22,7 +22,6 @@ func SendBuyTransaction(privateKey solana.PrivateKey, tokenAddress string, buyAm
 }
 
 func sendBuyTransaction(privateKey solana.PrivateKey, tokenAddress string, buyAmountLamport big.Int, slippage float64) {
-
 	instructions := getAllInstructionsForBuy(privateKey, tokenAddress, buyAmountLamport, slippage)
 	client := rpcclient.GetClient()
 
@@ -38,12 +37,13 @@ func sendBuyTransaction(privateKey solana.PrivateKey, tokenAddress string, buyAm
 
 	handlers.SignTx(tx, privateKey)
 
-	txResp, err := client.SimulateTransaction(context.Background(), tx)
+	// txResp, err := client.SimulateTransaction(context.Background(), tx)
+	txResp, err := client.SendTransaction(context.Background(), tx)
 	if err != nil {
 		logger.Error(err)
 	}
+	fmt.Println(txResp)
 
-	fmt.Println(txResp.Value)
 }
 
 func getAllInstructionsForBuy(privateKey solana.PrivateKey, tokenAddress string, buyAmountLamport big.Int, slippage float64) (buyInstructions []solana.Instruction) {
