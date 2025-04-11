@@ -2,9 +2,9 @@ package geyser
 
 import (
 	"context"
-	"fmt"
 	"pump_fun/internal/constants"
 	"pump_fun/internal/launch/config"
+	"pump_fun/internal/logger"
 	"pump_fun/internal/models"
 
 	"github.com/coder/websocket"
@@ -61,7 +61,7 @@ func Geyser_Stream_Transactions(transaction_chan chan models.TransactionNotifica
 		err = wsjson.Read(ctx, ws, &out)
 
 		if err != nil {
-			fmt.Println("Error reading from websocket:", err)
+			logger.Log(logger.LevelError, "Error reading from websocket", logger.Error(err))
 			return err
 		}
 
