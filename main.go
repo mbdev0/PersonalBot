@@ -22,5 +22,5 @@ func main() {
 
 	fmt.Println(privateKey.PublicKey().String())
 
-	buy.SendBuyTransaction(privateKey.String(), "C2Fs7X9KpivZTPFr26ur8PR1iqVTNoSoZ7FuK2q1pump", handlers.ConvertSolToLamport(0.1), 0.2)
+	buy.SendBuyTransaction(privateKey, "C2Fs7X9KpivZTPFr26ur8PR1iqVTNoSoZ7FuK2q1pump", handlers.ConvertSolToLamport(0.1), 0.2)
 }

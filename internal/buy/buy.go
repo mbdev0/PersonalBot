@@ -8,28 +8,49 @@ import (
 	"context"
 	"fmt"
 	"math/big"
+	"pump_fun/internal/handlers"
 	instructionbuilder "pump_fun/internal/instruction_builder"
+	"pump_fun/internal/logger"
 	rpcclient "pump_fun/internal/rpc_client"
 
 	"github.com/gagliardetto/solana-go"
 	"github.com/gagliardetto/solana-go/rpc"
 )
 
-func SendBuyTransaction(account string, tokenAddress string, buyAmountLamport big.Int, slippage float64) {
-	sendBuyTransaction(account, tokenAddress, buyAmountLamport, slippage)
+func SendBuyTransaction(privateKey solana.PrivateKey, tokenAddress string, buyAmountLamport big.Int, slippage float64) {
+	sendBuyTransaction(privateKey, tokenAddress, buyAmountLamport, slippage)
 }
 
-func sendBuyTransaction(account string, tokenAddress string, buyAmountLamport big.Int, slippage float64) {
+func sendBuyTransaction(privateKey solana.PrivateKey, tokenAddress string, buyAmountLamport big.Int, slippage float64) {
 
-	privateKey, err := solana.PrivateKeyFromBase58(account)
+	instructions := getAllInstructionsForBuy(privateKey, tokenAddress, buyAmountLamport, slippage)
+	client := rpcclient.GetClient()
 
+	latestHash, err := client.GetLatestBlockhash(context.Background(), rpc.CommitmentFinalized)
 	if err != nil {
-		fmt.Println(err)
+		logger.Error(err)
 	}
+
+	tx, err := solana.NewTransaction(instructions, latestHash.Value.Blockhash, solana.TransactionPayer(privateKey.PublicKey()))
+	if err != nil {
+		logger.Error(err)
+	}
+
+	handlers.SignTx(tx, privateKey)
+
+	txResp, err := client.SimulateTransaction(context.Background(), tx)
+	if err != nil {
+		logger.Error(err)
+	}
+
+	fmt.Println(txResp.Value)
+}
+
+func getAllInstructionsForBuy(privateKey solana.PrivateKey, tokenAddress string, buyAmountLamport big.Int, slippage float64) (buyInstructions []solana.Instruction) {
 
 	tokenAddressPubkey, err := solana.PublicKeyFromBase58(tokenAddress)
 	if err != nil {
-		fmt.Println(err)
+		logger.Error(err)
 	}
 
 	computeLimitInstruction := instructionbuilder.GetComputeUnitLimitInstruction(80000)
@@ -38,41 +59,11 @@ func sendBuyTransaction(account string, tokenAddress string, buyAmountLamport bi
 	buyInstruction, err := instructionbuilder.GetBuyInstruction(tokenAddress, privateKey.PublicKey().String(), buyAmountLamport, slippage)
 
 	if err != nil {
-		return
+		logger.Error(err)
 	}
-	client := rpcclient.GetClient()
 
 	instructions := []solana.Instruction{computeLimitInstruction, computeLimitBudgetInstruction, idEmponenetInstruction, buyInstruction}
-	latestHash, err := client.GetLatestBlockhash(context.Background(), rpc.CommitmentFinalized)
 
-	if err != nil {
-		fmt.Println("ERROR", err)
-	}
-
-	tx, err := solana.NewTransaction(instructions, latestHash.Value.Blockhash, solana.TransactionPayer(privateKey.PublicKey()))
-
-	if err != nil {
-		fmt.Println("ERROR", err)
-	}
-
-	_, err = tx.Sign(
-		func(key solana.PublicKey) *solana.PrivateKey {
-			if privateKey.PublicKey().Equals(key) {
-				return &privateKey
-			}
-			return nil
-		},
-	)
-
-	if err != nil {
-		panic(fmt.Errorf("unable to sign transaction: %w", err))
-	}
-
-	txResp, err := client.SimulateTransaction(context.Background(), tx)
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	fmt.Println(txResp.Value)
+	return instructions
 
 }
