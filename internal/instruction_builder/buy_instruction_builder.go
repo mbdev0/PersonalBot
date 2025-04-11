@@ -12,7 +12,7 @@ import (
 	"github.com/gagliardetto/solana-go"
 )
 
-func GetBuyInstruction(tokenAddress string, walletAddress string, sol_lamport_buy_amount big.Int) (instruction *solana.GenericInstruction, err error) {
+func GetBuyInstruction(tokenAddress string, walletAddress string, sol_lamport_buy_amount big.Int, slippage float64) (instruction *solana.GenericInstruction, err error) {
 
 	bondingCurveAddress, err := bonding_curve_decoder.GetBondingCurveAddress(tokenAddress)
 
@@ -51,7 +51,7 @@ func GetBuyInstruction(tokenAddress string, walletAddress string, sol_lamport_bu
 		GetAccountMeta(constants.Program, false, false),
 	}
 
-	instruction_data := create_buy_data(sol_lamport_buy_amount, bondingCurveAddress)
+	instruction_data := create_buy_data(sol_lamport_buy_amount, bondingCurveAddress, slippage)
 
 	buy_instructions := solana.NewInstruction(solana.MustPublicKeyFromBase58(constants.Program), accounts, instruction_data)
 
@@ -59,7 +59,7 @@ func GetBuyInstruction(tokenAddress string, walletAddress string, sol_lamport_bu
 
 }
 
-func create_buy_data(sol_lamport_buy_amount big.Int, bondingCurveAddr string) []byte {
+func create_buy_data(sol_lamport_buy_amount big.Int, bondingCurveAddr string, slippage float64) []byte {
 	// Get the token amount
 	tokenAmount, err, hasCompleted := handlers.GetBuyTokenAmountFrom(sol_lamport_buy_amount, bondingCurveAddr)
 	if err != nil || hasCompleted {
@@ -96,7 +96,7 @@ func create_buy_data(sol_lamport_buy_amount big.Int, bondingCurveAddr string) []
 		return nil
 	}
 
-	sol_lamport_buy_amount = *new(big.Int).Add(&sol_lamport_buy_amount, big.NewInt(200000))
+	sol_lamport_buy_amount = handlers.AddSlippageToBuy(sol_lamport_buy_amount, slippage)
 	solUint64 := sol_lamport_buy_amount.Uint64()
 	if err := binary.Write(buf, binary.LittleEndian, solUint64); err != nil {
 		fmt.Println("Error writing SOL amount:", err)

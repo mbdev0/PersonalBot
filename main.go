@@ -3,8 +3,8 @@ package main
 
 import (
 	"fmt"
-	"math/big"
 	"pump_fun/internal/buy"
+	"pump_fun/internal/handlers"
 	"pump_fun/internal/launch"
 	"pump_fun/internal/launch/config"
 
@@ -22,5 +22,5 @@ func main() {
 
 	fmt.Println(privateKey.PublicKey().String())
 
-	buy.SendBuyTransaction(privateKey.String(), "C2Fs7X9KpivZTPFr26ur8PR1iqVTNoSoZ7FuK2q1pump", *big.NewInt(10000000))
+	buy.SendBuyTransaction(privateKey.String(), "C2Fs7X9KpivZTPFr26ur8PR1iqVTNoSoZ7FuK2q1pump", handlers.ConvertSolToLamport(0.1), 0.2)
 }

@@ -15,12 +15,11 @@ import (
 	"github.com/gagliardetto/solana-go/rpc"
 )
 
-func SendBuyTransaction(account string, tokenAddress string, buyAmountLamport big.Int) {
-	sendBuyTransaction(account, tokenAddress, buyAmountLamport)
+func SendBuyTransaction(account string, tokenAddress string, buyAmountLamport big.Int, slippage float64) {
+	sendBuyTransaction(account, tokenAddress, buyAmountLamport, slippage)
 }
 
-func sendBuyTransaction(account string, tokenAddress string, buyAmountLamport big.Int) {
-	// gather all intstructions
+func sendBuyTransaction(account string, tokenAddress string, buyAmountLamport big.Int, slippage float64) {
 
 	privateKey, err := solana.PrivateKeyFromBase58(account)
 
@@ -36,7 +35,7 @@ func sendBuyTransaction(account string, tokenAddress string, buyAmountLamport bi
 	computeLimitInstruction := instructionbuilder.GetComputeUnitLimitInstruction(80000)
 	computeLimitBudgetInstruction := instructionbuilder.GetComputeUnitBudgetInstruction(500000)
 	idEmponenetInstruction := instructionbuilder.GetIdEmponentInstruction(privateKey.PublicKey(), tokenAddressPubkey)
-	buyInstruction, err := instructionbuilder.GetBuyInstruction(tokenAddress, privateKey.PublicKey().String(), buyAmountLamport)
+	buyInstruction, err := instructionbuilder.GetBuyInstruction(tokenAddress, privateKey.PublicKey().String(), buyAmountLamport, slippage)
 
 	if err != nil {
 		return
