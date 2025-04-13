@@ -33,13 +33,28 @@ func sendBuyTransaction(privateKey solana.PrivateKey, tokenAddress string, buyAm
 
 	handlers.SignTx(tx, privateKey)
 
+	// SIMULATE TRANSACTION
 	txResp, err := client.SimulateTransaction(context.Background(), tx)
-	// txResp, err := client.SendTransaction(context.Background(), tx)
 	if err != nil {
 		logger.Error(err)
 	}
-	// fmt.Println(txResp.String())
 	fmt.Println(txResp.Value)
+
+	// SEND TRANSACTION WITH OPTIONS
+	// maxRetries := uint(5)
+	// txResp, err := client.SendTransactionWithOpts(context.Background(), tx, rpc.TransactionOpts{Encoding: solana.EncodingBase64, SkipPreflight: false, MaxRetries: &maxRetries})
+	// if err != nil {
+	// 	logger.Error(err)
+	// }
+	// fmt.Println(txResp.String())
+
+	// SEND TRANSACTION WITH NO OPTS
+	// txResp, err := client.SendTransaction(context.Background(), tx)
+	// if err != nil {
+	// 	logger.Error(err)
+	// }
+	// fmt.Println(txResp.String())
+
 }
 
 func getAllInstructionsForBuy(privateKey solana.PrivateKey, tokenAddress string, buyAmountLamport big.Int, slippage float64) (buyInstructions []solana.Instruction) {
