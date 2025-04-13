@@ -1,7 +1,3 @@
-// connect to http server
-// create transaction
-// send transaction to http server
-// or can we do this via jito?
 package buy
 
 import (
@@ -37,17 +33,16 @@ func sendBuyTransaction(privateKey solana.PrivateKey, tokenAddress string, buyAm
 
 	handlers.SignTx(tx, privateKey)
 
-	// txResp, err := client.SimulateTransaction(context.Background(), tx)
-	txResp, err := client.SendTransaction(context.Background(), tx)
+	txResp, err := client.SimulateTransaction(context.Background(), tx)
+	// txResp, err := client.SendTransaction(context.Background(), tx)
 	if err != nil {
 		logger.Error(err)
 	}
-	fmt.Println(txResp)
-
+	// fmt.Println(txResp.String())
+	fmt.Println(txResp.Value)
 }
 
 func getAllInstructionsForBuy(privateKey solana.PrivateKey, tokenAddress string, buyAmountLamport big.Int, slippage float64) (buyInstructions []solana.Instruction) {
-
 	tokenAddressPubkey, err := solana.PublicKeyFromBase58(tokenAddress)
 	if err != nil {
 		logger.Error(err)
@@ -62,8 +57,9 @@ func getAllInstructionsForBuy(privateKey solana.PrivateKey, tokenAddress string,
 		logger.Error(err)
 	}
 
-	instructions := []solana.Instruction{computeLimitInstruction, computeLimitBudgetInstruction, idEmponenetInstruction, buyInstruction}
-
-	return instructions
-
+	if idEmponenetInstruction != nil {
+		return []solana.Instruction{computeLimitInstruction, computeLimitBudgetInstruction, idEmponenetInstruction, buyInstruction}
+	} else {
+		return []solana.Instruction{computeLimitInstruction, computeLimitBudgetInstruction, buyInstruction}
+	}
 }
