@@ -7,6 +7,7 @@ import (
 	"pump_fun/internal/handlers"
 	"pump_fun/internal/launch"
 	"pump_fun/internal/launch/config"
+	"pump_fun/internal/models/tasks"
 
 	"github.com/gagliardetto/solana-go"
 )
@@ -19,8 +20,20 @@ func main() {
 	if err != nil {
 		return
 	}
-
 	fmt.Println(privateKey.PublicKey().String())
 
-	buy.SendBuyTransaction(privateKey, "C2Fs7X9KpivZTPFr26ur8PR1iqVTNoSoZ7FuK2q1pump", handlers.ConvertSolToLamport(0.1), 0.2)
+	tokenAddressPubkey, err := solana.PublicKeyFromBase58("Df9wCVoASwv6kdR2VWRVPdQ7t48XBmKWF7Nt5Fadpump")
+	if err != nil {
+		return
+	}
+	fmt.Println(tokenAddressPubkey.String())
+
+	buyTask := tasks.BuyTask{
+		Wallet:       privateKey,
+		TokenAddress: tokenAddressPubkey,
+		BuyAmount:    handlers.ConvertSolToLamport(0.001),
+		Slippage:     0.2,
+	}
+
+	buy.SendBuyTransaction(&buyTask)
 }
