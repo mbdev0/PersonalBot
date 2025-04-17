@@ -11,7 +11,6 @@ import (
 	rpcclient "pump_fun/internal/rpc_client"
 
 	"github.com/gagliardetto/solana-go"
-	"github.com/gagliardetto/solana-go/rpc"
 )
 
 func SendBuyTransaction(buyTask *tasks.BuyTask) {
@@ -20,9 +19,8 @@ func SendBuyTransaction(buyTask *tasks.BuyTask) {
 
 func sendBuyTransaction(buyTask *tasks.BuyTask) {
 	instructions := getAllInstructionsForBuy(buyTask.Wallet, buyTask.TokenAddress, buyTask.BuyAmount, buyTask.Slippage)
-	client := rpcclient.GetClient()
 
-	latestHash, err := client.GetLatestBlockhash(context.Background(), rpc.CommitmentFinalized)
+	latestHash, err := rpcclient.GetLatestBlockhash()
 	if err != nil {
 		logger.Error(err)
 	}
@@ -34,6 +32,7 @@ func sendBuyTransaction(buyTask *tasks.BuyTask) {
 
 	handlers.SignTx(tx, buyTask.Wallet)
 
+	client := rpcclient.GetClient()
 	// SIMULATE TRANSACTION
 	txResp, err := client.SimulateTransaction(context.Background(), tx)
 	if err != nil {

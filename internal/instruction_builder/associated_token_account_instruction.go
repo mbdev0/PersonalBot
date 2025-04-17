@@ -8,6 +8,17 @@ import (
 	associatedtokenaccount "github.com/gagliardetto/solana-go/programs/associated-token-account"
 )
 
+func GetIdEmponentInstruction(wallet solana.PublicKey, mintAddress solana.PublicKey) *associatedtokenaccount.Instruction {
+	idEmponentInstruction, err := getIdEmponentInstructionIfExists(wallet, mintAddress)
+
+	if err != nil {
+		logger.Log(logger.LevelError, "Error getting IdEmponentInstruction: ", logger.String("error", err.Error()))
+		return nil
+	}
+
+	return idEmponentInstruction
+}
+
 func getIdEmponentInstructionIfExists(wallet solana.PublicKey, mintAddress solana.PublicKey) (*associatedtokenaccount.Instruction, error) {
 	associatedTokenAddressPubkey, _, err := solana.FindAssociatedTokenAddress(wallet, mintAddress)
 	if err != nil {
@@ -25,15 +36,4 @@ func getIdEmponentInstructionIfExists(wallet solana.PublicKey, mintAddress solan
 	}
 
 	return nil, nil
-}
-
-func GetIdEmponentInstruction(wallet solana.PublicKey, mintAddress solana.PublicKey) *associatedtokenaccount.Instruction {
-	idEmponentInstruction, err := getIdEmponentInstructionIfExists(wallet, mintAddress)
-
-	if err != nil {
-		logger.Log(logger.LevelError, "Error getting IdEmponentInstruction: ", logger.String("error", err.Error()))
-		return nil
-	}
-
-	return idEmponentInstruction
 }

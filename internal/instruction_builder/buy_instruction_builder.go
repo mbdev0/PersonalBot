@@ -45,7 +45,7 @@ func GetBuyInstruction(tokenAddress string, walletAddress string, sol_lamport_bu
 		GetAccountMeta(constants.Program, false, false),
 	}
 
-	instruction_data, err := create_buy_data(sol_lamport_buy_amount, bondingCurveAddress, slippage)
+	instruction_data, err := createBuyData(sol_lamport_buy_amount, bondingCurveAddress, slippage)
 	if err != nil {
 		logger.Log(logger.LevelError, "Error creating buy data", logger.String("error", err.Error()))
 		return nil, err
@@ -57,7 +57,7 @@ func GetBuyInstruction(tokenAddress string, walletAddress string, sol_lamport_bu
 
 }
 
-func create_buy_data(sol_lamport_buy_amount big.Int, bondingCurveAddr string, slippage float64) (data []byte, err error) {
+func createBuyData(sol_lamport_buy_amount big.Int, bondingCurveAddr string, slippage float64) (data []byte, err error) {
 	// Get the token amount
 	tokenAmount, err, hasCompleted := handlers.GetBuyTokenAmountFrom(sol_lamport_buy_amount, bondingCurveAddr)
 	if err != nil || hasCompleted {
