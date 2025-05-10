@@ -5,8 +5,8 @@ import (
 	"pump_fun/internal/monitoring/transactions/transaction_decoder"
 )
 
-func HandleTransactionNotification(transaction models.TransactionNotification, coinStructChan chan models.Coin) {
-	coin := transaction_decoder.DecryptTransactionNotificationForCoin(transaction, coinStructChan)
+func HandleTransactionNotification(transaction models.TransactionNotification, coinStructChan chan<- models.Coin) {
+	coin := transaction_decoder.DecryptTransactionNotificationForCoin(transaction)
 
 	if coin != nil {
 		coin = HandleCoinFiltering(coin)

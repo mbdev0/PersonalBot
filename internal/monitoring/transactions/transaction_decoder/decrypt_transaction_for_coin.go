@@ -3,6 +3,7 @@ package transaction_decoder
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -15,11 +16,11 @@ import (
 	"pump_fun/internal/logger"
 )
 
-func DecryptTransactionNotificationForCoin(transaction models.TransactionNotification, coinStructChan chan models.Coin) *models.Coin {
+func DecryptTransactionNotificationForCoin(transaction models.TransactionNotification) *models.Coin {
 
-	coin, transactionIsCreate := parseCoinDataAndIsCreate(transaction)
+	coin, err := getCreatedCoinWithBuyData(transaction)
 
-	if !transactionIsCreate {
+	if err != nil {
 		return nil
 	}
 
@@ -35,12 +36,13 @@ func DecryptTransactionNotificationForCoin(transaction models.TransactionNotific
 	return &coin
 }
 
-func parseCoinDataAndIsCreate(transaction models.TransactionNotification) (coin models.Coin, transactionIsCreate bool) {
+func getCreatedCoinWithBuyData(transaction models.TransactionNotification) (models.Coin, error) {
+	var coin models.Coin
+	var createTransactionFound bool
+	var devHoldingAmount float64
 
-	coin = models.Coin{}
-	transactionIsCreate = false
-
-	for _, instruction := range transaction.Params.Result.Transaction.TransactionDetails.Message.Instructions {
+	instructions := transaction.Params.Result.Transaction.TransactionDetails.Message.Instructions
+	for _, instruction := range instructions {
 		if len(instruction.Data) < 8 {
 			continue
 		}
@@ -52,35 +54,53 @@ func parseCoinDataAndIsCreate(transaction models.TransactionNotification) (coin 
 		}
 
 		discriminator := instructionData[:8]
+		isCreateInstruction := bytes.Equal(discriminator, constants.CreateInstructionDiscriminator[:])
+		isBuyInstruction := bytes.Equal(discriminator, constants.BuyInstructionDiscriminator[:])
 
-		if bytes.Equal(discriminator, constants.CreateInstructionDiscriminator[:]) {
-			err = DecodeCreateInstruction(&coin, instructionData)
-
+		if isCreateInstruction {
+			coin, err = createCoinFromInstruction(instruction, instructionData)
 			if err != nil {
-				logger.Log(logger.LevelError, "Error decoding create instruction", logger.Error(err))
+				logger.Log(logger.LevelError, "Error creating coin from instruction", logger.Error(err))
 				continue
 			}
-
-			idlMap := pumpfun_idl.GetIdlMap()
-
-			coin.CoinData.TokenAddr = instruction.Accounts[idlMap["create"].AccountMap["mint"]]
-			coin.CoinData.CreatorAddr = instruction.Accounts[idlMap["create"].AccountMap["user"]]
-			coin.CoinData.BondingCurveAddr = instruction.Accounts[idlMap["create"].AccountMap["bondingCurve"]]
-
-			transactionIsCreate = true
-		}
-
-		if bytes.Equal(discriminator, constants.BuyInstructionDiscriminator[:]) {
-			err := DecodeBuyInstruction(&coin, instructionData)
-
+			createTransactionFound = true
+		} else if isBuyInstruction {
+			devHoldingAmount, err = ExtractBuyAmountFromBuyInstruction(instructionData)
 			if err != nil {
-				logger.Log(logger.LevelError, "Error decoding buy instruction", logger.Error(err))
+				logger.Log(logger.LevelError, "Error fetching buy amount from buy instruction", logger.Error(err))
 				continue
 			}
 		}
 	}
 
-	return coin, transactionIsCreate
+	if !createTransactionFound {
+		return coin, errors.New("create instruction is not found")
+	}
+
+	coin.CoinData.DevHoldingAmount = devHoldingAmount
+	return coin, nil
+}
+
+func createCoinFromInstruction(instruction models.Instruction, instructionData []byte) (models.Coin, error) {
+	coin := models.Coin{}
+
+	decodedInstruction, err := DecodeCreateInstruction(instructionData)
+	if err != nil {
+		logger.Log(logger.LevelError, "Error decoding create instruction", logger.Error(err))
+		return coin, err
+	}
+	UpdateCoinFromDecodedInstruction(&coin, decodedInstruction)
+	assignCoinAddresses(&coin, instruction)
+
+	return coin, nil
+}
+
+func assignCoinAddresses(coin *models.Coin, instruction models.Instruction) {
+	createAccountIDL := pumpfun_idl.GetIdlMap()["create"].AccountMap
+
+	coin.CoinData.TokenAddr = instruction.Accounts[createAccountIDL["mint"]]
+	coin.CoinData.CreatorAddr = instruction.Accounts[createAccountIDL["user"]]
+	coin.CoinData.BondingCurveAddr = instruction.Accounts[createAccountIDL["bondingCurve"]]
 }
 
 func GetIPFSData(ipfsURL string) (*models.IPFS, error) {
