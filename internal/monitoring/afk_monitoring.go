@@ -20,27 +20,13 @@ func StartAFKMonitor() {
 		go func() {
 			transaction_notification_chan := make(chan models.TransactionNotification, 1000)
 			coinStructChan := make(chan models.Coin, 1000)
+      
+			go MonitorTransactions(transaction_notification_chan)
+			go ProcessAndFilterTransactions(transaction_notification_chan, coinStructChan)
 
-			go func(transaction_notification_chan chan models.TransactionNotification) {
-				err := geyser.Geyser_Stream_Transactions(transaction_notification_chan)
-				if err != nil {
-					logger.Log(logger.LevelError, "Error in Geyser_Stream_Transactions", logger.Error(err))
-				}
-			}(transaction_notification_chan)
-
-			go func(transaction_notification_chan chan models.TransactionNotification, coinStructChan chan models.Coin) {
-				for transaction := range transaction_notification_chan {
-					go func(transaction models.TransactionNotification, coinStructChan chan models.Coin) {
-						handlers.HandleTransactionNotification(transaction, coinStructChan)
-					}(transaction, coinStructChan)
-				}
-
-			}(transaction_notification_chan, coinStructChan)
-
-			for coinStruct := range coinStructChan {
-				logger.Log(logger.LevelInfo, "Coin Struct: ", logger.String("Coin", coinStruct.CoinData.Name))
+      for coinStruct := range coinStructChan {
 				go func(coin models.Coin) {
-					webhook.SendWebhook(&coinStruct)
+					webhook.SendWebhook(&coin)
 				}(coinStruct)
 			}
 
@@ -49,4 +35,19 @@ func StartAFKMonitor() {
 	}
 
 	wg.Wait()
+}
+
+func MonitorTransactions(transaction_notification_chan chan<- models.TransactionNotification) {
+	err := geyser.Geyser_Stream_Transactions(transaction_notification_chan)
+	if err != nil {
+		logger.Log(logger.LevelError, "Error in Geyser_Stream_Transactions", logger.Error(err))
+	}
+}
+
+func ProcessAndFilterTransactions(transaction_notification_chan <-chan models.TransactionNotification, coinStructChan chan<- models.Coin) {
+	for transaction := range transaction_notification_chan {
+		go func(transaction models.TransactionNotification, coinStructChan chan<- models.Coin) {
+			handlers.HandleTransactionNotification(transaction, coinStructChan)
+		}(transaction, coinStructChan)
+	}
 }

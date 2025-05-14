@@ -15,7 +15,7 @@ var (
 	ws_url = config.GetConfig().WsNode
 )
 
-func Geyser_Stream_Transactions(transaction_chan chan models.TransactionNotification) error {
+func Geyser_Stream_Transactions(transaction_chan chan<- models.TransactionNotification) error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
