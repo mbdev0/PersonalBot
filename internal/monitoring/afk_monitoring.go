@@ -24,7 +24,7 @@ func StartAFKMonitor() {
 			go func(transaction_notification_chan chan models.TransactionNotification) {
 				err := geyser.Geyser_Stream_Transactions(transaction_notification_chan)
 				if err != nil {
-					logger.Error(err)
+					logger.Log(logger.LevelError, "Error in Geyser_Stream_Transactions", logger.Error(err))
 				}
 			}(transaction_notification_chan)
 

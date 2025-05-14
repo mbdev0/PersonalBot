@@ -22,7 +22,7 @@ func main() {
 	}
 	fmt.Println(privateKey.PublicKey().String())
 
-	tokenAddressPubkey, err := solana.PublicKeyFromBase58("Df9wCVoASwv6kdR2VWRVPdQ7t48XBmKWF7Nt5Fadpump")
+	tokenAddressPubkey, err := solana.PublicKeyFromBase58("6gFL19tSaRwtQCuQVEy6HykCbTHztbe1qxuodarypump")
 	if err != nil {
 		return
 	}

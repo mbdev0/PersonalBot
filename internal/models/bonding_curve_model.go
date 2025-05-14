@@ -1,6 +1,10 @@
 package models
 
-import "math/big"
+import (
+	"math/big"
+
+	"github.com/gagliardetto/solana-go"
+)
 
 type BondingCurve struct {
 	VirtualTokenReserves big.Int
@@ -9,4 +13,5 @@ type BondingCurve struct {
 	RealSolReserves      big.Int
 	MaxTokens            big.Int
 	IsCompleted          bool
+	DevWallet               solana.PublicKey
 }

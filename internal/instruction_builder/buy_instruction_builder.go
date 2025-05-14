@@ -8,19 +8,31 @@ import (
 	"pump_fun/internal/constants"
 	"pump_fun/internal/handlers"
 	"pump_fun/internal/logger"
+	"pump_fun/internal/models"
 	"pump_fun/internal/monitoring/transactions/bonding_curve_decoder"
+	"pump_fun/internal/monitoring/transactions/program_derived_address"
 
 	"github.com/gagliardetto/solana-go"
 )
 
 func GetBuyInstruction(tokenAddress string, walletAddress string, sol_lamport_buy_amount big.Int, slippage float64) (instruction *solana.GenericInstruction, err error) {
 
-	bondingCurveAddress, err := bonding_curve_decoder.GetBondingCurveAddress(tokenAddress)
+	bondingCurveAddress, err := program_derived_address.GetBondingCurveAddress(tokenAddress)
 	if err != nil {
 		return nil, err
 	}
 
-	associatedBondingCurveAddress, err := bonding_curve_decoder.GetAssociatedBondingCurveAddress(bondingCurveAddress, tokenAddress)
+	bondingCurveData, err, _ := bonding_curve_decoder.GetBondingCurveDataFromAddress(bondingCurveAddress)
+	if err != nil {
+		return nil, err
+	}
+
+	creatorAddress, err := program_derived_address.GetCreatorVaultAddress(bondingCurveData.DevWallet.String())
+	if err != nil {
+		return nil, err
+	}
+
+	associatedBondingCurveAddress, err := program_derived_address.GetAssociatedBondingCurveAddress(bondingCurveAddress, tokenAddress)
 	if err != nil {
 		return nil, err
 	}
@@ -40,12 +52,12 @@ func GetBuyInstruction(tokenAddress string, walletAddress string, sol_lamport_bu
 		GetAccountMeta(walletAddress, true, true),
 		GetAccountMeta(solana.SystemProgramID.String(), false, false),
 		GetAccountMeta(constants.TokenProgram, false, false),
-		GetAccountMeta(constants.RentProgram, false, false),
+		GetAccountMeta(creatorAddress, true, false),
 		GetAccountMeta(constants.EventAuthority, false, false),
 		GetAccountMeta(constants.Program, false, false),
 	}
 
-	instruction_data, err := createBuyData(sol_lamport_buy_amount, bondingCurveAddress, slippage)
+	instruction_data, err := createBuyData(sol_lamport_buy_amount, bondingCurveData, slippage)
 	if err != nil {
 		logger.Log(logger.LevelError, "Error creating buy data", logger.String("error", err.Error()))
 		return nil, err
@@ -57,9 +69,9 @@ func GetBuyInstruction(tokenAddress string, walletAddress string, sol_lamport_bu
 
 }
 
-func createBuyData(sol_lamport_buy_amount big.Int, bondingCurveAddr string, slippage float64) (data []byte, err error) {
+func createBuyData(sol_lamport_buy_amount big.Int, bondingCurveData *models.BondingCurve, slippage float64) (data []byte, err error) {
 	// Get the token amount
-	tokenAmount, err, hasCompleted := handlers.GetBuyTokenAmountFrom(sol_lamport_buy_amount, bondingCurveAddr)
+	tokenAmount, err, hasCompleted := handlers.GetBuyTokenAmountFrom(sol_lamport_buy_amount, bondingCurveData)
 	if err != nil || hasCompleted {
 		if hasCompleted {
 			logger.Log(logger.LevelError, "The coin has completed the bonding curve")

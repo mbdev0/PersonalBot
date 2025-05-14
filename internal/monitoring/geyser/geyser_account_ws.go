@@ -27,7 +27,7 @@ func Geyser_Stream_AccountInfo(ctx context.Context, address string, accountinfo_
 			address,
 			map[string]interface{}{
 				"commitment": "processing",
-				"encoding":   "base58",
+				"encoding":   "base64",
 			},
 		},
 	})

@@ -19,15 +19,21 @@ func SendBuyTransaction(buyTask *tasks.BuyTask) {
 
 func sendBuyTransaction(buyTask *tasks.BuyTask) {
 	instructions := getAllInstructionsForBuy(buyTask.Wallet, buyTask.TokenAddress, buyTask.BuyAmount, buyTask.Slippage)
+	if instructions == nil {
+		logger.Log(logger.LevelError, "Error creating buy instructions")
+		return
+	}
 
 	latestHash, err := rpcclient.GetLatestBlockhash()
 	if err != nil {
-		logger.Error(err)
+		logger.Log(logger.LevelError, "Error getting latest blockhash", logger.Error(err))
+		return
 	}
 
 	tx, err := solana.NewTransaction(instructions, latestHash.Value.Blockhash, solana.TransactionPayer(buyTask.Wallet.PublicKey()))
 	if err != nil {
-		logger.Error(err)
+		logger.Log(logger.LevelError, "Error creating transaction", logger.Error(err))
+		return
 	}
 
 	handlers.SignTx(tx, buyTask.Wallet)
@@ -36,7 +42,8 @@ func sendBuyTransaction(buyTask *tasks.BuyTask) {
 	// SIMULATE TRANSACTION
 	txResp, err := client.SimulateTransaction(context.Background(), tx)
 	if err != nil {
-		logger.Error(err)
+		logger.Log(logger.LevelError, "Error simulating transaction", logger.Error(err))
+		return
 	}
 	fmt.Println(txResp.Value)
 
@@ -65,7 +72,8 @@ func getAllInstructionsForBuy(privateKey solana.PrivateKey, tokenAddress solana.
 	buyInstruction, err := instructionbuilder.GetBuyInstruction(tokenAddress.String(), privateKey.PublicKey().String(), buyAmountLamport, slippage)
 
 	if err != nil {
-		logger.Error(err)
+		logger.Log(logger.LevelError, "Error creating buy instruction", logger.Error(err))
+		return nil
 	}
 
 	if idEmponenetInstruction != nil {

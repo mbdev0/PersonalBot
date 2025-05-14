@@ -28,7 +28,7 @@ func GetIdlMap() map[string]IdlMap {
 func loadPumpfunIdl() {
 	idl, err := loadIdlIntoModel()
 	if err != nil {
-		logger.Error(err)
+		logger.Log(logger.LevelError, "Error loading idl into model", logger.Error(err))
 		return
 	}
 	idlMapInstance = generateIdlMap(idl)

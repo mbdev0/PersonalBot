@@ -1,6 +1,7 @@
 package bonding_curve_decoder
 
 import (
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"math/big"
@@ -8,7 +9,7 @@ import (
 	"pump_fun/internal/models"
 	rpcclient "pump_fun/internal/rpc_client"
 
-	"github.com/mr-tron/base58"
+	"github.com/gagliardetto/solana-go"
 )
 
 func GetMarketCapFrom(bondingCurveValue string) (marketCapVal *big.Float, err error, hasCompleted bool) {
@@ -36,7 +37,7 @@ func GetMarketCapInitial(bondingCurveAddress string) (marketCapVal *big.Float, e
 	}
 
 	decodedBondingCurve := bondingCurveResponse.Value.Data.GetBinary()
-	value := base58.Encode(decodedBondingCurve)
+	value := base64.StdEncoding.EncodeToString(decodedBondingCurve)
 
 	bondingCurveData, err, hasCompleted := getBondingCurveData(value)
 	if err != nil {
@@ -56,48 +57,6 @@ func GetMarketCapInitial(bondingCurveAddress string) (marketCapVal *big.Float, e
 
 }
 
-func GetBuyTokenAmountFrom(buyInSol big.Int, bondingCurve string) (tokenAmnt *big.Int, err error, hasCompleted bool) {
-
-	bondingCurveResponse, err := rpcclient.GetAccountInfo(bondingCurve)
-	if err != nil {
-		return nil, err, false
-	}
-
-	decodedBondingCurve := bondingCurveResponse.Value.Data.GetBinary()
-	value := base58.Encode(decodedBondingCurve)
-
-	bondingCurveData, err, hasCompleted := getBondingCurveData(value)
-	if err != nil {
-		return nil, err, false
-	}
-
-	if hasCompleted {
-		return nil, fmt.Errorf("coin has already migrated"), true
-	}
-
-	tokenAmount := getTokenAmount(buyInSol, bondingCurveData)
-	return &tokenAmount, nil, false
-}
-
-func getBondingCurveData(bondingCurve string) (bondingCurveData *models.BondingCurve, err error, hasMigrated bool) {
-
-	bondingCurveDataBytes, err := base58.Decode(bondingCurve)
-	if err != nil {
-		return nil, err, false
-	}
-
-	if bondingCurveDataBytes[len(bondingCurveDataBytes)-1] == 1 {
-		return nil, nil, true
-	}
-
-	bondingCurveInfo, err := decryptBondingCurveData(bondingCurveDataBytes)
-	if err != nil {
-		return nil, err, false
-	}
-
-	return bondingCurveInfo, nil, false
-}
-
 func getMarketCap(bondingCurve models.BondingCurve) (*big.Float, error) {
 	solPrice, err := solana_price.GetSolPrice()
 	if err != nil {
@@ -111,6 +70,51 @@ func getMarketCap(bondingCurve models.BondingCurve) (*big.Float, error) {
 	marketCap := new(big.Float).Mul(marketCapInSol, bigSolPrice)
 
 	return new(big.Float).Mul(marketCap, big.NewFloat(1000000)), nil
+}
+
+func GetBondingCurveDataFromAddress(bondingCurveAddress string) (bondingCurveData *models.BondingCurve, err error, hasCompleted bool) {
+	bondingCurveResponse, err := rpcclient.GetAccountInfo(bondingCurveAddress)
+	if err != nil {
+		return nil, err, false
+	}
+
+	decodedBondingCurve := bondingCurveResponse.Value.Data.GetBinary()
+	value := base64.StdEncoding.EncodeToString(decodedBondingCurve)
+
+	bondingCurveModel, err, hasCompleted := getBondingCurveData(value)
+	if err != nil {
+		return nil, err, false
+	}
+
+	if hasCompleted {
+		return nil, fmt.Errorf("coin has already migrated"), true
+	}
+
+	return bondingCurveModel, nil, false
+}
+
+func GetBuyTokenAmountFrom(buyInSol big.Int, bondingCurveData *models.BondingCurve) (tokenAmnt *big.Int, err error, hasCompleted bool) {
+	tokenAmount := getTokenAmount(buyInSol, bondingCurveData)
+	return &tokenAmount, nil, false
+}
+
+func getBondingCurveData(bondingCurve string) (bondingCurveData *models.BondingCurve, err error, hasMigrated bool) {
+
+	bondingCurveDataBytes, err := base64.RawStdEncoding.DecodeString(bondingCurve)
+	if err != nil {
+		return nil, err, false
+	}
+
+	bondingCurveInfo, err := decryptBondingCurveData(bondingCurveDataBytes)
+	if err != nil {
+		return nil, err, false
+	}
+
+	if bondingCurveInfo.IsCompleted {
+		return nil, nil, true
+	}
+
+	return bondingCurveInfo, nil, false
 }
 
 func getTokenAmount(solBuy big.Int, bondingCurveInfo *models.BondingCurve) big.Int {
@@ -127,8 +131,8 @@ func getTokenAmount(solBuy big.Int, bondingCurveInfo *models.BondingCurve) big.I
 }
 
 func decryptBondingCurveData(dataBinary []byte) (*models.BondingCurve, error) {
-	if len(dataBinary) != 49 {
-		return nil, errors.New("base58 string for bonding curve is too short")
+	if len(dataBinary) > 150 {
+		return nil, errors.New("base64 string for bonding curve is too long")
 	}
 
 	bondingCurve := models.BondingCurve{}
@@ -138,6 +142,7 @@ func decryptBondingCurveData(dataBinary []byte) (*models.BondingCurve, error) {
 	bondingCurve.RealSolReserves = *new(big.Int).SetBytes(reverseBytes(dataBinary[32:40]))
 	bondingCurve.MaxTokens = *new(big.Int).SetBytes(reverseBytes(dataBinary[40:48]))
 	bondingCurve.IsCompleted = dataBinary[48] != 0
+	bondingCurve.DevWallet = solana.PublicKeyFromBytes(dataBinary[49:81])
 
 	return &bondingCurve, nil
 }

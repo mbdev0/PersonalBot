@@ -2,7 +2,6 @@ package solana_price
 
 import (
 	"encoding/json"
-	"fmt"
 	"pump_fun/internal/constants"
 	"pump_fun/internal/logger"
 	"pump_fun/internal/models"
@@ -63,7 +62,6 @@ func startBackgroundUpdate() {
 		}
 
 		solPrice = epResponse
-		fmt.Println(*solPrice)
 
 		lock.Unlock()
 	}

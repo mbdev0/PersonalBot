@@ -18,6 +18,6 @@ func SignTx(tx *solana.Transaction, privateKey solana.PrivateKey) {
 	)
 
 	if err != nil {
-		logger.Error(err)
+		logger.Log(logger.LevelError, "Error signing transaction", logger.Error(err))
 	}
 }
