@@ -11,10 +11,11 @@ import (
 func GetAccountInfo(address string) (*rpc.GetAccountInfoResult, error) {
 	client := GetClient()
 
-	ctx, cancel := context.WithTimeout(context.Background(), 1000*time.Millisecond)
+	ctx, cancel := context.WithTimeout(context.Background(), 10000*time.Millisecond)
 	defer cancel()
 
-	accountInfo, err := client.GetAccountInfo(ctx, solana.MustPublicKeyFromBase58(address))
+	accountInfo, err := client.GetAccountInfoWithOpts(ctx, solana.MustPublicKeyFromBase58(address), &rpc.GetAccountInfoOpts{
+		Encoding: solana.EncodingBase64})
 
 	if err != nil {
 		return nil, err

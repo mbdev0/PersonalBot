@@ -2,8 +2,8 @@ package solana_price
 
 import (
 	"encoding/json"
-	"fmt"
 	"pump_fun/internal/constants"
+	"pump_fun/internal/logger"
 	"pump_fun/internal/models"
 	requestclient "pump_fun/internal/request_client"
 	"sync"
@@ -43,7 +43,7 @@ func fetchSolPriceFromEndpoint() (*float64, error) {
 	var response models.SolPriceResponse
 	err = json.Unmarshal(resp, &response)
 	if err != nil {
-		fmt.Println("Error unmarshaling JSON:", err)
+		logger.Log(logger.LevelError, "Error unmarshaling JSON", logger.String("error", err.Error()))
 		return nil, err
 	}
 
@@ -62,7 +62,6 @@ func startBackgroundUpdate() {
 		}
 
 		solPrice = epResponse
-		fmt.Println(*solPrice)
 
 		lock.Unlock()
 	}

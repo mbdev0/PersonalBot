@@ -2,8 +2,8 @@ package geyser
 
 import (
 	"context"
-	"fmt"
 	"pump_fun/internal/constants"
+	"pump_fun/internal/logger"
 	"pump_fun/internal/models"
 
 	"github.com/coder/websocket"
@@ -27,7 +27,7 @@ func Geyser_Stream_AccountInfo(ctx context.Context, address string, accountinfo_
 			address,
 			map[string]interface{}{
 				"commitment": "processing",
-				"encoding":   "base58",
+				"encoding":   "base64",
 			},
 		},
 	})
@@ -47,7 +47,7 @@ func Geyser_Stream_AccountInfo(ctx context.Context, address string, accountinfo_
 		err = wsjson.Read(ctx, ws, &out)
 
 		if err != nil {
-			fmt.Println("Error reading from websocket:", err)
+			logger.Log(logger.LevelError, "Error reading from websocket", logger.Error(err))
 			return err
 		}
 

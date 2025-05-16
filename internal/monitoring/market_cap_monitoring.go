@@ -43,7 +43,7 @@ func marketCapMonitor(ctx context.Context, bondingCurveAddress string) {
 	marketCapInit, err, hasCompleted := handlers.GetMarketCapInitial(bondingCurveAddress)
 
 	if err != nil {
-		logger.Error(err)
+		logger.Log(logger.LevelError, "Error getting initial market cap", logger.Error(err))
 		if hasCompleted {
 			ctx.Done()
 		}
@@ -58,7 +58,7 @@ func marketCapMonitor(ctx context.Context, bondingCurveAddress string) {
 	for accountInfo := range accountInfoChan {
 		marketCap, err, hasCompleted := handlers.GetMarketCapFrom(accountInfo.Params.Result.Value.Data[0])
 		if err != nil {
-			logger.Error(err)
+			logger.Log(logger.LevelError, "Error getting market cap", logger.Error(err))
 			if hasCompleted {
 				ctx.Done()
 			}
