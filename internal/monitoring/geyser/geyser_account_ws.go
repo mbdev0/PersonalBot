@@ -13,8 +13,6 @@ import (
 
 func Geyser_Stream_AccountInfo(ctx context.Context, address string, accountinfo_chan chan models.AccountSubscribeModel) error {
 
-	// ws, _, err := websocket.Dial(ctx, ws_url, nil)
-
 	ws, err := retry.DoWithData(
 		func() (*websocket.Conn, error) {
 			ws, _, err := websocket.Dial(ctx, ws_url, nil)
