@@ -43,7 +43,7 @@ func fetchSolPriceFromEndpoint() (*float64, error) {
 	var response models.SolPriceResponse
 	err = json.Unmarshal(resp, &response)
 	if err != nil {
-		logger.Log(logger.LevelError, "Error unmarshaling JSON", logger.String("error", err.Error()))
+		logger.Error("Error unmarshaling JSON", err)
 		return nil, err
 	}
 

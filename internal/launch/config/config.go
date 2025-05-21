@@ -30,7 +30,7 @@ func GetConfig() *models.Config {
 		if config == nil {
 			err := LoadConfig()
 			if err != nil {
-				logger.Log(logger.LevelError, "Error loading config", logger.Error(err))
+				logger.Error("Error loading config", err)
 				return &models.Config{}
 			}
 		}

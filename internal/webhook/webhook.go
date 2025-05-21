@@ -24,7 +24,7 @@ func SendWebhook(coin *models.Coin) {
 	err := sendDiscordMessage(discordWebhookURL, *coin)
 
 	if err != nil {
-		logger.Log(logger.LevelError, "Error sending discord message", logger.Error(err))
+		logger.Error("Error sending discord message", err)
 	}
 }
 

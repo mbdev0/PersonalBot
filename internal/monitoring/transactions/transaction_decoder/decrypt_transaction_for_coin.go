@@ -26,7 +26,7 @@ func DecryptTransactionNotificationForCoin(transaction models.TransactionNotific
 
 	ipfsData, err := GetIPFSData(coin.CoinData.IPFS_URL)
 	if err != nil {
-		logger.Log(logger.LevelError, "Error getting IPFS data", logger.Error(err), logger.String("IPFS URL", coin.CoinData.IPFS_URL))
+		logger.Error("Error getting IPFS data - IPFSURL: ", coin.CoinData.IPFS_URL, " ", err)
 		return nil
 	}
 
@@ -49,7 +49,7 @@ func getCreatedCoinWithBuyData(transaction models.TransactionNotification) (mode
 
 		instructionData, err := base58.Decode(instruction.Data)
 		if err != nil {
-			logger.Log(logger.LevelError, "Error decoding instruction", logger.Error(err))
+			logger.Error("Error decoding instruction data", err)
 			continue
 		}
 
@@ -60,14 +60,14 @@ func getCreatedCoinWithBuyData(transaction models.TransactionNotification) (mode
 		if isCreateInstruction {
 			coin, err = createCoinFromInstruction(instruction, instructionData)
 			if err != nil {
-				logger.Log(logger.LevelError, "Error creating coin from instruction", logger.Error(err))
+				logger.Error("Error creating coin from instruction", err)
 				continue
 			}
 			createTransactionFound = true
 		} else if isBuyInstruction {
 			devHoldingAmount, err = ExtractBuyAmountFromBuyInstruction(instructionData)
 			if err != nil {
-				logger.Log(logger.LevelError, "Error fetching buy amount from buy instruction", logger.Error(err))
+				logger.Error("Error extracting buy amount from buy instruction", err)
 				continue
 			}
 		}
@@ -86,7 +86,7 @@ func createCoinFromInstruction(instruction models.Instruction, instructionData [
 
 	decodedInstruction, err := DecodeCreateInstruction(instructionData)
 	if err != nil {
-		logger.Log(logger.LevelError, "Error decoding create instruction", logger.Error(err))
+		logger.Error("Error decoding create instruction", err)
 		return coin, err
 	}
 	UpdateCoinFromDecodedInstruction(&coin, decodedInstruction)

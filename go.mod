@@ -4,6 +4,7 @@ go 1.22.5
 
 require (
 	filippo.io/edwards25519 v1.0.0-rc.1
+	github.com/avast/retry-go/v4 v4.6.1
 	github.com/coder/websocket v1.8.12
 	github.com/gagliardetto/solana-go v1.11.0
 	github.com/mr-tron/base58 v1.2.0

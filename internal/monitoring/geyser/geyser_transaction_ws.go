@@ -6,6 +6,7 @@ import (
 	"pump_fun/internal/launch/config"
 	"pump_fun/internal/logger"
 	"pump_fun/internal/models"
+	"time"
 
 	"github.com/coder/websocket"
 	"github.com/coder/websocket/wsjson"
@@ -16,13 +17,20 @@ var (
 )
 
 func Geyser_Stream_Transactions(transaction_chan chan<- models.TransactionNotification) error {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx, _ := context.WithTimeout(context.Background(), time.Second*10)
+	// defer cancel()
+	defer func() {
+		fmt.Println(("Exiting Geyser_Stream_Transactions"))
+	}()
+	defer close(transaction_chan)
 
+	fmt.Println("Connecting to websocket at:", ws_url)
 	ws, _, err := websocket.Dial(ctx, ws_url, nil)
 	if err != nil {
+		fmt.Println("Error connecting to websocket:", err)
 		return err
 	}
+	defer ws.Close(websocket.StatusNormalClosure, "websocket closed")
 
 	ws.SetReadLimit(constants.WebSocketReadLimit)
 
