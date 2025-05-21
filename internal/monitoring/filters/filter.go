@@ -14,6 +14,11 @@ func (p *FilterPipeline) AddFilter(filter Filter) {
 
 func (p *FilterPipeline) ApplyFilters(coin *models.Coin) *models.Coin {
 	var data *models.Coin
+
+	if len(p.filters) == 0 {
+		return coin
+	}
+
 	for _, filter := range p.filters {
 		data = filter(coin)
 		if data == nil {
