@@ -11,7 +11,7 @@ import (
 func LaunchOperations() {
 	err := config.LoadConfig()
 	if err != nil {
-		logger.Log(logger.LevelError, "Error reading config file", logger.Error(err))
+		logger.Error("Error reading config file", err)
 		return
 	}
 

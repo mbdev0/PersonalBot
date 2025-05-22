@@ -12,7 +12,7 @@ func GetIdEmponentInstruction(wallet solana.PublicKey, mintAddress solana.Public
 	idEmponentInstruction, err := getIdEmponentInstructionIfExists(wallet, mintAddress)
 
 	if err != nil {
-		logger.Log(logger.LevelError, "Error getting IdEmponentInstruction: ", logger.String("error", err.Error()))
+		logger.Error("Error getting IdEmponentInstruction: ", err)
 		return nil
 	}
 

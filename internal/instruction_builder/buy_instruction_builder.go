@@ -59,7 +59,7 @@ func GetBuyInstruction(tokenAddress string, walletAddress string, sol_lamport_bu
 
 	instruction_data, err := createBuyData(sol_lamport_buy_amount, bondingCurveData, slippage)
 	if err != nil {
-		logger.Log(logger.LevelError, "Error creating buy data", logger.String("error", err.Error()))
+		logger.Error("Error creating buy data", err)
 		return nil, err
 	}
 
@@ -74,10 +74,10 @@ func createBuyData(sol_lamport_buy_amount big.Int, bondingCurveData *models.Bond
 	tokenAmount, err, hasCompleted := handlers.GetBuyTokenAmountFrom(sol_lamport_buy_amount, bondingCurveData)
 	if err != nil || hasCompleted {
 		if hasCompleted {
-			logger.Log(logger.LevelError, "The coin has completed the bonding curve")
+			logger.Error("The coin has completed the bonding curve")
 			return nil, errors.New("the coin has completed the bonding curve")
 		} else {
-			logger.Log(logger.LevelError, "There was an error getting the token amount", logger.String("error", err.Error()))
+			logger.Error("Error getting token amount", err)
 			return nil, err
 		}
 	}
@@ -88,29 +88,29 @@ func createBuyData(sol_lamport_buy_amount big.Int, bondingCurveData *models.Bond
 
 	discriminator := constants.BuyInstructionDiscriminator
 	if _, err := buf.Write(discriminator[:]); err != nil {
-		logger.Log(logger.LevelError, "Error writing discriminator", logger.String("error", err.Error()))
+		logger.Error("Error writing discriminator", err)
 		return nil, err
 	}
 
 	if tokenAmount.BitLen() > 64 {
-		logger.Log(logger.LevelError, "Token amount exceeds 64 bits")
+		logger.Error("Token amount exceeds 64 bits")
 		return nil, err
 	}
 	tokenUint64 := tokenAmount.Uint64()
 	if err := binary.Write(buf, binary.LittleEndian, tokenUint64); err != nil {
-		logger.Log(logger.LevelError, "Error writing token amount", logger.String("error", err.Error()))
+		logger.Error("Error writing token amount", err)
 		return nil, err
 	}
 
 	if sol_lamport_buy_amount.BitLen() > 64 {
-		logger.Log(logger.LevelError, "SOL amount exceeds 64 bits")
+		logger.Error("SOL amount exceeds 64 bits")
 		return nil, err
 	}
 
 	sol_lamport_buy_amount = handlers.AddSlippageToBuy(sol_lamport_buy_amount, slippage)
 	solUint64 := sol_lamport_buy_amount.Uint64()
 	if err := binary.Write(buf, binary.LittleEndian, solUint64); err != nil {
-		logger.Log(logger.LevelError, "Error writing SOL amount", logger.String("error", err.Error()))
+		logger.Error("Error writing SOL amount", err)
 		return nil, err
 	}
 

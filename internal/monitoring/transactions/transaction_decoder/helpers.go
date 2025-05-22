@@ -9,19 +9,19 @@ import (
 func readStringWithLengthAtStart(buf *bytes.Buffer) (string, error) {
 	lengthOfString, err := buf.ReadByte()
 	if err != nil {
-		logger.Log(logger.LevelError, "Error getting length of string", logger.Error(err))
+		logger.Error("Error reading length of string", err)
 		return "", err
 	}
 
 	if err := skipLeadingNullBytes(buf); err != nil {
-		logger.Log(logger.LevelError, "Error skipping null bytes", logger.Error(err))
+		logger.Error("Error skipping null bytes", err)
 		return "", err
 	}
 
 	stringBytes := make([]byte, lengthOfString)
 	_, err = buf.Read(stringBytes)
 	if err != nil {
-		logger.Log(logger.LevelError, "Error reading string", logger.Error(err))
+		logger.Error("Error reading string bytes", err)
 		return "", err
 	}
 
@@ -47,7 +47,7 @@ func convertToUint64(buf *bytes.Buffer) (uint64, error) {
 	for i := 0; i < 8; i++ {
 		b, err := buf.ReadByte()
 		if err != nil {
-			logger.Log(logger.LevelError, "Error reading byte", logger.Error(err))
+			logger.Error("Error reading byte", err)
 			return 0, err
 		}
 		num = num | uint64(b)<<uint(8*i)

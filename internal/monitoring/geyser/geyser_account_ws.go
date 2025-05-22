@@ -6,13 +6,22 @@ import (
 	"pump_fun/internal/logger"
 	"pump_fun/internal/models"
 
+	"github.com/avast/retry-go/v4"
 	"github.com/coder/websocket"
 	"github.com/coder/websocket/wsjson"
 )
 
 func Geyser_Stream_AccountInfo(ctx context.Context, address string, accountinfo_chan chan models.AccountSubscribeModel) error {
 
-	ws, _, err := websocket.Dial(ctx, ws_url, nil)
+	ws, err := retry.DoWithData(
+		func() (*websocket.Conn, error) {
+			ws, _, err := websocket.Dial(ctx, ws_url, nil)
+			if err != nil {
+				return nil, err
+			}
+			return ws, nil
+		}, retry.Attempts(constants.Retries))
+
 	if err != nil {
 		return err
 	}
@@ -47,7 +56,7 @@ func Geyser_Stream_AccountInfo(ctx context.Context, address string, accountinfo_
 		err = wsjson.Read(ctx, ws, &out)
 
 		if err != nil {
-			logger.Log(logger.LevelError, "Error reading from websocket", logger.Error(err))
+			logger.Error("Error reading from websocket", err)
 			return err
 		}
 

@@ -19,19 +19,19 @@ func DecodeCreateInstruction(data []byte) (*models.DecodedCreateInstruction, err
 
 	args.Name, err = readStringWithLengthAtStart(buf)
 	if err != nil {
-		logger.Log(logger.LevelError, "Error reading the Name", logger.Error(err))
+		logger.Error("Error reading the Name", err)
 		return nil, err
 	}
 
 	args.Symbol, err = readStringWithLengthAtStart(buf)
 	if err != nil {
-		logger.Log(logger.LevelError, "Error reading the Symbol", logger.Error(err))
+		logger.Error("Error reading the Symbol", err)
 		return nil, err
 	}
 
 	args.IPFS_URL, err = readStringWithLengthAtStart(buf)
 	if err != nil {
-		logger.Log(logger.LevelError, "Error reading the URI", logger.Error(err))
+		logger.Error("Error reading the IPFS_URL", err)
 		return nil, err
 	}
 
