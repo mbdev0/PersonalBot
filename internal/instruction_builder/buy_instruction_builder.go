@@ -9,13 +9,17 @@ import (
 	"pump_fun/internal/handlers"
 	"pump_fun/internal/logger"
 	"pump_fun/internal/models"
+	"pump_fun/internal/models/tasks"
 	"pump_fun/internal/monitoring/transactions/bonding_curve_decoder"
 	"pump_fun/internal/monitoring/transactions/program_derived_address"
 
 	"github.com/gagliardetto/solana-go"
 )
 
-func GetBuyInstruction(tokenAddress string, walletAddress string, sol_lamport_buy_amount big.Int, slippage float64) (instruction *solana.GenericInstruction, err error) {
+func GetBuyInstruction(buyTask *tasks.BuyTask) (instruction *solana.GenericInstruction, err error) {
+
+	tokenAddress := buyTask.TokenAddress.String()
+	walletAddress := buyTask.Wallet.PublicKey().String()
 
 	bondingCurveAddress, err := program_derived_address.GetBondingCurveAddress(tokenAddress)
 	if err != nil {
@@ -37,7 +41,7 @@ func GetBuyInstruction(tokenAddress string, walletAddress string, sol_lamport_bu
 		return nil, err
 	}
 
-	associatedTokenAddressPubkey, _, err := solana.FindAssociatedTokenAddress(solana.MustPublicKeyFromBase58(walletAddress), solana.MustPublicKeyFromBase58(tokenAddress))
+	associatedTokenAddressPubkey, _, err := solana.FindAssociatedTokenAddress(buyTask.Wallet.PublicKey(), buyTask.TokenAddress)
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +61,7 @@ func GetBuyInstruction(tokenAddress string, walletAddress string, sol_lamport_bu
 		GetAccountMeta(constants.Program, false, false),
 	}
 
-	instruction_data, err := createBuyData(sol_lamport_buy_amount, bondingCurveData, slippage)
+	instruction_data, err := createBuyData(buyTask.BuyAmount, bondingCurveData, buyTask.Slippage)
 	if err != nil {
 		logger.Error("Error creating buy data", err)
 		return nil, err

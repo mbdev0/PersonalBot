@@ -1,9 +1,10 @@
 package constants
 
 const (
-	PumpFunAPIEndPoint = "https://frontend-api-v3.pump.fun/"
-	WebSocketReadLimit = 65536
-	LamportsConversion = 1000000000
+	PumpFunAPIEndPoint      = "https://frontend-api-v3.pump.fun/"
+	WebSocketReadLimit      = 65536
+	LamportsConversion      = 1_000_000_000
+	MicrolamportsToLamports = 1_000_000
 )
 
 var (

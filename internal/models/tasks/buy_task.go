@@ -11,4 +11,6 @@ type BuyTask struct {
 	TokenAddress solana.PublicKey
 	BuyAmount    big.Int
 	Slippage     float64
+	BuyFee       float64
+	ComputeUnits uint32
 }
