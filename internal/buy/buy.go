@@ -3,7 +3,6 @@ package buy
 import (
 	"context"
 	"fmt"
-	"math/big"
 	"pump_fun/internal/handlers"
 	instructionbuilder "pump_fun/internal/instruction_builder"
 	"pump_fun/internal/logger"
@@ -18,7 +17,7 @@ func SendBuyTransaction(buyTask *tasks.BuyTask) {
 }
 
 func sendBuyTransaction(buyTask *tasks.BuyTask) {
-	instructions := getAllInstructionsForBuy(buyTask.Wallet, buyTask.TokenAddress, buyTask.BuyAmount, buyTask.Slippage)
+	instructions := getAllInstructionsForBuy(buyTask)
 	if instructions == nil {
 		logger.Error("Error creating buy instructions - no instructions created")
 		return
@@ -64,12 +63,12 @@ func sendBuyTransaction(buyTask *tasks.BuyTask) {
 
 }
 
-func getAllInstructionsForBuy(privateKey solana.PrivateKey, tokenAddress solana.PublicKey, buyAmountLamport big.Int, slippage float64) (buyInstructions []solana.Instruction) {
+func getAllInstructionsForBuy(buyTask *tasks.BuyTask) (buyInstructions []solana.Instruction) {
 
-	computeLimitInstruction := instructionbuilder.GetComputeUnitLimitInstruction(80000)
-	computeLimitBudgetInstruction := instructionbuilder.GetComputeUnitBudgetInstruction(500000)
-	idEmponenetInstruction := instructionbuilder.GetIdEmponentInstruction(privateKey.PublicKey(), tokenAddress)
-	buyInstruction, err := instructionbuilder.GetBuyInstruction(tokenAddress.String(), privateKey.PublicKey().String(), buyAmountLamport, slippage)
+	computeLimitInstruction := instructionbuilder.GetComputeUnitLimitInstruction(buyTask.ComputeUnits)
+	computeLimitBudgetInstruction := instructionbuilder.GetComputeUnitBudgetInstruction(buyTask.BuyFee, buyTask.ComputeUnits)
+	idEmponenetInstruction := instructionbuilder.GetIdEmponentInstruction(buyTask.Wallet.PublicKey(), buyTask.TokenAddress)
+	buyInstruction, err := instructionbuilder.GetBuyInstruction(buyTask)
 
 	if err != nil {
 		logger.Error("Error creating buy instruction", err)

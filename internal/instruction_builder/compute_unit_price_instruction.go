@@ -1,8 +1,22 @@
 package instructionbuilder
 
-import computebudget "github.com/gagliardetto/solana-go/programs/compute-budget"
+import (
+	"pump_fun/internal/constants"
+	"pump_fun/internal/handlers"
+	"pump_fun/internal/logger"
 
-func GetComputeUnitBudgetInstruction(computeUnitPrice uint64) *computebudget.Instruction {
-	computeUnitPriceInstruction := computebudget.NewSetComputeUnitPriceInstruction(computeUnitPrice).Build()
-	return computeUnitPriceInstruction
+	computebudget "github.com/gagliardetto/solana-go/programs/compute-budget"
+)
+
+func GetComputeUnitBudgetInstruction(buyFee float64, computeUnits uint32) *computebudget.Instruction {
+	if computeUnits == 0 {
+		logger.Error("computeUnits cannot be zero")
+		return nil
+	}
+	totalLamports := handlers.ConvertSolToLamport(buyFee)
+	totalLamportsInt := totalLamports.Int64()
+
+	pricePerUnitMicrolamports := (totalLamportsInt * constants.MicrolamportsToLamports) / int64(computeUnits)
+
+	return computebudget.NewSetComputeUnitPriceInstruction(uint64(pricePerUnitMicrolamports)).Build()
 }

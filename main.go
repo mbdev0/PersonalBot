@@ -33,6 +33,8 @@ func main() {
 		TokenAddress: tokenAddressPubkey,
 		BuyAmount:    handlers.ConvertSolToLamport(0.001),
 		Slippage:     0.2,
+		BuyFee:       0.0001,
+		ComputeUnits: 200000,
 	}
 
 	buy.SendBuyTransaction(&buyTask)
