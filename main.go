@@ -3,11 +3,11 @@ package main
 
 import (
 	"fmt"
-	"pump_fun/internal/buy"
-	"pump_fun/internal/handlers"
 	"pump_fun/internal/launch"
 	"pump_fun/internal/launch/config"
+	"pump_fun/internal/logger"
 	"pump_fun/internal/models/tasks"
+	"pump_fun/internal/sell"
 
 	"github.com/gagliardetto/solana-go"
 )
@@ -18,24 +18,36 @@ func main() {
 
 	privateKey, err := solana.PrivateKeyFromBase58(config.GetConfig().Wallet_Private_Key)
 	if err != nil {
+		logger.Error("Error creating private key from base58", err)
 		return
 	}
-	fmt.Println(privateKey.PublicKey().String())
 
-	tokenAddressPubkey, err := solana.PublicKeyFromBase58("6gFL19tSaRwtQCuQVEy6HykCbTHztbe1qxuodarypump")
+	// tokenAddressPubkey, err := solana.PublicKeyFromBase58("6gFL19tSaRwtQCuQVEy6HykCbTHztbe1qxuodarypump")
+	tokenAddressPubkey, err := solana.PublicKeyFromBase58("74Vpr3XP9u9ZNGrMZAsFE1LC4VCfMXsSVwu9GH8Qpump")
 	if err != nil {
+		logger.Error("Error creating public key from base58", err)
 		return
 	}
-	fmt.Println(tokenAddressPubkey.String())
+	fmt.Println("Token Address PubKey:", tokenAddressPubkey.String())
 
-	buyTask := tasks.BuyTask{
-		Wallet:       privateKey,
+	// buyTask := tasks.BuyTask{
+	// 	Wallet:       privateKey,
+	// 	TokenAddress: tokenAddressPubkey,
+	// 	BuyAmount:    handlers.ConvertSolToLamport(0.001),
+	// 	Slippage:     0.2,
+	// 	BuyFee:       0.0001,
+	// 	ComputeUnits: 200000,
+	// }
+
+	// buy.SendBuyTransaction(&buyTask)
+
+	sellTask := tasks.SellTask{
+		PublicKey:    privateKey.PublicKey(),
 		TokenAddress: tokenAddressPubkey,
-		BuyAmount:    handlers.ConvertSolToLamport(0.001),
-		Slippage:     0.2,
-		BuyFee:       0.0001,
-		ComputeUnits: 200000,
+		Wallet:       privateKey,
+		Amount:       35411000000,
+		MinSolAmount: 960583,
 	}
 
-	buy.SendBuyTransaction(&buyTask)
+	sell.SendSellTransaction(&sellTask)
 }
