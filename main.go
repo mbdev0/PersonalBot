@@ -47,6 +47,8 @@ func main() {
 		Wallet:       privateKey,
 		Amount:       35411000000,
 		MinSolAmount: 960583,
+		ComputeUnits: 100_000,
+		BuyFee:       0.01,
 	}
 
 	sell.SendSellTransaction(&sellTask)

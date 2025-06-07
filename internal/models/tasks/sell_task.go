@@ -8,4 +8,6 @@ type SellTask struct {
 	Wallet       solana.PrivateKey
 	Amount       int
 	MinSolAmount int
+	ComputeUnits uint32
+	BuyFee       float64
 }
