@@ -5,6 +5,7 @@ import (
 	"pump_fun/internal/launch/config"
 	"pump_fun/internal/launch/pumpfun_idl"
 	"pump_fun/internal/launch/solana_price"
+	"pump_fun/internal/launch/validator"
 	"pump_fun/internal/logger"
 )
 
@@ -22,4 +23,5 @@ func LaunchOperations() {
 
 	pumpfun_idl.GetIdlMap()
 	solana_price.GetSolPrice()
+	validator.GetValidator()
 }
