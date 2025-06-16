@@ -6,6 +6,7 @@ import (
 	lookuptable "pump_fun/internal/launch/lookup_table"
 	"pump_fun/internal/launch/pumpfun_idl"
 	"pump_fun/internal/launch/solana_price"
+	"pump_fun/internal/launch/validator"
 	"pump_fun/internal/logger"
 )
 
@@ -24,5 +25,5 @@ func LaunchOperations() {
 	pumpfun_idl.GetIdlMap()
 	solana_price.GetSolPrice()
 	lookuptable.GetAddressLookupTable()
-
+	validator.GetValidator()
 }

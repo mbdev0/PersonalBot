@@ -7,6 +7,7 @@ require (
 	github.com/avast/retry-go/v4 v4.6.1
 	github.com/coder/websocket v1.8.12
 	github.com/gagliardetto/solana-go v1.11.0
+	github.com/go-playground/validator/v10 v10.26.0
 	github.com/mr-tron/base58 v1.2.0
 	golang.org/x/time v0.0.0-20191024005414-555d28b269f0
 )
@@ -16,11 +17,15 @@ require (
 	github.com/blendle/zapdriver v1.3.1 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/fatih/color v1.9.0 // indirect
+	github.com/gabriel-vasile/mimetype v1.4.8 // indirect
 	github.com/gagliardetto/binary v0.8.0 // indirect
 	github.com/gagliardetto/treeout v0.1.4 // indirect
+	github.com/go-playground/locales v0.14.1 // indirect
+	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/compress v1.13.6 // indirect
+	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/logrusorgru/aurora v2.0.3+incompatible // indirect
 	github.com/mattn/go-colorable v0.1.4 // indirect
 	github.com/mattn/go-isatty v0.0.11 // indirect
@@ -34,7 +39,9 @@ require (
 	go.uber.org/multierr v1.6.0 // indirect
 	go.uber.org/ratelimit v0.2.0 // indirect
 	go.uber.org/zap v1.21.0 // indirect
-	golang.org/x/crypto v0.22.0 // indirect
-	golang.org/x/sys v0.19.0 // indirect
-	golang.org/x/term v0.19.0 // indirect
+	golang.org/x/crypto v0.33.0 // indirect
+	golang.org/x/net v0.34.0 // indirect
+	golang.org/x/sys v0.30.0 // indirect
+	golang.org/x/term v0.29.0 // indirect
+	golang.org/x/text v0.22.0 // indirect
 )
