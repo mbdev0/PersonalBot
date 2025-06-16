@@ -7,6 +7,7 @@ import (
 	"pump_fun/internal/handlers"
 	"pump_fun/internal/launch"
 	"pump_fun/internal/launch/config"
+	"pump_fun/internal/logger"
 	"pump_fun/internal/models/tasks"
 
 	"github.com/gagliardetto/solana-go"
@@ -37,5 +38,10 @@ func main() {
 		ComputeUnits: 200000,
 	}
 
+	validationErrs := handlers.ValidateStruct(&buyTask)
+	if validationErrs != nil {
+		logger.Error(validationErrs)
+		return
+	}
 	buy.SendBuyTransaction(&buyTask)
 }
