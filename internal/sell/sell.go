@@ -23,12 +23,6 @@ func sendSellTransaction(sellTask *tasks.SellTask) {
 		return
 	}
 
-	sellInstruction, err := instructionbuilder.GetSellInstruction(sellTask.TokenAddress.String(), sellTask.Wallet.PublicKey().String())
-	if err != nil {
-		logger.Error("Error getting sell instruction", err)
-		return
-	}
-
 	latestHash, err := rpcclient.GetLatestBlockhash()
 	if err != nil {
 		logger.Error("Error getting latest blockhash", err)
@@ -43,14 +37,31 @@ func sendSellTransaction(sellTask *tasks.SellTask) {
 
 	handlers.SignTx(tx, sellTask.Wallet)
 
-	// simulate the transaction
 	client := rpcclient.GetClient()
+
+	// simulate the transaction
 	txResp, err := client.SimulateTransaction(context.Background(), tx)
 	if err != nil {
 		logger.Error("Transaction simulation failed", err)
 		return
 	}
 	fmt.Println(txResp.Value)
+
+	// SEND TRANSACTION WITH OPTIONS
+	// maxRetries := uint(5)
+	// txResp, err := client.SendTransactionWithOpts(context.Background(), tx, rpc.TransactionOpts{Encoding: solana.EncodingBase64, SkipPreflight: false, MaxRetries: &maxRetries})
+	// if err != nil {
+	// 	logger.Error("Error sending transaction", err)
+	// 	return
+	// }
+	// fmt.Println(txResp.String())
+
+	// SEND TRANSACTION WITH NO OPTS
+	// txResp, err := client.SendTransaction(context.Background(), tx)
+	// if err != nil {
+	// 	logger.Error(err)
+	// }
+	// fmt.Println(txResp.String())
 }
 
 func getAllInstructionsForSell(sellTask *tasks.SellTask) ([]solana.Instruction, error){
@@ -59,7 +70,6 @@ func getAllInstructionsForSell(sellTask *tasks.SellTask) ([]solana.Instruction, 
 
 	//TODO: Figure out how to fetch this
 	destinationAccount := solana.MustPublicKeyFromBase58("pfnXi2FdpFUUn6VyoxUohNyWk2Nup3ruguTgK8jaZaF")
-	//TODO: Do I need to make lamports dyanamic?
 	transferInstructions := instructionbuilder.GetTransferInstruction(1_000_000,sellTask.Wallet.PublicKey(),destinationAccount)
 
 	sellInstructions, err := instructionbuilder.GetSellInstruction(
