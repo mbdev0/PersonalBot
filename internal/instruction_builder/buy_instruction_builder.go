@@ -3,11 +3,10 @@ package instructionbuilder
 import (
 	"bytes"
 	"encoding/binary"
-	"errors"
+	"fmt"
 	"math/big"
 	"pump_fun/internal/constants"
 	"pump_fun/internal/handlers"
-	"pump_fun/internal/logger"
 	"pump_fun/internal/models"
 	"pump_fun/internal/models/tasks"
 	"pump_fun/internal/monitoring/transactions/bonding_curve_decoder"
@@ -16,73 +15,125 @@ import (
 	"github.com/gagliardetto/solana-go"
 )
 
+type AccountAddressesSet struct {
+	BondingCurveAddress           string
+	BondingCurveData              *models.BondingCurve
+	CreatorAddress                string
+	AssociatedBondingCurveAddress string
+	AssociatedTokenAddressPubkey  solana.PublicKey
+	TokenAddress                  string
+	WalletAddress                 string
+}
+
 func GetBuyInstruction(buyTask *tasks.BuyTask) (instruction *solana.GenericInstruction, err error) {
 
-	tokenAddress := buyTask.TokenAddress.String()
-	walletAddress := buyTask.Wallet.PublicKey().String()
-
-	bondingCurveAddress, err := program_derived_address.GetBondingCurveAddress(tokenAddress)
+	accountAddressesSet, err := setupAccountAddressSet(buyTask)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error setting up account address set: %w", err)
+	}
+
+	accounts := buildAccounts(accountAddressesSet)
+
+	instructionData, err := createBuyData(buyTask.BuyAmount, accountAddressesSet.BondingCurveData, buyTask.Slippage)
+	if err != nil {
+		return nil, fmt.Errorf("error creating buy data: %w", err)
+	}
+
+	progId := solana.MustPublicKeyFromBase58(constants.Program)
+	buyInstructions := solana.NewInstruction(progId, accounts, instructionData)
+
+	return buyInstructions, nil
+
+}
+
+func setupAccountAddressSet(buyTask *tasks.BuyTask) (AccountAddressesSet, error) {
+	accountAddressesSet := &AccountAddressesSet{
+		TokenAddress:  buyTask.TokenAddress.String(),
+		WalletAddress: buyTask.Wallet.PublicKey().String(),
+	}
+
+	// Get and Set bonding curve information
+	err := setBondingCurveInformation(accountAddressesSet)
+	if err != nil {
+		return *accountAddressesSet, err
+	}
+
+	// Get and Set PDA account addresses
+	err = resolvePDAs(accountAddressesSet)
+	if err != nil {
+		return *accountAddressesSet, err
+	}
+
+	return *accountAddressesSet, nil
+}
+
+func setBondingCurveInformation(accountAddressesSet *AccountAddressesSet) (err error) {
+	bondingCurveAddress, err := program_derived_address.GetBondingCurveAddress(accountAddressesSet.TokenAddress)
+	if err != nil {
+		return fmt.Errorf("error getting bonding curve address: %w", err)
 	}
 
 	bondingCurveData, err, _ := bonding_curve_decoder.GetBondingCurveDataFromAddress(bondingCurveAddress)
 	if err != nil {
-		return nil, err
+		return fmt.Errorf("error getting bonding curve data: %w", err)
 	}
 
-	creatorAddress, err := program_derived_address.GetCreatorVaultAddress(bondingCurveData.DevWallet.String())
+	accountAddressesSet.BondingCurveAddress = bondingCurveAddress
+	accountAddressesSet.BondingCurveData = bondingCurveData
+
+	return nil
+}
+
+func resolvePDAs(accountAddressesSet *AccountAddressesSet) (err error) {
+
+	accountAddressesSet.CreatorAddress, err = program_derived_address.GetCreatorVaultAddress(accountAddressesSet.BondingCurveData.DevWallet.String())
 	if err != nil {
-		return nil, err
+		return fmt.Errorf("error getting creator vault address: %w", err)
 	}
 
-	associatedBondingCurveAddress, err := program_derived_address.GetAssociatedBondingCurveAddress(bondingCurveAddress, tokenAddress)
+	accountAddressesSet.AssociatedBondingCurveAddress, err = program_derived_address.GetAssociatedBondingCurveAddress(accountAddressesSet.BondingCurveAddress, accountAddressesSet.TokenAddress)
 	if err != nil {
-		return nil, err
+		return fmt.Errorf("error getting associated bonding curve address: %w", err)
 	}
 
-	associatedTokenAddressPubkey, _, err := solana.FindAssociatedTokenAddress(buyTask.Wallet.PublicKey(), buyTask.TokenAddress)
+	walletAddress := solana.MustPublicKeyFromBase58(accountAddressesSet.WalletAddress)
+	tokenAddress := solana.MustPublicKeyFromBase58(accountAddressesSet.TokenAddress)
+
+	accountAddressesSet.AssociatedTokenAddressPubkey, _, err = solana.FindAssociatedTokenAddress(walletAddress, tokenAddress)
 	if err != nil {
-		return nil, err
+		return fmt.Errorf("error finding associated token address: %w", err)
 	}
 
-	accounts := []*solana.AccountMeta{
-		GetAccountMeta(constants.GlobalAccount, true, false),
-		GetAccountMeta(constants.FeeRecipient, true, false),
-		GetAccountMeta(tokenAddress, false, false),
-		GetAccountMeta(bondingCurveAddress, true, false),
-		GetAccountMeta(associatedBondingCurveAddress, true, false),
-		GetAccountMeta(associatedTokenAddressPubkey.String(), true, false),
-		GetAccountMeta(walletAddress, true, true),
-		GetAccountMeta(solana.SystemProgramID.String(), false, false),
-		GetAccountMeta(constants.TokenProgram, false, false),
-		GetAccountMeta(creatorAddress, true, false),
-		GetAccountMeta(constants.EventAuthority, false, false),
-		GetAccountMeta(constants.Program, false, false),
-	}
-
-	instruction_data, err := createBuyData(buyTask.BuyAmount, bondingCurveData, buyTask.Slippage)
-	if err != nil {
-		logger.Error("Error creating buy data", err)
-		return nil, err
-	}
-
-	buy_instructions := solana.NewInstruction(solana.MustPublicKeyFromBase58(constants.Program), accounts, instruction_data)
-
-	return buy_instructions, nil
+	return nil
 
 }
 
-func createBuyData(sol_lamport_buy_amount big.Int, bondingCurveData *models.BondingCurve, slippage float64) (data []byte, err error) {
+func buildAccounts(accountAddressesSet AccountAddressesSet) (accounts []*solana.AccountMeta) {
+	accounts = []*solana.AccountMeta{
+		GetAccountMeta(constants.GlobalAccount, true, false),
+		GetAccountMeta(constants.FeeRecipient, true, false),
+		GetAccountMeta(accountAddressesSet.TokenAddress, false, false),
+		GetAccountMeta(accountAddressesSet.BondingCurveAddress, true, false),
+		GetAccountMeta(accountAddressesSet.AssociatedBondingCurveAddress, true, false),
+		GetAccountMeta(accountAddressesSet.AssociatedTokenAddressPubkey.String(), true, false),
+		GetAccountMeta(accountAddressesSet.WalletAddress, true, true),
+		GetAccountMeta(solana.SystemProgramID.String(), false, false),
+		GetAccountMeta(constants.TokenProgram, false, false),
+		GetAccountMeta(accountAddressesSet.CreatorAddress, true, false),
+		GetAccountMeta(constants.EventAuthority, false, false),
+		GetAccountMeta(constants.Program, false, false),
+	}
+	return accounts
+}
+
+func createBuyData(solLamportBuyAmount big.Int, bondingCurveData *models.BondingCurve, slippage float64) (data []byte, err error) {
 	// Get the token amount
-	tokenAmount, err, hasCompleted := handlers.GetBuyTokenAmountFrom(sol_lamport_buy_amount, bondingCurveData)
+	tokenAmount, err, hasCompleted := handlers.GetBuyTokenAmountFrom(solLamportBuyAmount, bondingCurveData)
 	if err != nil || hasCompleted {
 		if hasCompleted {
-			logger.Error("The coin has completed the bonding curve")
-			return nil, errors.New("the coin has completed the bonding curve")
+			return nil, fmt.Errorf("the coin has completed the bonding curve: %w", err)
 		} else {
-			logger.Error("Error getting token amount", err)
-			return nil, err
+			return nil, fmt.Errorf("error getting buy token amount: %w", err)
 		}
 	}
 
@@ -92,31 +143,26 @@ func createBuyData(sol_lamport_buy_amount big.Int, bondingCurveData *models.Bond
 
 	discriminator := constants.BuyInstructionDiscriminator
 	if _, err := buf.Write(discriminator[:]); err != nil {
-		logger.Error("Error writing discriminator", err)
-		return nil, err
+		return nil, fmt.Errorf("error writing discriminator to buffer: %w", err)
 	}
 
 	if tokenAmount.BitLen() > 64 {
-		logger.Error("Token amount exceeds 64 bits")
-		return nil, err
+		return nil, fmt.Errorf("token amount %d overflows 64 bits", tokenAmount)
 	}
 	tokenUint64 := tokenAmount.Uint64()
 	if err := binary.Write(buf, binary.LittleEndian, tokenUint64); err != nil {
-		logger.Error("Error writing token amount", err)
-		return nil, err
+		return nil, fmt.Errorf("error writing token amount to buffer: %w", err)
 	}
 
-	if sol_lamport_buy_amount.BitLen() > 64 {
-		logger.Error("SOL amount exceeds 64 bits")
-		return nil, err
+	if solLamportBuyAmount.BitLen() > 64 {
+		return nil, fmt.Errorf("sol lamport buy amount exceeds 64 bits: %s", solLamportBuyAmount.String())
 	}
 
-	sol_lamport_buy_amount = handlers.AddSlippageToBuy(sol_lamport_buy_amount, slippage)
-	solUint64 := sol_lamport_buy_amount.Uint64()
+	solLamportBuyAmount = handlers.AddSlippageToBuy(solLamportBuyAmount, slippage)
+	solUint64 := solLamportBuyAmount.Uint64()
 	if err := binary.Write(buf, binary.LittleEndian, solUint64); err != nil {
-		logger.Error("Error writing SOL amount", err)
-		return nil, err
+		return nil, fmt.Errorf("error writing sol lamport buy amount to buffer: %w", err)
 	}
 
-	return buf.Bytes(), err
+	return buf.Bytes(), nil
 }
