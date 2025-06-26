@@ -9,5 +9,6 @@ type SellTask struct {
 	Amount       int
 	MinSolAmount int
 	ComputeUnits uint32
-	BuyFee       float64
+	SellFee      float64
+	Slippage     float64
 }

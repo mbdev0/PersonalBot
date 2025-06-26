@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math/big"
 	"pump_fun/internal/launch/solana_price"
+	"pump_fun/internal/logger"
 	"pump_fun/internal/models"
 	rpcclient "pump_fun/internal/rpc_client"
 
@@ -70,6 +71,18 @@ func getMarketCap(bondingCurve models.BondingCurve) (*big.Float, error) {
 	marketCap := new(big.Float).Mul(marketCapInSol, bigSolPrice)
 
 	return new(big.Float).Mul(marketCap, big.NewFloat(1000000)), nil
+}
+
+func GetSolanaTokenPrice(bondingCurve models.BondingCurve, tokenAmount uint64) *uint64 {
+	floatSolRes := new(big.Float).SetInt(&bondingCurve.VirtualSolReserves)
+	floatTokenReserves := new(big.Float).SetInt(&bondingCurve.VirtualTokenReserves)
+	marketCapInSol := new(big.Float).Quo(floatSolRes, floatTokenReserves)
+	tokenPrice, _ := new(big.Float).Mul(marketCapInSol, big.NewFloat(float64(tokenAmount))).Uint64()
+
+	logger.Information(tokenPrice)
+
+	return &tokenPrice
+
 }
 
 func GetBondingCurveDataFromAddress(bondingCurveAddress string) (bondingCurveData *models.BondingCurve, err error, hasCompleted bool) {

@@ -23,7 +23,7 @@ func main() {
 	}
 
 	// tokenAddressPubkey, err := solana.PublicKeyFromBase58("6gFL19tSaRwtQCuQVEy6HykCbTHztbe1qxuodarypump")
-	tokenAddressPubkey, err := solana.PublicKeyFromBase58("74Vpr3XP9u9ZNGrMZAsFE1LC4VCfMXsSVwu9GH8Qpump")
+	tokenAddressPubkey, err := solana.PublicKeyFromBase58("6gFL19tSaRwtQCuQVEy6HykCbTHztbe1qxuodarypump")
 	if err != nil {
 		logger.Error("Error creating public key from base58", err)
 		return
@@ -45,10 +45,9 @@ func main() {
 		PublicKey:    privateKey.PublicKey(),
 		TokenAddress: tokenAddressPubkey,
 		Wallet:       privateKey,
-		Amount:       35411000000,
-		MinSolAmount: 960583,
 		ComputeUnits: 100_000,
-		BuyFee:       0.01,
+		SellFee:      0.0001,
+		Slippage:     0.2,
 	}
 
 	sell.SendSellTransaction(&sellTask)

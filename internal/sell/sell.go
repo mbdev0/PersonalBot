@@ -17,7 +17,7 @@ func SendSellTransaction(sellTask *tasks.SellTask) {
 }
 
 func sendSellTransaction(sellTask *tasks.SellTask) {
-	instructions,err := getAllInstructionsForSell(sellTask)
+	instructions, err := getAllInstructionsForSell(sellTask)
 	if err != nil {
 		logger.Error("Error getting instructions for sell task", err)
 		return
@@ -49,7 +49,7 @@ func sendSellTransaction(sellTask *tasks.SellTask) {
 
 	// SEND TRANSACTION WITH OPTIONS
 	// maxRetries := uint(5)
-	// txResp, err := client.SendTransactionWithOpts(context.Background(), tx, rpc.TransactionOpts{Encoding: solana.EncodingBase64, SkipPreflight: false, MaxRetries: &maxRetries})
+	// txResp, err := client.SendTransactionWithOpts(context.Background(), tx, rpc.TransactionOpts{Encoding: solana.EncodingBase64, SkipPreflight: true, MaxRetries: &maxRetries})
 	// if err != nil {
 	// 	logger.Error("Error sending transaction", err)
 	// 	return
@@ -64,23 +64,16 @@ func sendSellTransaction(sellTask *tasks.SellTask) {
 	// fmt.Println(txResp.String())
 }
 
-func getAllInstructionsForSell(sellTask *tasks.SellTask) ([]solana.Instruction, error){
+func getAllInstructionsForSell(sellTask *tasks.SellTask) ([]solana.Instruction, error) {
 	computeLimitInstruction := instructionbuilder.GetComputeUnitLimitInstruction(sellTask.ComputeUnits)
-	computeLimitBudgetInstruction := instructionbuilder.GetComputeUnitBudgetInstruction(sellTask.BuyFee, sellTask.ComputeUnits)
+	computeLimitBudgetInstruction := instructionbuilder.GetComputeUnitBudgetInstruction(sellTask.SellFee, sellTask.ComputeUnits)
 
-	//TODO: Figure out how to fetch this
-	destinationAccount := solana.MustPublicKeyFromBase58("pfnXi2FdpFUUn6VyoxUohNyWk2Nup3ruguTgK8jaZaF")
-	transferInstructions := instructionbuilder.GetTransferInstruction(1_000_000,sellTask.Wallet.PublicKey(),destinationAccount)
-
-	sellInstructions, err := instructionbuilder.GetSellInstruction(
-		sellTask.TokenAddress.String(),
-		sellTask.Wallet.PublicKey().String(),
-	)
+	sellInstructions, err := instructionbuilder.GetSellInstruction(sellTask)
 	if err != nil {
 		logger.Error("Error getting sell instruction", err)
 		return nil, err
 	}
 
-	instructions := []solana.Instruction{computeLimitInstruction, computeLimitBudgetInstruction, transferInstructions, sellInstructions}
+	instructions := []solana.Instruction{computeLimitInstruction, computeLimitBudgetInstruction, sellInstructions}
 	return instructions, nil
 }
