@@ -15,6 +15,7 @@ import (
 )
 
 var bondingCurveData *models.BondingCurve
+var associatedTokenAddress solana.PublicKey
 
 func GetSellInstruction(sellTask *tasks.SellTask) (*solana.GenericInstruction, error) {
 	accounts, err := getAccounts(sellTask)
@@ -47,11 +48,12 @@ func getAccounts(sellTask *tasks.SellTask) ([]*solana.AccountMeta, error) {
 		return nil, err
 	}
 
-	associatedTokenAddress, _, err := solana.FindAssociatedTokenAddress(sellTask.Wallet.PublicKey(), sellTask.TokenAddress)
+	ATA, _, err := solana.FindAssociatedTokenAddress(sellTask.Wallet.PublicKey(), sellTask.TokenAddress)
 	if err != nil {
 		logger.Error("Error getting token address: ", err)
 		return nil, err
 	}
+	associatedTokenAddress = ATA
 
 	creatorAddress, err := getCreatorVaultAddress(bondingCurveAddress)
 	if err != nil {
@@ -65,7 +67,7 @@ func getAccounts(sellTask *tasks.SellTask) ([]*solana.AccountMeta, error) {
 		GetAccountMeta(sellTask.TokenAddress.String(), false, false),
 		GetAccountMeta(bondingCurveAddress, true, false),
 		GetAccountMeta(associatedBondingCurveAddress, true, false),
-		GetAccountMeta(associatedTokenAddress.String(), true, false), // TODO: Update this to match the token account? -> why is this not filled in already
+		GetAccountMeta(associatedTokenAddress.String(), true, false),
 		GetAccountMeta(sellTask.Wallet.PublicKey().String(), true, true),
 		GetAccountMeta(solana.SystemProgramID.String(), false, false),
 		GetAccountMeta(creatorAddress, true, false),
@@ -83,9 +85,10 @@ func getCreatorVaultAddress(bondingCurveAddress string) (string, error) {
 		logger.Error("Error getting bonding curve data:", err)
 		return "", err
 	}
-
 	bondingCurveData = data
+
 	creatorAddress, err := program_derived_address.GetCreatorVaultAddress(bondingCurveData.DevWallet.String())
+
 	if err != nil {
 		logger.Error("Error getting creator address:", err)
 		return "", err
@@ -96,22 +99,10 @@ func getCreatorVaultAddress(bondingCurveAddress string) (string, error) {
 
 func getInstructionData(sellTask *tasks.SellTask) ([]byte, error) {
 
-	associatedTokenAddress, _, err := solana.FindAssociatedTokenAddress(sellTask.Wallet.PublicKey(), sellTask.TokenAddress)
-	if err != nil {
-		logger.Error("Error getting token address: ", err)
-		return nil, err
-	}
-
-	tokenAmount, err := rpcclient.GetTokenAccountBalance(associatedTokenAddress)
+	tokenAmount, solOutput, err := getTokenAmountAndSolOutput(sellTask)
 	if err != nil {
 		return nil, err
 	}
-
-	sol_output := bonding_curve_decoder.GetSolanaTokenPrice(*bondingCurveData, *tokenAmount)
-	slippage_sol_output := float64(*sol_output) * (1 - sellTask.Slippage)
-	min_sol_output := uint64(slippage_sol_output)
-
-	logger.Information(min_sol_output)
 
 	buf := new(bytes.Buffer)
 
@@ -126,10 +117,24 @@ func getInstructionData(sellTask *tasks.SellTask) ([]byte, error) {
 		return nil, err
 	}
 
-	if err := binary.Write(buf, binary.LittleEndian, min_sol_output); err != nil {
+	if err := binary.Write(buf, binary.LittleEndian, solOutput); err != nil {
 		logger.Error("Error writing min_sol_output", err)
 		return nil, err
 	}
 
 	return buf.Bytes(), nil
+}
+
+func getTokenAmountAndSolOutput(sellTask *tasks.SellTask) (tokenAmount *uint64, solOutput *uint64, err error) {
+	tokenAmount, err = rpcclient.GetTokenAccountBalance(associatedTokenAddress)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	sol_output := bonding_curve_decoder.GetSolanaTokenPrice(*bondingCurveData, *tokenAmount)
+	slippage_sol_output := float64(*sol_output) * (1 - sellTask.Slippage)
+	min_sol_output := uint64(slippage_sol_output)
+
+	return tokenAmount, &min_sol_output, nil
+
 }

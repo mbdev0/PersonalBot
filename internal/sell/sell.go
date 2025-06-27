@@ -40,12 +40,12 @@ func sendSellTransaction(sellTask *tasks.SellTask) {
 	client := rpcclient.GetClient()
 
 	// simulate the transaction
-	txResp, err := client.SimulateTransaction(context.Background(), tx)
-	if err != nil {
-		logger.Error("Transaction simulation failed", err)
-		return
-	}
-	fmt.Println(txResp.Value)
+	// txResp, err := client.SimulateTransaction(context.Background(), tx)
+	// if err != nil {
+	// 	logger.Error("Transaction simulation failed", err)
+	// 	return
+	// }
+	// fmt.Println(txResp.Value)
 
 	// SEND TRANSACTION WITH OPTIONS
 	// maxRetries := uint(5)
@@ -57,11 +57,11 @@ func sendSellTransaction(sellTask *tasks.SellTask) {
 	// fmt.Println(txResp.String())
 
 	// SEND TRANSACTION WITH NO OPTS
-	// txResp, err := client.SendTransaction(context.Background(), tx)
-	// if err != nil {
-	// 	logger.Error(err)
-	// }
-	// fmt.Println(txResp.String())
+	txResp, err := client.SendTransaction(context.Background(), tx)
+	if err != nil {
+		logger.Error(err)
+	}
+	fmt.Println(txResp.String())
 }
 
 func getAllInstructionsForSell(sellTask *tasks.SellTask) ([]solana.Instruction, error) {

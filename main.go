@@ -47,7 +47,7 @@ func main() {
 		Wallet:       privateKey,
 		ComputeUnits: 100_000,
 		SellFee:      0.0001,
-		Slippage:     0.2,
+		Slippage:     0.02,
 	}
 
 	sell.SendSellTransaction(&sellTask)
