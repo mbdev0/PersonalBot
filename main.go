@@ -42,7 +42,6 @@ func main() {
 	// buy.SendBuyTransaction(&buyTask)
 
 	sellTask := tasks.SellTask{
-		PublicKey:    privateKey.PublicKey(),
 		TokenAddress: tokenAddressPubkey,
 		Wallet:       privateKey,
 		ComputeUnits: 100_000,

@@ -12,27 +12,32 @@ import (
 	"github.com/gagliardetto/solana-go"
 )
 
-func SendSellTransaction(sellTask *tasks.SellTask) {
-	sendSellTransaction(sellTask)
+func SendSellTransaction(sellTask *tasks.SellTask) (signature string, err error) {
+	signature, err = sendSellTransaction(sellTask)
+	if err != nil {
+		return "", err
+	}
+
+	return signature, nil
 }
 
-func sendSellTransaction(sellTask *tasks.SellTask) {
+func sendSellTransaction(sellTask *tasks.SellTask) (signature string, err error) {
 	instructions, err := getAllInstructionsForSell(sellTask)
 	if err != nil {
 		logger.Error("Error getting instructions for sell task", err)
-		return
+		return "", err
 	}
 
 	latestHash, err := rpcclient.GetLatestBlockhash()
 	if err != nil {
 		logger.Error("Error getting latest blockhash", err)
-		return
+		return "", err
 	}
 
 	tx, err := solana.NewTransaction(instructions, latestHash.Value.Blockhash, solana.TransactionPayer(sellTask.Wallet.PublicKey()))
 	if err != nil {
 		logger.Error("Error creating transaction", err)
-		return
+		return "", err
 	}
 
 	handlers.SignTx(tx, sellTask.Wallet)
@@ -60,8 +65,11 @@ func sendSellTransaction(sellTask *tasks.SellTask) {
 	txResp, err := client.SendTransaction(context.Background(), tx)
 	if err != nil {
 		logger.Error(err)
+		return "", err
 	}
 	fmt.Println(txResp.String())
+
+	return txResp.String(), err
 }
 
 func getAllInstructionsForSell(sellTask *tasks.SellTask) ([]solana.Instruction, error) {

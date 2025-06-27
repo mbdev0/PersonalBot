@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"math/big"
 	"pump_fun/internal/launch/solana_price"
-	"pump_fun/internal/logger"
 	"pump_fun/internal/models"
 	rpcclient "pump_fun/internal/rpc_client"
 
@@ -78,8 +77,6 @@ func GetSolanaTokenPrice(bondingCurve models.BondingCurve, tokenAmount uint64) *
 	floatTokenReserves := new(big.Float).SetInt(&bondingCurve.VirtualTokenReserves)
 	marketCapInSol := new(big.Float).Quo(floatSolRes, floatTokenReserves)
 	tokenPrice, _ := new(big.Float).Mul(marketCapInSol, big.NewFloat(float64(tokenAmount))).Uint64()
-
-	logger.Information(tokenPrice)
 
 	return &tokenPrice
 
