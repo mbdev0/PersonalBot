@@ -3,12 +3,11 @@ package main
 
 import (
 	"fmt"
-	"pump_fun/internal/buy"
-	"pump_fun/internal/handlers"
 	"pump_fun/internal/launch"
 	"pump_fun/internal/launch/config"
 	"pump_fun/internal/logger"
 	"pump_fun/internal/models/tasks"
+	"pump_fun/internal/sell"
 
 	"github.com/gagliardetto/solana-go"
 )
@@ -19,29 +18,42 @@ func main() {
 
 	privateKey, err := solana.PrivateKeyFromBase58(config.GetConfig().Wallet_Private_Key)
 	if err != nil {
+		logger.Error("Error creating private key from base58", err)
 		return
 	}
-	fmt.Println(privateKey.PublicKey().String())
 
+	// tokenAddressPubkey, err := solana.PublicKeyFromBase58("6gFL19tSaRwtQCuQVEy6HykCbTHztbe1qxuodarypump")
 	tokenAddressPubkey, err := solana.PublicKeyFromBase58("6gFL19tSaRwtQCuQVEy6HykCbTHztbe1qxuodarypump")
 	if err != nil {
+		logger.Error("Error creating public key from base58", err)
 		return
 	}
-	fmt.Println(tokenAddressPubkey.String())
+	fmt.Println("Token Address PubKey:", tokenAddressPubkey.String())
 
-	buyTask := tasks.BuyTask{
-		Wallet:       privateKey,
+	// buyTask := tasks.BuyTask{
+	// 	Wallet:       privateKey,
+	// 	TokenAddress: tokenAddressPubkey,
+	// 	BuyAmount:    handlers.ConvertSolToLamport(0.001),
+	// 	Slippage:     0.2,
+	// 	BuyFee:       0.0001,
+	// 	ComputeUnits: 200000,
+	// }
+
+	// buy.SendBuyTransaction(&buyTask)
+
+	sellTask := tasks.SellTask{
 		TokenAddress: tokenAddressPubkey,
-		BuyAmount:    handlers.ConvertSolToLamport(0.001),
-		Slippage:     0.2,
-		BuyFee:       0.0001,
-		ComputeUnits: 200000,
+		Wallet:       privateKey,
+		ComputeUnits: 100_000,
+		SellFee:      0.0001,
+		Slippage:     0.02,
 	}
 
-	validationErrs := handlers.ValidateStruct(&buyTask)
-	if validationErrs != nil {
-		logger.Error(validationErrs)
-		return
-	}
-	buy.SendBuyTransaction(&buyTask)
+	sell.SendSellTransaction(&sellTask)
+// 	validationErrs := handlers.ValidateStruct(&buyTask)
+// 	if validationErrs != nil {
+// 		logger.Error(validationErrs)
+// 		return
+// 	}
+// 	//buy.SendBuyTransaction(&buyTask)
 }

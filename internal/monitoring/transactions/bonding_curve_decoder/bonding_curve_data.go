@@ -72,6 +72,16 @@ func getMarketCap(bondingCurve models.BondingCurve) (*big.Float, error) {
 	return new(big.Float).Mul(marketCap, big.NewFloat(1000000)), nil
 }
 
+func GetSolanaTokenPrice(bondingCurve models.BondingCurve, tokenAmount uint64) *uint64 {
+	floatSolRes := new(big.Float).SetInt(&bondingCurve.VirtualSolReserves)
+	floatTokenReserves := new(big.Float).SetInt(&bondingCurve.VirtualTokenReserves)
+	marketCapInSol := new(big.Float).Quo(floatSolRes, floatTokenReserves)
+	tokenPrice, _ := new(big.Float).Mul(marketCapInSol, big.NewFloat(float64(tokenAmount))).Uint64()
+
+	return &tokenPrice
+
+}
+
 func GetBondingCurveDataFromAddress(bondingCurveAddress string) (bondingCurveData *models.BondingCurve, err error, hasCompleted bool) {
 	bondingCurveResponse, err := rpcclient.GetAccountInfo(bondingCurveAddress)
 	if err != nil {
