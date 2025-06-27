@@ -50,4 +50,10 @@ func main() {
 	}
 
 	sell.SendSellTransaction(&sellTask)
+// 	validationErrs := handlers.ValidateStruct(&buyTask)
+// 	if validationErrs != nil {
+// 		logger.Error(validationErrs)
+// 		return
+// 	}
+// 	//buy.SendBuyTransaction(&buyTask)
 }
