@@ -131,6 +131,11 @@ func getTokenAmountAndSolOutput(sellTask *tasks.SellTask) (tokenAmount *uint64, 
 		return nil, nil, err
 	}
 
+	if sellTask.PercentageToSell > 0 && sellTask.PercentageToSell <= 1 {
+		percentageToSell := sellTask.PercentageToSell
+		*tokenAmount = uint64(float64(*tokenAmount) * percentageToSell)
+	}
+
 	sol_output := bonding_curve_decoder.GetSolanaTokenPrice(*bondingCurveData, *tokenAmount)
 	slippage_sol_output := float64(*sol_output) * (1 - sellTask.Slippage)
 	min_sol_output := uint64(slippage_sol_output)

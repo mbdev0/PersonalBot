@@ -2,9 +2,10 @@ package handlers
 
 import (
 	"math/big"
-	buy_utils "pump_fun/internal/buy/utils.go"
 	"pump_fun/internal/models"
 	"pump_fun/internal/monitoring/transactions/bonding_curve_decoder"
+	buy_utils "pump_fun/internal/transaction/buy/utils.go"
+	"pump_fun/internal/utils"
 )
 
 func GetBuyTokenAmountFrom(buyInSolanaLamports big.Int, bondingCurveData *models.BondingCurve) (tokenAmnt *big.Int, err error, hasCompleted bool) {
@@ -16,5 +17,5 @@ func AddSlippageToBuy(lamportAmount big.Int, slippagePercentage float64) (newBuy
 }
 
 func ConvertSolToLamport(solAmount float64) (lamportAmount big.Int) {
-	return buy_utils.ConvertSolToLamport(solAmount)
+	return utils.ConvertSolToLamport(solAmount)
 }

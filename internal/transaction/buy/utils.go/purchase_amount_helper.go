@@ -2,7 +2,6 @@ package buy_utils
 
 import (
 	"math/big"
-	"pump_fun/internal/constants"
 )
 
 func AddSlippageToBuy(lamportAmount big.Int, slippagePercentage float64) (newBuyAmount big.Int) {
@@ -15,14 +14,4 @@ func AddSlippageToBuy(lamportAmount big.Int, slippagePercentage float64) (newBuy
 	newLamportAmountInt, _ := newLamportAmountFloat.Int(new(big.Int))
 
 	return *newLamportAmountInt
-}
-
-func ConvertSolToLamport(solAmount float64) (lamportAmount big.Int) {
-	solAmountBigFloat := new(big.Float).SetFloat64(solAmount)
-	lamportConversion := new(big.Float).SetInt64(constants.LamportsConversion)
-	floatLamports := new(big.Float).Mul(solAmountBigFloat, lamportConversion)
-	intLamports, _ := floatLamports.Int(new(big.Int))
-
-	return *intLamports
-
 }

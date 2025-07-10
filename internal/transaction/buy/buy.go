@@ -3,7 +3,6 @@ package buy
 import (
 	"context"
 	"fmt"
-	"pump_fun/internal/constants"
 	"pump_fun/internal/handlers"
 	instructionbuilder "pump_fun/internal/instruction_builder"
 	lookuptable "pump_fun/internal/launch/lookup_table"
@@ -31,7 +30,7 @@ func sendBuyTransaction(buyTask *tasks.BuyTask) {
 		return
 	}
 
-	accountLookupMap := setupLookupAccountLookups()
+	accountLookupMap := lookuptable.GetAddressLookupTable()
 
 	tx, err := solana.NewTransaction(instructions,
 		latestHash.Value.Blockhash,
@@ -70,15 +69,6 @@ func sendBuyTransaction(buyTask *tasks.BuyTask) {
 	// }
 	// fmt.Println(txResp.String())
 
-}
-
-func setupLookupAccountLookups() (accountLookup map[solana.PublicKey]solana.PublicKeySlice) {
-	lookupTable := lookuptable.GetAddressLookupTable()
-	accountLookupMap := make(map[solana.PublicKey]solana.PublicKeySlice)
-	accountLookupTableAccount := solana.MustPublicKeyFromBase58(constants.AddressLookupTableAccount)
-	accountLookupMap[accountLookupTableAccount] = lookupTable.Addresses
-
-	return accountLookupMap
 }
 
 func getAllInstructionsForBuy(buyTask *tasks.BuyTask) (buyInstructions []solana.Instruction) {
