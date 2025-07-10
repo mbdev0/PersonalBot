@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"pump_fun/internal/handlers"
 	instructionbuilder "pump_fun/internal/instruction_builder"
+	lookuptable "pump_fun/internal/launch/lookup_table"
 	"pump_fun/internal/logger"
 	"pump_fun/internal/models/tasks"
 	rpcclient "pump_fun/internal/rpc_client"
@@ -34,7 +35,13 @@ func sendSellTransaction(sellTask *tasks.SellTask) (signature string, err error)
 		return "", err
 	}
 
-	tx, err := solana.NewTransaction(instructions, latestHash.Value.Blockhash, solana.TransactionPayer(sellTask.Wallet.PublicKey()))
+	accountLookupMap := lookuptable.GetAddressLookupTable()
+
+	tx, err := solana.NewTransaction(instructions,
+		latestHash.Value.Blockhash,
+		solana.TransactionPayer(sellTask.Wallet.PublicKey()),
+		solana.TransactionAddressTables(accountLookupMap))
+
 	if err != nil {
 		logger.Error("Error creating transaction", err)
 		return "", err

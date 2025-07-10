@@ -13,15 +13,15 @@ import (
 )
 
 var (
-	addressLookupTable *lookup.AddressLookupTableState
+	addressLookupTable *map[solana.PublicKey]solana.PublicKeySlice
 	lock               = &sync.Mutex{}
 )
 
-func GetAddressLookupTable() *lookup.AddressLookupTableState {
+func GetAddressLookupTable() map[solana.PublicKey]solana.PublicKeySlice {
 	return getLookupTable()
 }
 
-func getLookupTable() *lookup.AddressLookupTableState {
+func getLookupTable() map[solana.PublicKey]solana.PublicKeySlice {
 	if addressLookupTable == nil {
 		lock.Lock()
 		defer lock.Unlock()
@@ -30,15 +30,19 @@ func getLookupTable() *lookup.AddressLookupTableState {
 		}
 	}
 
-	return addressLookupTable
+	return *addressLookupTable
 }
 
-func loadLookupTable() *lookup.AddressLookupTableState {
+func loadLookupTable() *map[solana.PublicKey]solana.PublicKeySlice {
 	lookupTable, err := lookup.GetAddressLookupTable(context.Background(), rpcclient.GetClient(), solana.MustPublicKeyFromBase58(constants.AddressLookupTableAccount))
 
 	if err != nil {
 		logger.Error("Error trying to get the address lookup table: ", err)
 	}
 
-	return lookupTable
+	accountLookupMap := make(map[solana.PublicKey]solana.PublicKeySlice)
+	accountLookupTableAccount := solana.MustPublicKeyFromBase58(constants.AddressLookupTableAccount)
+	accountLookupMap[accountLookupTableAccount] = lookupTable.Addresses
+
+	return &accountLookupMap
 }
