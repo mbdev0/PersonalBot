@@ -14,6 +14,7 @@ import (
 )
 
 func SendBuyTransaction(buyTask *tasks.BuyTask) {
+	buyTask.TransitionToNextState(tasks.TaskStateRunning)
 	sendBuyTransaction(buyTask)
 }
 
@@ -47,12 +48,12 @@ func sendBuyTransaction(buyTask *tasks.BuyTask) {
 
 	client := rpcclient.GetClient()
 	// SIMULATE TRANSACTION
-	txResp, err := client.SimulateTransaction(context.Background(), tx)
-	if err != nil {
-		logger.Error("Transaction simulation failed", err)
-		return
-	}
-	fmt.Println(txResp.Value)
+	// txResp, err := client.SimulateTransaction(context.Background(), tx)
+	// if err != nil {
+	// 	logger.Error("Transaction simulation failed", err)
+	// 	return
+	// }
+	// fmt.Println(txResp.Value)
 
 	// SEND TRANSACTION WITH OPTIONS
 	// maxRetries := uint(5)
@@ -63,11 +64,27 @@ func sendBuyTransaction(buyTask *tasks.BuyTask) {
 	// fmt.Println(txResp.String())
 
 	// SEND TRANSACTION WITH NO OPTS
-	// txResp, err := client.SendTransaction(context.Background(), tx)
-	// if err != nil {
-	// 	logger.Error(err)
-	// }
-	// fmt.Println(txResp.String())
+	txResp, err := client.SendTransaction(context.Background(), tx)
+	if err != nil {
+		logger.Error(err)
+	}
+	fmt.Println(txResp.String())
+
+	buyTask.TransitionToNextState(tasks.TaskStateTransactionSent)
+
+	isSuccess, err := rpcclient.ConfirmTransaction(txResp)
+	if err != nil {
+		logger.Error("Transaction confirmation failed", err)
+		buyTask.TransitionToNextState(tasks.TaskStateTransactionFailed)
+		return
+	}
+	if isSuccess {
+		logger.Information("Transaction confirmed successfully")
+		buyTask.TransitionToNextState(tasks.TaskStateCompleted)
+	} else {
+		logger.Error("Transaction confirmation failed")
+		buyTask.TransitionToNextState(tasks.TaskStateTransactionFailed)
+	}
 
 }
 
