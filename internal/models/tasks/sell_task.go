@@ -3,10 +3,10 @@ package tasks
 import "github.com/gagliardetto/solana-go"
 
 type SellTask struct {
-	TokenAddress     solana.PublicKey
 	Wallet           solana.PrivateKey
-	ComputeUnits     uint32
+	TokenAddress     solana.PublicKey
+	PercentageToSell float64
 	SellFee          float64
 	Slippage         float64
-	PercentageToSell float64
+	ComputeUnits     uint32
 }
