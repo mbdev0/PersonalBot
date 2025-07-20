@@ -1,10 +1,6 @@
-# Pump Fun Py
+# Solana Bot
 
-Pump Fun Bot in python
-
-## Docs
-
-To view the mermaid charts paste the code into https://mermaid.live/
+Solana bot to buy and sell memecoins
 
 ## Running Tests
 
@@ -19,3 +15,10 @@ To view tests coverage
 ```bash
   go test -cover ./...        
 ```
+
+To run the program:
+```bash
+  go build
+  ./pump_fun
+```
+in the root directory
