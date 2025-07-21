@@ -1,8 +1,8 @@
 package instructionbuilder
 
 import (
-	"pump_fun/internal/logger"
 	rpcclient "pump_fun/internal/rpc_client"
+	"pump_fun/pkg/logger"
 
 	"github.com/gagliardetto/solana-go"
 	associatedtokenaccount "github.com/gagliardetto/solana-go/programs/associated-token-account"

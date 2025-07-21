@@ -3,9 +3,9 @@ package solana_price
 import (
 	"encoding/json"
 	"pump_fun/internal/constants"
-	"pump_fun/internal/logger"
 	"pump_fun/internal/models"
 	requestclient "pump_fun/internal/request_client"
+	"pump_fun/pkg/logger"
 	"sync"
 	"time"
 )

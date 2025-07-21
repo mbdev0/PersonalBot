@@ -3,7 +3,7 @@ package instructionbuilder
 import (
 	"pump_fun/internal/constants"
 	"pump_fun/internal/handlers"
-	"pump_fun/internal/logger"
+	"pump_fun/pkg/logger"
 
 	computebudget "github.com/gagliardetto/solana-go/programs/compute-budget"
 )

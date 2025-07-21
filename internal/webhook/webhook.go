@@ -11,8 +11,8 @@ import (
 	"net/http"
 
 	"pump_fun/internal/launch/config"
-	"pump_fun/internal/logger"
 	"pump_fun/internal/models"
+	"pump_fun/pkg/logger"
 )
 
 var (

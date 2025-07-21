@@ -5,8 +5,8 @@ import (
 	"sync"
 
 	"pump_fun/internal/constants"
-	"pump_fun/internal/logger"
 	rpcclient "pump_fun/internal/rpc_client"
+	"pump_fun/pkg/logger"
 
 	"github.com/gagliardetto/solana-go"
 	lookup "github.com/gagliardetto/solana-go/programs/address-lookup-table"

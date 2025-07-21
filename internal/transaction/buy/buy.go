@@ -6,9 +6,9 @@ import (
 	"pump_fun/internal/handlers"
 	instructionbuilder "pump_fun/internal/instruction_builder"
 	lookuptable "pump_fun/internal/launch/lookup_table"
-	"pump_fun/internal/logger"
 	"pump_fun/internal/models/tasks"
 	rpcclient "pump_fun/internal/rpc_client"
+	"pump_fun/pkg/logger"
 
 	"github.com/gagliardetto/solana-go"
 )

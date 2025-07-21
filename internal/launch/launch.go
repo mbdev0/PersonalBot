@@ -7,7 +7,7 @@ import (
 	"pump_fun/internal/launch/pumpfun_idl"
 	"pump_fun/internal/launch/solana_price"
 	"pump_fun/internal/launch/validator"
-	"pump_fun/internal/logger"
+	"pump_fun/pkg/logger"
 )
 
 func LaunchOperations() {

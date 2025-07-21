@@ -13,7 +13,7 @@ import (
 	"pump_fun/internal/launch/pumpfun_idl"
 	"pump_fun/internal/models"
 
-	"pump_fun/internal/logger"
+	"pump_fun/pkg/logger"
 )
 
 func DecryptTransactionNotificationForCoin(transaction models.TransactionNotification) *models.Coin {
