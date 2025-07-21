@@ -3,8 +3,8 @@ package geyser
 import (
 	"context"
 	"pump_fun/internal/constants"
-	"pump_fun/internal/logger"
 	"pump_fun/internal/models"
+	"pump_fun/pkg/logger"
 
 	"github.com/avast/retry-go/v4"
 	"github.com/coder/websocket"

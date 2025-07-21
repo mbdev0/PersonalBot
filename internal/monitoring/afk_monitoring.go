@@ -2,10 +2,10 @@ package monitoring
 
 import (
 	"pump_fun/internal/handlers"
-	"pump_fun/internal/logger"
 	"pump_fun/internal/models"
 	"pump_fun/internal/monitoring/geyser"
 	"pump_fun/internal/webhook"
+	"pump_fun/pkg/logger"
 	"sync"
 )
 

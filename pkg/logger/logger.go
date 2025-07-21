@@ -14,6 +14,10 @@ var (
 	slogLogger *slog.Logger
 )
 
+const (
+	stackSkip = 2
+)
+
 var lock = &sync.Mutex{}
 
 func initSLog() {
@@ -38,7 +42,7 @@ func getLogger() *slog.Logger {
 	slog.SetDefault(slogLogger)
 	return slogLogger
 }
-func logInternal(level slog.Level, msg string, stackSkip int, attrs ...slog.Attr) {
+func logInternal(level slog.Level, msg string, attrs ...slog.Attr) {
 	_, file, line, ok := runtime.Caller(stackSkip)
 	if ok && level == slog.LevelError {
 		var lastElement int
@@ -56,14 +60,14 @@ func logInternal(level slog.Level, msg string, stackSkip int, attrs ...slog.Attr
 
 func Information(args ...interface{}) {
 	msg := fmt.Sprint(args...)
-	logInternal(LevelInfo, msg, 2)
+	logInternal(LevelInfo, msg)
 }
 
 func Error(args ...interface{}) {
 	msg := fmt.Sprint(args...)
-	logInternal(LevelError, msg, 2)
+	logInternal(LevelError, msg)
 }
 
 func Log(level slog.Level, msg string, attrs ...slog.Attr) {
-	logInternal(level, msg, 2, attrs...)
+	logInternal(level, msg, attrs...)
 }

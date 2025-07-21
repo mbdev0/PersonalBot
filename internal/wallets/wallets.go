@@ -1,7 +1,7 @@
 package wallets
 
 import (
-	"pump_fun/internal/logger"
+	"pump_fun/pkg/logger"
 
 	"github.com/gagliardetto/solana-go"
 )

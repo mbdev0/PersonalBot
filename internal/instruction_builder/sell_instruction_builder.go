@@ -4,12 +4,12 @@ import (
 	"bytes"
 	"encoding/binary"
 	"pump_fun/internal/constants"
-	"pump_fun/internal/logger"
 	"pump_fun/internal/models"
 	"pump_fun/internal/models/tasks"
 	"pump_fun/internal/monitoring/transactions/bonding_curve_decoder"
 	"pump_fun/internal/monitoring/transactions/program_derived_address"
 	rpcclient "pump_fun/internal/rpc_client"
+	"pump_fun/pkg/logger"
 
 	"github.com/gagliardetto/solana-go"
 )

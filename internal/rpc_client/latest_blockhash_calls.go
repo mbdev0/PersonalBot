@@ -2,7 +2,7 @@ package rpcclient
 
 import (
 	"context"
-	"pump_fun/internal/logger"
+	"pump_fun/pkg/logger"
 	"time"
 
 	"github.com/gagliardetto/solana-go/rpc"

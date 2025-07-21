@@ -3,7 +3,7 @@ package tasks
 import (
 	"fmt"
 	"math/big"
-	"pump_fun/internal/logger"
+	"pump_fun/pkg/logger"
 	"slices"
 
 	"github.com/gagliardetto/solana-go"
@@ -41,5 +41,4 @@ func (bt *BuyTask) TransitionToNextState(nextState TaskState) error {
 	}
 
 	return fmt.Errorf("invalid state transition from %s to %s", bt.State.TaskState.ToString(), nextState.ToString())
-
 }

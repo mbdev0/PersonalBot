@@ -3,8 +3,8 @@ package transaction_decoder
 import (
 	"bytes"
 	"pump_fun/internal/constants"
-	"pump_fun/internal/logger"
 	"pump_fun/internal/models"
+	"pump_fun/pkg/logger"
 )
 
 func DecodeCreateInstruction(data []byte) (*models.DecodedCreateInstruction, error) {
