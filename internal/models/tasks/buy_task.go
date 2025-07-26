@@ -10,6 +10,11 @@ import (
 	"github.com/google/uuid"
 )
 
+type Task interface {
+	Id() string
+	InitDefaults()
+}
+
 type BuyTask struct {
 	TaskId       string
 	Wallet       solana.PrivateKey `validate:"required"`
@@ -41,4 +46,8 @@ func (bt *BuyTask) TransitionToNextState(nextState TaskState) error {
 	}
 
 	return fmt.Errorf("invalid state transition from %s to %s", bt.State.TaskState.ToString(), nextState.ToString())
+}
+
+func (bt *BuyTask) Id() string {
+	return bt.TaskId
 }

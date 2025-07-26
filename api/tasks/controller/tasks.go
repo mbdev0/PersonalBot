@@ -1,10 +1,30 @@
 package controller
 
-type TaskController struct{}
+import (
+	"pump_fun/api/mapper"
+	"pump_fun/api/models"
+	"pump_fun/internal/models/tasks"
+	taskservice "pump_fun/internal/task_service"
+)
 
-func (tc *TaskController) GetTasks() []string {
-	tasks := []string{"Task1", "Task2", "Task3"} // Example tasks
-	return tasks
+type TaskController struct {
+	TaskService *taskservice.TaskService
+}
+
+func (tc *TaskController) CreateTask(requestTask models.RequestTask) (tasks.Task, error) {
+	// get the req struct
+	// map to buy task or sell task depending
+	newTask, err := mapper.MapRequestTaskToTask(&requestTask)
+	if err != nil {
+		return nil, err
+	}
+	// send to task service to create task
+	createdTask, err := tc.TaskService.Create(newTask)
+	if err != nil {
+		return nil, err
+	}
+
+	return createdTask, nil
 }
 
 func (tc *TaskController) TestEP() string {

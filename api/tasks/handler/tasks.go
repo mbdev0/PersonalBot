@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
+	"pump_fun/api/models"
 	"pump_fun/api/tasks/controller"
 )
 
@@ -18,19 +19,32 @@ func NewTaskHandler(controller *controller.TaskController) http.Handler {
 }
 
 func (th *TaskHandler) registerRoutes(mux *http.ServeMux) {
-	mux.HandleFunc("/get", th.GetTasks)
+	mux.HandleFunc("POST /create", th.CreateTask)
 	mux.HandleFunc("/test", th.Test)
 }
 
-func (th *TaskHandler) GetTasks(w http.ResponseWriter, r *http.Request) {
-	tasks := th.controller.GetTasks()
-	resp, err := json.Marshal(tasks)
+func (th *TaskHandler) CreateTask(w http.ResponseWriter, r *http.Request) {
+	decoder := json.NewDecoder(r.Body)
+	var reqTask models.RequestTask
+	err := decoder.Decode(&reqTask)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		errString := "Error during JSON decoding: " + err.Error()
+		w.Write([]byte(errString))
 		return
 	}
 
-	w.Write(resp)
+	createdTask, err := th.controller.CreateTask(reqTask)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		errString := "Error during creation of task: " + err.Error()
+		w.Write([]byte(errString))
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(createdTask)
 }
 
 func (th *TaskHandler) Test(w http.ResponseWriter, r *http.Request) {
