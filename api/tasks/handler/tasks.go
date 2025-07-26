@@ -25,6 +25,8 @@ func (th *TaskHandler) registerRoutes(mux *http.ServeMux) {
 
 func (th *TaskHandler) CreateTask(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
+	decoder.DisallowUnknownFields()
+
 	var reqTask models.RequestTask
 	err := decoder.Decode(&reqTask)
 	if err != nil {
