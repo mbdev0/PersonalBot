@@ -6,13 +6,16 @@ import (
 	"pump_fun/api/tasks/controller"
 	"pump_fun/api/tasks/handler"
 	"pump_fun/internal/launch"
+	taskservice "pump_fun/internal/task_service"
 	"pump_fun/pkg/logger"
 )
 
 func main() {
 	launch.LaunchOperations()
 
-	buyController := controller.TaskController{}
+	//TODO: move the init of api's into launch and return one mux back
+	taskService := taskservice.TaskService{}
+	buyController := controller.TaskController{TaskService: &taskService}
 	buyHandler := http.StripPrefix("/api/tasks", handler.NewTaskHandler(&buyController))
 
 	mux := http.NewServeMux()

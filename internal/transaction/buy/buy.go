@@ -13,6 +13,15 @@ import (
 	"github.com/gagliardetto/solana-go"
 )
 
+//TODO: instead of an interface we'll need a task_executor struct -> is this too many structs??
+type TransactionSender interface {
+	Execute(task *tasks.Task)
+}
+
+func Execute(buyTask *tasks.BuyTask) {
+	go SendBuyTransaction(buyTask)
+}
+
 func SendBuyTransaction(buyTask *tasks.BuyTask) {
 	buyTask.TransitionToNextState(tasks.TaskStateRunning)
 	sendBuyTransaction(buyTask)
