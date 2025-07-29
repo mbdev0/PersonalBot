@@ -3,6 +3,8 @@ package tasks
 import (
 	"fmt"
 	"math/big"
+	"pump_fun/api/models"
+	"pump_fun/internal/constants"
 	"pump_fun/pkg/logger"
 	"slices"
 
@@ -13,6 +15,7 @@ import (
 type Task interface {
 	Id() string
 	InitDefaults()
+	UpdateTask(newTask models.RequestTask) (err error)
 }
 
 type BuyTask struct {
@@ -50,4 +53,24 @@ func (bt *BuyTask) TransitionToNextState(nextState TaskState) error {
 
 func (bt *BuyTask) Id() string {
 	return bt.TaskId
+}
+
+func (bt *BuyTask) UpdateTask(newTask models.RequestTask) (err error) {
+	bt.Wallet, err = solana.PrivateKeyFromBase58(newTask.WalletAddressPrivateKey)
+	if err != nil {
+		return err
+	}
+
+	bt.TokenAddress, err = solana.PublicKeyFromBase58(newTask.TokenAddress)
+	if err != nil {
+		return err
+	}
+
+	bigBuyAmount := big.NewInt(int64(*newTask.BuyAmount * constants.LamportsConversion))
+	bt.BuyAmount = *bigBuyAmount
+	bt.BuyFee = *newTask.BuyFee
+	bt.Slippage = newTask.Slippage
+	bt.ComputeUnits = newTask.ComputeUnits
+
+	return nil
 }

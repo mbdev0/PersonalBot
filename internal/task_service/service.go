@@ -2,6 +2,7 @@ package taskservice
 
 import (
 	"fmt"
+	"pump_fun/api/models"
 	"pump_fun/internal/models/tasks"
 	"pump_fun/pkg/logger"
 	"sync"
@@ -17,20 +18,67 @@ type TaskService struct {
 
 func (ts *TaskService) Create(task tasks.Task) (tasks.Task, error) {
 	mu.Lock()
-	Tasks[task.Id()] = &task
-	mu.Unlock()
+	defer mu.Unlock()
 
+	Tasks[task.Id()] = &task
 	logger.Information(Tasks)
 	return task, nil
+}
+
+func (ts *TaskService) GetTaskWith(id string) (*tasks.Task, error) {
+	//hangs here since we're locking a mutex thats already locked
+	mu.Lock()
+	defer mu.Unlock()
+	task, ok := Tasks[id]
+	if !ok {
+		return nil, fmt.Errorf("Task not found with the id: " + id)
+	}
+	return task, nil
+}
+
+func (ts *TaskService) GetAllTasks() []tasks.Task {
+	mu.Lock()
+	defer mu.Unlock()
+	allTasks := make([]tasks.Task, 0, len(Tasks))
+	for _, val := range Tasks {
+		allTasks = append(allTasks, *val)
+	}
+	return allTasks
+}
+
+func (ts *TaskService) UpdateTask(id string, newTask models.RequestTask) (*tasks.Task, error) {
+	mu.Lock()
+	defer mu.Unlock()
+	task, ok := Tasks[id]
+	if !ok {
+		return nil, fmt.Errorf("Task not found with the id: " + id)
+	}
+	t := *task
+	err := t.UpdateTask(newTask)
+	if err != nil {
+		return nil, err
+	}
+
+	return task, nil
+}
+
+func (ts *TaskService) DeleteTask(id string) (err error) {
+	mu.Lock()
+	defer mu.Unlock()
+	_, ok := Tasks[id]
+	if !ok {
+		return fmt.Errorf("task not found with id: " + id)
+	}
+
+	delete(Tasks, id)
+	return nil
 }
 
 func (ts *TaskService) RunTask(task tasks.Task) (tasks.Task, error) {
 	switch task.(type) {
 	case *tasks.BuyTask:
-		fmt.Println("buy task")
 		logger.Information("Buy Task")
 	case *tasks.SellTask:
-		fmt.Println("sell task")
 		logger.Information("SellTask")
 	}
 
