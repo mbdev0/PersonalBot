@@ -1,6 +1,8 @@
 package tasks
 
 import (
+	"pump_fun/api/models"
+
 	"github.com/gagliardetto/solana-go"
 	"github.com/google/uuid"
 )
@@ -23,4 +25,22 @@ func (sellTask *SellTask) Id() string {
 func (sellTask *SellTask) InitDefaults() {
 	sellTask.TaskId = uuid.NewString()
 	sellTask.State.TaskState = TaskStateCreated
+}
+
+func (sellTask *SellTask) UpdateTask(newTask models.RequestTask) (err error) {
+	sellTask.Wallet, err = solana.PrivateKeyFromBase58(newTask.WalletAddressPrivateKey)
+	if err != nil {
+		return err
+	}
+
+	sellTask.TokenAddress, err = solana.PublicKeyFromBase58(newTask.TokenAddress)
+	if err != nil {
+		return err
+	}
+
+	sellTask.PercentageToSell = *newTask.SellAmount
+	sellTask.SellFee = *newTask.SellFee
+	sellTask.Slippage = newTask.Slippage
+	sellTask.ComputeUnits = newTask.ComputeUnits
+	return nil
 }
