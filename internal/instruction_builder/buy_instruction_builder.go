@@ -23,6 +23,7 @@ type AccountAddressesSet struct {
 	AssociatedTokenAddressPubkey  solana.PublicKey
 	TokenAddress                  string
 	WalletAddress                 string
+	UserVolumeAccumulator         string
 }
 
 func GetBuyInstruction(buyTask *tasks.BuyTask) (instruction *solana.GenericInstruction, err error) {
@@ -104,6 +105,12 @@ func resolvePDAs(accountAddressesSet *AccountAddressesSet) (err error) {
 		return fmt.Errorf("error finding associated token address: %w", err)
 	}
 
+	accountAddressesSet.UserVolumeAccumulator, err = program_derived_address.GetUserVolumeAccumulatorAddress(walletAddress.String())
+
+	if err != nil {
+		return fmt.Errorf("error finding user volume accumululator address")
+	}
+
 	return nil
 
 }
@@ -122,6 +129,8 @@ func buildAccounts(accountAddressesSet AccountAddressesSet) (accounts []*solana.
 		GetAccountMeta(accountAddressesSet.CreatorAddress, true, false),
 		GetAccountMeta(constants.EventAuthority, false, false),
 		GetAccountMeta(constants.Program, false, false),
+		GetAccountMeta(constants.GlobalVolumeAccumulator, true, false),
+		GetAccountMeta(accountAddressesSet.UserVolumeAccumulator, true, false),
 	}
 	return accounts
 }
