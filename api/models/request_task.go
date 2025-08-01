@@ -7,7 +7,6 @@ type RequestTask struct {
 	//this is a security risk -> figure out a way to have these stored in a secure place and loaded from a secure place
 	WalletAddressPrivateKey string   `json:"wallet_address_private_key"`
 	TokenAddress            string   `json:"token_address"`
-	TransactionState        string   `json:"transaction_state"`
 	BuyAmount               *float64 `json:"buy_amount,omitempty"`
 	BuyFee                  *float64 `json:"buy_fee,omitempty"`
 	SellAmount              *float64 `json:"sell_amount,omitempty"`
@@ -20,3 +19,7 @@ const (
 	Buy  TransactionType = "Buy"
 	Sell TransactionType = "Sell"
 )
+
+type RequestTransitionTask struct {
+	State string `json:"state"`
+}

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"math/big"
 	"pump_fun/api/models"
-	"pump_fun/internal/constants"
+	"pump_fun/internal/utils"
 	"pump_fun/pkg/logger"
 	"slices"
 
@@ -16,9 +16,12 @@ type Task interface {
 	Id() string
 	InitDefaults()
 	UpdateTask(newTask models.RequestTask) (err error)
+	SetState(newState TaskState)
+	GetTaskType() string
 }
 
 type BuyTask struct {
+	TaskType     string
 	TaskId       string
 	Wallet       solana.PrivateKey `validate:"required"`
 	TokenAddress solana.PublicKey  `validate:"required"`
@@ -31,6 +34,7 @@ type BuyTask struct {
 
 func (bt *BuyTask) InitDefaults() {
 	bt.TaskId = uuid.NewString()
+	bt.TaskType = "Buy"
 	bt.State.SetState(TaskStateCreated)
 }
 
@@ -66,11 +70,18 @@ func (bt *BuyTask) UpdateTask(newTask models.RequestTask) (err error) {
 		return err
 	}
 
-	bigBuyAmount := big.NewInt(int64(*newTask.BuyAmount * constants.LamportsConversion))
-	bt.BuyAmount = *bigBuyAmount
+	bt.BuyAmount = utils.ConvertSolToLamport(*newTask.BuyAmount)
 	bt.BuyFee = *newTask.BuyFee
 	bt.Slippage = newTask.Slippage
 	bt.ComputeUnits = newTask.ComputeUnits
 
 	return nil
+}
+
+func (bt *BuyTask) SetState(newState TaskState) {
+	bt.State.TaskState = newState
+}
+
+func (bt *BuyTask) GetTaskType() string {
+	return bt.TaskType
 }
