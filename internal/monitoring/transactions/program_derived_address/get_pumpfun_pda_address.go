@@ -32,3 +32,16 @@ func GetCreatorVaultAddress(devAddress string) (creatorVaultAddress string, err 
 	address, _, err := FindProgramAddressSync(seeds, programId)
 	return address, err
 }
+
+func GetUserVolumeAccumulatorAddress(walletAddress string) (userVolumeAccumulatorAddress string, err error) {
+	walletBytes, _ := base58.Decode(walletAddress)
+	programId, _ := base58.Decode(constants.Program)
+	seeds := [][]byte{[]byte("user_volume_accumulator"), walletBytes}
+	address, _, err := FindProgramAddressSync(seeds, programId)
+
+	if err != nil {
+		return "", err
+	}
+
+	return address, nil
+}
