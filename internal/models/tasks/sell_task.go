@@ -8,6 +8,7 @@ import (
 )
 
 type SellTask struct {
+	TaskType         string
 	TaskId           string
 	Wallet           solana.PrivateKey
 	TokenAddress     solana.PublicKey
@@ -24,6 +25,7 @@ func (sellTask *SellTask) Id() string {
 
 func (sellTask *SellTask) InitDefaults() {
 	sellTask.TaskId = uuid.NewString()
+	sellTask.TaskType = "Sell"
 	sellTask.State.TaskState = TaskStateCreated
 }
 
@@ -43,4 +45,12 @@ func (sellTask *SellTask) UpdateTask(newTask models.RequestTask) (err error) {
 	sellTask.Slippage = newTask.Slippage
 	sellTask.ComputeUnits = newTask.ComputeUnits
 	return nil
+}
+
+func (sellTask *SellTask) SetState(newState TaskState) {
+	sellTask.State.TaskState = newState
+}
+
+func (sellTask *SellTask) GetTaskType() string {
+	return sellTask.TaskType
 }

@@ -27,6 +27,7 @@ func (th *TaskHandler) registerRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /task", th.GetTasks)
 	mux.HandleFunc("PUT /task/{id}", th.UpdateTask)
 	mux.HandleFunc("DELETE /task/{id}", th.DeleteTask)
+	mux.HandleFunc("POST /transition/{id}", th.TransitionTask)
 }
 
 func (th *TaskHandler) CreateTask(w http.ResponseWriter, r *http.Request) {
@@ -36,17 +37,13 @@ func (th *TaskHandler) CreateTask(w http.ResponseWriter, r *http.Request) {
 	var reqTask models.RequestTask
 	err := decoder.Decode(&reqTask)
 	if err != nil {
-		w.WriteHeader(http.StatusUnprocessableEntity)
-		errString := "Error during JSON decoding: " + err.Error()
-		w.Write([]byte(errString))
+		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
 		return
 	}
 
 	createdTask, err := th.controller.CreateTask(reqTask)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		errString := "Error during creation of task: " + err.Error()
-		w.Write([]byte(errString))
+		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
 		return
 	}
 
@@ -58,7 +55,8 @@ func (th *TaskHandler) CreateTask(w http.ResponseWriter, r *http.Request) {
 func (th *TaskHandler) GetTaskById(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
 	if id == "" {
-		w.WriteHeader(http.StatusBadRequest)
+		http.Error(w, fmt.Errorf("invalid id string passed").Error(), http.StatusBadRequest)
+		return
 	}
 
 	//we have the id
@@ -67,8 +65,7 @@ func (th *TaskHandler) GetTaskById(w http.ResponseWriter, r *http.Request) {
 
 	//if not found we will return not found
 	if err != nil {
-		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte("error: " + err.Error()))
+		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
 
@@ -96,8 +93,8 @@ func (th *TaskHandler) UpdateTask(w http.ResponseWriter, r *http.Request) {
 	var reqTask models.RequestTask
 	err := decoder.Decode(&reqTask)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("JSON in bad format - check format again"))
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
 
 	//we pass id into controller + new task -> we should be returned the updated task
@@ -105,8 +102,7 @@ func (th *TaskHandler) UpdateTask(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		logger.Error("Error whilst updating task with id: " + id + " error: " + err.Error())
-		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte("Task update failed: " + id + "\nError" + err.Error()))
+		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
 
@@ -120,12 +116,27 @@ func (th *TaskHandler) DeleteTask(w http.ResponseWriter, r *http.Request) {
 	err := th.controller.DeleteTask(id)
 
 	if err != nil {
-		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte(fmt.Sprintf("error whilst deleting task id: %s, error: %s", id, err.Error())))
+		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+}
+
+func (th *TaskHandler) TransitionTask(w http.ResponseWriter, r *http.Request) {
+	// we get the body which would be in the format:
+	decoder := json.NewDecoder(r.Body)
+	decoder.DisallowUnknownFields()
+	var transition models.RequestTransitionTask
+	err := decoder.Decode(&transition)
+
+	id := r.PathValue("id")
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
+	}
+
+	th.controller.TransitionTask(id, transition.State)
 }
 
 func (th *TaskHandler) Test(w http.ResponseWriter, r *http.Request) {

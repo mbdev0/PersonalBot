@@ -61,6 +61,20 @@ func (tc *TaskController) DeleteTask(id string) (err error) {
 	return nil
 }
 
+func (tc *TaskController) TransitionTask(id string, newState string) (err error) {
+	state, err := tasks.ParseStateString(newState)
+	if err != nil {
+		return err
+	}
+
+	err = tc.TaskService.TransistionTask(id, state)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (tc *TaskController) TestEP() string {
 	return "Test successful"
 }
