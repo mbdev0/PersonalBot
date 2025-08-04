@@ -57,12 +57,7 @@ func createBuyTask(reqTask *models.RequestTask) (task *tasks.BuyTask, err error)
 		return nil, err
 	}
 
-	taskState, err := tasks.ParseStateString(tasks.TaskStateCreated.ToString())
-	if err != nil {
-		return nil, err
-	}
-
-	buyTask.State.TaskState = taskState
+	buyTask.State.TaskState = tasks.TaskCreate
 
 	return &buyTask, nil
 }
@@ -92,12 +87,8 @@ func createSellTask(reqTask *models.RequestTask) (task *tasks.SellTask, err erro
 		return nil, fmt.Errorf("private key is not valid/not found")
 	}
 
-	chosenState, err := tasks.ParseStateString(tasks.TaskStateCreated.ToString())
-	if err != nil {
-		return nil, fmt.Errorf("wrong transaction state passed in")
-	}
-
-	sellTask.State.TaskState = chosenState
+	sellTask.State.TaskState = tasks.TaskCreate
 
 	return &sellTask, nil
 }
+

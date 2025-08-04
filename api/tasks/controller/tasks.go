@@ -5,6 +5,7 @@ import (
 	"pump_fun/api/models"
 	"pump_fun/internal/models/tasks"
 	taskservice "pump_fun/internal/task_service"
+	"pump_fun/pkg/logger"
 )
 
 type TaskController struct {
@@ -27,19 +28,34 @@ func (tc *TaskController) CreateTask(requestTask models.RequestTask) (tasks.Task
 	return createdTask, nil
 }
 
-func (tc *TaskController) GetTask(id string) (tasks.Task, error) {
+func (tc *TaskController) GetTask(id string) (*models.ResponseTask, error) {
 	task, err := tc.TaskService.GetTaskWith(id)
-
 	if err != nil {
 		return nil, err
 	}
 
-	return *task, err
+	response, err := mapper.MapTaskToReponseTask(task)
+	if err != nil {
+		return nil, err
+	}
+
+	return response, err
 }
 
-func (tc *TaskController) GetAllTasks() []tasks.Task {
+func (tc *TaskController) GetAllTasks() ([]models.ResponseTask, error) {
 	tasks := tc.TaskService.GetAllTasks()
-	return tasks
+
+	response := make([]models.ResponseTask, 0, len(tasks))
+	for _, task := range tasks {
+		responseObj, err := mapper.MapTaskToReponseTask(task)
+		if err != nil {
+			return nil, err
+		}
+		response = append(response, *responseObj)
+	}
+
+	logger.Information(response)
+	return response, nil
 }
 
 func (tc *TaskController) UpdateTask(id string, reqTask models.RequestTask) (tasks.Task, error) {

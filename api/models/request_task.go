@@ -3,7 +3,7 @@ package models
 type RequestTask struct {
 	Type         TransactionType `json:"type"`
 	Slippage     float64         `json:"slippage"`
-	ComputeUnits uint32          `json:"ComputeUnits"`
+	ComputeUnits uint32          `json:"compute_units"`
 	//this is a security risk -> figure out a way to have these stored in a secure place and loaded from a secure place
 	WalletAddressPrivateKey string   `json:"wallet_address_private_key"`
 	TokenAddress            string   `json:"token_address"`

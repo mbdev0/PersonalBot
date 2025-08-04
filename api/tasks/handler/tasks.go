@@ -72,15 +72,25 @@ func (th *TaskHandler) GetTaskById(w http.ResponseWriter, r *http.Request) {
 	//otherwise return task
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(task)
+	err = json.NewEncoder(w).Encode(task)
+	if err != nil {
+		logger.Error("error", err)
+	}
 
 }
 
 func (th *TaskHandler) GetTasks(w http.ResponseWriter, r *http.Request) {
-	allTasks := th.controller.GetAllTasks()
+	allTasks, err := th.controller.GetAllTasks()
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusPartialContent)
+	}
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(allTasks)
+	err = json.NewEncoder(w).Encode(allTasks)
+	if err != nil {
+		logger.Error("error", err)
+	}
 }
 
 func (th *TaskHandler) UpdateTask(w http.ResponseWriter, r *http.Request) {
