@@ -1,12 +1,10 @@
 package tasks
 
 import (
-	"fmt"
+	"context"
 	"math/big"
 	"pump_fun/api/models"
 	"pump_fun/internal/utils"
-	"pump_fun/pkg/logger"
-	"slices"
 
 	"github.com/gagliardetto/solana-go"
 	"github.com/google/uuid"
@@ -16,8 +14,10 @@ type Task interface {
 	Id() string
 	InitDefaults()
 	UpdateTask(newTask models.RequestTask) (err error)
-	SetState(newState TaskState)
+	SetState(State)
 	GetTaskType() string
+	GetState() State
+	Cancel()
 }
 
 type BuyTask struct {
@@ -30,29 +30,14 @@ type BuyTask struct {
 	Slippage     float64           `validate:"required,gt=0,lt=1"` // Slippage percentage (0.0 to 1.0)
 	ComputeUnits uint32            `validate:"required,min=1"`
 	State        State
+	CancelToken  CancelToken
 }
 
 func (bt *BuyTask) InitDefaults() {
 	bt.TaskId = uuid.NewString()
 	bt.TaskType = "Buy"
-	bt.State.SetState(TaskStateCreated)
-}
-
-func (bt *BuyTask) TransitionToNextState(nextState TaskState) error {
-	validTransitions, ok := StateTransitions[bt.State.TaskState]
-	if !ok {
-		return fmt.Errorf("invalid current state: %s", bt.State.TaskState.ToString())
-	}
-	if len(validTransitions) == 0 {
-		return fmt.Errorf("no valid transitions from state: %s", bt.State.TaskState.ToString())
-	}
-	if slices.Contains(validTransitions, nextState) {
-		logger.Information(fmt.Sprintf("Transitioning from %s to %s", bt.State.TaskState.ToString(), nextState.ToString()))
-		bt.State.SetState(nextState)
-		return nil
-	}
-
-	return fmt.Errorf("invalid state transition from %s to %s", bt.State.TaskState.ToString(), nextState.ToString())
+	bt.State.TaskState = TaskCreate
+	bt.CancelToken.CancellationContext, bt.CancelToken.CancellationFunc = context.WithCancel(context.Background())
 }
 
 func (bt *BuyTask) Id() string {
@@ -78,10 +63,18 @@ func (bt *BuyTask) UpdateTask(newTask models.RequestTask) (err error) {
 	return nil
 }
 
-func (bt *BuyTask) SetState(newState TaskState) {
-	bt.State.TaskState = newState
+func (bt *BuyTask) SetState(newState State) {
+	bt.State = newState
 }
 
 func (bt *BuyTask) GetTaskType() string {
 	return bt.TaskType
+}
+
+func (bt *BuyTask) GetState() State {
+	return bt.State
+}
+
+func (bt *BuyTask) Cancel() {
+	bt.CancelToken.CancellationFunc()
 }
