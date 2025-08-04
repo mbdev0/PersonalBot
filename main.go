@@ -2,20 +2,13 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 	"pump_fun/api/tasks/controller"
 	"pump_fun/api/tasks/handler"
-	"pump_fun/internal/handlers"
 	"pump_fun/internal/launch"
-	"pump_fun/internal/launch/config"
-	"pump_fun/internal/models/tasks"
 	taskservice "pump_fun/internal/task_service"
 	"pump_fun/internal/transaction"
-	"pump_fun/internal/transaction/buy"
 	"pump_fun/pkg/logger"
-
-	"github.com/gagliardetto/solana-go"
 )
 
 func main() {
@@ -47,30 +40,30 @@ func main() {
 func test() {
 	// monitoring.StartAFKMonitor()
 
-	privateKey, err := solana.PrivateKeyFromBase58(config.GetConfig().Wallet_Private_Key)
-	if err != nil {
-		logger.Error("Error creating private key from base58", err)
-		return
-	}
+	// privateKey, err := solana.PrivateKeyFromBase58(config.GetConfig().Wallet_Private_Key)
+	// if err != nil {
+	// 	logger.Error("Error creating private key from base58", err)
+	// 	return
+	// }
 
-	tokenAddressPubkey, err := solana.PublicKeyFromBase58("Afk9Ms8AoUPbFzpGtLm4xx7m4UCAoGwhxuwcYNse4mjt")
-	if err != nil {
-		logger.Error("Error creating public key from base58", err)
-		return
-	}
-	fmt.Println("Token Address PubKey:", tokenAddressPubkey.String())
+	// tokenAddressPubkey, err := solana.PublicKeyFromBase58("Afk9Ms8AoUPbFzpGtLm4xx7m4UCAoGwhxuwcYNse4mjt")
+	// if err != nil {
+	// 	logger.Error("Error creating public key from base58", err)
+	// 	return
+	// }
+	// fmt.Println("Token Address PubKey:", tokenAddressPubkey.String())
 
-	buyTask := tasks.BuyTask{
-		Wallet:       privateKey,
-		TokenAddress: tokenAddressPubkey,
-		BuyAmount:    handlers.ConvertSolToLamport(0.001),
-		Slippage:     0.2,
-		BuyFee:       0.0001,
-		ComputeUnits: 200000,
-	}
-	buyTask.InitDefaults()
+	// buyTask := tasks.BuyTask{
+	// 	Wallet:       privateKey,
+	// 	TokenAddress: tokenAddressPubkey,
+	// 	BuyAmount:    handlers.ConvertSolToLamport(0.001),
+	// 	Slippage:     0.2,
+	// 	BuyFee:       0.0001,
+	// 	ComputeUnits: 200000,
+	// }
+	// buyTask.InitDefaults()
 
-	buy.SendBuyTransaction(&buyTask)
+	// buy.SendBuyTransaction(&buyTask)
 
 	// fmt.Println("State: ", buyTask.State.TaskState.ToString())
 	// sellTask := tasks.SellTask{
