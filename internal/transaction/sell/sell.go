@@ -13,42 +13,56 @@ import (
 	"github.com/gagliardetto/solana-go"
 )
 
-func SendSellTransaction(sellTask *tasks.SellTask) (signature string, err error) {
-	signature, err = sendSellTransaction(sellTask)
-	if err != nil {
-		return "", err
-	}
-
-	return signature, nil
+type SellTransaction struct {
+	Task         *tasks.SellTask
+	instructions []solana.Instruction
+	transaction  *solana.Transaction
+	signature    solana.Signature
 }
 
-func sendSellTransaction(sellTask *tasks.SellTask) (signature string, err error) {
-	instructions, err := getAllInstructionsForSell(sellTask)
+func (st *SellTransaction) BuildInstructions() error {
+	sellInstructions, err := getAllInstructionsForSell(st.Task)
 	if err != nil {
 		logger.Error("Error getting instructions for sell task", err)
-		return "", err
+		return err
+	}
+
+	if len(sellInstructions) == 0 {
+		return fmt.Errorf("sell instruction's weren't generated properly - check sell instruction builder")
+	}
+
+	st.instructions = sellInstructions
+	return nil
+}
+
+func (st *SellTransaction) BuildTransaction() error {
+	if st.Task == nil {
+		return fmt.Errorf("sell task is null - check if sell task was set")
 	}
 
 	latestHash, err := rpcclient.GetLatestBlockhash()
 	if err != nil {
 		logger.Error("Error getting latest blockhash", err)
-		return "", err
+		return err
 	}
 
 	accountLookupMap := lookuptable.GetAddressLookupTable()
-
-	tx, err := solana.NewTransaction(instructions,
+	tx, err := solana.NewTransaction(st.instructions,
 		latestHash.Value.Blockhash,
-		solana.TransactionPayer(sellTask.Wallet.PublicKey()),
+		solana.TransactionPayer(st.Task.Wallet.PublicKey()),
 		solana.TransactionAddressTables(accountLookupMap))
 
 	if err != nil {
 		logger.Error("Error creating transaction", err)
-		return "", err
+		return err
 	}
 
-	handlers.SignTx(tx, sellTask.Wallet)
+	handlers.SignTx(tx, st.Task.Wallet)
+	st.transaction = tx
+	return nil
+}
 
+func (st *SellTransaction) SendTransaction() error {
 	client := rpcclient.GetClient()
 
 	// simulate the transaction
@@ -69,15 +83,100 @@ func sendSellTransaction(sellTask *tasks.SellTask) (signature string, err error)
 	// fmt.Println(txResp.String())
 
 	// SEND TRANSACTION WITH NO OPTS
-	txResp, err := client.SendTransaction(context.Background(), tx)
+	txResp, err := client.SendTransaction(context.Background(), st.transaction)
 	if err != nil {
 		logger.Error(err)
-		return "", err
+		return err
 	}
-	fmt.Println(txResp.String())
 
-	return txResp.String(), err
+	st.signature = txResp
+	return nil
 }
+
+func (st *SellTransaction) ConfirmTransaction() error {
+	isSuccess, err := rpcclient.ConfirmTransaction(st.signature)
+	if err != nil {
+		logger.Error("Transaction confirmation failed", err)
+		return err
+	}
+	if isSuccess {
+		logger.Information("Transaction confirmed successfully")
+	} else {
+		logger.Error("Transaction confirmation failed")
+		return fmt.Errorf("transaction confirmation failed")
+	}
+	return nil
+}
+
+func (st *SellTransaction) GetTask() tasks.Task {
+	return st.Task
+}
+
+// func SendSellTransaction(sellTask *tasks.SellTask) (signature string, err error) {
+// 	signature, err = sendSellTransaction(sellTask)
+// 	if err != nil {
+// 		return "", err
+// 	}
+
+// 	return signature, nil
+// }
+
+// func sendSellTransaction(sellTask *tasks.SellTask) (signature string, err error) {
+// 	instructions, err := getAllInstructionsForSell(sellTask)
+// 	if err != nil {
+// 		logger.Error("Error getting instructions for sell task", err)
+// 		return "", err
+// 	}
+
+// 	latestHash, err := rpcclient.GetLatestBlockhash()
+// 	if err != nil {
+// 		logger.Error("Error getting latest blockhash", err)
+// 		return "", err
+// 	}
+
+// 	accountLookupMap := lookuptable.GetAddressLookupTable()
+
+// 	tx, err := solana.NewTransaction(instructions,
+// 		latestHash.Value.Blockhash,
+// 		solana.TransactionPayer(sellTask.Wallet.PublicKey()),
+// 		solana.TransactionAddressTables(accountLookupMap))
+
+// 	if err != nil {
+// 		logger.Error("Error creating transaction", err)
+// 		return "", err
+// 	}
+
+// 	handlers.SignTx(tx, sellTask.Wallet)
+
+// 	client := rpcclient.GetClient()
+
+// 	// simulate the transaction
+// 	// txResp, err := client.SimulateTransaction(context.Background(), tx)
+// 	// if err != nil {
+// 	// 	logger.Error("Transaction simulation failed", err)
+// 	// 	return
+// 	// }
+// 	// fmt.Println(txResp.Value)
+
+// 	// SEND TRANSACTION WITH OPTIONS
+// 	// maxRetries := uint(5)
+// 	// txResp, err := client.SendTransactionWithOpts(context.Background(), tx, rpc.TransactionOpts{Encoding: solana.EncodingBase64, SkipPreflight: true, MaxRetries: &maxRetries})
+// 	// if err != nil {
+// 	// 	logger.Error("Error sending transaction", err)
+// 	// 	return
+// 	// }
+// 	// fmt.Println(txResp.String())
+
+// 	// SEND TRANSACTION WITH NO OPTS
+// 	txResp, err := client.SendTransaction(context.Background(), tx)
+// 	if err != nil {
+// 		logger.Error(err)
+// 		return "", err
+// 	}
+// 	fmt.Println(txResp.String())
+
+// 	return txResp.String(), err
+// }
 
 func getAllInstructionsForSell(sellTask *tasks.SellTask) ([]solana.Instruction, error) {
 	computeLimitInstruction := instructionbuilder.GetComputeUnitLimitInstruction(sellTask.ComputeUnits)

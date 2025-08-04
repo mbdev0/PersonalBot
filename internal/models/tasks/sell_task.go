@@ -1,6 +1,7 @@
 package tasks
 
 import (
+	"context"
 	"pump_fun/api/models"
 
 	"github.com/gagliardetto/solana-go"
@@ -17,6 +18,7 @@ type SellTask struct {
 	Slippage         float64
 	ComputeUnits     uint32
 	State            State
+	CancelToken      CancelToken
 }
 
 func (sellTask *SellTask) Id() string {
@@ -26,7 +28,8 @@ func (sellTask *SellTask) Id() string {
 func (sellTask *SellTask) InitDefaults() {
 	sellTask.TaskId = uuid.NewString()
 	sellTask.TaskType = "Sell"
-	sellTask.State.TaskState = TaskStateCreated
+	sellTask.State.TaskState = TaskCreate
+	sellTask.CancelToken.CancellationContext, sellTask.CancelToken.CancellationFunc = context.WithCancel(context.Background())
 }
 
 func (sellTask *SellTask) UpdateTask(newTask models.RequestTask) (err error) {
@@ -47,10 +50,18 @@ func (sellTask *SellTask) UpdateTask(newTask models.RequestTask) (err error) {
 	return nil
 }
 
-func (sellTask *SellTask) SetState(newState TaskState) {
-	sellTask.State.TaskState = newState
+func (sellTask *SellTask) SetState(newState State) {
+	sellTask.State = newState
 }
 
 func (sellTask *SellTask) GetTaskType() string {
 	return sellTask.TaskType
+}
+
+func (sellTask *SellTask) GetState() State {
+	return sellTask.State
+}
+
+func (sellTask *SellTask) Cancel() {
+	sellTask.CancelToken.CancellationFunc()
 }
