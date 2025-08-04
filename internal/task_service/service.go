@@ -5,12 +5,13 @@ import (
 	"pump_fun/api/models"
 	"pump_fun/internal/models/tasks"
 	"pump_fun/internal/transaction"
+	"pump_fun/internal/transition"
 	"pump_fun/pkg/logger"
 	"sync"
 )
 
 var (
-	Tasks map[string]*tasks.Task = map[string]*tasks.Task{}
+	Tasks map[string]tasks.Task = map[string]tasks.Task{}
 	mu    sync.Mutex
 )
 
@@ -22,12 +23,12 @@ func (ts *TaskService) Create(task tasks.Task) (tasks.Task, error) {
 	mu.Lock()
 	defer mu.Unlock()
 
-	Tasks[task.Id()] = &task
+	Tasks[task.Id()] = task
 	logger.Information(Tasks)
 	return task, nil
 }
 
-func (ts *TaskService) GetTaskWith(id string) (*tasks.Task, error) {
+func (ts *TaskService) GetTaskWith(id string) (tasks.Task, error) {
 	//hangs here since we're locking a mutex thats already locked
 	mu.Lock()
 	defer mu.Unlock()
@@ -43,8 +44,9 @@ func (ts *TaskService) GetAllTasks() []tasks.Task {
 	defer mu.Unlock()
 	allTasks := make([]tasks.Task, 0, len(Tasks))
 	for _, val := range Tasks {
-		allTasks = append(allTasks, *val)
+		allTasks = append(allTasks, val)
 	}
+	logger.Information(allTasks[0])
 	return allTasks
 }
 
@@ -55,13 +57,13 @@ func (ts *TaskService) UpdateTask(id string, newTask models.RequestTask) (*tasks
 	if !ok {
 		return nil, fmt.Errorf("Task not found with the id: " + id)
 	}
-	t := *task
-	err := t.UpdateTask(newTask)
+
+	err := task.UpdateTask(newTask)
 	if err != nil {
 		return nil, err
 	}
 
-	return task, nil
+	return &task, nil
 }
 
 func (ts *TaskService) DeleteTask(id string) (err error) {
@@ -78,22 +80,25 @@ func (ts *TaskService) DeleteTask(id string) (err error) {
 
 func (ts *TaskService) TransistionTask(id string, newState tasks.TaskState) (err error) {
 	// in here we'll manage changing state
-	taskPtr, ok := Tasks[id]
+	task, ok := Tasks[id]
 	if !ok {
 		return fmt.Errorf("Task not found with the id: " + id)
 	}
 
 	// need to verify if is valid transition
+	if !transition.IsAbleToTransitionTo(newState, task) {
+		return fmt.Errorf("Task not able to transition to next state: " + newState.ToString())
+	}
 
-	task := *taskPtr
-	task.SetState(newState)
+	task.SetState(tasks.State{TaskState: newState})
 
 	switch newState {
-	case tasks.TaskStateRunning:
+	case tasks.TaskRun:
 		ts.RunTask(task)
-	case tasks.TaskStateCancelled:
+	case tasks.TaskCancel:
 		logger.Information("Cancelled Task")
-		task.SetState(tasks.TaskStateCreated)
+		task.Cancel()
+		task.SetState(tasks.State{TaskState: newState})
 	}
 
 	return nil
@@ -107,6 +112,7 @@ func (ts *TaskService) RunTask(task tasks.Task) (tasks.Task, error) {
 		logger.Information("SellTask")
 	}
 
-	ts.Executor.Execute(task)
+	transactionImpl := ts.Executor.GetImplementation(task)
+	ts.Executor.Execute(transactionImpl)
 	return task, nil
 }
