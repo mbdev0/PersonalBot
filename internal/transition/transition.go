@@ -1,0 +1,48 @@
+package transition
+
+import (
+	"fmt"
+	"pump_fun/internal/models/tasks"
+	"pump_fun/pkg/logger"
+)
+
+var StateTransitions map[tasks.TaskState]tasks.Transistion = map[tasks.TaskState]tasks.Transistion{
+	//current : next, on error
+	tasks.TaskCreate:         {Next: tasks.TaskRun, OnError: tasks.TaskFail},
+	tasks.TaskRun:            {Next: tasks.TxInstructionBuild, OnError: tasks.TaskValidationFailed},
+	tasks.TxInstructionBuild: {Next: tasks.TxBuild, OnError: tasks.TxInstructionBuildFailed},
+	tasks.TxBuild:            {Next: tasks.TxSend, OnError: tasks.TxBuildFailed},
+	tasks.TxSend:             {Next: tasks.TxConfirm, OnError: tasks.TxSendFailed},
+	tasks.TxConfirm:          {Next: tasks.TaskDone, OnError: tasks.TxFailed},
+	tasks.TaskCancel:         {Next: tasks.TaskCreate, OnError: tasks.TaskFail},
+}
+
+func IsAbleToTransitionTo(nextState tasks.TaskState, task tasks.Task) bool {
+	transition, ok := StateTransitions[task.GetState().TaskState]
+	if !ok {
+		return false
+	}
+
+	if transition.Next != nextState {
+		return false
+	}
+
+	return true
+}
+
+func AutoTransitionTask(task tasks.Task, err error) error {
+	transition, ok := StateTransitions[task.GetState().TaskState]
+	if !ok {
+		return fmt.Errorf("no next transition ")
+	}
+
+	if err != nil {
+		logger.Error("we got an error whilst transitioning states")
+		task.SetState(tasks.State{TaskState: transition.OnError, Error: err.Error()})
+	}
+
+	logger.Information("successful transition to: ", transition.Next.ToString())
+	task.SetState(tasks.State{TaskState: transition.Next})
+
+	return nil
+}
