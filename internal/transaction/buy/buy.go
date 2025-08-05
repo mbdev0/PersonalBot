@@ -87,6 +87,7 @@ func (bt *BuyTransaction) SendTransaction() error {
 	txResp, err := client.SendTransaction(context.Background(), bt.transaction)
 	if err != nil {
 		logger.Error(err)
+		return err
 	}
 
 	bt.signature = txResp

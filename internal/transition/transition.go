@@ -39,6 +39,7 @@ func AutoTransitionTask(task tasks.Task, err error) error {
 	if err != nil {
 		logger.Error("we got an error whilst transitioning states")
 		task.SetState(tasks.State{TaskState: transition.OnError, Error: err.Error()})
+		return nil
 	}
 
 	logger.Information("successful transition to: ", transition.Next.ToString())
