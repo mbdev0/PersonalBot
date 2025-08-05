@@ -5,7 +5,6 @@ import (
 	"pump_fun/api/models"
 	"pump_fun/internal/models/tasks"
 	taskservice "pump_fun/internal/task_service"
-	"pump_fun/pkg/logger"
 )
 
 type TaskController struct {
@@ -54,7 +53,6 @@ func (tc *TaskController) GetAllTasks() ([]models.ResponseTask, error) {
 		response = append(response, *responseObj)
 	}
 
-	logger.Information(response)
 	return response, nil
 }
 

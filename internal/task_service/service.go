@@ -46,7 +46,6 @@ func (ts *TaskService) GetAllTasks() []tasks.Task {
 	for _, val := range Tasks {
 		allTasks = append(allTasks, val)
 	}
-	logger.Information(allTasks[0])
 	return allTasks
 }
 
@@ -104,15 +103,7 @@ func (ts *TaskService) TransistionTask(id string, newState tasks.TaskState) (err
 	return nil
 }
 
-func (ts *TaskService) RunTask(task tasks.Task) (tasks.Task, error) {
-	switch task.GetTaskType() {
-	case "Buy":
-		logger.Information("Buy Task")
-	case "Sell":
-		logger.Information("SellTask")
-	}
-
+func (ts *TaskService) RunTask(task tasks.Task) {
 	transactionImpl := ts.Executor.GetImplementation(task)
-	ts.Executor.Execute(transactionImpl)
-	return task, nil
+	go ts.Executor.Execute(transactionImpl)
 }

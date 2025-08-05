@@ -51,7 +51,6 @@ func (th *TransactionExecutor) Execute(transaction Transaction) error {
 	for _, step := range steps {
 		err := step()
 		transition.AutoTransitionTask(task, err)
-		logger.Information("move to next state", transaction.GetTask().GetState())
 		if err != nil {
 			break
 		}
