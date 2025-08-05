@@ -2,6 +2,7 @@ package transaction
 
 import (
 	"fmt"
+	"pump_fun/internal/handlers"
 	"pump_fun/internal/models/tasks"
 	"pump_fun/internal/transaction/buy"
 	"pump_fun/internal/transaction/sell"
@@ -30,6 +31,14 @@ func (th *TransactionExecutor) Execute(transaction Transaction) error {
 		return fmt.Errorf("task wasn't set for the transaction")
 	}
 
+	err := handlers.ValidateStruct(task)
+	if err != nil {
+		transition.AutoTransitionTask(task, err)
+		return err
+	}
+
+	transition.AutoTransitionTask(task, nil) //from running to next step
+
 	steps := []func() error{
 		transaction.BuildInstructions,
 		transaction.BuildTransaction,
@@ -43,6 +52,9 @@ func (th *TransactionExecutor) Execute(transaction Transaction) error {
 		err := step()
 		transition.AutoTransitionTask(task, err)
 		logger.Information("move to next state", transaction.GetTask().GetState())
+		if err != nil {
+			break
+		}
 	}
 
 	return nil
