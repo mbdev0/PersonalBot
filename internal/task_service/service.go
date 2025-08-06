@@ -84,6 +84,10 @@ func (ts *TaskService) TransistionTask(id string, newState tasks.TaskState) (err
 		return fmt.Errorf("Task not found with the id: " + id)
 	}
 
+	if transition.IsRetryableState(task.GetState().TaskState) {
+		task.SetState(tasks.State{TaskState: tasks.TaskCreate, Error: ""})
+	}
+
 	// need to verify if is valid transition
 	if !transition.IsAbleToTransitionTo(newState, task) {
 		return fmt.Errorf("Task not able to transition to next state: " + newState.ToString())
@@ -93,11 +97,11 @@ func (ts *TaskService) TransistionTask(id string, newState tasks.TaskState) (err
 
 	switch newState {
 	case tasks.TaskRun:
+		task.InitCancelToken()
 		ts.RunTask(task)
 	case tasks.TaskCancel:
-		logger.Information("Cancelled Task")
-		task.Cancel()
 		task.SetState(tasks.State{TaskState: newState})
+		task.Cancel()
 	}
 
 	return nil

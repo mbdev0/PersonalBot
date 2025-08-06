@@ -54,7 +54,7 @@ func setupAccountAddressSet(buyTask *tasks.BuyTask) (AccountAddressesSet, error)
 	}
 
 	// Get and Set bonding curve information
-	err := setBondingCurveInformation(accountAddressesSet)
+	err := setBondingCurveInformation(accountAddressesSet, buyTask.CancelToken)
 	if err != nil {
 		return *accountAddressesSet, err
 	}
@@ -68,13 +68,13 @@ func setupAccountAddressSet(buyTask *tasks.BuyTask) (AccountAddressesSet, error)
 	return *accountAddressesSet, nil
 }
 
-func setBondingCurveInformation(accountAddressesSet *AccountAddressesSet) (err error) {
+func setBondingCurveInformation(accountAddressesSet *AccountAddressesSet, cancellationToken models.CancelToken) (err error) {
 	bondingCurveAddress, err := program_derived_address.GetBondingCurveAddress(accountAddressesSet.TokenAddress)
 	if err != nil {
 		return fmt.Errorf("error getting bonding curve address: %w", err)
 	}
 
-	bondingCurveData, err, _ := bonding_curve_decoder.GetBondingCurveDataFromAddress(bondingCurveAddress)
+	bondingCurveData, err, _ := bonding_curve_decoder.GetBondingCurveDataFromAddress(bondingCurveAddress, cancellationToken)
 	if err != nil {
 		return fmt.Errorf("error getting bonding curve data: %w", err)
 	}

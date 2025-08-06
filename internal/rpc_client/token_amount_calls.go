@@ -1,17 +1,17 @@
 package rpcclient
 
 import (
-	"context"
+	"pump_fun/internal/models"
 	"strconv"
 
 	"github.com/gagliardetto/solana-go"
 	"github.com/gagliardetto/solana-go/rpc"
 )
 
-func GetTokenAccountBalance(associatedTokenAddress solana.PublicKey) (tokenAmount *uint64, err error) {
+func GetTokenAccountBalance(associatedTokenAddress solana.PublicKey, cancellationToken models.CancelToken) (tokenAmount *uint64, err error) {
 	client := GetClient()
 
-	result, err := client.GetTokenAccountBalance(context.Background(), associatedTokenAddress, rpc.CommitmentConfirmed)
+	result, err := client.GetTokenAccountBalance(cancellationToken.CancellationContext, associatedTokenAddress, rpc.CommitmentConfirmed)
 	if err != nil {
 		return nil, err
 	}

@@ -40,7 +40,12 @@ func StartMarketCapMonitor(ctx context.Context, bondingCurveAddress string) {
 }
 
 func marketCapMonitor(ctx context.Context, bondingCurveAddress string) {
-	marketCapInit, err, hasCompleted := handlers.GetMarketCapInitial(bondingCurveAddress)
+
+	//TODO: remove once tasks can pass the context down to monitors temporary
+	cancellationToken := models.CancelToken{}
+	cancellationToken.CancellationContext, cancellationToken.CancellationFunc = context.WithCancel(context.Background())
+
+	marketCapInit, err, hasCompleted := handlers.GetMarketCapInitial(bondingCurveAddress, cancellationToken)
 
 	if err != nil {
 		logger.Error("Error getting initial market cap", err)

@@ -55,7 +55,7 @@ func getAccounts(sellTask *tasks.SellTask) ([]*solana.AccountMeta, error) {
 	}
 	associatedTokenAddress = ATA
 
-	creatorAddress, err := getCreatorVaultAddress(bondingCurveAddress)
+	creatorAddress, err := getCreatorVaultAddress(bondingCurveAddress, sellTask.CancelToken)
 	if err != nil {
 		logger.Error("Error getting creator vault address:", err)
 		return nil, err
@@ -79,8 +79,8 @@ func getAccounts(sellTask *tasks.SellTask) ([]*solana.AccountMeta, error) {
 	return accounts, nil
 }
 
-func getCreatorVaultAddress(bondingCurveAddress string) (string, error) {
-	data, err, _ := bonding_curve_decoder.GetBondingCurveDataFromAddress(bondingCurveAddress)
+func getCreatorVaultAddress(bondingCurveAddress string, cancellationToken models.CancelToken) (string, error) {
+	data, err, _ := bonding_curve_decoder.GetBondingCurveDataFromAddress(bondingCurveAddress, cancellationToken)
 	if err != nil {
 		logger.Error("Error getting bonding curve data:", err)
 		return "", err
@@ -126,7 +126,7 @@ func getInstructionData(sellTask *tasks.SellTask) ([]byte, error) {
 }
 
 func getTokenAmountAndSolOutput(sellTask *tasks.SellTask) (tokenAmount *uint64, solOutput *uint64, err error) {
-	tokenAmount, err = rpcclient.GetTokenAccountBalance(associatedTokenAddress)
+	tokenAmount, err = rpcclient.GetTokenAccountBalance(associatedTokenAddress, sellTask.CancelToken)
 	if err != nil {
 		return nil, nil, err
 	}

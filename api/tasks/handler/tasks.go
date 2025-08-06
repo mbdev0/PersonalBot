@@ -146,7 +146,8 @@ func (th *TaskHandler) TransitionTask(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
 	}
 
-	th.controller.TransitionTask(id, transition.State)
+	err = th.controller.TransitionTask(id, transition.State)
+	logger.Error(err)
 }
 
 func (th *TaskHandler) Test(w http.ResponseWriter, r *http.Request) {

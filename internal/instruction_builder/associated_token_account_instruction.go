@@ -1,6 +1,7 @@
 package instructionbuilder
 
 import (
+	"pump_fun/internal/models"
 	rpcclient "pump_fun/internal/rpc_client"
 	"pump_fun/pkg/logger"
 
@@ -8,8 +9,8 @@ import (
 	associatedtokenaccount "github.com/gagliardetto/solana-go/programs/associated-token-account"
 )
 
-func GetIdEmponentInstruction(wallet solana.PublicKey, mintAddress solana.PublicKey) *associatedtokenaccount.Instruction {
-	idEmponentInstruction, err := getIdEmponentInstructionIfExists(wallet, mintAddress)
+func GetIdEmponentInstruction(wallet solana.PublicKey, mintAddress solana.PublicKey, cancellationToken models.CancelToken) *associatedtokenaccount.Instruction {
+	idEmponentInstruction, err := getIdEmponentInstructionIfExists(wallet, mintAddress, cancellationToken)
 
 	if err != nil {
 		logger.Error("Error getting IdEmponentInstruction: ", err)
@@ -19,13 +20,13 @@ func GetIdEmponentInstruction(wallet solana.PublicKey, mintAddress solana.Public
 	return idEmponentInstruction
 }
 
-func getIdEmponentInstructionIfExists(wallet solana.PublicKey, mintAddress solana.PublicKey) (*associatedtokenaccount.Instruction, error) {
+func getIdEmponentInstructionIfExists(wallet solana.PublicKey, mintAddress solana.PublicKey, cancellationToken models.CancelToken) (*associatedtokenaccount.Instruction, error) {
 	associatedTokenAddressPubkey, _, err := solana.FindAssociatedTokenAddress(wallet, mintAddress)
 	if err != nil {
 		return nil, err
 	}
 
-	_, err = rpcclient.GetAccountInfo(associatedTokenAddressPubkey.String())
+	_, err = rpcclient.GetAccountInfo(associatedTokenAddressPubkey.String(), cancellationToken)
 
 	if err != nil {
 		if err.Error() == "not found" {
