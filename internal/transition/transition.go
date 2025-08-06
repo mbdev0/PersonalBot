@@ -23,11 +23,24 @@ func IsAbleToTransitionTo(nextState tasks.TaskState, task tasks.Task) bool {
 		return false
 	}
 
+	if nextState == tasks.TaskCancel {
+		return true
+	}
+
 	if transition.Next != nextState {
 		return false
 	}
 
 	return true
+}
+
+func IsRetryableState(state tasks.TaskState) bool {
+	switch state {
+	case tasks.TaskValidationFailed, tasks.TxInstructionBuildFailed, tasks.TxBuildFailed, tasks.TxSendFailed, tasks.TxFailed, tasks.TaskFail, tasks.TaskCancel:
+		return true
+	default:
+		return false
+	}
 }
 
 func AutoTransitionTask(task tasks.Task, err error) error {

@@ -3,8 +3,10 @@ package tasks
 import (
 	"context"
 	"math/big"
-	"pump_fun/api/models"
+	api_model "pump_fun/api/models"
+	"pump_fun/internal/models"
 	"pump_fun/internal/utils"
+	"pump_fun/pkg/logger"
 
 	"github.com/gagliardetto/solana-go"
 	"github.com/google/uuid"
@@ -13,7 +15,8 @@ import (
 type Task interface {
 	Id() string
 	InitDefaults()
-	UpdateTask(newTask models.RequestTask) (err error)
+	InitCancelToken()
+	UpdateTask(newTask api_model.RequestTask) (err error)
 	SetState(State)
 	GetTaskType() string
 	GetState() State
@@ -30,21 +33,20 @@ type BuyTask struct {
 	Slippage     float64           `validate:"required,gt=0,lt=1"` // Slippage percentage (0.0 to 1.0)
 	ComputeUnits uint32            `validate:"required,min=1"`
 	State        State
-	CancelToken  CancelToken
+	CancelToken  models.CancelToken
 }
 
 func (bt *BuyTask) InitDefaults() {
 	bt.TaskId = uuid.NewString()
 	bt.TaskType = "Buy"
 	bt.State.TaskState = TaskCreate
-	bt.CancelToken.CancellationContext, bt.CancelToken.CancellationFunc = context.WithCancel(context.Background())
 }
 
 func (bt *BuyTask) Id() string {
 	return bt.TaskId
 }
 
-func (bt *BuyTask) UpdateTask(newTask models.RequestTask) (err error) {
+func (bt *BuyTask) UpdateTask(newTask api_model.RequestTask) (err error) {
 	bt.Wallet, err = solana.PrivateKeyFromBase58(newTask.WalletAddressPrivateKey)
 	if err != nil {
 		return err
@@ -75,6 +77,14 @@ func (bt *BuyTask) GetState() State {
 	return bt.State
 }
 
+func (bt *BuyTask) InitCancelToken() {
+	bt.CancelToken.CancellationContext, bt.CancelToken.CancellationFunc = context.WithCancel(context.Background())
+}
+
 func (bt *BuyTask) Cancel() {
-	bt.CancelToken.CancellationFunc()
+	logger.Information("cancel called")
+	if bt.CancelToken.CancellationContext != nil {
+		bt.CancelToken.CancellationFunc()
+	}
+
 }

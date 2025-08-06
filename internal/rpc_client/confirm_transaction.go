@@ -3,6 +3,7 @@ package rpcclient
 import (
 	"context"
 	"fmt"
+	"pump_fun/internal/models"
 	"pump_fun/pkg/logger"
 	"time"
 
@@ -16,13 +17,12 @@ const (
 	maxConfirmations = 31
 )
 
-func ConfirmTransaction(sig solana.Signature) (IsSuccess bool, err error) {
+func ConfirmTransaction(sig solana.Signature, cancellationToken models.CancelToken) (IsSuccess bool, err error) {
 	client := GetClient()
+	ctx, cancel := context.WithTimeout(cancellationToken.CancellationContext, contextTimeout)
+	defer cancel()
 
 	for {
-		ctx, cancel := context.WithTimeout(context.Background(), contextTimeout)
-		defer cancel()
-
 		txResp, err := client.GetSignatureStatuses(ctx, true, sig)
 		if err != nil {
 			return false, err
@@ -46,7 +46,7 @@ func ConfirmTransaction(sig solana.Signature) (IsSuccess bool, err error) {
 			logger.Information(fmt.Sprintf("Transaction confirmed: %d/%d confirmations",
 				*status.Confirmations, maxConfirmations))
 
-			expired, err := IsBlockhashExpired(status.Slot)
+			expired, err := IsBlockhashExpired(status.Slot, cancellationToken)
 			if err != nil {
 				return false, fmt.Errorf("blockhash expiration check failed: %w", err)
 			}

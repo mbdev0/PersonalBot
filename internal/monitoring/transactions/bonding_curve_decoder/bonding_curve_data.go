@@ -30,8 +30,8 @@ func GetMarketCapFrom(bondingCurveValue string) (marketCapVal *big.Float, err er
 	return marketCap, nil, false
 }
 
-func GetMarketCapInitial(bondingCurveAddress string) (marketCapVal *big.Float, err error, hasCompleted bool) {
-	bondingCurveResponse, err := rpcclient.GetAccountInfo(bondingCurveAddress)
+func GetMarketCapInitial(bondingCurveAddress string, cancellationToken models.CancelToken) (marketCapVal *big.Float, err error, hasCompleted bool) {
+	bondingCurveResponse, err := rpcclient.GetAccountInfo(bondingCurveAddress, cancellationToken)
 	if err != nil {
 		return nil, err, false
 	}
@@ -82,8 +82,8 @@ func GetSolanaTokenPrice(bondingCurve models.BondingCurve, tokenAmount uint64) *
 
 }
 
-func GetBondingCurveDataFromAddress(bondingCurveAddress string) (bondingCurveData *models.BondingCurve, err error, hasCompleted bool) {
-	bondingCurveResponse, err := rpcclient.GetAccountInfo(bondingCurveAddress)
+func GetBondingCurveDataFromAddress(bondingCurveAddress string, cancellationToken models.CancelToken) (bondingCurveData *models.BondingCurve, err error, hasCompleted bool) {
+	bondingCurveResponse, err := rpcclient.GetAccountInfo(bondingCurveAddress, cancellationToken)
 	if err != nil {
 		return nil, err, false
 	}

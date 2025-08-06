@@ -91,4 +91,3 @@ func createSellTask(reqTask *models.RequestTask) (task *tasks.SellTask, err erro
 
 	return &sellTask, nil
 }
-
