@@ -11,8 +11,9 @@ import (
 )
 
 var (
-	lock     = &sync.Mutex{}
-	solPrice *float64
+	lock             = &sync.Mutex{}
+	solPrice         *float64
+	priceRefreshTime = 30 * time.Minute
 )
 
 func GetSolPrice() (*float64, error) {
@@ -51,7 +52,7 @@ func fetchSolPriceFromEndpoint() (*float64, error) {
 }
 
 func startBackgroundUpdate() {
-	ticker := time.NewTicker(30 * time.Minute)
+	ticker := time.NewTicker(priceRefreshTime)
 	defer ticker.Stop()
 
 	for range ticker.C {

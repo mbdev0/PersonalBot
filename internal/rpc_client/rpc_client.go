@@ -15,6 +15,8 @@ var client *rpc.Client
 
 var rateLimitClient *rpc.Client
 
+var numberOfRequestsPerTimeFrame = 1
+
 func GetClient() *rpc.Client {
 	if client == nil {
 		lock.Lock()
@@ -34,7 +36,7 @@ func GetRatelimtClient() *rpc.Client {
 		defer lock.Unlock()
 
 		if rateLimitClient == nil {
-			limitClient := rpc.NewWithLimiter(config.GetConfig().HttpNode, rate.Every(time.Second), 1)
+			limitClient := rpc.NewWithLimiter(config.GetConfig().HttpNode, rate.Every(time.Second), numberOfRequestsPerTimeFrame)
 			rateLimitClient = rpc.NewWithCustomRPCClient(limitClient)
 		}
 	}

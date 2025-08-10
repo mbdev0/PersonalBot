@@ -7,7 +7,7 @@ import (
 )
 
 var lock = &sync.Mutex{}
-
+var connectionTimeout = time.Second * 10
 var client *http.Client
 
 func GetClient() *http.Client {
@@ -16,7 +16,7 @@ func GetClient() *http.Client {
 		defer lock.Unlock()
 
 		if client == nil {
-			client = &http.Client{Timeout: time.Second * 10}
+			client = &http.Client{Timeout: connectionTimeout}
 		}
 	}
 
