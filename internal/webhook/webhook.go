@@ -17,6 +17,7 @@ import (
 
 var (
 	discordWebhookURL = config.GetConfig().Webhook
+	connectionTimeout = 30 * time.Second
 )
 
 func SendWebhook(coin *models.Coin) {
@@ -30,7 +31,7 @@ func SendWebhook(coin *models.Coin) {
 
 func sendDiscordMessage(webhookURL string, coin models.Coin) error {
 	transport := &http.Transport{
-		IdleConnTimeout: 30 * time.Second,
+		IdleConnTimeout: connectionTimeout,
 	}
 	client := &http.Client{Transport: transport}
 

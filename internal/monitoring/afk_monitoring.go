@@ -11,14 +11,16 @@ import (
 
 // temporary bool until gui is built
 var startMonitoring bool = true
+var transaction_chan_size = 1000
+var coin_chan_size = 1000
 
 func StartAFKMonitor() {
 	var wg sync.WaitGroup
 	if startMonitoring {
 		wg.Add(1)
 		go func() {
-			transaction_notification_chan := make(chan models.TransactionNotification, 1000)
-			coinStructChan := make(chan models.Coin, 1000)
+			transaction_notification_chan := make(chan models.TransactionNotification, transaction_chan_size)
+			coinStructChan := make(chan models.Coin, coin_chan_size)
 
 			go MonitorTransactions(transaction_notification_chan)
 

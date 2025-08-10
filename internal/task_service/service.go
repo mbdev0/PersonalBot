@@ -10,29 +10,29 @@ import (
 	"sync"
 )
 
-var (
-	Tasks map[string]tasks.Task = map[string]tasks.Task{}
-	mu    sync.Mutex
-)
-
 type TaskService struct {
 	Executor *transaction.TransactionExecutor
+	Tasks    map[string]tasks.Task
+	mu       sync.Mutex
+}
+
+func (ts *TaskService) NewTaskService() {
+	ts.Tasks = map[string]tasks.Task{}
 }
 
 func (ts *TaskService) Create(task tasks.Task) (tasks.Task, error) {
-	mu.Lock()
-	defer mu.Unlock()
+	ts.mu.Lock()
+	defer ts.mu.Unlock()
 
-	Tasks[task.Id()] = task
-	logger.Information(Tasks)
+	ts.Tasks[task.Id()] = task
+	logger.Information(ts.Tasks)
 	return task, nil
 }
 
 func (ts *TaskService) GetTaskWith(id string) (tasks.Task, error) {
-	//hangs here since we're locking a mutex thats already locked
-	mu.Lock()
-	defer mu.Unlock()
-	task, ok := Tasks[id]
+	ts.mu.Lock()
+	defer ts.mu.Unlock()
+	task, ok := ts.Tasks[id]
 	if !ok {
 		return nil, fmt.Errorf("Task not found with the id: " + id)
 	}
@@ -40,19 +40,19 @@ func (ts *TaskService) GetTaskWith(id string) (tasks.Task, error) {
 }
 
 func (ts *TaskService) GetAllTasks() []tasks.Task {
-	mu.Lock()
-	defer mu.Unlock()
-	allTasks := make([]tasks.Task, 0, len(Tasks))
-	for _, val := range Tasks {
+	ts.mu.Lock()
+	defer ts.mu.Unlock()
+	allTasks := make([]tasks.Task, 0, len(ts.Tasks))
+	for _, val := range ts.Tasks {
 		allTasks = append(allTasks, val)
 	}
 	return allTasks
 }
 
-func (ts *TaskService) UpdateTask(id string, newTask models.RequestTask) (*tasks.Task, error) {
-	mu.Lock()
-	defer mu.Unlock()
-	task, ok := Tasks[id]
+func (ts *TaskService) UpdateTask(id string, newTask models.RequestTask) (tasks.Task, error) {
+	ts.mu.Lock()
+	defer ts.mu.Unlock()
+	task, ok := ts.Tasks[id]
 	if !ok {
 		return nil, fmt.Errorf("Task not found with the id: " + id)
 	}
@@ -62,24 +62,24 @@ func (ts *TaskService) UpdateTask(id string, newTask models.RequestTask) (*tasks
 		return nil, err
 	}
 
-	return &task, nil
+	return task, nil
 }
 
 func (ts *TaskService) DeleteTask(id string) (err error) {
-	mu.Lock()
-	defer mu.Unlock()
-	_, ok := Tasks[id]
+	ts.mu.Lock()
+	defer ts.mu.Unlock()
+	_, ok := ts.Tasks[id]
 	if !ok {
 		return fmt.Errorf("task not found with id: " + id)
 	}
 
-	delete(Tasks, id)
+	delete(ts.Tasks, id)
 	return nil
 }
 
 func (ts *TaskService) TransistionTask(id string, newState tasks.TaskState) (err error) {
 	// in here we'll manage changing state
-	task, ok := Tasks[id]
+	task, ok := ts.Tasks[id]
 	if !ok {
 		return fmt.Errorf("Task not found with the id: " + id)
 	}

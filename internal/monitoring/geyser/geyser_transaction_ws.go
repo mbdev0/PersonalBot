@@ -15,11 +15,12 @@ import (
 )
 
 var (
-	ws_url = config.GetConfig().WsNode
+	ws_url             = config.GetConfig().WsNode
+	connection_timeout = time.Second * 10
 )
 
 func Geyser_Stream_Transactions(transaction_chan chan<- models.TransactionNotification) error {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	ctx, cancel := context.WithTimeout(context.Background(), connection_timeout)
 	defer cancel()
 
 	ws, err := retry.DoWithData(
