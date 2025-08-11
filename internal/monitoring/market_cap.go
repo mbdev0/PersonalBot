@@ -3,9 +3,9 @@ package monitoring
 import (
 	"context"
 	"pump_fun/internal/core/models"
-	"pump_fun/internal/handlers"
 	"pump_fun/internal/monitoring/stream"
 	"pump_fun/internal/monitoring/stream/response"
+	bondingcurve "pump_fun/internal/solana/programs/pumpfun/bonding_curve"
 	"pump_fun/pkg/logger"
 )
 
@@ -46,7 +46,7 @@ func marketCapMonitor(ctx context.Context, bondingCurveAddress string) {
 	cancellationToken := models.CancelToken{}
 	cancellationToken.CancellationContext, cancellationToken.CancellationFunc = context.WithCancel(context.Background())
 
-	marketCapInit, err, hasCompleted := handlers.GetMarketCapInitial(bondingCurveAddress, cancellationToken)
+	marketCapInit, err, hasCompleted := bondingcurve.GetMarketCapInitial(bondingCurveAddress, cancellationToken)
 
 	if err != nil {
 		logger.Error("Error getting initial market cap", err)
@@ -62,7 +62,7 @@ func marketCapMonitor(ctx context.Context, bondingCurveAddress string) {
 	go stream.Geyser_Stream_AccountInfo(ctx, bondingCurveAddress, accountInfoChan)
 
 	for accountInfo := range accountInfoChan {
-		marketCap, err, hasCompleted := handlers.GetMarketCapFrom(accountInfo.Params.Result.Value.Data[0])
+		marketCap, err, hasCompleted := bondingcurve.GetMarketCapFrom(accountInfo.Params.Result.Value.Data[0])
 		if err != nil {
 			logger.Error("Error getting market cap", err)
 			if hasCompleted {

@@ -1,7 +1,7 @@
 package client
 
 import (
-	"pump_fun/internal/launch/config"
+	"pump_fun/infrastructure/config"
 	"sync"
 	"time"
 

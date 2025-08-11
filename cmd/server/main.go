@@ -5,14 +5,14 @@ import (
 	"net/http"
 	"pump_fun/api/controller"
 	"pump_fun/api/handler"
-	"pump_fun/internal/launch"
+	"pump_fun/app"
 	taskservice "pump_fun/internal/services/task_service"
 	"pump_fun/internal/transition/state"
 	"pump_fun/pkg/logger"
 )
 
 func main() {
-	launch.LaunchOperations()
+	app.Launch()
 
 	//TODO: move the init of api's into launch and return one mux back
 	fsm := state.Machine{}

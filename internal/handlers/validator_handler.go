@@ -1,6 +1,6 @@
 package handlers
 
-import "pump_fun/internal/launch/validator"
+import "pump_fun/app/validator"
 
 func ValidateStruct(structToValidate interface{}) error {
 	validate := validator.GetValidator()

@@ -8,7 +8,6 @@ import (
 	"pump_fun/internal/core/constants"
 	"pump_fun/internal/core/models"
 	"pump_fun/internal/core/tasks"
-	"pump_fun/internal/handlers"
 	bondingcurve "pump_fun/internal/solana/programs/pumpfun/bonding_curve"
 	"pump_fun/internal/solana/programs/pumpfun/pda"
 	"pump_fun/internal/solana/utils"
@@ -138,7 +137,7 @@ func buildAccounts(accountAddressesSet AccountAddressesSet) (accounts []*solana.
 
 func createBuyData(solLamportBuyAmount big.Int, bondingCurveData *models.BondingCurve, slippage float64) (data []byte, err error) {
 	// Get the token amount
-	tokenAmount, err, hasCompleted := handlers.GetBuyTokenAmountFrom(solLamportBuyAmount, bondingCurveData)
+	tokenAmount, err, hasCompleted := bondingcurve.GetBuyTokenAmountFrom(solLamportBuyAmount, bondingCurveData)
 	if err != nil || hasCompleted {
 		if hasCompleted {
 			return nil, fmt.Errorf("the coin has completed the bonding curve: %w", err)

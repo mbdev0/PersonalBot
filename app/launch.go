@@ -1,16 +1,16 @@
-package launch
+package app
 
 import (
 	"fmt"
-	"pump_fun/internal/launch/config"
-	lookuptable "pump_fun/internal/launch/lookup_table"
-	"pump_fun/internal/launch/pumpfun_idl"
-	"pump_fun/internal/launch/solana_price"
-	"pump_fun/internal/launch/validator"
+	lookuptable "pump_fun/app/lookup_table"
+	"pump_fun/app/pumpfun_idl"
+	"pump_fun/app/validator"
+	"pump_fun/infrastructure/config"
+	"pump_fun/infrastructure/solana_price"
 	"pump_fun/pkg/logger"
 )
 
-func LaunchOperations() {
+func Launch() {
 	err := config.LoadConfig()
 	if err != nil {
 		logger.Error("Error reading config file", err)

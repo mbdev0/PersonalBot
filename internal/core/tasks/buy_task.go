@@ -5,7 +5,7 @@ import (
 	"math/big"
 	"pump_fun/api/dto"
 	"pump_fun/internal/core/models"
-	"pump_fun/internal/utils"
+	"pump_fun/internal/solana/utils"
 	"pump_fun/pkg/logger"
 
 	"github.com/gagliardetto/solana-go"
