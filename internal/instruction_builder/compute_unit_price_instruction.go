@@ -1,7 +1,7 @@
 package instructionbuilder
 
 import (
-	"pump_fun/internal/constants"
+	"pump_fun/internal/core/constants"
 	"pump_fun/internal/handlers"
 	"pump_fun/pkg/logger"
 

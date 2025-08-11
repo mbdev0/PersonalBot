@@ -5,7 +5,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"math/big"
-	"pump_fun/internal/constants"
+	"pump_fun/internal/core/constants"
 	"pump_fun/internal/core/models"
 	"pump_fun/internal/core/tasks"
 	"pump_fun/internal/handlers"
@@ -167,11 +167,23 @@ func createBuyData(solLamportBuyAmount big.Int, bondingCurveData *models.Bonding
 		return nil, fmt.Errorf("sol lamport buy amount exceeds 64 bits: %s", solLamportBuyAmount.String())
 	}
 
-	solLamportBuyAmount = handlers.AddSlippageToBuy(solLamportBuyAmount, slippage)
+	solLamportBuyAmount = addSlippageToBuy(solLamportBuyAmount, slippage)
 	solUint64 := solLamportBuyAmount.Uint64()
 	if err := binary.Write(buf, binary.LittleEndian, solUint64); err != nil {
 		return nil, fmt.Errorf("error writing sol lamport buy amount to buffer: %w", err)
 	}
 
 	return buf.Bytes(), nil
+}
+
+func addSlippageToBuy(lamportAmount big.Int, slippagePercentage float64) (newBuyAmount big.Int) {
+	slippageFloat := new(big.Float).SetFloat64(slippagePercentage)
+	slippageFloat = new(big.Float).Add(slippageFloat, big.NewFloat(1))
+
+	lamportFloat := new(big.Float).SetInt(&lamportAmount)
+
+	newLamportAmountFloat := new(big.Float).Mul(slippageFloat, lamportFloat)
+	newLamportAmountInt, _ := newLamportAmountFloat.Int(new(big.Int))
+
+	return *newLamportAmountInt
 }

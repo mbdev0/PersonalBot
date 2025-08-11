@@ -3,7 +3,7 @@ package instructionbuilder
 import (
 	"bytes"
 	"encoding/binary"
-	"pump_fun/internal/constants"
+	"pump_fun/internal/core/constants"
 	"pump_fun/internal/core/models"
 	"pump_fun/internal/core/tasks"
 	"pump_fun/internal/monitoring/transactions/bonding_curve_decoder"

@@ -2,7 +2,7 @@ package geyser
 
 import (
 	"context"
-	"pump_fun/internal/constants"
+	"pump_fun/internal/core/constants"
 	"pump_fun/internal/models"
 	"pump_fun/pkg/logger"
 

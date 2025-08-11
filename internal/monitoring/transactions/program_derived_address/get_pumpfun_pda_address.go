@@ -1,7 +1,7 @@
 package program_derived_address
 
 import (
-	"pump_fun/internal/constants"
+	"pump_fun/internal/core/constants"
 
 	"github.com/mr-tron/base58"
 )
