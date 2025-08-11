@@ -2,7 +2,7 @@ package state
 
 import (
 	"fmt"
-	"pump_fun/internal/models/tasks"
+	"pump_fun/internal/core/tasks"
 	"pump_fun/internal/transaction"
 	"pump_fun/internal/transition"
 )

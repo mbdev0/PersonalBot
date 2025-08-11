@@ -1,7 +1,7 @@
 package rpcclient
 
 import (
-	"pump_fun/internal/models"
+	"pump_fun/internal/core/models"
 	"strconv"
 
 	"github.com/gagliardetto/solana-go"

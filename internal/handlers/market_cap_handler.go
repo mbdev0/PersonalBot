@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"math/big"
-	"pump_fun/internal/models"
+	"pump_fun/internal/core/models"
 	"pump_fun/internal/monitoring/transactions/bonding_curve_decoder"
 )
 

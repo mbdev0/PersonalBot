@@ -1,6 +1,6 @@
 package transaction
 
-import "pump_fun/internal/models/tasks"
+import "pump_fun/internal/core/tasks"
 
 type Transaction interface {
 	BuildInstructions() error

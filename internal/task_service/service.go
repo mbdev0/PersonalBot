@@ -3,7 +3,7 @@ package taskservice
 import (
 	"fmt"
 	"pump_fun/api/models"
-	"pump_fun/internal/models/tasks"
+	"pump_fun/internal/core/tasks"
 	"pump_fun/internal/transition/state"
 	"pump_fun/pkg/logger"
 	"sync"

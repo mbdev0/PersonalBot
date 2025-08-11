@@ -2,8 +2,8 @@ package transaction
 
 import (
 	"fmt"
+	"pump_fun/internal/core/tasks"
 	"pump_fun/internal/handlers"
-	"pump_fun/internal/models/tasks"
 	"pump_fun/internal/transaction/buy"
 	"pump_fun/internal/transaction/sell"
 	"pump_fun/internal/transition"

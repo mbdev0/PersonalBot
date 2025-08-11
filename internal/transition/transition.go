@@ -2,7 +2,7 @@ package transition
 
 import (
 	"fmt"
-	"pump_fun/internal/models/tasks"
+	"pump_fun/internal/core/tasks"
 	"pump_fun/pkg/logger"
 )
 

@@ -2,7 +2,7 @@ package rpcclient
 
 import (
 	"context"
-	"pump_fun/internal/models"
+	"pump_fun/internal/core/models"
 	"pump_fun/pkg/logger"
 
 	"github.com/gagliardetto/solana-go/rpc"
