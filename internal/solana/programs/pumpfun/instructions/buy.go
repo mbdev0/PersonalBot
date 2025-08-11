@@ -1,4 +1,4 @@
-package instructionbuilder
+package instructions
 
 import (
 	"bytes"
@@ -9,8 +9,9 @@ import (
 	"pump_fun/internal/core/models"
 	"pump_fun/internal/core/tasks"
 	"pump_fun/internal/handlers"
-	"pump_fun/internal/monitoring/transactions/bonding_curve_decoder"
-	"pump_fun/internal/monitoring/transactions/program_derived_address"
+	bondingcurve "pump_fun/internal/solana/programs/pumpfun/bonding_curve"
+	"pump_fun/internal/solana/programs/pumpfun/pda"
+	"pump_fun/internal/solana/utils"
 
 	"github.com/gagliardetto/solana-go"
 )
@@ -69,12 +70,12 @@ func setupAccountAddressSet(buyTask *tasks.BuyTask) (AccountAddressesSet, error)
 }
 
 func setBondingCurveInformation(accountAddressesSet *AccountAddressesSet, cancellationToken models.CancelToken) (err error) {
-	bondingCurveAddress, err := program_derived_address.GetBondingCurveAddress(accountAddressesSet.TokenAddress)
+	bondingCurveAddress, err := pda.GetBondingCurveAddress(accountAddressesSet.TokenAddress)
 	if err != nil {
 		return fmt.Errorf("error getting bonding curve address: %w", err)
 	}
 
-	bondingCurveData, err, _ := bonding_curve_decoder.GetBondingCurveDataFromAddress(bondingCurveAddress, cancellationToken)
+	bondingCurveData, err, _ := bondingcurve.GetBondingCurveDataFromAddress(bondingCurveAddress, cancellationToken)
 	if err != nil {
 		return fmt.Errorf("error getting bonding curve data: %w", err)
 	}
@@ -87,12 +88,12 @@ func setBondingCurveInformation(accountAddressesSet *AccountAddressesSet, cancel
 
 func resolvePDAs(accountAddressesSet *AccountAddressesSet) (err error) {
 
-	accountAddressesSet.CreatorAddress, err = program_derived_address.GetCreatorVaultAddress(accountAddressesSet.BondingCurveData.DevWallet.String())
+	accountAddressesSet.CreatorAddress, err = pda.GetCreatorVaultAddress(accountAddressesSet.BondingCurveData.DevWallet.String())
 	if err != nil {
 		return fmt.Errorf("error getting creator vault address: %w", err)
 	}
 
-	accountAddressesSet.AssociatedBondingCurveAddress, err = program_derived_address.GetAssociatedBondingCurveAddress(accountAddressesSet.BondingCurveAddress, accountAddressesSet.TokenAddress)
+	accountAddressesSet.AssociatedBondingCurveAddress, err = pda.GetAssociatedBondingCurveAddress(accountAddressesSet.BondingCurveAddress, accountAddressesSet.TokenAddress)
 	if err != nil {
 		return fmt.Errorf("error getting associated bonding curve address: %w", err)
 	}
@@ -105,7 +106,7 @@ func resolvePDAs(accountAddressesSet *AccountAddressesSet) (err error) {
 		return fmt.Errorf("error finding associated token address: %w", err)
 	}
 
-	accountAddressesSet.UserVolumeAccumulator, err = program_derived_address.GetUserVolumeAccumulatorAddress(walletAddress.String())
+	accountAddressesSet.UserVolumeAccumulator, err = pda.GetUserVolumeAccumulatorAddress(walletAddress.String())
 
 	if err != nil {
 		return fmt.Errorf("error finding user volume accumululator address")
@@ -117,20 +118,20 @@ func resolvePDAs(accountAddressesSet *AccountAddressesSet) (err error) {
 
 func buildAccounts(accountAddressesSet AccountAddressesSet) (accounts []*solana.AccountMeta) {
 	accounts = []*solana.AccountMeta{
-		GetAccountMeta(constants.GlobalAccount, true, false),
-		GetAccountMeta(constants.FeeRecipient, true, false),
-		GetAccountMeta(accountAddressesSet.TokenAddress, false, false),
-		GetAccountMeta(accountAddressesSet.BondingCurveAddress, true, false),
-		GetAccountMeta(accountAddressesSet.AssociatedBondingCurveAddress, true, false),
-		GetAccountMeta(accountAddressesSet.AssociatedTokenAddressPubkey.String(), true, false),
-		GetAccountMeta(accountAddressesSet.WalletAddress, true, true),
-		GetAccountMeta(solana.SystemProgramID.String(), false, false),
-		GetAccountMeta(constants.TokenProgram, false, false),
-		GetAccountMeta(accountAddressesSet.CreatorAddress, true, false),
-		GetAccountMeta(constants.EventAuthority, false, false),
-		GetAccountMeta(constants.Program, false, false),
-		GetAccountMeta(constants.GlobalVolumeAccumulator, true, false),
-		GetAccountMeta(accountAddressesSet.UserVolumeAccumulator, true, false),
+		utils.GetAccountMeta(constants.GlobalAccount, true, false),
+		utils.GetAccountMeta(constants.FeeRecipient, true, false),
+		utils.GetAccountMeta(accountAddressesSet.TokenAddress, false, false),
+		utils.GetAccountMeta(accountAddressesSet.BondingCurveAddress, true, false),
+		utils.GetAccountMeta(accountAddressesSet.AssociatedBondingCurveAddress, true, false),
+		utils.GetAccountMeta(accountAddressesSet.AssociatedTokenAddressPubkey.String(), true, false),
+		utils.GetAccountMeta(accountAddressesSet.WalletAddress, true, true),
+		utils.GetAccountMeta(solana.SystemProgramID.String(), false, false),
+		utils.GetAccountMeta(constants.TokenProgram, false, false),
+		utils.GetAccountMeta(accountAddressesSet.CreatorAddress, true, false),
+		utils.GetAccountMeta(constants.EventAuthority, false, false),
+		utils.GetAccountMeta(constants.Program, false, false),
+		utils.GetAccountMeta(constants.GlobalVolumeAccumulator, true, false),
+		utils.GetAccountMeta(accountAddressesSet.UserVolumeAccumulator, true, false),
 	}
 	return accounts
 }

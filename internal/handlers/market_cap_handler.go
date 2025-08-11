@@ -3,13 +3,13 @@ package handlers
 import (
 	"math/big"
 	"pump_fun/internal/core/models"
-	"pump_fun/internal/monitoring/transactions/bonding_curve_decoder"
+	bondingcurve "pump_fun/internal/solana/programs/pumpfun/bonding_curve"
 )
 
 func GetMarketCapFrom(bondingCurveValue string) (marketCapVal *big.Float, err error, hasCompleted bool) {
-	return bonding_curve_decoder.GetMarketCapFrom(bondingCurveValue)
+	return bondingcurve.GetMarketCapFrom(bondingCurveValue)
 }
 
 func GetMarketCapInitial(bondingCurveAddress string, cancellationToken models.CancelToken) (marketCapVal *big.Float, err error, hasCompleted bool) {
-	return bonding_curve_decoder.GetMarketCapInitial(bondingCurveAddress, cancellationToken)
+	return bondingcurve.GetMarketCapInitial(bondingCurveAddress, cancellationToken)
 }

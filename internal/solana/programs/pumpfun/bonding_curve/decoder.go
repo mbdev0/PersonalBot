@@ -1,4 +1,4 @@
-package bonding_curve_decoder
+package bondingcurve
 
 import (
 	"encoding/base64"
@@ -7,7 +7,7 @@ import (
 	"math/big"
 	"pump_fun/internal/core/models"
 	"pump_fun/internal/launch/solana_price"
-	rpcclient "pump_fun/internal/rpc_client"
+	"pump_fun/internal/solana/client"
 
 	"github.com/gagliardetto/solana-go"
 )
@@ -33,7 +33,7 @@ func GetMarketCapFrom(bondingCurveValue string) (marketCapVal *big.Float, err er
 }
 
 func GetMarketCapInitial(bondingCurveAddress string, cancellationToken models.CancelToken) (marketCapVal *big.Float, err error, hasCompleted bool) {
-	bondingCurveResponse, err := rpcclient.GetAccountInfo(bondingCurveAddress, cancellationToken)
+	bondingCurveResponse, err := client.GetAccountInfo(bondingCurveAddress, cancellationToken)
 	if err != nil {
 		return nil, err, false
 	}
@@ -85,7 +85,7 @@ func GetSolanaTokenPrice(bondingCurve models.BondingCurve, tokenAmount uint64) *
 }
 
 func GetBondingCurveDataFromAddress(bondingCurveAddress string, cancellationToken models.CancelToken) (bondingCurveData *models.BondingCurve, err error, hasCompleted bool) {
-	bondingCurveResponse, err := rpcclient.GetAccountInfo(bondingCurveAddress, cancellationToken)
+	bondingCurveResponse, err := client.GetAccountInfo(bondingCurveAddress, cancellationToken)
 	if err != nil {
 		return nil, err, false
 	}

@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"pump_fun/internal/core/tasks"
 	"pump_fun/internal/handlers"
-	instructionbuilder "pump_fun/internal/instruction_builder"
 	lookuptable "pump_fun/internal/launch/lookup_table"
-	rpcclient "pump_fun/internal/rpc_client"
+	"pump_fun/internal/solana/client"
+	"pump_fun/internal/solana/instructions"
+	pump_instructions "pump_fun/internal/solana/programs/pumpfun/instructions"
 	"pump_fun/pkg/logger"
 
 	"github.com/gagliardetto/solana-go"
@@ -39,7 +40,7 @@ func (st *SellTransaction) BuildTransaction() error {
 		return fmt.Errorf("sell task is null - check if sell task was set")
 	}
 
-	latestHash, err := rpcclient.GetLatestBlockhash(st.Task.CancelToken)
+	latestHash, err := client.GetLatestBlockhash(st.Task.CancelToken)
 	if err != nil {
 		logger.Error("Error getting latest blockhash", err)
 		return err
@@ -62,7 +63,7 @@ func (st *SellTransaction) BuildTransaction() error {
 }
 
 func (st *SellTransaction) SendTransaction() error {
-	client := rpcclient.GetClient()
+	client := client.GetClient()
 
 	// simulate the transaction
 	// txResp, err := client.SimulateTransaction(st.Task.CancelToken.CancellationContext, st.transaction)
@@ -93,7 +94,7 @@ func (st *SellTransaction) SendTransaction() error {
 }
 
 func (st *SellTransaction) ConfirmTransaction() error {
-	isSuccess, err := rpcclient.ConfirmTransaction(st.signature, st.Task.CancelToken)
+	isSuccess, err := client.ConfirmTransaction(st.signature, st.Task.CancelToken)
 	if err != nil {
 		logger.Error("Transaction confirmation failed", err)
 		return err
@@ -112,10 +113,10 @@ func (st *SellTransaction) GetTask() tasks.Task {
 }
 
 func getAllInstructionsForSell(sellTask *tasks.SellTask) ([]solana.Instruction, error) {
-	computeLimitInstruction := instructionbuilder.GetComputeUnitLimitInstruction(sellTask.ComputeUnits)
-	computeLimitBudgetInstruction := instructionbuilder.GetComputeUnitBudgetInstruction(sellTask.SellFee, sellTask.ComputeUnits)
+	computeLimitInstruction := instructions.GetComputeUnitLimitInstruction(sellTask.ComputeUnits)
+	computeLimitBudgetInstruction := instructions.GetComputeUnitBudgetInstruction(sellTask.SellFee, sellTask.ComputeUnits)
 
-	sellInstructions, err := instructionbuilder.GetSellInstruction(sellTask)
+	sellInstructions, err := pump_instructions.GetSellInstruction(sellTask)
 	if err != nil {
 		logger.Error("Error getting sell instruction", err)
 		return nil, err

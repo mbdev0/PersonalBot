@@ -1,4 +1,4 @@
-package instructionbuilder
+package instructions
 
 import (
 	"pump_fun/internal/core/constants"
@@ -19,4 +19,9 @@ func GetComputeUnitBudgetInstruction(buyFee float64, computeUnits uint32) *compu
 	pricePerUnitMicrolamports := (totalLamportsInt * constants.MicrolamportsToLamports) / int64(computeUnits)
 
 	return computebudget.NewSetComputeUnitPriceInstruction(uint64(pricePerUnitMicrolamports)).Build()
+}
+
+func GetComputeUnitLimitInstruction(computeLimit uint32) *computebudget.Instruction {
+	computeLimitInstruction := computebudget.NewSetComputeUnitLimitInstruction(computeLimit).Build()
+	return computeLimitInstruction
 }
