@@ -2,11 +2,11 @@ package handlers
 
 import (
 	"pump_fun/internal/models"
-	"pump_fun/internal/monitoring/transactions/transaction_decoder"
+	"pump_fun/internal/monitoring/decoder"
 )
 
 func HandleTransactionNotification(transaction models.TransactionNotification, coinStructChan chan<- models.Coin) {
-	coin := transaction_decoder.DecryptTransactionNotificationForCoin(transaction)
+	coin := decoder.DecryptTransactionNotificationForCoin(transaction)
 
 	if coin != nil {
 		coin = HandleCoinFiltering(coin)
