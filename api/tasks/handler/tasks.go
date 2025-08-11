@@ -47,8 +47,8 @@ func (th *TaskHandler) CreateTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(createdTask)
 }
 
@@ -70,8 +70,8 @@ func (th *TaskHandler) GetTaskById(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//otherwise return task
-	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
 	err = json.NewEncoder(w).Encode(task)
 	if err != nil {
 		logger.Error("error", err)
@@ -116,8 +116,8 @@ func (th *TaskHandler) UpdateTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(updatedTask)
 }
 
@@ -147,6 +147,11 @@ func (th *TaskHandler) TransitionTask(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = th.controller.TransitionTask(id, transition.State)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 	logger.Error(err)
 }
 

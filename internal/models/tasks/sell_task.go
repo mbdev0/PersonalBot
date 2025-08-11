@@ -72,3 +72,7 @@ func (sellTask *SellTask) Cancel() {
 
 	}
 }
+
+func (sellTask *SellTask) Context() context.Context {
+	return sellTask.CancelToken.CancellationContext
+}

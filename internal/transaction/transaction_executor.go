@@ -26,6 +26,7 @@ func (th *TransactionExecutor) GetImplementation(task tasks.Task) Transaction {
 func (th *TransactionExecutor) Execute(transaction Transaction) error {
 
 	task := transaction.GetTask()
+	ctx := task.Context()
 
 	if task == nil {
 		return fmt.Errorf("task wasn't set for the transaction")
@@ -49,10 +50,14 @@ func (th *TransactionExecutor) Execute(transaction Transaction) error {
 	logger.Information(steps)
 
 	for _, step := range steps {
+		if err := ctx.Err(); err != nil {
+			return err
+		}
+
 		err := step()
 		transition.AutoTransitionTask(task, err)
 		if err != nil {
-			break
+			return err
 		}
 	}
 

@@ -38,7 +38,7 @@ func (tc *TaskController) GetTask(id string) (*models.ResponseTask, error) {
 		return nil, err
 	}
 
-	return response, err
+	return response, nil
 }
 
 func (tc *TaskController) GetAllTasks() ([]models.ResponseTask, error) {
@@ -63,7 +63,7 @@ func (tc *TaskController) UpdateTask(id string, reqTask models.RequestTask) (tas
 		return nil, err
 	}
 
-	return *updated, nil
+	return updated, nil
 }
 
 func (tc *TaskController) DeleteTask(id string) (err error) {

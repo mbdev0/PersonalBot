@@ -9,18 +9,18 @@ import (
 	associatedtokenaccount "github.com/gagliardetto/solana-go/programs/associated-token-account"
 )
 
-func GetIdEmponentInstruction(wallet solana.PublicKey, mintAddress solana.PublicKey, cancellationToken models.CancelToken) *associatedtokenaccount.Instruction {
-	idEmponentInstruction, err := getIdEmponentInstructionIfExists(wallet, mintAddress, cancellationToken)
+func GetIdempotentInstruction(wallet solana.PublicKey, mintAddress solana.PublicKey, cancellationToken models.CancelToken) *associatedtokenaccount.Instruction {
+	idEmponentInstruction, err := getIdempotentInstructionIfExists(wallet, mintAddress, cancellationToken)
 
 	if err != nil {
-		logger.Error("Error getting IdEmponentInstruction: ", err)
+		logger.Error("Error getting IdempotentInstruction: ", err)
 		return nil
 	}
 
 	return idEmponentInstruction
 }
 
-func getIdEmponentInstructionIfExists(wallet solana.PublicKey, mintAddress solana.PublicKey, cancellationToken models.CancelToken) (*associatedtokenaccount.Instruction, error) {
+func getIdempotentInstructionIfExists(wallet solana.PublicKey, mintAddress solana.PublicKey, cancellationToken models.CancelToken) (*associatedtokenaccount.Instruction, error) {
 	associatedTokenAddressPubkey, _, err := solana.FindAssociatedTokenAddress(wallet, mintAddress)
 	if err != nil {
 		return nil, err

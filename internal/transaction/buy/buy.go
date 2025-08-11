@@ -20,7 +20,6 @@ type BuyTransaction struct {
 }
 
 func (bt *BuyTransaction) BuildInstructions() error {
-
 	if bt.BuyTask == nil {
 		return fmt.Errorf("buy task was nil - make sure buy task is set")
 	}
@@ -116,7 +115,7 @@ func getAllInstructionsForBuy(buyTask *tasks.BuyTask) (buyInstructions []solana.
 
 	computeLimitInstruction := instructionbuilder.GetComputeUnitLimitInstruction(buyTask.ComputeUnits)
 	computeLimitBudgetInstruction := instructionbuilder.GetComputeUnitBudgetInstruction(buyTask.BuyFee, buyTask.ComputeUnits)
-	idEmponenetInstruction := instructionbuilder.GetIdEmponentInstruction(buyTask.Wallet.PublicKey(), buyTask.TokenAddress, buyTask.CancelToken)
+	idEmponenetInstruction := instructionbuilder.GetIdempotentInstruction(buyTask.Wallet.PublicKey(), buyTask.TokenAddress, buyTask.CancelToken)
 	buyInstruction, err := instructionbuilder.GetBuyInstruction(buyTask)
 
 	if err != nil {
