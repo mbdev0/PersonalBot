@@ -21,6 +21,7 @@ type Task interface {
 	GetTaskType() string
 	GetState() State
 	Cancel()
+	Context() context.Context
 }
 
 type BuyTask struct {
@@ -86,5 +87,8 @@ func (bt *BuyTask) Cancel() {
 	if bt.CancelToken.CancellationContext != nil {
 		bt.CancelToken.CancellationFunc()
 	}
+}
 
+func (bt *BuyTask) Context() context.Context {
+	return bt.CancelToken.CancellationContext
 }

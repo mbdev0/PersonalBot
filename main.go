@@ -17,6 +17,7 @@ func main() {
 	//TODO: move the init of api's into launch and return one mux back
 	executor := transaction.TransactionExecutor{}
 	taskService := taskservice.TaskService{Executor: &executor}
+	taskService.NewTaskService()
 	buyController := controller.TaskController{TaskService: &taskService}
 	buyHandler := http.StripPrefix("/api/tasks", handler.NewTaskHandler(&buyController))
 
