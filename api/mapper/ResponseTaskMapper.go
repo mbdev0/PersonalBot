@@ -2,11 +2,11 @@ package mapper
 
 import (
 	"fmt"
-	"pump_fun/api/models"
+	"pump_fun/api/dto"
 	"pump_fun/internal/core/tasks"
 )
 
-func MapTaskToReponseTask(task tasks.Task) (*models.ResponseTask, error) {
+func MapTaskToReponseTask(task tasks.Task) (*dto.ResponseTask, error) {
 	switch t := task.(type) {
 	case *tasks.BuyTask:
 		return mapBuyToResponseTask(t), nil
@@ -17,8 +17,8 @@ func MapTaskToReponseTask(task tasks.Task) (*models.ResponseTask, error) {
 	}
 }
 
-func mapBuyToResponseTask(t *tasks.BuyTask) *models.ResponseTask {
-	responseTask := models.ResponseTask{}
+func mapBuyToResponseTask(t *tasks.BuyTask) *dto.ResponseTask {
+	responseTask := dto.ResponseTask{}
 	responseTask.Type = t.TaskType
 	responseTask.ComputeUnits = t.ComputeUnits
 	responseTask.Slippage = t.Slippage
@@ -33,8 +33,8 @@ func mapBuyToResponseTask(t *tasks.BuyTask) *models.ResponseTask {
 	return &responseTask
 }
 
-func mapSellToResponseTask(t *tasks.SellTask) *models.ResponseTask {
-	responseTask := models.ResponseTask{}
+func mapSellToResponseTask(t *tasks.SellTask) *dto.ResponseTask {
+	responseTask := dto.ResponseTask{}
 	responseTask.Type = t.TaskType
 	responseTask.ComputeUnits = t.ComputeUnits
 	responseTask.Slippage = t.Slippage

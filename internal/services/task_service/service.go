@@ -2,7 +2,7 @@ package taskservice
 
 import (
 	"fmt"
-	"pump_fun/api/models"
+	"pump_fun/api/dto"
 	"pump_fun/internal/core/tasks"
 	"pump_fun/internal/transition/state"
 	"pump_fun/pkg/logger"
@@ -48,7 +48,7 @@ func (ts *TaskService) GetAllTasks() []tasks.Task {
 	return allTasks
 }
 
-func (ts *TaskService) UpdateTask(id string, newTask models.RequestTask) (tasks.Task, error) {
+func (ts *TaskService) UpdateTask(id string, newTask dto.RequestTask) (tasks.Task, error) {
 	ts.mu.Lock()
 	defer ts.mu.Unlock()
 	task, ok := ts.Tasks[id]

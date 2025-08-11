@@ -1,8 +1,8 @@
 package controller
 
 import (
+	"pump_fun/api/dto"
 	"pump_fun/api/mapper"
-	"pump_fun/api/models"
 	"pump_fun/internal/core/tasks"
 	taskservice "pump_fun/internal/services/task_service"
 )
@@ -11,7 +11,7 @@ type TaskController struct {
 	TaskService *taskservice.TaskService
 }
 
-func (tc *TaskController) CreateTask(requestTask models.RequestTask) (tasks.Task, error) {
+func (tc *TaskController) CreateTask(requestTask dto.RequestTask) (tasks.Task, error) {
 	// get the req struct
 	// map to buy task or sell task depending
 	newTask, err := mapper.MapRequestTaskToTask(&requestTask)
@@ -27,7 +27,7 @@ func (tc *TaskController) CreateTask(requestTask models.RequestTask) (tasks.Task
 	return createdTask, nil
 }
 
-func (tc *TaskController) GetTask(id string) (*models.ResponseTask, error) {
+func (tc *TaskController) GetTask(id string) (*dto.ResponseTask, error) {
 	task, err := tc.TaskService.GetTaskWith(id)
 	if err != nil {
 		return nil, err
@@ -41,10 +41,10 @@ func (tc *TaskController) GetTask(id string) (*models.ResponseTask, error) {
 	return response, nil
 }
 
-func (tc *TaskController) GetAllTasks() ([]models.ResponseTask, error) {
+func (tc *TaskController) GetAllTasks() ([]dto.ResponseTask, error) {
 	tasks := tc.TaskService.GetAllTasks()
 
-	response := make([]models.ResponseTask, 0, len(tasks))
+	response := make([]dto.ResponseTask, 0, len(tasks))
 	for _, task := range tasks {
 		responseObj, err := mapper.MapTaskToReponseTask(task)
 		if err != nil {
@@ -56,7 +56,7 @@ func (tc *TaskController) GetAllTasks() ([]models.ResponseTask, error) {
 	return response, nil
 }
 
-func (tc *TaskController) UpdateTask(id string, reqTask models.RequestTask) (tasks.Task, error) {
+func (tc *TaskController) UpdateTask(id string, reqTask dto.RequestTask) (tasks.Task, error) {
 	// we call update with => id + newTask
 	updated, err := tc.TaskService.UpdateTask(id, reqTask)
 	if err != nil {

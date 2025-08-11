@@ -3,8 +3,8 @@ package main
 
 import (
 	"net/http"
-	"pump_fun/api/tasks/controller"
-	"pump_fun/api/tasks/handler"
+	"pump_fun/api/controller"
+	"pump_fun/api/handler"
 	"pump_fun/internal/launch"
 	taskservice "pump_fun/internal/services/task_service"
 	"pump_fun/internal/transition/state"
