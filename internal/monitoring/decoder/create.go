@@ -3,7 +3,7 @@ package decoder
 import (
 	"bytes"
 	"pump_fun/internal/core/constants"
-	"pump_fun/internal/models"
+	"pump_fun/internal/monitoring/models"
 	"pump_fun/pkg/logger"
 )
 

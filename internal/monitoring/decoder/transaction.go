@@ -11,7 +11,7 @@ import (
 
 	"pump_fun/internal/core/constants"
 	"pump_fun/internal/launch/pumpfun_idl"
-	"pump_fun/internal/models"
+	"pump_fun/internal/monitoring/models"
 	"pump_fun/internal/monitoring/stream/response"
 
 	"pump_fun/pkg/logger"

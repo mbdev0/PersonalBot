@@ -3,7 +3,7 @@ package config
 import (
 	"encoding/json"
 	"os"
-	"pump_fun/internal/models"
+	"pump_fun/internal/core/models"
 	"pump_fun/pkg/logger"
 	"sync"
 )

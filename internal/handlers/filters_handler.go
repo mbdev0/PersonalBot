@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"pump_fun/internal/models"
 	"pump_fun/internal/monitoring/filters"
+	"pump_fun/internal/monitoring/models"
 )
 
 func HandleCoinFiltering(coin *models.Coin) *models.Coin {
