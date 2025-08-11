@@ -2,7 +2,7 @@ package tasks
 
 import (
 	"context"
-	api_model "pump_fun/api/models"
+	"pump_fun/api/dto"
 	"pump_fun/internal/core/models"
 
 	"github.com/gagliardetto/solana-go"
@@ -32,7 +32,7 @@ func (sellTask *SellTask) InitDefaults() {
 	sellTask.State.TaskState = TaskCreate
 }
 
-func (sellTask *SellTask) UpdateTask(newTask api_model.RequestTask) (err error) {
+func (sellTask *SellTask) UpdateTask(newTask dto.RequestTask) (err error) {
 	sellTask.Wallet, err = solana.PrivateKeyFromBase58(newTask.WalletAddressPrivateKey)
 	if err != nil {
 		return err

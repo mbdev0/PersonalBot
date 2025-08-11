@@ -3,7 +3,7 @@ package tasks
 import (
 	"context"
 	"math/big"
-	api_model "pump_fun/api/models"
+	"pump_fun/api/dto"
 	"pump_fun/internal/core/models"
 	"pump_fun/internal/utils"
 	"pump_fun/pkg/logger"
@@ -16,7 +16,7 @@ type Task interface {
 	Id() string
 	InitDefaults()
 	InitCancelToken()
-	UpdateTask(newTask api_model.RequestTask) (err error)
+	UpdateTask(newTask dto.RequestTask) (err error)
 	SetState(State)
 	GetTaskType() string
 	GetState() State
@@ -47,7 +47,7 @@ func (bt *BuyTask) Id() string {
 	return bt.TaskId
 }
 
-func (bt *BuyTask) UpdateTask(newTask api_model.RequestTask) (err error) {
+func (bt *BuyTask) UpdateTask(newTask dto.RequestTask) (err error) {
 	bt.Wallet, err = solana.PrivateKeyFromBase58(newTask.WalletAddressPrivateKey)
 	if err != nil {
 		return err

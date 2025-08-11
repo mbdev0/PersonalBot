@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"pump_fun/api/models"
-	"pump_fun/api/tasks/controller"
+	"pump_fun/api/controller"
+	"pump_fun/api/dto"
 	"pump_fun/pkg/logger"
 )
 
@@ -34,7 +34,7 @@ func (th *TaskHandler) CreateTask(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	decoder.DisallowUnknownFields()
 
-	var reqTask models.RequestTask
+	var reqTask dto.RequestTask
 	err := decoder.Decode(&reqTask)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
@@ -100,7 +100,7 @@ func (th *TaskHandler) UpdateTask(w http.ResponseWriter, r *http.Request) {
 	// we need to get the new task
 	decoder := json.NewDecoder(r.Body)
 	decoder.DisallowUnknownFields()
-	var reqTask models.RequestTask
+	var reqTask dto.RequestTask
 	err := decoder.Decode(&reqTask)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -137,7 +137,7 @@ func (th *TaskHandler) TransitionTask(w http.ResponseWriter, r *http.Request) {
 	// we get the body which would be in the format:
 	decoder := json.NewDecoder(r.Body)
 	decoder.DisallowUnknownFields()
-	var transition models.RequestTransitionTask
+	var transition dto.RequestTransitionTask
 	err := decoder.Decode(&transition)
 
 	id := r.PathValue("id")

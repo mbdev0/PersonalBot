@@ -3,22 +3,22 @@ package mapper
 import (
 	"fmt"
 	"math/big"
-	"pump_fun/api/models"
+	"pump_fun/api/dto"
 	"pump_fun/internal/core/constants"
 	"pump_fun/internal/core/tasks"
 
 	"github.com/gagliardetto/solana-go"
 )
 
-func MapRequestTaskToTask(reqTask *models.RequestTask) (tasks.Task, error) {
+func MapRequestTaskToTask(reqTask *dto.RequestTask) (tasks.Task, error) {
 	switch reqTask.Type {
-	case models.Buy:
+	case dto.Buy:
 		buyTask, err := createBuyTask(reqTask)
 		if err != nil {
 			return nil, err
 		}
 		return buyTask, nil
-	case models.Sell:
+	case dto.Sell:
 		sellTask, err := createSellTask(reqTask)
 		if err != nil {
 			return nil, err
@@ -29,7 +29,7 @@ func MapRequestTaskToTask(reqTask *models.RequestTask) (tasks.Task, error) {
 	return nil, fmt.Errorf("type of transaction was wrong")
 }
 
-func createBuyTask(reqTask *models.RequestTask) (task *tasks.BuyTask, err error) {
+func createBuyTask(reqTask *dto.RequestTask) (task *tasks.BuyTask, err error) {
 	buyTask := tasks.BuyTask{}
 	buyTask.InitDefaults()
 
@@ -62,7 +62,7 @@ func createBuyTask(reqTask *models.RequestTask) (task *tasks.BuyTask, err error)
 	return &buyTask, nil
 }
 
-func createSellTask(reqTask *models.RequestTask) (task *tasks.SellTask, err error) {
+func createSellTask(reqTask *dto.RequestTask) (task *tasks.SellTask, err error) {
 	sellTask := tasks.SellTask{}
 	sellTask.InitDefaults()
 
