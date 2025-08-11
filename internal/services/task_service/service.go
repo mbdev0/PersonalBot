@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"pump_fun/api/dto"
 	"pump_fun/internal/core/tasks"
-	"pump_fun/internal/transition/state"
+	"pump_fun/internal/services/state"
 	"pump_fun/pkg/logger"
 	"sync"
 )

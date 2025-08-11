@@ -6,8 +6,8 @@ import (
 	"pump_fun/api/controller"
 	"pump_fun/api/handler"
 	"pump_fun/app"
+	"pump_fun/internal/services/state"
 	taskservice "pump_fun/internal/services/task_service"
-	"pump_fun/internal/transition/state"
 	"pump_fun/pkg/logger"
 )
 
