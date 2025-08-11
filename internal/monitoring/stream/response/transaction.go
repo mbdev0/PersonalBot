@@ -1,4 +1,4 @@
-package models
+package response
 
 // TransactionNotification represents the root of the JSON structure.
 type TransactionNotification struct {

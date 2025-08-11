@@ -3,7 +3,7 @@ package stream
 import (
 	"context"
 	"pump_fun/internal/core/constants"
-	"pump_fun/internal/models"
+	"pump_fun/internal/monitoring/stream/response"
 	"pump_fun/pkg/logger"
 
 	"github.com/avast/retry-go/v4"
@@ -11,7 +11,7 @@ import (
 	"github.com/coder/websocket/wsjson"
 )
 
-func Geyser_Stream_AccountInfo(ctx context.Context, address string, accountinfo_chan chan models.AccountSubscribeModel) error {
+func Geyser_Stream_AccountInfo(ctx context.Context, address string, accountinfo_chan chan response.AccountSubscribeModel) error {
 
 	ws, err := retry.DoWithData(
 		func() (*websocket.Conn, error) {
@@ -52,7 +52,7 @@ func Geyser_Stream_AccountInfo(ctx context.Context, address string, accountinfo_
 	}
 
 	for {
-		out := models.AccountSubscribeModel{}
+		out := response.AccountSubscribeModel{}
 		err = wsjson.Read(ctx, ws, &out)
 
 		if err != nil {

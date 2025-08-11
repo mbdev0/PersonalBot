@@ -1,4 +1,4 @@
-package models
+package response
 
 type AccountSubscribeModel struct {
 	Jsonrpc string `json:"jsonrpc"`
