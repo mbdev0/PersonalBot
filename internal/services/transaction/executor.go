@@ -3,7 +3,7 @@ package transaction
 import (
 	"fmt"
 	"pump_fun/internal/core/tasks"
-	"pump_fun/internal/handlers"
+	"pump_fun/internal/core/validator"
 	"pump_fun/internal/services/state/transition"
 	"pump_fun/internal/solana/programs/pumpfun/transaction/buy"
 	"pump_fun/internal/solana/programs/pumpfun/transaction/sell"
@@ -32,7 +32,7 @@ func (th *Executor) Execute(transaction Transaction) error {
 		return fmt.Errorf("task wasn't set for the transaction")
 	}
 
-	err := handlers.ValidateStruct(task)
+	err := validator.ValidateStruct(task)
 	if err != nil {
 		transition.AutoTransitionTask(task, err)
 		return err
