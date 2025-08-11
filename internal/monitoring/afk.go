@@ -3,7 +3,7 @@ package monitoring
 import (
 	"pump_fun/internal/handlers"
 	"pump_fun/internal/models"
-	"pump_fun/internal/monitoring/geyser"
+	"pump_fun/internal/monitoring/stream"
 	"pump_fun/internal/webhook"
 	"pump_fun/pkg/logger"
 	"sync"
@@ -41,7 +41,7 @@ func StartAFKMonitor() {
 }
 
 func MonitorTransactions(transaction_notification_chan chan<- models.TransactionNotification) {
-	err := geyser.Geyser_Stream_Transactions(transaction_notification_chan)
+	err := stream.Geyser_Stream_Transactions(transaction_notification_chan)
 	if err != nil {
 		logger.Error("Error in Geyser_Stream_Transactions ", err)
 		close(transaction_notification_chan)
