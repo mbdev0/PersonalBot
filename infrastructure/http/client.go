@@ -1,4 +1,4 @@
-package requestclient
+package http
 
 import (
 	"net/http"

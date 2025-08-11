@@ -2,8 +2,8 @@ package validator_test
 
 import (
 	"pump_fun/internal/core/tasks"
-	"pump_fun/internal/handlers"
-	"pump_fun/internal/launch/validator"
+	"pump_fun/app/validator"
+	"pump_fun/internal/solana/utils"
 	"reflect"
 	"strings"
 	"testing"
@@ -27,7 +27,7 @@ func createValidBuyTask(wallet *solana.PrivateKey, tokenAddress solana.PublicKey
 	return &tasks.BuyTask{
 		Wallet:       *wallet,
 		TokenAddress: tokenAddress,
-		BuyAmount:    handlers.ConvertSolToLamport(0.001),
+		BuyAmount:    utils.ConvertSolToLamport(0.001),
 		Slippage:     0.20,
 		BuyFee:       0.0001,
 		ComputeUnits: 200000,
@@ -111,7 +111,7 @@ func TestFieldsWithLessThanZeroReturnsError(t *testing.T) {
 	buyTask := &tasks.BuyTask{
 		Wallet:       *wallet,
 		TokenAddress: tokenAddress,
-		BuyAmount:    handlers.ConvertSolToLamport(-0.001),
+		BuyAmount:    utils.ConvertSolToLamport(-0.001),
 		Slippage:     -1,
 		BuyFee:       -1,
 		ComputeUnits: 1000,
@@ -142,7 +142,7 @@ func TestFieldsWithZeroEntriesReturnRequiredError(t *testing.T) {
 	buyTask := &tasks.BuyTask{
 		Wallet:       *wallet,
 		TokenAddress: tokenAddress,
-		BuyAmount:    handlers.ConvertSolToLamport(0),
+		BuyAmount:    utils.ConvertSolToLamport(0),
 		Slippage:     0,
 		BuyFee:       0,
 		ComputeUnits: 0,

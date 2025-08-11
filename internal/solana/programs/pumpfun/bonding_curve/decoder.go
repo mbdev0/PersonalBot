@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"math/big"
 	"pump_fun/internal/core/models"
-	"pump_fun/internal/launch/solana_price"
+	"pump_fun/infrastructure/solana_price"
 	"pump_fun/internal/solana/client"
 
 	"github.com/gagliardetto/solana-go"

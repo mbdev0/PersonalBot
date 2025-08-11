@@ -2,8 +2,8 @@ package solana_price
 
 import (
 	"encoding/json"
+	"pump_fun/infrastructure/http"
 	"pump_fun/internal/core/constants"
-	requestclient "pump_fun/internal/request_client"
 	"pump_fun/pkg/logger"
 	"sync"
 	"time"
@@ -35,7 +35,7 @@ func GetSolPrice() (*float64, error) {
 }
 
 func fetchSolPriceFromEndpoint() (*float64, error) {
-	resp, err := requestclient.Get(constants.PumpFunAPIEndPoint + "sol-price")
+	resp, err := http.Get(constants.PumpFunAPIEndPoint + "sol-price")
 	if err != nil {
 		return nil, err
 	}

@@ -2,7 +2,7 @@ package validator_test
 
 import (
 	"math/big"
-	"pump_fun/internal/launch/validator"
+	"pump_fun/app/validator"
 	"testing"
 )
 

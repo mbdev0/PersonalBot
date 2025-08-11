@@ -3,8 +3,8 @@ package stream
 import (
 	"context"
 	"fmt"
+	"pump_fun/infrastructure/config"
 	"pump_fun/internal/core/constants"
-	"pump_fun/internal/launch/config"
 	"pump_fun/internal/monitoring/stream/response"
 	"pump_fun/pkg/logger"
 	"time"

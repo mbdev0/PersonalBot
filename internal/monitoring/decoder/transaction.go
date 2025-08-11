@@ -9,8 +9,8 @@ import (
 
 	"github.com/mr-tron/base58"
 
+	"pump_fun/app/pumpfun_idl"
 	"pump_fun/internal/core/constants"
-	"pump_fun/internal/launch/pumpfun_idl"
 	"pump_fun/internal/monitoring/models"
 	"pump_fun/internal/monitoring/stream/response"
 

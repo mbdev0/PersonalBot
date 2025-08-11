@@ -2,12 +2,12 @@ package buy
 
 import (
 	"fmt"
+	lookuptable "pump_fun/app/lookup_table"
 	"pump_fun/internal/core/tasks"
-	"pump_fun/internal/handlers"
-	lookuptable "pump_fun/internal/launch/lookup_table"
 	"pump_fun/internal/solana/client"
 	"pump_fun/internal/solana/instructions"
 	pump_instructions "pump_fun/internal/solana/programs/pumpfun/instructions"
+	wallets "pump_fun/internal/solana/wallet"
 	"pump_fun/pkg/logger"
 
 	"github.com/gagliardetto/solana-go"
@@ -58,7 +58,7 @@ func (bt *BuyTransaction) BuildTransaction() error {
 		return err
 	}
 
-	handlers.SignTx(tx, bt.BuyTask.Wallet)
+	wallets.SignTx(tx, bt.BuyTask.Wallet)
 	bt.transaction = tx
 
 	return nil
