@@ -1,7 +1,7 @@
 package filters
 
 import (
-	"pump_fun/internal/models"
+	"pump_fun/internal/monitoring/models"
 )
 
 type FilterPipeline struct {

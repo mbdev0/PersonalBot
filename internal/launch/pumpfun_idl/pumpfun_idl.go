@@ -1,4 +1,4 @@
-package models
+package pumpfun_idl
 
 type PumpFunIdl struct {
 	Version      string `json:"version"`

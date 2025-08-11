@@ -2,8 +2,8 @@ package monitoring
 
 import (
 	"pump_fun/internal/handlers"
-	"pump_fun/internal/models"
 	"pump_fun/internal/monitoring/decoder"
+	"pump_fun/internal/monitoring/models"
 	"pump_fun/internal/monitoring/stream"
 	"pump_fun/internal/monitoring/stream/response"
 	"pump_fun/internal/webhook"

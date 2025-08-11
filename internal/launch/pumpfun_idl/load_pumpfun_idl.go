@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"io"
 	"os"
-	"pump_fun/internal/models"
 	"pump_fun/pkg/logger"
 	"sync"
 )
@@ -34,7 +33,7 @@ func loadPumpfunIdl() {
 	idlMapInstance = generateIdlMap(idl)
 }
 
-func loadIdlIntoModel() (*models.PumpFunIdl, error) {
+func loadIdlIntoModel() (*PumpFunIdl, error) {
 	jsonFile, err := os.Open("internal/launch/pumpfun_idl/pump_fun_idl.json")
 	if err != nil {
 		return nil, err
@@ -43,7 +42,7 @@ func loadIdlIntoModel() (*models.PumpFunIdl, error) {
 
 	byteValue, _ := io.ReadAll(jsonFile)
 
-	var idl models.PumpFunIdl
+	var idl PumpFunIdl
 	err = json.Unmarshal(byteValue, &idl)
 	if err != nil {
 		return nil, err
@@ -61,7 +60,7 @@ The dict/map will look in the format of:
 {buy : {mint: 0, user: 1, bondingCurve: 2}, create: {mint: 0, user: 1, bondingCurve: 2}}} etc
 Which will correspond to the order of how the accounts are stored in the idl.
 */
-func generateIdlMap(idl *models.PumpFunIdl) map[string]IdlMap {
+func generateIdlMap(idl *PumpFunIdl) map[string]IdlMap {
 	idlMap := make(map[string]IdlMap)
 	for _, instruction := range idl.Instructions {
 		for num, account := range instruction.Accounts {
