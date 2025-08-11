@@ -1,7 +1,7 @@
 package instructionbuilder
 
 import (
-	"pump_fun/internal/models"
+	"pump_fun/internal/core/models"
 	rpcclient "pump_fun/internal/rpc_client"
 	"pump_fun/pkg/logger"
 

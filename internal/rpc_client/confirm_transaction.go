@@ -3,7 +3,7 @@ package rpcclient
 import (
 	"context"
 	"fmt"
-	"pump_fun/internal/models"
+	"pump_fun/internal/core/models"
 	"pump_fun/pkg/logger"
 	"time"
 

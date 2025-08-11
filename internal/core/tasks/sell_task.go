@@ -3,7 +3,7 @@ package tasks
 import (
 	"context"
 	api_model "pump_fun/api/models"
-	"pump_fun/internal/models"
+	"pump_fun/internal/core/models"
 
 	"github.com/gagliardetto/solana-go"
 	"github.com/google/uuid"

@@ -3,7 +3,7 @@ package mapper
 import (
 	"fmt"
 	"pump_fun/api/models"
-	"pump_fun/internal/models/tasks"
+	"pump_fun/internal/core/tasks"
 )
 
 func MapTaskToReponseTask(task tasks.Task) (*models.ResponseTask, error) {

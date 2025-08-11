@@ -4,7 +4,7 @@ import (
 	"context"
 	"math/big"
 	api_model "pump_fun/api/models"
-	"pump_fun/internal/models"
+	"pump_fun/internal/core/models"
 	"pump_fun/internal/utils"
 	"pump_fun/pkg/logger"
 

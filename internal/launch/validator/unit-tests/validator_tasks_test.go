@@ -1,9 +1,9 @@
 package validator_test
 
 import (
+	"pump_fun/internal/core/tasks"
 	"pump_fun/internal/handlers"
 	"pump_fun/internal/launch/validator"
-	"pump_fun/internal/models/tasks"
 	"reflect"
 	"strings"
 	"testing"

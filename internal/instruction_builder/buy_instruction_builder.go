@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"math/big"
 	"pump_fun/internal/constants"
+	"pump_fun/internal/core/models"
+	"pump_fun/internal/core/tasks"
 	"pump_fun/internal/handlers"
-	"pump_fun/internal/models"
-	"pump_fun/internal/models/tasks"
 	"pump_fun/internal/monitoring/transactions/bonding_curve_decoder"
 	"pump_fun/internal/monitoring/transactions/program_derived_address"
 

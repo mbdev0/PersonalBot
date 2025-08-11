@@ -5,8 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
+	"pump_fun/internal/core/models"
 	"pump_fun/internal/launch/solana_price"
-	"pump_fun/internal/models"
 	rpcclient "pump_fun/internal/rpc_client"
 
 	"github.com/gagliardetto/solana-go"
