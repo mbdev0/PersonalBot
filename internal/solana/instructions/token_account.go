@@ -1,8 +1,8 @@
-package instructionbuilder
+package instructions
 
 import (
 	"pump_fun/internal/core/models"
-	rpcclient "pump_fun/internal/rpc_client"
+	"pump_fun/internal/solana/client"
 	"pump_fun/pkg/logger"
 
 	"github.com/gagliardetto/solana-go"
@@ -26,7 +26,7 @@ func getIdempotentInstructionIfExists(wallet solana.PublicKey, mintAddress solan
 		return nil, err
 	}
 
-	_, err = rpcclient.GetAccountInfo(associatedTokenAddressPubkey.String(), cancellationToken)
+	_, err = client.GetAccountInfo(associatedTokenAddressPubkey.String(), cancellationToken)
 
 	if err != nil {
 		if err.Error() == "not found" {

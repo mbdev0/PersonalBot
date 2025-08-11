@@ -1,4 +1,4 @@
-package instructionbuilder
+package instructions
 
 import (
 	"bytes"
@@ -6,9 +6,10 @@ import (
 	"pump_fun/internal/core/constants"
 	"pump_fun/internal/core/models"
 	"pump_fun/internal/core/tasks"
-	"pump_fun/internal/monitoring/transactions/bonding_curve_decoder"
-	"pump_fun/internal/monitoring/transactions/program_derived_address"
-	rpcclient "pump_fun/internal/rpc_client"
+	"pump_fun/internal/solana/client"
+	bondingcurve "pump_fun/internal/solana/programs/pumpfun/bonding_curve"
+	"pump_fun/internal/solana/programs/pumpfun/pda"
+	"pump_fun/internal/solana/utils"
 	"pump_fun/pkg/logger"
 
 	"github.com/gagliardetto/solana-go"
@@ -36,13 +37,13 @@ func GetSellInstruction(sellTask *tasks.SellTask) (*solana.GenericInstruction, e
 }
 
 func getAccounts(sellTask *tasks.SellTask) ([]*solana.AccountMeta, error) {
-	bondingCurveAddress, err := program_derived_address.GetBondingCurveAddress(sellTask.TokenAddress.String())
+	bondingCurveAddress, err := pda.GetBondingCurveAddress(sellTask.TokenAddress.String())
 	if err != nil {
 		logger.Error("Error getting bonding curve address:", err)
 		return nil, err
 	}
 
-	associatedBondingCurveAddress, err := program_derived_address.GetAssociatedBondingCurveAddress(bondingCurveAddress, sellTask.TokenAddress.String())
+	associatedBondingCurveAddress, err := pda.GetAssociatedBondingCurveAddress(bondingCurveAddress, sellTask.TokenAddress.String())
 	if err != nil {
 		logger.Error("Error getting associated bonding curve address:", err)
 		return nil, err
@@ -62,32 +63,32 @@ func getAccounts(sellTask *tasks.SellTask) ([]*solana.AccountMeta, error) {
 	}
 
 	accounts := []*solana.AccountMeta{
-		GetAccountMeta(constants.GlobalAccount, false, false),
-		GetAccountMeta(constants.FeeRecipient, true, false),
-		GetAccountMeta(sellTask.TokenAddress.String(), false, false),
-		GetAccountMeta(bondingCurveAddress, true, false),
-		GetAccountMeta(associatedBondingCurveAddress, true, false),
-		GetAccountMeta(associatedTokenAddress.String(), true, false),
-		GetAccountMeta(sellTask.Wallet.PublicKey().String(), true, true),
-		GetAccountMeta(solana.SystemProgramID.String(), false, false),
-		GetAccountMeta(creatorAddress, true, false),
-		GetAccountMeta(constants.TokenProgram, false, false),
-		GetAccountMeta(constants.EventAuthority, false, false),
-		GetAccountMeta(constants.Program, false, false),
+		utils.GetAccountMeta(constants.GlobalAccount, false, false),
+		utils.GetAccountMeta(constants.FeeRecipient, true, false),
+		utils.GetAccountMeta(sellTask.TokenAddress.String(), false, false),
+		utils.GetAccountMeta(bondingCurveAddress, true, false),
+		utils.GetAccountMeta(associatedBondingCurveAddress, true, false),
+		utils.GetAccountMeta(associatedTokenAddress.String(), true, false),
+		utils.GetAccountMeta(sellTask.Wallet.PublicKey().String(), true, true),
+		utils.GetAccountMeta(solana.SystemProgramID.String(), false, false),
+		utils.GetAccountMeta(creatorAddress, true, false),
+		utils.GetAccountMeta(constants.TokenProgram, false, false),
+		utils.GetAccountMeta(constants.EventAuthority, false, false),
+		utils.GetAccountMeta(constants.Program, false, false),
 	}
 
 	return accounts, nil
 }
 
 func getCreatorVaultAddress(bondingCurveAddress string, cancellationToken models.CancelToken) (string, error) {
-	data, err, _ := bonding_curve_decoder.GetBondingCurveDataFromAddress(bondingCurveAddress, cancellationToken)
+	data, err, _ := bondingcurve.GetBondingCurveDataFromAddress(bondingCurveAddress, cancellationToken)
 	if err != nil {
 		logger.Error("Error getting bonding curve data:", err)
 		return "", err
 	}
 	bondingCurveData = data
 
-	creatorAddress, err := program_derived_address.GetCreatorVaultAddress(bondingCurveData.DevWallet.String())
+	creatorAddress, err := pda.GetCreatorVaultAddress(bondingCurveData.DevWallet.String())
 
 	if err != nil {
 		logger.Error("Error getting creator address:", err)
@@ -126,7 +127,7 @@ func getInstructionData(sellTask *tasks.SellTask) ([]byte, error) {
 }
 
 func getTokenAmountAndSolOutput(sellTask *tasks.SellTask) (tokenAmount *uint64, solOutput *uint64, err error) {
-	tokenAmount, err = rpcclient.GetTokenAccountBalance(associatedTokenAddress, sellTask.CancelToken)
+	tokenAmount, err = client.GetTokenAccountBalance(associatedTokenAddress, sellTask.CancelToken)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -136,7 +137,7 @@ func getTokenAmountAndSolOutput(sellTask *tasks.SellTask) (tokenAmount *uint64, 
 		*tokenAmount = uint64(float64(*tokenAmount) * percentageToSell)
 	}
 
-	sol_output := bonding_curve_decoder.GetSolanaTokenPrice(*bondingCurveData, *tokenAmount)
+	sol_output := bondingcurve.GetSolanaTokenPrice(*bondingCurveData, *tokenAmount)
 	slippage_sol_output := float64(*sol_output) * (1 - sellTask.Slippage)
 	min_sol_output := uint64(slippage_sol_output)
 

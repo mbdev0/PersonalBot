@@ -1,4 +1,4 @@
-package instructionbuilder
+package utils
 
 import "github.com/gagliardetto/solana-go"
 

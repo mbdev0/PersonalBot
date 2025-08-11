@@ -5,7 +5,7 @@ import (
 	"sync"
 
 	"pump_fun/internal/core/constants"
-	rpcclient "pump_fun/internal/rpc_client"
+	"pump_fun/internal/solana/client"
 	"pump_fun/pkg/logger"
 
 	"github.com/gagliardetto/solana-go"
@@ -34,7 +34,7 @@ func getLookupTable() map[solana.PublicKey]solana.PublicKeySlice {
 }
 
 func loadLookupTable() *map[solana.PublicKey]solana.PublicKeySlice {
-	lookupTable, err := lookup.GetAddressLookupTable(context.Background(), rpcclient.GetClient(), solana.MustPublicKeyFromBase58(constants.AddressLookupTableAccount))
+	lookupTable, err := lookup.GetAddressLookupTable(context.Background(), client.GetClient(), solana.MustPublicKeyFromBase58(constants.AddressLookupTableAccount))
 
 	if err != nil {
 		logger.Error("Error trying to get the address lookup table: ", err)

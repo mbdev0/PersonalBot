@@ -1,4 +1,4 @@
-package program_derived_address
+package utils
 
 import (
 	"crypto/ed25519"

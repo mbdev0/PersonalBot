@@ -1,11 +1,11 @@
 package handlers
 
 import (
-	"pump_fun/internal/wallets"
+	wallet "pump_fun/internal/solana/wallet"
 
 	"github.com/gagliardetto/solana-go"
 )
 
 func SignTx(tx *solana.Transaction, privateKey solana.PrivateKey) {
-	wallets.SignTx(tx, privateKey)
+	wallet.SignTx(tx, privateKey)
 }

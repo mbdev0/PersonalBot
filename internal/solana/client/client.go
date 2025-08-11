@@ -1,4 +1,4 @@
-package rpcclient
+package client
 
 import (
 	"pump_fun/internal/launch/config"

@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"pump_fun/internal/core/tasks"
 	"pump_fun/internal/handlers"
-	instructionbuilder "pump_fun/internal/instruction_builder"
 	lookuptable "pump_fun/internal/launch/lookup_table"
-	rpcclient "pump_fun/internal/rpc_client"
+	"pump_fun/internal/solana/client"
+	"pump_fun/internal/solana/instructions"
+	pump_instructions "pump_fun/internal/solana/programs/pumpfun/instructions"
 	"pump_fun/pkg/logger"
 
 	"github.com/gagliardetto/solana-go"
@@ -39,7 +40,7 @@ func (bt *BuyTransaction) BuildTransaction() error {
 		return fmt.Errorf("buy task was nil - make sure buy task is set")
 	}
 
-	latestHash, err := rpcclient.GetLatestBlockhash(bt.BuyTask.CancelToken)
+	latestHash, err := client.GetLatestBlockhash(bt.BuyTask.CancelToken)
 	if err != nil {
 		logger.Error("Error getting latest blockhash", err)
 		return err
@@ -64,7 +65,7 @@ func (bt *BuyTransaction) BuildTransaction() error {
 }
 
 func (bt *BuyTransaction) SendTransaction() error {
-	client := rpcclient.GetClient()
+	client := client.GetClient()
 	// SIMULATE TRANSACTION
 	// txResp, err := client.SimulateTransaction(bt.BuyTask.CancelToken.CancellationContext, bt.transaction)
 	// if err != nil {
@@ -93,7 +94,7 @@ func (bt *BuyTransaction) SendTransaction() error {
 }
 
 func (bt *BuyTransaction) ConfirmTransaction() error {
-	isSuccess, err := rpcclient.ConfirmTransaction(bt.signature, bt.BuyTask.CancelToken)
+	isSuccess, err := client.ConfirmTransaction(bt.signature, bt.BuyTask.CancelToken)
 	if err != nil {
 		logger.Error("Transaction confirmation failed", err)
 		return err
@@ -113,10 +114,10 @@ func (bt *BuyTransaction) GetTask() tasks.Task {
 
 func getAllInstructionsForBuy(buyTask *tasks.BuyTask) (buyInstructions []solana.Instruction, err error) {
 
-	computeLimitInstruction := instructionbuilder.GetComputeUnitLimitInstruction(buyTask.ComputeUnits)
-	computeLimitBudgetInstruction := instructionbuilder.GetComputeUnitBudgetInstruction(buyTask.BuyFee, buyTask.ComputeUnits)
-	idEmponenetInstruction := instructionbuilder.GetIdempotentInstruction(buyTask.Wallet.PublicKey(), buyTask.TokenAddress, buyTask.CancelToken)
-	buyInstruction, err := instructionbuilder.GetBuyInstruction(buyTask)
+	computeLimitInstruction := instructions.GetComputeUnitLimitInstruction(buyTask.ComputeUnits)
+	computeLimitBudgetInstruction := instructions.GetComputeUnitBudgetInstruction(buyTask.BuyFee, buyTask.ComputeUnits)
+	idEmponenetInstruction := instructions.GetIdempotentInstruction(buyTask.Wallet.PublicKey(), buyTask.TokenAddress, buyTask.CancelToken)
+	buyInstruction, err := pump_instructions.GetBuyInstruction(buyTask)
 
 	if err != nil {
 		logger.Error("Error creating buy instruction", err)

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"pump_fun/internal/core/tasks"
 	"pump_fun/internal/handlers"
-	"pump_fun/internal/services/transaction/buy"
-	"pump_fun/internal/services/transaction/sell"
+	"pump_fun/internal/solana/programs/pumpfun/transaction/buy"
+	"pump_fun/internal/solana/programs/pumpfun/transaction/sell"
 	"pump_fun/internal/transition"
 	"pump_fun/pkg/logger"
 )
