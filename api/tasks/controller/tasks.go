@@ -81,7 +81,7 @@ func (tc *TaskController) TransitionTask(id string, newState string) (err error)
 		return err
 	}
 
-	err = tc.TaskService.TransistionTask(id, state)
+	err = tc.TaskService.TransitionTask(id, state)
 	if err != nil {
 		return err
 	}

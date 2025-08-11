@@ -7,7 +7,7 @@ import (
 	"pump_fun/api/tasks/handler"
 	"pump_fun/internal/launch"
 	taskservice "pump_fun/internal/task_service"
-	"pump_fun/internal/transaction"
+	"pump_fun/internal/transition/state"
 	"pump_fun/pkg/logger"
 )
 
@@ -15,8 +15,9 @@ func main() {
 	launch.LaunchOperations()
 
 	//TODO: move the init of api's into launch and return one mux back
-	executor := transaction.TransactionExecutor{}
-	taskService := taskservice.TaskService{Executor: &executor}
+	fsm := state.Machine{}
+	fsm.NewStateMachine()
+	taskService := taskservice.TaskService{StateMachine: &fsm}
 	taskService.NewTaskService()
 	buyController := controller.TaskController{TaskService: &taskService}
 	buyHandler := http.StripPrefix("/api/tasks", handler.NewTaskHandler(&buyController))

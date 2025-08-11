@@ -50,7 +50,7 @@ func marketCapMonitor(ctx context.Context, bondingCurveAddress string) {
 	if err != nil {
 		logger.Error("Error getting initial market cap", err)
 		if hasCompleted {
-			ctx.Done()
+			return
 		}
 	}
 
@@ -65,7 +65,7 @@ func marketCapMonitor(ctx context.Context, bondingCurveAddress string) {
 		if err != nil {
 			logger.Error("Error getting market cap", err)
 			if hasCompleted {
-				ctx.Done()
+				return
 			}
 		}
 		logger.Information("Market cap: ", marketCap.String())

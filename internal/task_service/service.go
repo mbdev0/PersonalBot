@@ -4,16 +4,15 @@ import (
 	"fmt"
 	"pump_fun/api/models"
 	"pump_fun/internal/models/tasks"
-	"pump_fun/internal/transaction"
-	"pump_fun/internal/transition"
+	"pump_fun/internal/transition/state"
 	"pump_fun/pkg/logger"
 	"sync"
 )
 
 type TaskService struct {
-	Executor *transaction.TransactionExecutor
-	Tasks    map[string]tasks.Task
-	mu       sync.Mutex
+	StateMachine *state.Machine
+	Tasks        map[string]tasks.Task
+	mu           sync.Mutex
 }
 
 func (ts *TaskService) NewTaskService() {
@@ -77,37 +76,18 @@ func (ts *TaskService) DeleteTask(id string) (err error) {
 	return nil
 }
 
-func (ts *TaskService) TransistionTask(id string, newState tasks.TaskState) (err error) {
+func (ts *TaskService) TransitionTask(id string, newState tasks.TaskState) (err error) {
 	// in here we'll manage changing state
+	ts.mu.Lock()
+	defer ts.mu.Unlock()
 	task, ok := ts.Tasks[id]
 	if !ok {
 		return fmt.Errorf("Task not found with the id: " + id)
 	}
 
-	if transition.IsRetryableState(task.GetState().TaskState) {
-		task.SetState(tasks.State{TaskState: tasks.TaskCreate, Error: ""})
+	err = ts.StateMachine.Transition(task, newState)
+	if err != nil {
+		return fmt.Errorf("transition failed for task %s with error: %w", task.Id(), err)
 	}
-
-	// need to verify if is valid transition
-	if !transition.IsAbleToTransitionTo(newState, task) {
-		return fmt.Errorf("Task not able to transition to next state: " + newState.ToString())
-	}
-
-	task.SetState(tasks.State{TaskState: newState})
-
-	switch newState {
-	case tasks.TaskRun:
-		task.InitCancelToken()
-		ts.RunTask(task)
-	case tasks.TaskCancel:
-		task.SetState(tasks.State{TaskState: newState})
-		task.Cancel()
-	}
-
 	return nil
-}
-
-func (ts *TaskService) RunTask(task tasks.Task) {
-	transactionImpl := ts.Executor.GetImplementation(task)
-	go ts.Executor.Execute(transactionImpl)
 }
