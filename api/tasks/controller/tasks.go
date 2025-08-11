@@ -4,7 +4,7 @@ import (
 	"pump_fun/api/mapper"
 	"pump_fun/api/models"
 	"pump_fun/internal/core/tasks"
-	taskservice "pump_fun/internal/task_service"
+	taskservice "pump_fun/internal/services/task_service"
 )
 
 type TaskController struct {

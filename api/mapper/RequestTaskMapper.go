@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"math/big"
 	"pump_fun/api/models"
-	"pump_fun/internal/constants"
+	"pump_fun/internal/core/constants"
 	"pump_fun/internal/core/tasks"
 
 	"github.com/gagliardetto/solana-go"

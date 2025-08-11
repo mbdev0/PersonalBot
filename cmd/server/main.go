@@ -6,7 +6,7 @@ import (
 	"pump_fun/api/tasks/controller"
 	"pump_fun/api/tasks/handler"
 	"pump_fun/internal/launch"
-	taskservice "pump_fun/internal/task_service"
+	taskservice "pump_fun/internal/services/task_service"
 	"pump_fun/internal/transition/state"
 	"pump_fun/pkg/logger"
 )

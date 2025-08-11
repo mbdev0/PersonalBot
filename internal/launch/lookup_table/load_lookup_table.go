@@ -4,7 +4,7 @@ import (
 	"context"
 	"sync"
 
-	"pump_fun/internal/constants"
+	"pump_fun/internal/core/constants"
 	rpcclient "pump_fun/internal/rpc_client"
 	"pump_fun/pkg/logger"
 
