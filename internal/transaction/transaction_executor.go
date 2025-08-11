@@ -10,20 +10,20 @@ import (
 	"pump_fun/pkg/logger"
 )
 
-type TransactionExecutor struct{}
+type Executor struct{}
 
-func (th *TransactionExecutor) GetImplementation(task tasks.Task) Transaction {
+func (th *Executor) GetImplementation(task tasks.Task) (Transaction, error) {
 	switch t := task.(type) {
 	case *tasks.BuyTask:
-		return &buy.BuyTransaction{BuyTask: t}
+		return &buy.BuyTransaction{BuyTask: t}, nil
 	case *tasks.SellTask:
-		return &sell.SellTransaction{Task: t}
+		return &sell.SellTransaction{Task: t}, nil
 	}
 
-	return nil
+	return nil, fmt.Errorf("no transaction found for the task: %s", task.GetTaskType())
 }
 
-func (th *TransactionExecutor) Execute(transaction Transaction) error {
+func (th *Executor) Execute(transaction Transaction) error {
 
 	task := transaction.GetTask()
 	ctx := task.Context()
