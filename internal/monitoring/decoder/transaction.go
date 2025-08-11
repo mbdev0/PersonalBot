@@ -12,11 +12,12 @@ import (
 	"pump_fun/internal/core/constants"
 	"pump_fun/internal/launch/pumpfun_idl"
 	"pump_fun/internal/models"
+	"pump_fun/internal/monitoring/stream/response"
 
 	"pump_fun/pkg/logger"
 )
 
-func DecryptTransactionNotificationForCoin(transaction models.TransactionNotification) *models.Coin {
+func DecryptTransactionNotificationForCoin(transaction response.TransactionNotification) *models.Coin {
 
 	coin, err := getCreatedCoinWithBuyData(transaction)
 
@@ -36,7 +37,7 @@ func DecryptTransactionNotificationForCoin(transaction models.TransactionNotific
 	return &coin
 }
 
-func getCreatedCoinWithBuyData(transaction models.TransactionNotification) (models.Coin, error) {
+func getCreatedCoinWithBuyData(transaction response.TransactionNotification) (models.Coin, error) {
 	var coin models.Coin
 	var createTransactionFound bool
 	var devHoldingAmount float64
@@ -81,7 +82,7 @@ func getCreatedCoinWithBuyData(transaction models.TransactionNotification) (mode
 	return coin, nil
 }
 
-func createCoinFromInstruction(instruction models.Instruction, instructionData []byte) (models.Coin, error) {
+func createCoinFromInstruction(instruction response.Instruction, instructionData []byte) (models.Coin, error) {
 	coin := models.Coin{}
 
 	decodedInstruction, err := DecodeCreateInstruction(instructionData)
@@ -95,7 +96,7 @@ func createCoinFromInstruction(instruction models.Instruction, instructionData [
 	return coin, nil
 }
 
-func assignCoinAddresses(coin *models.Coin, instruction models.Instruction) {
+func assignCoinAddresses(coin *models.Coin, instruction response.Instruction) {
 	createAccountIDL := pumpfun_idl.GetIdlMap()["create"].AccountMap
 
 	coin.CoinData.TokenAddr = instruction.Accounts[createAccountIDL["mint"]]

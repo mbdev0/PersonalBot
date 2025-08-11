@@ -3,7 +3,9 @@ package monitoring
 import (
 	"pump_fun/internal/handlers"
 	"pump_fun/internal/models"
+	"pump_fun/internal/monitoring/decoder"
 	"pump_fun/internal/monitoring/stream"
+	"pump_fun/internal/monitoring/stream/response"
 	"pump_fun/internal/webhook"
 	"pump_fun/pkg/logger"
 	"sync"
@@ -19,7 +21,7 @@ func StartAFKMonitor() {
 	if startMonitoring {
 		wg.Add(1)
 		go func() {
-			transaction_notification_chan := make(chan models.TransactionNotification, transaction_chan_size)
+			transaction_notification_chan := make(chan response.TransactionNotification, transaction_chan_size)
 			coinStructChan := make(chan models.Coin, coin_chan_size)
 
 			go MonitorTransactions(transaction_notification_chan)
@@ -40,7 +42,7 @@ func StartAFKMonitor() {
 	wg.Wait()
 }
 
-func MonitorTransactions(transaction_notification_chan chan<- models.TransactionNotification) {
+func MonitorTransactions(transaction_notification_chan chan<- response.TransactionNotification) {
 	err := stream.Geyser_Stream_Transactions(transaction_notification_chan)
 	if err != nil {
 		logger.Error("Error in Geyser_Stream_Transactions ", err)
@@ -48,11 +50,23 @@ func MonitorTransactions(transaction_notification_chan chan<- models.Transaction
 	}
 }
 
-func ProcessAndFilterTransactions(transaction_notification_chan <-chan models.TransactionNotification, coinStructChan chan<- models.Coin) {
+func ProcessAndFilterTransactions(transaction_notification_chan <-chan response.TransactionNotification, coinStructChan chan<- models.Coin) {
 	defer close(coinStructChan)
 	for transaction := range transaction_notification_chan {
-		go func(transaction models.TransactionNotification, coinStructChan chan<- models.Coin) {
-			handlers.HandleTransactionNotification(transaction, coinStructChan)
+		go func(transaction response.TransactionNotification, coinStructChan chan<- models.Coin) {
+			handleTransactionNotification(transaction, coinStructChan)
 		}(transaction, coinStructChan)
+	}
+}
+
+func handleTransactionNotification(transaction response.TransactionNotification, coinStructChan chan<- models.Coin) {
+	coin := decoder.DecryptTransactionNotificationForCoin(transaction)
+
+	if coin != nil {
+		coin = handlers.HandleCoinFiltering(coin)
+	}
+
+	if coin != nil {
+		coinStructChan <- *coin
 	}
 }

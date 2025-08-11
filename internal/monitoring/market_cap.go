@@ -4,8 +4,8 @@ import (
 	"context"
 	"pump_fun/internal/core/models"
 	"pump_fun/internal/handlers"
-	m "pump_fun/internal/models"
 	"pump_fun/internal/monitoring/stream"
+	"pump_fun/internal/monitoring/stream/response"
 	"pump_fun/pkg/logger"
 )
 
@@ -57,7 +57,7 @@ func marketCapMonitor(ctx context.Context, bondingCurveAddress string) {
 
 	logger.Information("Initial market cap: ", marketCapInit.String())
 
-	accountInfoChan := make(chan m.AccountSubscribeModel, 20)
+	accountInfoChan := make(chan response.AccountSubscribeModel, 20)
 
 	go stream.Geyser_Stream_AccountInfo(ctx, bondingCurveAddress, accountInfoChan)
 

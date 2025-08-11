@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"pump_fun/internal/core/constants"
 	"pump_fun/internal/launch/config"
-	"pump_fun/internal/models"
+	"pump_fun/internal/monitoring/stream/response"
 	"pump_fun/pkg/logger"
 	"time"
 
@@ -19,7 +19,7 @@ var (
 	connection_timeout = time.Second * 10
 )
 
-func Geyser_Stream_Transactions(transaction_chan chan<- models.TransactionNotification) error {
+func Geyser_Stream_Transactions(transaction_chan chan<- response.TransactionNotification) error {
 	ctx, cancel := context.WithTimeout(context.Background(), connection_timeout)
 	defer cancel()
 
@@ -71,7 +71,7 @@ func Geyser_Stream_Transactions(transaction_chan chan<- models.TransactionNotifi
 	}
 
 	for {
-		out := models.TransactionNotification{}
+		out := response.TransactionNotification{}
 		err = wsjson.Read(ctx, ws, &out)
 
 		if err != nil {
