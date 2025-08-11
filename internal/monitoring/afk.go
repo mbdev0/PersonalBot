@@ -2,8 +2,8 @@ package monitoring
 
 import (
 	"pump_fun/infrastructure/webhook"
-	"pump_fun/internal/handlers"
 	"pump_fun/internal/monitoring/decoder"
+	"pump_fun/internal/monitoring/filters"
 	"pump_fun/internal/monitoring/models"
 	"pump_fun/internal/monitoring/stream"
 	"pump_fun/internal/monitoring/stream/response"
@@ -63,7 +63,7 @@ func handleTransactionNotification(transaction response.TransactionNotification,
 	coin := decoder.DecryptTransactionNotificationForCoin(transaction)
 
 	if coin != nil {
-		coin = handlers.HandleCoinFiltering(coin)
+		coin = filters.HandleCoinFiltering(coin)
 	}
 
 	if coin != nil {
