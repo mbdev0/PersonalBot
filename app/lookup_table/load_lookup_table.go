@@ -38,6 +38,7 @@ func loadLookupTable() *map[solana.PublicKey]solana.PublicKeySlice {
 
 	if err != nil {
 		logger.Error("Error trying to get the address lookup table: ", err)
+		return nil
 	}
 
 	accountLookupMap := make(map[solana.PublicKey]solana.PublicKeySlice)

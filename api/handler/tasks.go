@@ -100,7 +100,7 @@ func (th *TaskHandler) UpdateTask(w http.ResponseWriter, r *http.Request) {
 	// we need to get the new task
 	decoder := json.NewDecoder(r.Body)
 	decoder.DisallowUnknownFields()
-	var reqTask dto.RequestTask
+	var reqTask dto.PatchRequestTask
 	err := decoder.Decode(&reqTask)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)

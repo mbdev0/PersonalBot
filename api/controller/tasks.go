@@ -56,9 +56,20 @@ func (tc *TaskController) GetAllTasks() ([]dto.ResponseTask, error) {
 	return response, nil
 }
 
-func (tc *TaskController) UpdateTask(id string, reqTask dto.RequestTask) (tasks.Task, error) {
+func (tc *TaskController) UpdateTask(id string, reqTask dto.PatchRequestTask) (tasks.Task, error) {
 	// we call update with => id + newTask
-	updated, err := tc.TaskService.UpdateTask(id, reqTask)
+
+	task, err := tc.TaskService.GetTaskWith(id)
+	if err != nil {
+		return nil, err
+	}
+
+	mappedPatch, err := mapper.MapReqPatchToPatch(reqTask, task.Type())
+	if err != nil {
+		return nil, err
+	}
+
+	updated, err := tc.TaskService.UpdateTask(task, mappedPatch)
 	if err != nil {
 		return nil, err
 	}
