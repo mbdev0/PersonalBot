@@ -2,7 +2,6 @@ package taskservice
 
 import (
 	"fmt"
-	"pump_fun/api/dto"
 	"pump_fun/internal/core/tasks"
 	"pump_fun/internal/services/state"
 	"pump_fun/pkg/logger"
@@ -48,15 +47,8 @@ func (ts *TaskService) GetAllTasks() []tasks.Task {
 	return allTasks
 }
 
-func (ts *TaskService) UpdateTask(id string, newTask dto.RequestTask) (tasks.Task, error) {
-	ts.mu.Lock()
-	defer ts.mu.Unlock()
-	task, ok := ts.Tasks[id]
-	if !ok {
-		return nil, fmt.Errorf("Task not found with the id: " + id)
-	}
-
-	err := task.UpdateTask(newTask)
+func (ts *TaskService) UpdateTask(task tasks.Task, patch tasks.TaskPatch) (tasks.Task, error) {
+	err := patch.ApplyTo(task)
 	if err != nil {
 		return nil, err
 	}
