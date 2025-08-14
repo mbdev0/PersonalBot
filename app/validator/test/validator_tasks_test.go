@@ -1,8 +1,8 @@
 package validator_test
 
 import (
-	"pump_fun/internal/core/tasks"
 	"pump_fun/app/validator"
+	"pump_fun/internal/core/tasks"
 	"pump_fun/internal/solana/utils"
 	"reflect"
 	"strings"
@@ -24,14 +24,16 @@ func createTestWallet(t *testing.T) (*solana.PrivateKey, solana.PublicKey) {
 }
 
 func createValidBuyTask(wallet *solana.PrivateKey, tokenAddress solana.PublicKey) *tasks.BuyTask {
-	return &tasks.BuyTask{
-		Wallet:       *wallet,
-		TokenAddress: tokenAddress,
-		BuyAmount:    utils.ConvertSolToLamport(0.001),
-		Slippage:     0.20,
-		BuyFee:       0.0001,
-		ComputeUnits: 200000,
-	}
+	return tasks.NewBuyTask(*wallet, tokenAddress,
+		[]tasks.Option{
+			tasks.WithComputeUnits(10000),
+			tasks.WithSlippage(0.4),
+		},
+		[]tasks.BuyOption{
+			tasks.WithBuyAmount(utils.ConvertSolToLamport(0.0001)),
+			tasks.WithBuyFee(0.001),
+		},
+	)
 }
 
 func getAllFieldsFor(task interface{}, tag string) []string {
@@ -108,14 +110,16 @@ func TestNoFieldsReturnsRequiredError(t *testing.T) {
 func TestFieldsWithLessThanZeroReturnsError(t *testing.T) {
 	validate := validator.GetValidator()
 	wallet, tokenAddress := createTestWallet(t)
-	buyTask := &tasks.BuyTask{
-		Wallet:       *wallet,
-		TokenAddress: tokenAddress,
-		BuyAmount:    utils.ConvertSolToLamport(-0.001),
-		Slippage:     -1,
-		BuyFee:       -1,
-		ComputeUnits: 1000,
-	}
+
+	buyTask := tasks.NewBuyTask(*wallet, tokenAddress,
+		[]tasks.Option{
+			tasks.WithComputeUnits(1000),
+			tasks.WithSlippage(-1),
+		},
+		[]tasks.BuyOption{
+			tasks.WithBuyAmount(utils.ConvertSolToLamport(-0.001)),
+			tasks.WithBuyFee(-1),
+		})
 
 	errs := validate.Struct(buyTask)
 	gtValidationSlice := getValidationErrorSlice(t, errs, "gt")
@@ -139,14 +143,15 @@ func TestFieldsWithLessThanZeroReturnsError(t *testing.T) {
 func TestFieldsWithZeroEntriesReturnRequiredError(t *testing.T) {
 	validate := validator.GetValidator()
 	wallet, tokenAddress := createTestWallet(t)
-	buyTask := &tasks.BuyTask{
-		Wallet:       *wallet,
-		TokenAddress: tokenAddress,
-		BuyAmount:    utils.ConvertSolToLamport(0),
-		Slippage:     0,
-		BuyFee:       0,
-		ComputeUnits: 0,
-	}
+	buyTask := tasks.NewBuyTask(*wallet, tokenAddress,
+		[]tasks.Option{
+			tasks.WithComputeUnits(0),
+			tasks.WithSlippage(0),
+		},
+		[]tasks.BuyOption{
+			tasks.WithBuyAmount(utils.ConvertSolToLamport(0)),
+			tasks.WithBuyFee(0),
+		})
 
 	errs := validate.Struct(buyTask)
 	validationSlice := getValidationErrorSlice(t, errs, "required")
@@ -162,8 +167,15 @@ func TestFieldsWithZeroEntriesReturnRequiredError(t *testing.T) {
 func TestFieldsWithGreaterThanOneReturnsError(t *testing.T) {
 	validate := validator.GetValidator()
 	wallet, tokenAddress := createTestWallet(t)
-	buyTask := createValidBuyTask(wallet, tokenAddress)
-	buyTask.Slippage = 1.2
+	buyTask := tasks.NewBuyTask(*wallet, tokenAddress,
+		[]tasks.Option{
+			tasks.WithComputeUnits(1000),
+			tasks.WithSlippage(1.2),
+		},
+		[]tasks.BuyOption{
+			tasks.WithBuyAmount(utils.ConvertSolToLamport(1)),
+			tasks.WithBuyFee(0.5),
+		})
 
 	errs := validate.Struct(buyTask)
 	validationSlice := getValidationErrorSlice(t, errs, "lt")

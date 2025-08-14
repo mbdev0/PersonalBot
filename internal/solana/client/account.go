@@ -2,7 +2,6 @@ package client
 
 import (
 	"context"
-	"pump_fun/internal/core/models"
 	"time"
 
 	"github.com/gagliardetto/solana-go"
@@ -11,10 +10,10 @@ import (
 
 var timeout = 10 * time.Second
 
-func GetAccountInfo(address string, cancellation_token models.CancelToken) (*rpc.GetAccountInfoResult, error) {
+func GetAccountInfo(address string, ctx context.Context) (*rpc.GetAccountInfoResult, error) {
 	client := GetClient()
 
-	ctx, cancel := context.WithTimeout(cancellation_token.CancellationContext, timeout)
+	ctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
 	accountInfo, err := client.GetAccountInfoWithOpts(ctx, solana.MustPublicKeyFromBase58(address), &rpc.GetAccountInfoOpts{

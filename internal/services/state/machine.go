@@ -16,7 +16,7 @@ func (m *Machine) NewStateMachine() {
 }
 
 func (m *Machine) Transition(task tasks.Task, newState tasks.TaskState) error {
-	if transition.IsRetryableState(task.GetState().TaskState) {
+	if transition.IsRetryableState(task.State().TaskState) {
 		task.SetState(tasks.State{TaskState: tasks.TaskCreate, Error: ""})
 	}
 
@@ -26,7 +26,7 @@ func (m *Machine) Transition(task tasks.Task, newState tasks.TaskState) error {
 
 	switch newState {
 	case tasks.TaskRun:
-		task.InitCancelToken()
+		task.ResetCtx()
 		if err := m.runTask(task); err != nil {
 			return err
 		}

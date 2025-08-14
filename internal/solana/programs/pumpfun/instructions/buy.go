@@ -2,6 +2,7 @@ package instructions
 
 import (
 	"bytes"
+	"context"
 	"encoding/binary"
 	"fmt"
 	"math/big"
@@ -35,7 +36,7 @@ func GetBuyInstruction(buyTask *tasks.BuyTask) (instruction *solana.GenericInstr
 
 	accounts := buildAccounts(accountAddressesSet)
 
-	instructionData, err := createBuyData(buyTask.BuyAmount, accountAddressesSet.BondingCurveData, buyTask.Slippage)
+	instructionData, err := createBuyData(*buyTask.BuyAmount(), accountAddressesSet.BondingCurveData, buyTask.Slippage())
 	if err != nil {
 		return nil, fmt.Errorf("error creating buy data: %w", err)
 	}
@@ -49,12 +50,12 @@ func GetBuyInstruction(buyTask *tasks.BuyTask) (instruction *solana.GenericInstr
 
 func setupAccountAddressSet(buyTask *tasks.BuyTask) (AccountAddressesSet, error) {
 	accountAddressesSet := &AccountAddressesSet{
-		TokenAddress:  buyTask.TokenAddress.String(),
-		WalletAddress: buyTask.Wallet.PublicKey().String(),
+		TokenAddress:  buyTask.Token().String(),
+		WalletAddress: buyTask.Wallet().PublicKey().String(),
 	}
 
 	// Get and Set bonding curve information
-	err := setBondingCurveInformation(accountAddressesSet, buyTask.CancelToken)
+	err := setBondingCurveInformation(accountAddressesSet, buyTask.Ctx())
 	if err != nil {
 		return *accountAddressesSet, err
 	}
@@ -68,13 +69,13 @@ func setupAccountAddressSet(buyTask *tasks.BuyTask) (AccountAddressesSet, error)
 	return *accountAddressesSet, nil
 }
 
-func setBondingCurveInformation(accountAddressesSet *AccountAddressesSet, cancellationToken models.CancelToken) (err error) {
+func setBondingCurveInformation(accountAddressesSet *AccountAddressesSet, ctx context.Context) (err error) {
 	bondingCurveAddress, err := pda.GetBondingCurveAddress(accountAddressesSet.TokenAddress)
 	if err != nil {
 		return fmt.Errorf("error getting bonding curve address: %w", err)
 	}
 
-	bondingCurveData, err, _ := bondingcurve.GetBondingCurveDataFromAddress(bondingCurveAddress, cancellationToken)
+	bondingCurveData, err, _ := bondingcurve.GetBondingCurveDataFromAddress(bondingCurveAddress, ctx)
 	if err != nil {
 		return fmt.Errorf("error getting bonding curve data: %w", err)
 	}

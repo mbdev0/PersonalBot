@@ -40,7 +40,7 @@ func (st *SellTransaction) BuildTransaction() error {
 		return fmt.Errorf("sell task is null - check if sell task was set")
 	}
 
-	latestHash, err := client.GetLatestBlockhash(st.Task.CancelToken)
+	latestHash, err := client.GetLatestBlockhash(st.Task.Ctx())
 	if err != nil {
 		logger.Error("Error getting latest blockhash", err)
 		return err
@@ -49,7 +49,7 @@ func (st *SellTransaction) BuildTransaction() error {
 	accountLookupMap := lookuptable.GetAddressLookupTable()
 	tx, err := solana.NewTransaction(st.instructions,
 		latestHash.Value.Blockhash,
-		solana.TransactionPayer(st.Task.Wallet.PublicKey()),
+		solana.TransactionPayer(st.Task.Wallet().PublicKey()),
 		solana.TransactionAddressTables(accountLookupMap))
 
 	if err != nil {
@@ -57,7 +57,7 @@ func (st *SellTransaction) BuildTransaction() error {
 		return err
 	}
 
-	wallets.SignTx(tx, st.Task.Wallet)
+	wallets.SignTx(tx, st.Task.Wallet())
 	st.transaction = tx
 	return nil
 }
@@ -66,7 +66,7 @@ func (st *SellTransaction) SendTransaction() error {
 	client := client.GetClient()
 
 	// simulate the transaction
-	// txResp, err := client.SimulateTransaction(st.Task.CancelToken.CancellationContext, st.transaction)
+	// txResp, err := client.SimulateTransaction(st.Task.Ctx(), st.transaction)
 	// if err != nil {
 	// 	logger.Error("Transaction simulation failed", err)
 	// 	return
@@ -75,7 +75,7 @@ func (st *SellTransaction) SendTransaction() error {
 
 	// SEND TRANSACTION WITH OPTIONS
 	// maxRetries := uint(5)
-	// txResp, err := client.SendTransactionWithOpts(st.Task.CancelToken.CancellationContext, st.transaction, rpc.TransactionOpts{Encoding: solana.EncodingBase64, SkipPreflight: true, MaxRetries: &maxRetries})
+	// txResp, err := client.SendTransactionWithOpts(st.Task.Ctx(), st.transaction, rpc.TransactionOpts{Encoding: solana.EncodingBase64, SkipPreflight: true, MaxRetries: &maxRetries})
 	// if err != nil {
 	// 	logger.Error("Error sending transaction", err)
 	// 	return
@@ -83,7 +83,7 @@ func (st *SellTransaction) SendTransaction() error {
 	// fmt.Println(txResp.String())
 
 	// SEND TRANSACTION WITH NO OPTS
-	txResp, err := client.SendTransaction(st.Task.CancelToken.CancellationContext, st.transaction)
+	txResp, err := client.SendTransaction(st.Task.Ctx(), st.transaction)
 	if err != nil {
 		logger.Error(err)
 		return err
@@ -94,7 +94,7 @@ func (st *SellTransaction) SendTransaction() error {
 }
 
 func (st *SellTransaction) ConfirmTransaction() error {
-	isSuccess, err := client.ConfirmTransaction(st.signature, st.Task.CancelToken)
+	isSuccess, err := client.ConfirmTransaction(st.signature, st.Task.Ctx())
 	if err != nil {
 		logger.Error("Transaction confirmation failed", err)
 		return err
@@ -113,8 +113,8 @@ func (st *SellTransaction) GetTask() tasks.Task {
 }
 
 func getAllInstructionsForSell(sellTask *tasks.SellTask) ([]solana.Instruction, error) {
-	computeLimitInstruction := instructions.GetComputeUnitLimitInstruction(sellTask.ComputeUnits)
-	computeLimitBudgetInstruction := instructions.GetComputeUnitBudgetInstruction(sellTask.SellFee, sellTask.ComputeUnits)
+	computeLimitInstruction := instructions.GetComputeUnitLimitInstruction(sellTask.ComputeUnits())
+	computeLimitBudgetInstruction := instructions.GetComputeUnitBudgetInstruction(sellTask.Fee(), sellTask.ComputeUnits())
 
 	sellInstructions, err := pump_instructions.GetSellInstruction(sellTask)
 	if err != nil {

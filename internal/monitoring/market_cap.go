@@ -2,7 +2,6 @@ package monitoring
 
 import (
 	"context"
-	"pump_fun/internal/core/models"
 	"pump_fun/internal/monitoring/stream"
 	"pump_fun/internal/monitoring/stream/response"
 	bondingcurve "pump_fun/internal/solana/programs/pumpfun/bonding_curve"
@@ -41,12 +40,7 @@ func StartMarketCapMonitor(ctx context.Context, bondingCurveAddress string) {
 }
 
 func marketCapMonitor(ctx context.Context, bondingCurveAddress string) {
-
-	//TODO: remove once tasks can pass the context down to monitors temporary
-	cancellationToken := models.CancelToken{}
-	cancellationToken.CancellationContext, cancellationToken.CancellationFunc = context.WithCancel(context.Background())
-
-	marketCapInit, err, hasCompleted := bondingcurve.GetMarketCapInitial(bondingCurveAddress, cancellationToken)
+	marketCapInit, err, hasCompleted := bondingcurve.GetMarketCapInitial(bondingCurveAddress, ctx)
 
 	if err != nil {
 		logger.Error("Error getting initial market cap", err)

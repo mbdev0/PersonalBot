@@ -40,7 +40,7 @@ func (bt *BuyTransaction) BuildTransaction() error {
 		return fmt.Errorf("buy task was nil - make sure buy task is set")
 	}
 
-	latestHash, err := client.GetLatestBlockhash(bt.BuyTask.CancelToken)
+	latestHash, err := client.GetLatestBlockhash(bt.BuyTask.Ctx())
 	if err != nil {
 		logger.Error("Error getting latest blockhash", err)
 		return err
@@ -49,7 +49,7 @@ func (bt *BuyTransaction) BuildTransaction() error {
 	accountLookupMap := lookuptable.GetAddressLookupTable()
 	tx, err := solana.NewTransaction(*bt.instructions,
 		latestHash.Value.Blockhash,
-		solana.TransactionPayer(bt.BuyTask.Wallet.PublicKey()),
+		solana.TransactionPayer(bt.BuyTask.Wallet().PublicKey()),
 		solana.TransactionAddressTables(accountLookupMap))
 	tx.Message.SetVersion(solana.MessageVersionV0)
 
@@ -58,7 +58,7 @@ func (bt *BuyTransaction) BuildTransaction() error {
 		return err
 	}
 
-	wallets.SignTx(tx, bt.BuyTask.Wallet)
+	wallets.SignTx(tx, bt.BuyTask.Wallet())
 	bt.transaction = tx
 
 	return nil
@@ -67,7 +67,7 @@ func (bt *BuyTransaction) BuildTransaction() error {
 func (bt *BuyTransaction) SendTransaction() error {
 	client := client.GetClient()
 	// SIMULATE TRANSACTION
-	// txResp, err := client.SimulateTransaction(bt.BuyTask.CancelToken.CancellationContext, bt.transaction)
+	// txResp, err := client.SimulateTransaction(bt.BuyTask.Ctx(), bt.transaction)
 	// if err != nil {
 	// 	logger.Error("Transaction simulation failed", err)
 	// 	return nil
@@ -76,14 +76,14 @@ func (bt *BuyTransaction) SendTransaction() error {
 
 	// SEND TRANSACTION WITH OPTIONS
 	// maxRetries := uint(5)
-	// txResp, err := client.SendTransactionWithOpts(bt.BuyTask.CancelToken.CancellationContext, bt.transaction, rpc.TransactionOpts{Encoding: solana.EncodingBase64, SkipPreflight: false, MaxRetries: &maxRetries})
+	// txResp, err := client.SendTransactionWithOpts(bt.BuyTask.Ctx(), bt.transaction, rpc.TransactionOpts{Encoding: solana.EncodingBase64, SkipPreflight: false, MaxRetries: &maxRetries})
 	// if err != nil {
 	// 	logger.Error(err)
 	// }
 	// fmt.Println(txResp.String())
 
 	// SEND TRANSACTION WITH NO OPTS
-	txResp, err := client.SendTransaction(bt.BuyTask.CancelToken.CancellationContext, bt.transaction)
+	txResp, err := client.SendTransaction(bt.BuyTask.Ctx(), bt.transaction)
 	if err != nil {
 		logger.Error(err)
 		return err
@@ -94,7 +94,7 @@ func (bt *BuyTransaction) SendTransaction() error {
 }
 
 func (bt *BuyTransaction) ConfirmTransaction() error {
-	isSuccess, err := client.ConfirmTransaction(bt.signature, bt.BuyTask.CancelToken)
+	isSuccess, err := client.ConfirmTransaction(bt.signature, bt.BuyTask.Ctx())
 	if err != nil {
 		logger.Error("Transaction confirmation failed", err)
 		return err
@@ -114,9 +114,9 @@ func (bt *BuyTransaction) GetTask() tasks.Task {
 
 func getAllInstructionsForBuy(buyTask *tasks.BuyTask) (buyInstructions []solana.Instruction, err error) {
 
-	computeLimitInstruction := instructions.GetComputeUnitLimitInstruction(buyTask.ComputeUnits)
-	computeLimitBudgetInstruction := instructions.GetComputeUnitBudgetInstruction(buyTask.BuyFee, buyTask.ComputeUnits)
-	idEmponenetInstruction := instructions.GetIdempotentInstruction(buyTask.Wallet.PublicKey(), buyTask.TokenAddress, buyTask.CancelToken)
+	computeLimitInstruction := instructions.GetComputeUnitLimitInstruction(buyTask.ComputeUnits())
+	computeLimitBudgetInstruction := instructions.GetComputeUnitBudgetInstruction(buyTask.Fee(), buyTask.ComputeUnits())
+	idEmponenetInstruction := instructions.GetIdempotentInstruction(buyTask.Wallet().PublicKey(), buyTask.Token(), buyTask.Ctx())
 	buyInstruction, err := pump_instructions.GetBuyInstruction(buyTask)
 
 	if err != nil {

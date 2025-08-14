@@ -3,7 +3,6 @@ package client
 import (
 	"context"
 	"fmt"
-	"pump_fun/internal/core/models"
 	"pump_fun/pkg/logger"
 	"time"
 
@@ -17,9 +16,9 @@ const (
 	maxConfirmations = 31
 )
 
-func ConfirmTransaction(sig solana.Signature, cancellationToken models.CancelToken) (IsSuccess bool, err error) {
+func ConfirmTransaction(sig solana.Signature, ctx context.Context) (IsSuccess bool, err error) {
 	client := GetClient()
-	ctx, cancel := context.WithTimeout(cancellationToken.CancellationContext, contextTimeout)
+	ctx, cancel := context.WithTimeout(ctx, contextTimeout)
 	defer cancel()
 
 	for {
@@ -46,7 +45,7 @@ func ConfirmTransaction(sig solana.Signature, cancellationToken models.CancelTok
 			logger.Information(fmt.Sprintf("Transaction confirmed: %d/%d confirmations",
 				*status.Confirmations, maxConfirmations))
 
-			expired, err := IsBlockhashExpired(status.Slot, cancellationToken)
+			expired, err := IsBlockhashExpired(status.Slot, ctx)
 			if err != nil {
 				return false, fmt.Errorf("blockhash expiration check failed: %w", err)
 			}

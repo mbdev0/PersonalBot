@@ -1,7 +1,7 @@
 package instructions
 
 import (
-	"pump_fun/internal/core/models"
+	"context"
 	"pump_fun/internal/solana/client"
 	"pump_fun/pkg/logger"
 
@@ -9,8 +9,8 @@ import (
 	associatedtokenaccount "github.com/gagliardetto/solana-go/programs/associated-token-account"
 )
 
-func GetIdempotentInstruction(wallet solana.PublicKey, mintAddress solana.PublicKey, cancellationToken models.CancelToken) *associatedtokenaccount.Instruction {
-	idEmponentInstruction, err := getIdempotentInstructionIfExists(wallet, mintAddress, cancellationToken)
+func GetIdempotentInstruction(wallet solana.PublicKey, mintAddress solana.PublicKey, ctx context.Context) *associatedtokenaccount.Instruction {
+	idEmponentInstruction, err := getIdempotentInstructionIfExists(wallet, mintAddress, ctx)
 
 	if err != nil {
 		logger.Error("Error getting IdempotentInstruction: ", err)
@@ -20,13 +20,13 @@ func GetIdempotentInstruction(wallet solana.PublicKey, mintAddress solana.Public
 	return idEmponentInstruction
 }
 
-func getIdempotentInstructionIfExists(wallet solana.PublicKey, mintAddress solana.PublicKey, cancellationToken models.CancelToken) (*associatedtokenaccount.Instruction, error) {
+func getIdempotentInstructionIfExists(wallet solana.PublicKey, mintAddress solana.PublicKey, ctx context.Context) (*associatedtokenaccount.Instruction, error) {
 	associatedTokenAddressPubkey, _, err := solana.FindAssociatedTokenAddress(wallet, mintAddress)
 	if err != nil {
 		return nil, err
 	}
 
-	_, err = client.GetAccountInfo(associatedTokenAddressPubkey.String(), cancellationToken)
+	_, err = client.GetAccountInfo(associatedTokenAddressPubkey.String(), ctx)
 
 	if err != nil {
 		if err.Error() == "not found" {
