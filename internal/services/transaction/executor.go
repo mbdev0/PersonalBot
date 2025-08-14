@@ -20,13 +20,13 @@ func (th *Executor) GetImplementation(task tasks.Task) (Transaction, error) {
 		return &sell.SellTransaction{Task: t}, nil
 	}
 
-	return nil, fmt.Errorf("no transaction found for the task: %s", task.GetTaskType())
+	return nil, fmt.Errorf("no transaction found for the task: %s", task.Type())
 }
 
 func (th *Executor) Execute(transaction Transaction) error {
 
 	task := transaction.GetTask()
-	ctx := task.Context()
+	ctx := task.Ctx()
 
 	if task == nil {
 		return fmt.Errorf("task wasn't set for the transaction")

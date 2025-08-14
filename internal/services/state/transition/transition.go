@@ -18,7 +18,7 @@ var StateTransitions map[tasks.TaskState]tasks.Transistion = map[tasks.TaskState
 }
 
 func IsAbleToTransitionTo(nextState tasks.TaskState, task tasks.Task) bool {
-	transition, ok := StateTransitions[task.GetState().TaskState]
+	transition, ok := StateTransitions[task.State().TaskState]
 	if !ok {
 		return false
 	}
@@ -44,7 +44,7 @@ func IsRetryableState(state tasks.TaskState) bool {
 }
 
 func AutoTransitionTask(task tasks.Task, err error) error {
-	transition, ok := StateTransitions[task.GetState().TaskState]
+	transition, ok := StateTransitions[task.State().TaskState]
 	if !ok {
 		return fmt.Errorf("no next transition ")
 	}

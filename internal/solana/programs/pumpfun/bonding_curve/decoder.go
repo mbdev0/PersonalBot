@@ -1,12 +1,13 @@
 package bondingcurve
 
 import (
+	"context"
 	"encoding/base64"
 	"errors"
 	"fmt"
 	"math/big"
-	"pump_fun/internal/core/models"
 	"pump_fun/infrastructure/solana_price"
+	"pump_fun/internal/core/models"
 	"pump_fun/internal/solana/client"
 
 	"github.com/gagliardetto/solana-go"
@@ -32,8 +33,8 @@ func GetMarketCapFrom(bondingCurveValue string) (marketCapVal *big.Float, err er
 	return marketCap, nil, false
 }
 
-func GetMarketCapInitial(bondingCurveAddress string, cancellationToken models.CancelToken) (marketCapVal *big.Float, err error, hasCompleted bool) {
-	bondingCurveResponse, err := client.GetAccountInfo(bondingCurveAddress, cancellationToken)
+func GetMarketCapInitial(bondingCurveAddress string, ctx context.Context) (marketCapVal *big.Float, err error, hasCompleted bool) {
+	bondingCurveResponse, err := client.GetAccountInfo(bondingCurveAddress, ctx)
 	if err != nil {
 		return nil, err, false
 	}
@@ -84,8 +85,8 @@ func GetSolanaTokenPrice(bondingCurve models.BondingCurve, tokenAmount uint64) *
 
 }
 
-func GetBondingCurveDataFromAddress(bondingCurveAddress string, cancellationToken models.CancelToken) (bondingCurveData *models.BondingCurve, err error, hasCompleted bool) {
-	bondingCurveResponse, err := client.GetAccountInfo(bondingCurveAddress, cancellationToken)
+func GetBondingCurveDataFromAddress(bondingCurveAddress string, ctx context.Context) (bondingCurveData *models.BondingCurve, err error, hasCompleted bool) {
+	bondingCurveResponse, err := client.GetAccountInfo(bondingCurveAddress, ctx)
 	if err != nil {
 		return nil, err, false
 	}

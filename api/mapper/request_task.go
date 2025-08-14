@@ -29,43 +29,42 @@ func MapRequestTaskToTask(reqTask *dto.RequestTask) (tasks.Task, error) {
 	return nil, fmt.Errorf("type of transaction was wrong")
 }
 
-func createBuyTask(reqTask *dto.RequestTask) (task *tasks.BuyTask, err error) {
-	buyTask := tasks.BuyTask{}
-	buyTask.InitDefaults()
-
-	if reqTask.BuyAmount == nil {
+func createBuyTask(req *dto.RequestTask) (task *tasks.BuyTask, err error) {
+	if req.BuyAmount == nil {
 		return nil, fmt.Errorf("buy amount not filled in")
 	}
 
-	if reqTask.BuyFee == nil {
+	if req.BuyFee == nil {
 		return nil, fmt.Errorf("buy fee not filled in")
 	}
 
-	bigBuyAmount := big.NewInt(int64((*reqTask.BuyAmount * constants.LamportsConversion)))
-	buyTask.BuyAmount = *bigBuyAmount
-	buyTask.BuyFee = *reqTask.BuyFee
-	buyTask.ComputeUnits = reqTask.ComputeUnits
-	buyTask.Slippage = reqTask.Slippage
+	bigBuyAmount := big.NewInt(int64((*req.BuyAmount * constants.LamportsConversion)))
 
-	buyTask.Wallet, err = solana.PrivateKeyFromBase58(reqTask.WalletAddressPrivateKey)
+	wallet, err := solana.PrivateKeyFromBase58(req.WalletAddressPrivateKey)
 	if err != nil {
 		return nil, err
 	}
 
-	buyTask.TokenAddress, err = solana.PublicKeyFromBase58(reqTask.TokenAddress)
+	address, err := solana.PublicKeyFromBase58(req.TokenAddress)
 	if err != nil {
 		return nil, err
 	}
 
-	buyTask.State.TaskState = tasks.TaskCreate
+	bt := tasks.NewBuyTask(wallet, address,
+		[]tasks.Option{
+			tasks.WithComputeUnits(req.ComputeUnits),
+			tasks.WithSlippage(req.Slippage),
+		},
+		[]tasks.BuyOption{
+			tasks.WithBuyAmount(bigBuyAmount),
+			tasks.WithBuyFee(*req.BuyFee),
+		},
+	)
 
-	return &buyTask, nil
+	return bt, nil
 }
 
 func createSellTask(reqTask *dto.RequestTask) (task *tasks.SellTask, err error) {
-	sellTask := tasks.SellTask{}
-	sellTask.InitDefaults()
-
 	if reqTask.SellAmount == nil {
 		return nil, fmt.Errorf("sell amount is empty")
 	}
@@ -74,20 +73,25 @@ func createSellTask(reqTask *dto.RequestTask) (task *tasks.SellTask, err error) 
 		return nil, fmt.Errorf("sell fee is empty")
 	}
 
-	sellTask.SellFee = *reqTask.SellFee
-	sellTask.PercentageToSell = *reqTask.SellAmount
-	sellTask.ComputeUnits = reqTask.ComputeUnits
-	sellTask.Slippage = reqTask.Slippage
-	sellTask.TokenAddress, err = solana.PublicKeyFromBase58(reqTask.TokenAddress)
+	token, err := solana.PublicKeyFromBase58(reqTask.TokenAddress)
 	if err != nil {
 		return nil, fmt.Errorf("token address is invalid format")
 	}
-	sellTask.Wallet, err = solana.PrivateKeyFromBase58(reqTask.WalletAddressPrivateKey)
+	wallet, err := solana.PrivateKeyFromBase58(reqTask.WalletAddressPrivateKey)
 	if err != nil {
 		return nil, fmt.Errorf("private key is not valid/not found")
 	}
 
-	sellTask.State.TaskState = tasks.TaskCreate
+	sellTask := tasks.NewSellTask(wallet, token,
+		[]tasks.Option{
+			tasks.WithComputeUnits(reqTask.ComputeUnits),
+			tasks.WithSlippage(reqTask.Slippage),
+		},
+		[]tasks.SellOption{
+			tasks.WithSellAmount(*reqTask.SellAmount),
+			tasks.WithSellFee(*reqTask.SellFee),
+		},
+	)
 
-	return &sellTask, nil
+	return sellTask, nil
 }
