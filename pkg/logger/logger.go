@@ -12,13 +12,12 @@ import (
 
 var (
 	slogLogger *slog.Logger
+	once       sync.Once
 )
 
 const (
 	stackSkip = 2
 )
-
-var lock = &sync.Mutex{}
 
 func initSLog() {
 	f, err := os.OpenFile("logs.log", os.O_RDWR|os.O_CREATE, 0666)
@@ -32,14 +31,11 @@ func initSLog() {
 }
 
 func getLogger() *slog.Logger {
-	if slogLogger == nil {
-		lock.Lock()
-		defer lock.Unlock()
-		if slogLogger == nil {
-			initSLog()
-		}
-	}
-	slog.SetDefault(slogLogger)
+	once.Do(func() {
+		initSLog()
+		slog.SetDefault(slogLogger)
+	})
+
 	return slogLogger
 }
 func logInternal(level slog.Level, msg string, attrs ...slog.Attr) {

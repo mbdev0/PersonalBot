@@ -14,7 +14,7 @@ import (
 
 var (
 	addressLookupTable *map[solana.PublicKey]solana.PublicKeySlice
-	lock               = &sync.Mutex{}
+	once               sync.Once
 )
 
 func GetAddressLookupTable() map[solana.PublicKey]solana.PublicKeySlice {
@@ -22,14 +22,9 @@ func GetAddressLookupTable() map[solana.PublicKey]solana.PublicKeySlice {
 }
 
 func getLookupTable() map[solana.PublicKey]solana.PublicKeySlice {
-	if addressLookupTable == nil {
-		lock.Lock()
-		defer lock.Unlock()
-		if addressLookupTable == nil {
-			addressLookupTable = loadLookupTable()
-		}
-	}
-
+	once.Do(func() {
+		addressLookupTable = loadLookupTable()
+	})
 	return *addressLookupTable
 }
 
