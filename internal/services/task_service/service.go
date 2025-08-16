@@ -10,6 +10,7 @@ import (
 
 type TaskService struct {
 	StateMachine *state.Machine
+	StateManager *state.Manager
 	Tasks        map[string]tasks.Task
 	mu           sync.Mutex
 }
@@ -81,5 +82,11 @@ func (ts *TaskService) TransitionTask(id string, newState tasks.TaskState) (err 
 	if err != nil {
 		return fmt.Errorf("transition failed for task %s with error: %w", task.Id(), err)
 	}
+
+	err = ts.StateManager.ExecuteAction(newState, task)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
