@@ -51,14 +51,18 @@ func (bt *BuyTransaction) BuildTransaction() error {
 		latestHash.Value.Blockhash,
 		solana.TransactionPayer(bt.BuyTask.Wallet().PublicKey()),
 		solana.TransactionAddressTables(accountLookupMap))
-	tx.Message.SetVersion(solana.MessageVersionV0)
 
 	if err != nil {
 		logger.Error("Error creating transaction", err)
 		return err
 	}
 
-	wallets.SignTx(tx, bt.BuyTask.Wallet())
+	tx.Message.SetVersion(solana.MessageVersionV0)
+
+	err = wallets.SignTx(tx, bt.BuyTask.Wallet())
+	if err != nil {
+		return err
+	}
 	bt.transaction = tx
 
 	return nil
@@ -116,7 +120,11 @@ func getAllInstructionsForBuy(buyTask *tasks.BuyTask) (buyInstructions []solana.
 
 	computeLimitInstruction := instructions.GetComputeUnitLimitInstruction(buyTask.ComputeUnits())
 	computeLimitBudgetInstruction := instructions.GetComputeUnitBudgetInstruction(buyTask.Fee(), buyTask.ComputeUnits())
-	idEmponenetInstruction := instructions.GetIdempotentInstruction(buyTask.Wallet().PublicKey(), buyTask.Token(), buyTask.Ctx())
+	idEmponenetInstruction, err := instructions.GetIdempotentInstruction(buyTask.Wallet().PublicKey(), buyTask.Token(), buyTask.Ctx())
+	if err != nil {
+		return nil, err
+	}
+
 	buyInstruction, err := pump_instructions.GetBuyInstruction(buyTask)
 
 	if err != nil {

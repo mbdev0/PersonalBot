@@ -25,6 +25,7 @@ func GetLatestBlockhash(ctx context.Context) (*rpc.GetLatestBlockhashResult, err
 	latestHash, err := client.GetLatestBlockhash(ctx, rpc.CommitmentFinalized)
 	if err != nil {
 		logger.Error("Error getting latest blockhash", err)
+		return nil, err
 	}
 
 	return latestHash, nil
