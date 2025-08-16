@@ -23,19 +23,22 @@ func (th *Executor) GetImplementation(task tasks.Task) (Transaction, error) {
 	return nil, fmt.Errorf("no transaction found for the task: %s", task.Type())
 }
 
-func (th *Executor) Execute(transaction Transaction) error {
+func (th *Executor) Execute(done chan bool, transaction Transaction) {
 
 	task := transaction.GetTask()
 	ctx := task.Ctx()
 
 	if task == nil {
-		return fmt.Errorf("task wasn't set for the transaction")
+		transition.AutoTransitionTask(task, fmt.Errorf("no task set in transaction"))
+		done <- true
+		return
 	}
 
 	err := validator.ValidateStruct(task)
 	if err != nil {
 		transition.AutoTransitionTask(task, err)
-		return err
+		done <- true
+		return
 	}
 
 	transition.AutoTransitionTask(task, nil) //from running to next step
@@ -51,16 +54,18 @@ func (th *Executor) Execute(transaction Transaction) error {
 
 	for _, step := range steps {
 		if err := ctx.Err(); err != nil {
-			return err
+			transition.AutoTransitionTask(task, err)
+			done <- true
+			return
 		}
 
 		err := step()
 		transition.AutoTransitionTask(task, err)
 		if err != nil {
-			return err
+			done <- true
+			return
 		}
 	}
 
-	return nil
-
+	done <- true
 }
