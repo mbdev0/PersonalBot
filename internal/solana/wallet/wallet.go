@@ -6,7 +6,7 @@ import (
 	"github.com/gagliardetto/solana-go"
 )
 
-func SignTx(tx *solana.Transaction, privateKey solana.PrivateKey) {
+func SignTx(tx *solana.Transaction, privateKey solana.PrivateKey) error {
 
 	_, err := tx.Sign(
 		func(key solana.PublicKey) *solana.PrivateKey {
@@ -19,5 +19,7 @@ func SignTx(tx *solana.Transaction, privateKey solana.PrivateKey) {
 
 	if err != nil {
 		logger.Error("Error signing transaction", err)
+		return err
 	}
+	return nil
 }

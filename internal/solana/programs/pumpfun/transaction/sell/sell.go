@@ -57,7 +57,11 @@ func (st *SellTransaction) BuildTransaction() error {
 		return err
 	}
 
-	wallets.SignTx(tx, st.Task.Wallet())
+	err = wallets.SignTx(tx, st.Task.Wallet())
+	if err != nil {
+		return err
+	}
+
 	st.transaction = tx
 	return nil
 }

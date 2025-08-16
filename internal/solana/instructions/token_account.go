@@ -9,15 +9,15 @@ import (
 	associatedtokenaccount "github.com/gagliardetto/solana-go/programs/associated-token-account"
 )
 
-func GetIdempotentInstruction(wallet solana.PublicKey, mintAddress solana.PublicKey, ctx context.Context) *associatedtokenaccount.Instruction {
+func GetIdempotentInstruction(wallet solana.PublicKey, mintAddress solana.PublicKey, ctx context.Context) (*associatedtokenaccount.Instruction, error) {
 	idEmponentInstruction, err := getIdempotentInstructionIfExists(wallet, mintAddress, ctx)
 
 	if err != nil {
 		logger.Error("Error getting IdempotentInstruction: ", err)
-		return nil
+		return nil, err
 	}
 
-	return idEmponentInstruction
+	return idEmponentInstruction, nil
 }
 
 func getIdempotentInstructionIfExists(wallet solana.PublicKey, mintAddress solana.PublicKey, ctx context.Context) (*associatedtokenaccount.Instruction, error) {
