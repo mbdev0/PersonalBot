@@ -5,14 +5,22 @@ import (
 	"pump_fun/internal/core/tasks"
 	"pump_fun/internal/core/validator"
 	"pump_fun/internal/services/state/transition"
+	subscriptionhub "pump_fun/internal/services/subscription_hub"
 	"pump_fun/internal/solana/programs/pumpfun/transaction/buy"
 	"pump_fun/internal/solana/programs/pumpfun/transaction/sell"
 	"pump_fun/pkg/logger"
+	"time"
 )
 
-type Executor struct{}
+type Executor struct {
+	subhub *subscriptionhub.Hub
+}
 
-func (th *Executor) GetImplementation(task tasks.Task) (Transaction, error) {
+func (e *Executor) New(subhub *subscriptionhub.Hub) {
+	e.subhub = subhub
+}
+
+func (e *Executor) GetImplementation(task tasks.Task) (Transaction, error) {
 	switch t := task.(type) {
 	case *tasks.BuyTask:
 		return &buy.BuyTransaction{BuyTask: t}, nil
@@ -23,26 +31,25 @@ func (th *Executor) GetImplementation(task tasks.Task) (Transaction, error) {
 	return nil, fmt.Errorf("no transaction found for the task: %s", task.Type())
 }
 
-func (th *Executor) Execute(done chan bool, transaction Transaction) {
+func (e *Executor) Execute(done chan struct{}, transaction Transaction) {
 
 	task := transaction.GetTask()
 	ctx := task.Ctx()
 
 	if task == nil {
-		transition.AutoTransitionTask(task, fmt.Errorf("no task set in transaction"))
-		done <- true
+		e.transitionAndPublishTask(task, fmt.Errorf("task not set in transaction"))
+		close(done)
 		return
 	}
 
 	err := validator.ValidateStruct(task)
 	if err != nil {
-		transition.AutoTransitionTask(task, err)
-		done <- true
+		e.transitionAndPublishTask(task, err)
+		close(done)
 		return
 	}
 
 	transition.AutoTransitionTask(task, nil) //from running to next step
-
 	steps := []func() error{
 		transaction.BuildInstructions,
 		transaction.BuildTransaction,
@@ -54,18 +61,31 @@ func (th *Executor) Execute(done chan bool, transaction Transaction) {
 
 	for _, step := range steps {
 		if err := ctx.Err(); err != nil {
-			transition.AutoTransitionTask(task, err)
-			done <- true
+			e.transitionAndPublishTask(task, err)
+			close(done)
 			return
 		}
 
 		err := step()
-		transition.AutoTransitionTask(task, err)
+		e.transitionAndPublishTask(task, err)
 		if err != nil {
-			done <- true
+			close(done)
 			return
 		}
 	}
 
-	done <- true
+	close(done)
+}
+
+func (e *Executor) transitionAndPublishTask(t tasks.Task, err error) {
+	transition.AutoTransitionTask(t, err)
+	e.subhub.Publish(t, createTaskEvent(t))
+}
+
+func createTaskEvent(t tasks.Task) tasks.TaskEvent {
+	return tasks.TaskEvent{
+		TaskId: t.Id(),
+		State:  t.State(),
+		Time:   time.Now().Local().String(),
+	}
 }

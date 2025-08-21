@@ -7,12 +7,13 @@ import (
 	subscriptionhub "pump_fun/internal/services/subscription_hub"
 	"pump_fun/pkg/logger"
 	"sync"
+	"time"
 )
 
 type TaskService struct {
 	StateMachine *state.Machine
 	StateManager *state.Manager
-	Hub          *subscriptionhub.Hub
+	hub          *subscriptionhub.Hub
 	Tasks        map[string]tasks.Task
 	mu           sync.Mutex
 }
@@ -81,6 +82,8 @@ func (ts *TaskService) TransitionTask(id string, newState tasks.TaskState) (err 
 	}
 
 	err = ts.StateMachine.Transition(task, newState)
+	ts.hub.Publish(task, tasks.TaskEvent{TaskId: task.Id(), State: task.State(), Time: time.Now().String()})
+
 	if err != nil {
 		return fmt.Errorf("transition failed for task %s with error: %w", task.Id(), err)
 	}
@@ -93,7 +96,10 @@ func (ts *TaskService) TransitionTask(id string, newState tasks.TaskState) (err 
 	return nil
 }
 
-func (ts *TaskService) Subscribe(task tasks.Task) *subscriptionhub.Subscription {
-	c := ts.Hub.Subscribe(task)
-	return c
+func (ts *TaskService) Subscribe(task tasks.Task) (*subscriptionhub.Subscription, error) {
+	c, err := ts.hub.Subscribe(task)
+	if err != nil {
+		return nil, err
+	}
+	return c, nil
 }

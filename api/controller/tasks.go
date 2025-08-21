@@ -107,7 +107,10 @@ func (tc *TaskController) Subscribe(id string) (*subscriptionhub.Subscription, e
 		return nil, err
 	}
 
-	c := tc.TaskService.Subscribe(task)
+	c, err := tc.TaskService.Subscribe(task)
+	if err != nil {
+		return nil, err
+	}
 	return c, nil
 }
 

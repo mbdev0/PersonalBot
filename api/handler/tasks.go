@@ -134,9 +134,9 @@ func (th *TaskHandler) DeleteTask(w http.ResponseWriter, r *http.Request) {
 }
 
 func (th *TaskHandler) TransitionTask(w http.ResponseWriter, r *http.Request) {
-	// we get the body which would be in the format:
 	decoder := json.NewDecoder(r.Body)
 	decoder.DisallowUnknownFields()
+
 	var transition dto.RequestTransitionTask
 	err := decoder.Decode(&transition)
 
@@ -153,6 +153,10 @@ func (th *TaskHandler) TransitionTask(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusNoContent)
 	logger.Error(err)
+}
+
+func (th *TaskHandler) Subscribe(w http.ResponseWriter, r *http.Request) {
+
 }
 
 func (th *TaskHandler) Test(w http.ResponseWriter, r *http.Request) {
