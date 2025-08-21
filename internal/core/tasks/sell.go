@@ -20,7 +20,7 @@ type SellTask struct {
 	state          State
 	ctx            context.Context
 	cancel         context.CancelFunc
-	mu             sync.RWMutex
+	mu             *sync.RWMutex
 }
 
 func NewSellTask(pk solana.PrivateKey, token solana.PublicKey, common []Option, sellOpt []SellOption) *SellTask {
@@ -34,6 +34,7 @@ func NewSellTask(pk solana.PrivateKey, token solana.PublicKey, common []Option, 
 		token:    token,
 		ctx:      ctx,
 		cancel:   cancel,
+		mu:       &sync.RWMutex{},
 	}
 
 	for _, opt := range common {

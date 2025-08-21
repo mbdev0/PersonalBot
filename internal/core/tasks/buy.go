@@ -21,7 +21,7 @@ type BuyTask struct {
 	state       State
 	ctx         context.Context
 	cancel      context.CancelFunc
-	mu          sync.RWMutex
+	mu          *sync.RWMutex
 }
 
 func NewBuyTask(pk solana.PrivateKey, token solana.PublicKey, common []Option, buyOpts []BuyOption) *BuyTask {
@@ -34,6 +34,7 @@ func NewBuyTask(pk solana.PrivateKey, token solana.PublicKey, common []Option, b
 		state:    State{TaskState: TaskCreate},
 		ctx:      ctx,
 		cancel:   cancel,
+		mu:       &sync.RWMutex{},
 	}
 
 	for _, opts := range common {

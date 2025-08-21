@@ -7,6 +7,7 @@ import (
 	"pump_fun/api/handler"
 	"pump_fun/app"
 	"pump_fun/internal/services/state"
+	subscriptionhub "pump_fun/internal/services/subscription_hub"
 	taskservice "pump_fun/internal/services/task_service"
 	"pump_fun/pkg/logger"
 )
@@ -16,8 +17,9 @@ func main() {
 
 	//TODO: move the init of api's into launch and return one mux back
 	fsm := state.Machine{}
+	subhub := subscriptionhub.Hub{}
 	stateManger := state.Manager{}
-	stateManger.New()
+	stateManger.New(&subhub)
 	taskService := taskservice.TaskService{StateMachine: &fsm, StateManager: &stateManger}
 	taskService.NewTaskService()
 	buyController := controller.TaskController{TaskService: &taskService}

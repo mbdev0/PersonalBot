@@ -3,6 +3,7 @@ package state
 import (
 	"fmt"
 	"pump_fun/internal/core/tasks"
+	subscriptionhub "pump_fun/internal/services/subscription_hub"
 	"pump_fun/internal/services/transaction"
 	"pump_fun/pkg/logger"
 	"sync"
@@ -14,9 +15,13 @@ type Manager struct {
 	mu       sync.Mutex
 }
 
-func (m *Manager) New() {
+func (m *Manager) New(subhub *subscriptionhub.Hub) {
 	m.running = map[string]tasks.Task{}
-	m.executor = &transaction.Executor{}
+
+	executor := &transaction.Executor{}
+	executor.New(subhub)
+
+	m.executor = executor
 	m.mu = sync.Mutex{}
 }
 
@@ -55,16 +60,16 @@ func (m *Manager) run(task tasks.Task) error {
 
 	go func() {
 		logger.Information(m.running)
-		done := make(chan bool, 1)
+		done := make(chan struct{})
 		m.executor.Execute(done, transactionImpl)
 
-		isDone := <-done
-		if isDone {
-			m.mu.Lock()
-			delete(m.running, task.Id())
-			logger.Information(m.running)
-			m.mu.Unlock()
-		}
+		//wait for the channel to close to continue
+		<-done
+
+		m.mu.Lock()
+		delete(m.running, task.Id())
+		logger.Information(m.running)
+		m.mu.Unlock()
 	}()
 	return nil
 }
