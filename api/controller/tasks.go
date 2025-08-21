@@ -4,6 +4,7 @@ import (
 	"pump_fun/api/dto"
 	"pump_fun/api/mapper"
 	"pump_fun/internal/core/tasks"
+	subscriptionhub "pump_fun/internal/services/subscription_hub"
 	taskservice "pump_fun/internal/services/task_service"
 )
 
@@ -98,6 +99,16 @@ func (tc *TaskController) TransitionTask(id string, newState string) (err error)
 	}
 
 	return nil
+}
+
+func (tc *TaskController) Subscribe(id string) (*subscriptionhub.Subscription, error) {
+	task, err := tc.TaskService.GetTaskWith(id)
+	if err != nil {
+		return nil, err
+	}
+
+	c := tc.TaskService.Subscribe(task)
+	return c, nil
 }
 
 func (tc *TaskController) TestEP() string {

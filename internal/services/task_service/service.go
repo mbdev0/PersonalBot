@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"pump_fun/internal/core/tasks"
 	"pump_fun/internal/services/state"
+	subscriptionhub "pump_fun/internal/services/subscription_hub"
 	"pump_fun/pkg/logger"
 	"sync"
 )
@@ -11,6 +12,7 @@ import (
 type TaskService struct {
 	StateMachine *state.Machine
 	StateManager *state.Manager
+	Hub          *subscriptionhub.Hub
 	Tasks        map[string]tasks.Task
 	mu           sync.Mutex
 }
@@ -89,4 +91,9 @@ func (ts *TaskService) TransitionTask(id string, newState tasks.TaskState) (err 
 	}
 
 	return nil
+}
+
+func (ts *TaskService) Subscribe(task tasks.Task) *subscriptionhub.Subscription {
+	c := ts.Hub.Subscribe(task)
+	return c
 }
