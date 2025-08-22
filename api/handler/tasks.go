@@ -1,22 +1,33 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"pump_fun/api/controller"
 	"pump_fun/api/dto"
+	"pump_fun/internal/core/tasks"
+	subscriptionhub "pump_fun/internal/services/subscription_hub"
 	"pump_fun/pkg/logger"
+
+	"github.com/coder/websocket"
+	"github.com/coder/websocket/wsjson"
 )
 
 type TaskHandler struct {
-	controller *controller.TaskController
+	controller  *controller.TaskController
+	subscribers chan subscriptionhub.Subscription
+	bufferSize  int
 }
 
 func NewTaskHandler(controller *controller.TaskController) http.Handler {
 	mux := http.NewServeMux()
 	taskHandler := &TaskHandler{controller: controller}
 	taskHandler.registerRoutes(mux)
+	taskHandler.bufferSize = 1000
+	taskHandler.subscribers = make(chan subscriptionhub.Subscription, taskHandler.bufferSize)
+
 	return mux
 }
 
@@ -28,6 +39,7 @@ func (th *TaskHandler) registerRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("PUT /task/{id}", th.UpdateTask)
 	mux.HandleFunc("DELETE /task/{id}", th.DeleteTask)
 	mux.HandleFunc("POST /transition/{id}", th.TransitionTask)
+	mux.HandleFunc("/subscribe", th.Subscribe)
 }
 
 func (th *TaskHandler) CreateTask(w http.ResponseWriter, r *http.Request) {
@@ -156,7 +168,66 @@ func (th *TaskHandler) TransitionTask(w http.ResponseWriter, r *http.Request) {
 }
 
 func (th *TaskHandler) Subscribe(w http.ResponseWriter, r *http.Request) {
+	logger.Information("we're in subscribe")
+	c, err := websocket.Accept(w, r, nil)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	defer c.CloseNow()
+	wsWrite := make(chan tasks.TaskEvent, 1000)
 
+	//fan in loop
+	go func() {
+		for sub := range th.subscribers {
+			go func(s subscriptionhub.Subscription) {
+				for event := range s.Chan() {
+					wsWrite <- event
+				}
+			}(sub)
+		}
+	}()
+
+	//ws loop
+	go func() {
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+		for msg := range wsWrite {
+			v, _ := json.Marshal(msg)
+			logger.Information(v)
+			wsjson.Write(ctx, c, string(v))
+		}
+	}()
+
+	//read loop
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	for {
+		var msg *dto.Subscribe
+		err := wsjson.Read(ctx, c, &msg)
+		logger.Information(err, "read message")
+		if err != nil {
+			wsjson.Write(ctx, c, "error whilst reading message")
+			return
+		}
+
+		switch msg.Type {
+		case "Subscribe":
+			sub, err := th.controller.Subscribe(msg.Id)
+			if err != nil {
+				logger.Error(err)
+				wsjson.Write(ctx, c, fmt.Sprintf("error: %e", err))
+				continue
+			}
+			th.subscribers <- *sub
+		case "Unsubscribe":
+		default:
+			wsjson.Write(ctx, c, "weird")
+		}
+	}
+
+	// ctx, cancel := context.WithCancel(context.Background())
+	// defer cancel()
 }
 
 func (th *TaskHandler) Test(w http.ResponseWriter, r *http.Request) {

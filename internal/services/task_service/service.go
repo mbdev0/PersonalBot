@@ -13,7 +13,7 @@ import (
 type TaskService struct {
 	StateMachine *state.Machine
 	StateManager *state.Manager
-	hub          *subscriptionhub.Hub
+	Hub          *subscriptionhub.Hub
 	Tasks        map[string]tasks.Task
 	mu           sync.Mutex
 }
@@ -82,7 +82,7 @@ func (ts *TaskService) TransitionTask(id string, newState tasks.TaskState) (err 
 	}
 
 	err = ts.StateMachine.Transition(task, newState)
-	ts.hub.Publish(task, tasks.TaskEvent{TaskId: task.Id(), State: task.State(), Time: time.Now().String()})
+	ts.Hub.Publish(task, tasks.TaskEvent{TaskId: task.Id(), State: task.State(), Time: time.Now().String()})
 
 	if err != nil {
 		return fmt.Errorf("transition failed for task %s with error: %w", task.Id(), err)
@@ -97,7 +97,7 @@ func (ts *TaskService) TransitionTask(id string, newState tasks.TaskState) (err 
 }
 
 func (ts *TaskService) Subscribe(task tasks.Task) (*subscriptionhub.Subscription, error) {
-	c, err := ts.hub.Subscribe(task)
+	c, err := ts.Hub.Subscribe(task)
 	if err != nil {
 		return nil, err
 	}
