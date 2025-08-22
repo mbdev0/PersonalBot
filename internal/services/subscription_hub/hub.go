@@ -8,8 +8,13 @@ import (
 )
 
 type Subscription struct {
+	taskId        string
 	taskEventChan chan tasks.TaskEvent
 	cancel        func()
+}
+
+func (s *Subscription) Id() string {
+	return s.taskId
 }
 
 func (s *Subscription) Chan() chan tasks.TaskEvent {
@@ -47,7 +52,7 @@ func (h *Hub) Subscribe(task tasks.Task) (*Subscription, error) {
 
 	subChan := make(chan tasks.TaskEvent, h.bufferSize)
 	cancel := h.cancel(task)
-	h.subscriptions[task.Id()] = Subscription{subChan, cancel}
+	h.subscriptions[task.Id()] = Subscription{task.Id(), subChan, cancel}
 	sub, ok := h.subscriptions[task.Id()]
 
 	if last, ok := h.last[task.Id()]; ok {
@@ -62,6 +67,7 @@ func (h *Hub) Subscribe(task tasks.Task) (*Subscription, error) {
 		return nil, fmt.Errorf("error whilst making the subscription for task id: %s", task.Id())
 	}
 
+	logger.Information(h.subscriptions)
 	return &sub, nil
 }
 

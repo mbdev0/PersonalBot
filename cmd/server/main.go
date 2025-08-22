@@ -18,9 +18,10 @@ func main() {
 	//TODO: move the init of api's into launch and return one mux back
 	fsm := state.Machine{}
 	subhub := subscriptionhub.Hub{}
+	subhub.New()
 	stateManger := state.Manager{}
 	stateManger.New(&subhub)
-	taskService := taskservice.TaskService{StateMachine: &fsm, StateManager: &stateManger}
+	taskService := taskservice.TaskService{StateMachine: &fsm, StateManager: &stateManger, Hub: &subhub}
 	taskService.NewTaskService()
 	buyController := controller.TaskController{TaskService: &taskService}
 	buyHandler := http.StripPrefix("/api/tasks", handler.NewTaskHandler(&buyController))
