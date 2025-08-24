@@ -114,6 +114,19 @@ func (tc *TaskController) Subscribe(id string) (*subscriptionhub.Subscription, e
 	return c, nil
 }
 
+func (tc *TaskController) Unsubcribe(id string) error {
+	task, err := tc.TaskService.GetTaskWith(id)
+	if err != nil {
+		return err
+	}
+
+	err = tc.TaskService.Unsubscribe(task)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (tc *TaskController) TestEP() string {
 	return "Test successful"
 }
