@@ -8,7 +8,6 @@ import (
 	subscriptionhub "pump_fun/internal/services/subscription_hub"
 	"pump_fun/internal/solana/programs/pumpfun/transaction/buy"
 	"pump_fun/internal/solana/programs/pumpfun/transaction/sell"
-	"pump_fun/pkg/logger"
 	"time"
 )
 
@@ -56,8 +55,6 @@ func (e *Executor) Execute(done chan struct{}, transaction Transaction) {
 		transaction.SendTransaction,
 		transaction.ConfirmTransaction,
 	}
-
-	logger.Information(steps)
 
 	for _, step := range steps {
 		if err := ctx.Err(); err != nil {
