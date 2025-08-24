@@ -77,7 +77,6 @@ func (m *Manager) run(task tasks.Task) error {
 func (m *Manager) cancel(task tasks.Task) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	logger.Information("in cancel")
 
 	if _, ok := m.running[task.Id()]; !ok {
 		return fmt.Errorf("there is no task running with id: %s", task.Id())
