@@ -7,24 +7,6 @@ import (
 	"sync"
 )
 
-type Subscription struct {
-	taskId        string
-	taskEventChan chan tasks.TaskEvent
-	cancel        func()
-}
-
-func (s *Subscription) Id() string {
-	return s.taskId
-}
-
-func (s *Subscription) Chan() chan tasks.TaskEvent {
-	return s.taskEventChan
-}
-
-func (s *Subscription) Cancel() func() {
-	return s.cancel
-}
-
 type Hub struct {
 	//id -> {subscription chan, cancel func}
 	subscriptions map[string]Subscription
@@ -67,7 +49,6 @@ func (h *Hub) Subscribe(task tasks.Task) (*Subscription, error) {
 		return nil, fmt.Errorf("error whilst making the subscription for task id: %s", task.Id())
 	}
 
-	logger.Information(h.subscriptions)
 	return &sub, nil
 }
 
@@ -116,9 +97,6 @@ func (h *Hub) Publish(task tasks.Task, event tasks.TaskEvent) {
 
 func (h *Hub) cancel(t tasks.Task) func() {
 	return func() {
-		h.mu.Lock()
-		defer h.mu.Unlock()
-
 		sub := h.subscriptions[t.Id()]
 		close(sub.taskEventChan)
 

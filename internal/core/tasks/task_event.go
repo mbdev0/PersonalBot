@@ -2,6 +2,6 @@ package tasks
 
 type TaskEvent struct {
 	TaskId string
-	State State
-	Time  string
+	State  State
+	Time   string
 }

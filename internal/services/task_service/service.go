@@ -103,3 +103,11 @@ func (ts *TaskService) Subscribe(task tasks.Task) (*subscriptionhub.Subscription
 	}
 	return c, nil
 }
+
+func (ts *TaskService) Unsubscribe(task tasks.Task) error {
+	err := ts.Hub.Unsubcribe(task)
+	if err != nil {
+		return err
+	}
+	return nil
+}
