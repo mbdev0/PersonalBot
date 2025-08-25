@@ -38,19 +38,19 @@ func GetSellInstruction(sellTask *tasks.SellTask) (*solana.GenericInstruction, e
 }
 
 func getAccounts(sellTask *tasks.SellTask) ([]*solana.AccountMeta, error) {
-	bondingCurveAddress, err := pda.GetBondingCurveAddress(sellTask.Token().String())
+	bondingCurveAddress, err := pda.GetBondingCurveAddress(sellTask.Token.String())
 	if err != nil {
 		logger.Error("Error getting bonding curve address:", err)
 		return nil, err
 	}
 
-	associatedBondingCurveAddress, err := pda.GetAssociatedBondingCurveAddress(bondingCurveAddress, sellTask.Token().String())
+	associatedBondingCurveAddress, err := pda.GetAssociatedBondingCurveAddress(bondingCurveAddress, sellTask.Token.String())
 	if err != nil {
 		logger.Error("Error getting associated bonding curve address:", err)
 		return nil, err
 	}
 
-	ATA, _, err := solana.FindAssociatedTokenAddress(sellTask.Wallet().PublicKey(), sellTask.Token())
+	ATA, _, err := solana.FindAssociatedTokenAddress(sellTask.Wallet.PublicKey(), sellTask.Token)
 	if err != nil {
 		logger.Error("Error getting token address: ", err)
 		return nil, err
@@ -66,11 +66,11 @@ func getAccounts(sellTask *tasks.SellTask) ([]*solana.AccountMeta, error) {
 	accounts := []*solana.AccountMeta{
 		utils.GetAccountMeta(constants.GlobalAccount, false, false),
 		utils.GetAccountMeta(constants.FeeRecipient, true, false),
-		utils.GetAccountMeta(sellTask.Token().String(), false, false),
+		utils.GetAccountMeta(sellTask.Token.String(), false, false),
 		utils.GetAccountMeta(bondingCurveAddress, true, false),
 		utils.GetAccountMeta(associatedBondingCurveAddress, true, false),
 		utils.GetAccountMeta(associatedTokenAddress.String(), true, false),
-		utils.GetAccountMeta(sellTask.Wallet().PublicKey().String(), true, true),
+		utils.GetAccountMeta(sellTask.Wallet.PublicKey().String(), true, true),
 		utils.GetAccountMeta(solana.SystemProgramID.String(), false, false),
 		utils.GetAccountMeta(creatorAddress, true, false),
 		utils.GetAccountMeta(constants.TokenProgram, false, false),
@@ -133,13 +133,13 @@ func getTokenAmountAndSolOutput(sellTask *tasks.SellTask) (tokenAmount *uint64, 
 		return nil, nil, err
 	}
 
-	if sellTask.SellPercentage() > 0 && sellTask.SellPercentage() <= 1 {
-		percentageToSell := sellTask.SellPercentage()
+	if sellTask.SellPercentage > 0 && sellTask.SellPercentage <= 1 {
+		percentageToSell := sellTask.SellPercentage
 		*tokenAmount = uint64(float64(*tokenAmount) * percentageToSell)
 	}
 
 	sol_output := bondingcurve.GetSolanaTokenPrice(*bondingCurveData, *tokenAmount)
-	slippage_sol_output := float64(*sol_output) * (1 - sellTask.Slippage())
+	slippage_sol_output := float64(*sol_output) * (1 - sellTask.Slippage)
 	min_sol_output := uint64(slippage_sol_output)
 
 	return tokenAmount, &min_sol_output, nil

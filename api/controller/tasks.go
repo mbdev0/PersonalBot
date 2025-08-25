@@ -12,7 +12,7 @@ type TaskController struct {
 	TaskService *taskservice.TaskService
 }
 
-func (tc *TaskController) CreateTask(requestTask dto.RequestTask) (tasks.Task, error) {
+func (tc *TaskController) CreateTask(requestTask dto.RequestTask) (*dto.ResponseTask, error) {
 	// get the req struct
 	// map to buy task or sell task depending
 	newTask, err := mapper.MapRequestTaskToTask(&requestTask)
@@ -25,7 +25,12 @@ func (tc *TaskController) CreateTask(requestTask dto.RequestTask) (tasks.Task, e
 		return nil, err
 	}
 
-	return createdTask, nil
+	response, err := mapper.MapTaskToReponseTask(createdTask)
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
 }
 
 func (tc *TaskController) GetTask(id string) (*dto.ResponseTask, error) {

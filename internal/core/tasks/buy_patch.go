@@ -26,22 +26,22 @@ func (p *BuyPatch) ApplyTo(t Task) error {
 	defer bt.mu.Unlock()
 
 	if p.Wallet != nil {
-		bt.wallet = *p.Wallet
+		bt.Wallet = *p.Wallet
 	}
 	if p.Token != nil {
-		bt.token = *p.Token
+		bt.Token = *p.Token
 	}
 	if p.Amount != nil {
-		bt.amount = new(big.Int).Set(p.Amount)
+		bt.BuyAmount = new(big.Int).Set(p.Amount)
 	}
 	if p.Fee != nil {
-		bt.fee = *p.Fee
+		bt.Fee = *p.Fee
 	}
 	if p.Slippage != nil {
-		bt.slippage = *p.Slippage
+		bt.Slippage = *p.Slippage
 	}
 	if p.ComputeUnit != nil {
-		bt.computeUnit = *p.ComputeUnit
+		bt.ComputeUnits = *p.ComputeUnit
 	}
 	return nil
 }

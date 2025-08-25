@@ -36,7 +36,7 @@ func GetBuyInstruction(buyTask *tasks.BuyTask) (instruction *solana.GenericInstr
 
 	accounts := buildAccounts(accountAddressesSet)
 
-	instructionData, err := createBuyData(*buyTask.BuyAmount(), accountAddressesSet.BondingCurveData, buyTask.Slippage())
+	instructionData, err := createBuyData(*buyTask.BuyAmount, accountAddressesSet.BondingCurveData, buyTask.Slippage)
 	if err != nil {
 		return nil, fmt.Errorf("error creating buy data: %w", err)
 	}
@@ -50,8 +50,8 @@ func GetBuyInstruction(buyTask *tasks.BuyTask) (instruction *solana.GenericInstr
 
 func setupAccountAddressSet(buyTask *tasks.BuyTask) (AccountAddressesSet, error) {
 	accountAddressesSet := &AccountAddressesSet{
-		TokenAddress:  buyTask.Token().String(),
-		WalletAddress: buyTask.Wallet().PublicKey().String(),
+		TokenAddress:  buyTask.Token.String(),
+		WalletAddress: buyTask.Wallet.PublicKey().String(),
 	}
 
 	// Get and Set bonding curve information

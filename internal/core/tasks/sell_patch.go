@@ -25,22 +25,22 @@ func (p *SellPatch) ApplyTo(t Task) error {
 	defer st.mu.Unlock()
 
 	if p.Wallet != nil {
-		st.wallet = *p.Wallet
+		st.Wallet = *p.Wallet
 	}
 	if p.Token != nil {
-		st.token = *p.Token
+		st.Token = *p.Token
 	}
 	if p.Amount != nil {
-		st.sellPercentage = *p.Amount
+		st.SellPercentage = *p.Amount
 	}
 	if p.Fee != nil {
-		st.fee = *p.Fee
+		st.Fee = *p.Fee
 	}
 	if p.Slippage != nil {
-		st.slippage = *p.Slippage
+		st.Slippage = *p.Slippage
 	}
 	if p.ComputeUnit != nil {
-		st.computeUnits = *p.ComputeUnit
+		st.ComputeUnits = *p.ComputeUnit
 	}
 	return nil
 

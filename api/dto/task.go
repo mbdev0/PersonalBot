@@ -32,8 +32,8 @@ type ResponseTask struct {
 	// //this is a security risk -> figure out a way to have these stored in a secure place and loaded from a secure place
 	// WalletAddressPrivateKey string   `json:"wallet_address_private_key"`
 	TokenAddress string   `json:"token_address"`
-	BuyAmount    *float64 `json:"buy_amount,omitempty"`
-	BuyFee       *float64 `json:"buy_fee,omitempty"`
+	BuyAmount    *float64 `json:"buy_amount,omitempty"` //TODO: make these a string and convert to sol rather lamport
+	BuyFee       *float64 `json:"buy_fee,omitempty"`    //TODO: make these a string and convert to sol rather lamport
 	SellAmount   *float64 `json:"sell_amount,omitempty"`
 	SellFee      *float64 `json:"sell_fee,omitempty"`
 	State        State    `json:"state"`
