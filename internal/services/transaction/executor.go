@@ -7,6 +7,7 @@ import (
 	"pump_fun/internal/services/state/transition"
 	subscriptionhub "pump_fun/internal/services/subscription_hub"
 	"pump_fun/internal/solana/programs/pumpfun/transaction/buy"
+	"pump_fun/internal/solana/programs/pumpfun/transaction/sell"
 )
 
 type Executor struct {
@@ -22,7 +23,7 @@ func (e *Executor) GetImplementation(task tasks.Task) (Transaction, error) {
 	case *tasks.BuyTask:
 		return &buy.BuyTransaction{BuyTask: t}, nil
 	case *tasks.SellTask:
-		// return &sell.SellTransaction{Task: t}, nil
+		return &sell.SellTransaction{Task: t}, nil
 	}
 
 	return nil, fmt.Errorf("no transaction found for the task: %s", task.Type())
