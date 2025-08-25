@@ -20,16 +20,16 @@ func MapTaskToReponseTask(task tasks.Task) (*dto.ResponseTask, error) {
 func mapBuyToResponseTask(t *tasks.BuyTask) *dto.ResponseTask {
 	responseTask := dto.ResponseTask{}
 	responseTask.Type = t.Type()
-	responseTask.ComputeUnits = t.ComputeUnits()
-	responseTask.Slippage = t.Slippage()
+	responseTask.ComputeUnits = t.ComputeUnits
+	responseTask.Slippage = t.Slippage
 	state := t.State()
 	responseTask.State.TaskState = state.TaskState.ToString()
 	responseTask.State.Error = state.Error
-	responseTask.TokenAddress = t.Token().String()
+	responseTask.TokenAddress = t.Token.String()
 	responseTask.TaskId = t.Id()
-	fee := t.Fee()
+	fee := t.Fee
 	responseTask.BuyFee = &fee
-	buyAmount := t.BuyAmount()
+	buyAmount := t.BuyAmount
 	buyAmountFloat, _ := buyAmount.Float64()
 	responseTask.BuyAmount = &buyAmountFloat
 
@@ -39,15 +39,15 @@ func mapBuyToResponseTask(t *tasks.BuyTask) *dto.ResponseTask {
 func mapSellToResponseTask(t *tasks.SellTask) *dto.ResponseTask {
 	responseTask := dto.ResponseTask{}
 	responseTask.Type = t.Type()
-	responseTask.ComputeUnits = t.ComputeUnits()
-	responseTask.Slippage = t.Slippage()
+	responseTask.ComputeUnits = t.ComputeUnits
+	responseTask.Slippage = t.Slippage
 	state := t.State()
 	responseTask.State.TaskState = state.TaskState.ToString()
 	responseTask.State.Error = state.Error
-	responseTask.TokenAddress = t.Token().String()
+	responseTask.TokenAddress = t.Token.String()
 	responseTask.TaskId = t.Id()
-	sellAmnt := t.SellPercentage()
-	fee := t.Fee()
+	sellAmnt := t.SellPercentage
+	fee := t.Fee
 	responseTask.SellAmount = &sellAmnt
 	responseTask.SellFee = &fee
 

@@ -51,7 +51,7 @@ func (st *SellTransaction) BuildTransaction(reporter subscriptionhub.TaskReporte
 	accountLookupMap := lookuptable.GetAddressLookupTable()
 	tx, err := solana.NewTransaction(st.instructions,
 		latestHash.Value.Blockhash,
-		solana.TransactionPayer(st.Task.Wallet().PublicKey()),
+		solana.TransactionPayer(st.Task.Wallet.PublicKey()),
 		solana.TransactionAddressTables(accountLookupMap))
 
 	if err != nil {
@@ -59,7 +59,7 @@ func (st *SellTransaction) BuildTransaction(reporter subscriptionhub.TaskReporte
 		return err
 	}
 
-	err = wallets.SignTx(tx, st.Task.Wallet())
+	err = wallets.SignTx(tx, st.Task.Wallet)
 	if err != nil {
 		return err
 	}
@@ -124,8 +124,8 @@ func (st *SellTransaction) GetTask() tasks.Task {
 }
 
 func getAllInstructionsForSell(sellTask *tasks.SellTask) ([]solana.Instruction, error) {
-	computeLimitInstruction := instructions.GetComputeUnitLimitInstruction(sellTask.ComputeUnits())
-	computeLimitBudgetInstruction := instructions.GetComputeUnitBudgetInstruction(sellTask.Fee(), sellTask.ComputeUnits())
+	computeLimitInstruction := instructions.GetComputeUnitLimitInstruction(sellTask.ComputeUnits)
+	computeLimitBudgetInstruction := instructions.GetComputeUnitBudgetInstruction(sellTask.Fee, sellTask.ComputeUnits)
 
 	sellInstructions, err := pump_instructions.GetSellInstruction(sellTask)
 	if err != nil {

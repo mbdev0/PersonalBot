@@ -51,7 +51,7 @@ func (bt *BuyTransaction) BuildTransaction(reporter subscriptionhub.TaskReporter
 	accountLookupMap := lookuptable.GetAddressLookupTable()
 	tx, err := solana.NewTransaction(*bt.instructions,
 		latestHash.Value.Blockhash,
-		solana.TransactionPayer(bt.BuyTask.Wallet().PublicKey()),
+		solana.TransactionPayer(bt.BuyTask.Wallet.PublicKey()),
 		solana.TransactionAddressTables(accountLookupMap))
 
 	if err != nil {
@@ -61,7 +61,7 @@ func (bt *BuyTransaction) BuildTransaction(reporter subscriptionhub.TaskReporter
 
 	tx.Message.SetVersion(solana.MessageVersionV0)
 
-	err = wallets.SignTx(tx, bt.BuyTask.Wallet())
+	err = wallets.SignTx(tx, bt.BuyTask.Wallet)
 	if err != nil {
 		return err
 	}
@@ -125,9 +125,9 @@ func (bt *BuyTransaction) GetTask() tasks.Task {
 
 func getAllInstructionsForBuy(buyTask *tasks.BuyTask) (buyInstructions []solana.Instruction, err error) {
 
-	computeLimitInstruction := instructions.GetComputeUnitLimitInstruction(buyTask.ComputeUnits())
-	computeLimitBudgetInstruction := instructions.GetComputeUnitBudgetInstruction(buyTask.Fee(), buyTask.ComputeUnits())
-	idEmponenetInstruction, err := instructions.GetIdempotentInstruction(buyTask.Wallet().PublicKey(), buyTask.Token(), buyTask.Ctx())
+	computeLimitInstruction := instructions.GetComputeUnitLimitInstruction(buyTask.ComputeUnits)
+	computeLimitBudgetInstruction := instructions.GetComputeUnitBudgetInstruction(buyTask.Fee, buyTask.ComputeUnits)
+	idEmponenetInstruction, err := instructions.GetIdempotentInstruction(buyTask.Wallet.PublicKey(), buyTask.Token, buyTask.Ctx())
 	if err != nil {
 		return nil, err
 	}
