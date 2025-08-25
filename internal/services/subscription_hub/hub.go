@@ -5,6 +5,7 @@ import (
 	"pump_fun/internal/core/tasks"
 	"pump_fun/pkg/logger"
 	"sync"
+	"time"
 )
 
 type Hub struct {
@@ -75,7 +76,7 @@ func (h *Hub) Last(task tasks.Task) (*tasks.TaskEvent, error) {
 	return &last, nil
 }
 
-func (h *Hub) Publish(task tasks.Task, event tasks.TaskEvent) {
+func (h *Hub) publish(task tasks.Task, event tasks.TaskEvent) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 
@@ -103,4 +104,27 @@ func (h *Hub) cancel(t tasks.Task) func() {
 		delete(h.subscriptions, t.Id())
 		delete(h.last, t.Id())
 	}
+}
+
+func (h *Hub) PublishStateChange(task tasks.Task) {
+	taskEvent := tasks.TaskEvent{
+		TaskId:    task.Id(),
+		State:     task.State(),
+		Time:      time.Now().Local().String(),
+		EventType: tasks.StateUpdate,
+	}
+
+	h.publish(task, taskEvent)
+}
+
+func (h *Hub) PublishMessage(task tasks.Task, message string) {
+	taskEvent := tasks.TaskEvent{
+		TaskId:    task.Id(),
+		State:     task.State(),
+		Time:      time.Now().Local().String(),
+		Message:   message,
+		EventType: tasks.ProgressMessage,
+	}
+
+	h.publish(task, taskEvent)
 }

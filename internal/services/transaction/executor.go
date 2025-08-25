@@ -7,8 +7,6 @@ import (
 	"pump_fun/internal/services/state/transition"
 	subscriptionhub "pump_fun/internal/services/subscription_hub"
 	"pump_fun/internal/solana/programs/pumpfun/transaction/buy"
-	"pump_fun/internal/solana/programs/pumpfun/transaction/sell"
-	"time"
 )
 
 type Executor struct {
@@ -24,7 +22,7 @@ func (e *Executor) GetImplementation(task tasks.Task) (Transaction, error) {
 	case *tasks.BuyTask:
 		return &buy.BuyTransaction{BuyTask: t}, nil
 	case *tasks.SellTask:
-		return &sell.SellTransaction{Task: t}, nil
+		// return &sell.SellTransaction{Task: t}, nil
 	}
 
 	return nil, fmt.Errorf("no transaction found for the task: %s", task.Type())
@@ -34,6 +32,9 @@ func (e *Executor) Execute(done chan struct{}, transaction Transaction) {
 
 	task := transaction.GetTask()
 	ctx := task.Ctx()
+
+	reporter := subscriptionhub.TaskReporter{}
+	reporter.New(task, e.subhub)
 
 	if task == nil {
 		e.transitionAndPublishTask(task, fmt.Errorf("task not set in transaction"))
@@ -49,7 +50,7 @@ func (e *Executor) Execute(done chan struct{}, transaction Transaction) {
 	}
 
 	transition.AutoTransitionTask(task, nil) //from running to next step
-	steps := []func() error{
+	steps := []func(reporter subscriptionhub.TaskReporter) error{
 		transaction.BuildInstructions,
 		transaction.BuildTransaction,
 		transaction.SendTransaction,
@@ -63,7 +64,7 @@ func (e *Executor) Execute(done chan struct{}, transaction Transaction) {
 			return
 		}
 
-		err := step()
+		err := step(reporter)
 		e.transitionAndPublishTask(task, err)
 		if err != nil {
 			close(done)
@@ -76,13 +77,5 @@ func (e *Executor) Execute(done chan struct{}, transaction Transaction) {
 
 func (e *Executor) transitionAndPublishTask(t tasks.Task, err error) {
 	transition.AutoTransitionTask(t, err)
-	e.subhub.Publish(t, createTaskEvent(t))
-}
-
-func createTaskEvent(t tasks.Task) tasks.TaskEvent {
-	return tasks.TaskEvent{
-		TaskId: t.Id(),
-		State:  t.State(),
-		Time:   time.Now().Local().String(),
-	}
+	e.subhub.PublishStateChange(t)
 }
