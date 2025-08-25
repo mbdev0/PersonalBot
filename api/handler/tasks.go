@@ -16,9 +16,8 @@ import (
 )
 
 type TaskHandler struct {
-	controller  *controller.TaskController
-	subscribers chan subscriptionhub.Subscription
-	bufferSize  int
+	controller *controller.TaskController
+	bufferSize int
 }
 
 func NewTaskHandler(controller *controller.TaskController) http.Handler {
@@ -26,7 +25,6 @@ func NewTaskHandler(controller *controller.TaskController) http.Handler {
 	taskHandler := &TaskHandler{controller: controller}
 	taskHandler.registerRoutes(mux)
 	taskHandler.bufferSize = 1000
-	taskHandler.subscribers = make(chan subscriptionhub.Subscription, taskHandler.bufferSize)
 
 	return mux
 }
@@ -168,6 +166,9 @@ func (th *TaskHandler) TransitionTask(w http.ResponseWriter, r *http.Request) {
 }
 
 func (th *TaskHandler) Subscribe(w http.ResponseWriter, r *http.Request) {
+	subscribers := make(chan subscriptionhub.Subscription, th.bufferSize)
+	defer close(subscribers)
+
 	c, err := websocket.Accept(w, r, nil)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -189,12 +190,11 @@ func (th *TaskHandler) Subscribe(w http.ResponseWriter, r *http.Request) {
 				logger.Information("couldn't upload task event to wsWrite - going to drop the event")
 			}
 		}
-
 	}
 
 	//fan in loop
 	go func() {
-		for sub := range th.subscribers {
+		for sub := range subscribers {
 			go readFromChannel(sub)
 		}
 	}()
@@ -241,7 +241,7 @@ func (th *TaskHandler) Subscribe(w http.ResponseWriter, r *http.Request) {
 				wsjson.Write(ctx, c, resp)
 				continue
 			}
-			th.subscribers <- *sub
+			subscribers <- *sub
 
 		case "Unsubscribe":
 			err := th.controller.Unsubcribe(msg.Id)

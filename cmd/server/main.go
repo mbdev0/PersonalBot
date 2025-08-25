@@ -2,7 +2,9 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
+	_ "net/http/pprof"
 	"pump_fun/api/controller"
 	"pump_fun/api/handler"
 	"pump_fun/app"
@@ -10,6 +12,8 @@ import (
 	subscriptionhub "pump_fun/internal/services/subscription_hub"
 	taskservice "pump_fun/internal/services/task_service"
 	"pump_fun/pkg/logger"
+	"runtime"
+	"time"
 )
 
 func main() {
@@ -36,11 +40,26 @@ func main() {
 
 	logger.Information("Starting server on port 8080:")
 	logger.Information("http://localhost:8080")
+
+	// checkGoRoutines()
+
 	if err := server.ListenAndServe(); err != nil {
 		panic(err)
 	}
 
 	// test()
+}
+
+func checkGoRoutines() {
+	go http.ListenAndServe("localhost:6060", nil)
+
+	go func() {
+		for {
+			time.Sleep(3 * time.Second)
+			fmt.Printf("Number of goroutines: %d\n", runtime.NumGoroutine())
+		}
+	}()
+
 }
 
 func test() {
