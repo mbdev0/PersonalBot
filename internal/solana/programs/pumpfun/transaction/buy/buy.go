@@ -4,6 +4,7 @@ import (
 	"fmt"
 	lookuptable "pump_fun/app/lookup_table"
 	"pump_fun/internal/core/tasks"
+	subscriptionhub "pump_fun/internal/services/subscription_hub"
 	"pump_fun/internal/solana/client"
 	"pump_fun/internal/solana/instructions"
 	pump_instructions "pump_fun/internal/solana/programs/pumpfun/instructions"
@@ -20,7 +21,7 @@ type BuyTransaction struct {
 	signature    solana.Signature
 }
 
-func (bt *BuyTransaction) BuildInstructions() error {
+func (bt *BuyTransaction) BuildInstructions(reporter subscriptionhub.TaskReporter) error {
 	if bt.BuyTask == nil {
 		return fmt.Errorf("buy task was nil - make sure buy task is set")
 	}
@@ -32,10 +33,11 @@ func (bt *BuyTransaction) BuildInstructions() error {
 	}
 
 	bt.instructions = &buyInstructions
+	reporter.Report("Instructions Built")
 	return nil
 }
 
-func (bt *BuyTransaction) BuildTransaction() error {
+func (bt *BuyTransaction) BuildTransaction(reporter subscriptionhub.TaskReporter) error {
 	if bt.BuyTask == nil {
 		return fmt.Errorf("buy task was nil - make sure buy task is set")
 	}
@@ -64,11 +66,12 @@ func (bt *BuyTransaction) BuildTransaction() error {
 		return err
 	}
 	bt.transaction = tx
+	reporter.Report("Tx Built")
 
 	return nil
 }
 
-func (bt *BuyTransaction) SendTransaction() error {
+func (bt *BuyTransaction) SendTransaction(reporter subscriptionhub.TaskReporter) error {
 	client := client.GetClient()
 	// SIMULATE TRANSACTION
 	// txResp, err := client.SimulateTransaction(bt.BuyTask.Ctx(), bt.transaction)
@@ -94,21 +97,25 @@ func (bt *BuyTransaction) SendTransaction() error {
 	}
 
 	bt.signature = txResp
+	reporter.Report(fmt.Sprintf("Tx Sent: %s", txResp))
 	return nil
 }
 
-func (bt *BuyTransaction) ConfirmTransaction() error {
-	isSuccess, err := client.ConfirmTransaction(bt.signature, bt.BuyTask.Ctx())
-	if err != nil {
-		logger.Error("Transaction confirmation failed", err)
-		return err
+func (bt *BuyTransaction) ConfirmTransaction(reporter subscriptionhub.TaskReporter) error {
+	stream := make(chan client.ConfirmMessage, 100)
+
+	go func(stream chan client.ConfirmMessage) {
+		defer close(stream)
+		client.ConfirmTransactionWithStream(bt.signature, bt.BuyTask.Ctx(), stream)
+	}(stream)
+
+	for msg := range stream {
+		if msg.Err != "" {
+			return fmt.Errorf(msg.Err)
+		}
+		reporter.Report(msg.Message)
 	}
-	if isSuccess {
-		logger.Information("Transaction confirmed successfully")
-	} else {
-		logger.Error("Transaction confirmation failed")
-		return fmt.Errorf("transaction confirmation failed")
-	}
+
 	return nil
 }
 

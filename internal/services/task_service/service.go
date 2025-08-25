@@ -7,7 +7,6 @@ import (
 	subscriptionhub "pump_fun/internal/services/subscription_hub"
 	"pump_fun/pkg/logger"
 	"sync"
-	"time"
 )
 
 type TaskService struct {
@@ -82,7 +81,7 @@ func (ts *TaskService) TransitionTask(id string, newState tasks.TaskState) (err 
 	}
 
 	err = ts.StateMachine.Transition(task, newState)
-	ts.Hub.Publish(task, tasks.TaskEvent{TaskId: task.Id(), State: task.State(), Time: time.Now().String()})
+	ts.Hub.PublishStateChange(task)
 
 	if err != nil {
 		return fmt.Errorf("transition failed for task %s with error: %w", task.Id(), err)
