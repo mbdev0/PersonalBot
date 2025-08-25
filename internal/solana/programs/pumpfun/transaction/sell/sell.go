@@ -4,6 +4,7 @@ import (
 	"fmt"
 	lookuptable "pump_fun/app/lookup_table"
 	"pump_fun/internal/core/tasks"
+	subscriptionhub "pump_fun/internal/services/subscription_hub"
 	"pump_fun/internal/solana/client"
 	"pump_fun/internal/solana/instructions"
 	pump_instructions "pump_fun/internal/solana/programs/pumpfun/instructions"
@@ -20,7 +21,7 @@ type SellTransaction struct {
 	signature    solana.Signature
 }
 
-func (st *SellTransaction) BuildInstructions() error {
+func (st *SellTransaction) BuildInstructions(reporter subscriptionhub.TaskReporter) error {
 	sellInstructions, err := getAllInstructionsForSell(st.Task)
 	if err != nil {
 		logger.Error("Error getting instructions for sell task", err)
@@ -32,10 +33,11 @@ func (st *SellTransaction) BuildInstructions() error {
 	}
 
 	st.instructions = sellInstructions
+	reporter.Report("Instructions Built")
 	return nil
 }
 
-func (st *SellTransaction) BuildTransaction() error {
+func (st *SellTransaction) BuildTransaction(reporter subscriptionhub.TaskReporter) error {
 	if st.Task == nil {
 		return fmt.Errorf("sell task is null - check if sell task was set")
 	}
@@ -63,10 +65,12 @@ func (st *SellTransaction) BuildTransaction() error {
 	}
 
 	st.transaction = tx
+	reporter.Report("Tx Built")
+
 	return nil
 }
 
-func (st *SellTransaction) SendTransaction() error {
+func (st *SellTransaction) SendTransaction(reporter subscriptionhub.TaskReporter) error {
 	client := client.GetClient()
 
 	// simulate the transaction
@@ -94,24 +98,27 @@ func (st *SellTransaction) SendTransaction() error {
 	}
 
 	st.signature = txResp
+	reporter.Report(fmt.Sprintf("Tx Sent: %s", txResp))
 	return nil
 }
 
-func (st *SellTransaction) ConfirmTransaction() error {
-	isSuccess, err := client.ConfirmTransaction(st.signature, st.Task.Ctx())
-	if err != nil {
-		logger.Error("Transaction confirmation failed", err)
-		return err
+func (st *SellTransaction) ConfirmTransaction(reporter subscriptionhub.TaskReporter) error {
+	stream := make(chan client.ConfirmMessage, 100)
+
+	go func(stream chan client.ConfirmMessage) {
+		defer close(stream)
+		client.ConfirmTransactionWithStream(st.signature, st.Task.Ctx(), stream)
+	}(stream)
+
+	for msg := range stream {
+		if msg.Err != "" {
+			return fmt.Errorf(msg.Err)
+		}
+		reporter.Report(msg.Message)
 	}
-	if isSuccess {
-		logger.Information("Transaction confirmed successfully")
-	} else {
-		logger.Error("Transaction confirmation failed")
-		return fmt.Errorf("transaction confirmation failed")
-	}
+
 	return nil
 }
-
 func (st *SellTransaction) GetTask() tasks.Task {
 	return st.Task
 }
