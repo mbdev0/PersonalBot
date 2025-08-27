@@ -15,7 +15,7 @@ var startMonitoring = true
 var transactionChanSize = 1000
 var coinChanSize = 1000
 
-func StartAFKMonitor(coins chan<- models.Coin) {
+func StartAFKMonitor(filters filters.FilterPipeline, coins chan<- models.Coin) {
 	var wg sync.WaitGroup
 	if startMonitoring {
 		wg.Add(1)
@@ -28,15 +28,11 @@ func StartAFKMonitor(coins chan<- models.Coin) {
 
 			go streamTransactions(transactionNotificationChan)
 
-			go decryptAndFilterTransactions(transactionNotificationChan, coinStructChan)
+			go decryptAndFilterTransactions(filters, transactionNotificationChan, coinStructChan)
 
 			for coinStruct := range coinStructChan {
 				coins <- coinStruct
 				logger.Information("coin found: " + coinStruct.CoinData.Symbol)
-				// go func(coin models.Coin) {
-				// 	logger.Information("Coin found: " + coin.CoinData.Symbol)
-				// 	// webhook.SendWebhook(&coin)
-				// }(coinStruct)
 			}
 		}()
 	}
@@ -44,10 +40,6 @@ func StartAFKMonitor(coins chan<- models.Coin) {
 	wg.Wait()
 }
 
-// was splitting this into functions a good idea?
-// -> harder to follow the "pipeline of what's going on and what being passed"
-// -> cleans up main function
-// TODO: review the above
 func streamTransactions(transactionNotificationChan chan<- response.TransactionNotification) {
 	err := stream.GeyserStreamTransactions(transactionNotificationChan)
 	if err != nil {
@@ -56,19 +48,19 @@ func streamTransactions(transactionNotificationChan chan<- response.TransactionN
 	}
 }
 
-func decryptAndFilterTransactions(transactionNotificationChan <-chan response.TransactionNotification, coinStructChan chan<- models.Coin) {
+func decryptAndFilterTransactions(filters filters.FilterPipeline, transactionNotificationChan <-chan response.TransactionNotification, coinStructChan chan<- models.Coin) {
 	defer close(coinStructChan)
 	for transaction := range transactionNotificationChan {
 		go func(transaction response.TransactionNotification, coinStructChan chan<- models.Coin) {
-			handleTransactionNotification(transaction, coinStructChan)
+			handleTransactionNotification(filters, transaction, coinStructChan)
 		}(transaction, coinStructChan)
 	}
 }
 
-func handleTransactionNotification(transaction response.TransactionNotification, coinStructChan chan<- models.Coin) {
+func handleTransactionNotification(filters filters.FilterPipeline, transaction response.TransactionNotification, coinStructChan chan<- models.Coin) {
 	coin := decoder.DecryptTransactionNotificationForCoin(transaction)
 	if coin != nil {
-		coin = filters.HandleCoinFiltering(coin) //we should ideally get rid of this from here and do a filter.ApplyFilters() here
+		coin = filters.ApplyFilters(coin)
 	}
 
 	if coin != nil {

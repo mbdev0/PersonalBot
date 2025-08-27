@@ -17,7 +17,7 @@ Example usage:
 	bondingCurveAddress := "5U3smn2USzQGSWfM3JmKXt9YPKpWifjxvR2aMZkQAN1S"
 	go monitoring.StartMarketCapMonitor(ctx, bondingCurveAddress) //starts monitoring of marketcap of a certain bonding address (we give bonding adress rather than CA)
 
-	tokenAmount, err, hasCompleted := buy.GetBuyTokenAmountFrom(*big.NewInt(10000000), bondingCurveAddress) //get's token amount for a certain bondingCurveAddress, we use lamports for solana
+	tokenAmount, err, hasCompleted := buy.GetBuyTokenAmountFrom(*big.NewInt(10000000), bondingCurveAddress) //gets token amount for a certain bondingCurveAddress, we use lamports for solana
 	if err != nil {
 		fmt.Println(err)
 	}
