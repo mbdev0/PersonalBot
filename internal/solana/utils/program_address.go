@@ -12,7 +12,7 @@ import (
 const (
 	MaxSeedLength = 32
 	MaxSeeds      = 16
-	PDA_MARKER    = "ProgramDerivedAddress"
+	PdaMarker     = "ProgramDerivedAddress"
 )
 
 func FindProgramAddressSync(seeds [][]byte, programId []byte) (string, uint8, error) {
@@ -32,7 +32,7 @@ func FindProgramAddressSync(seeds [][]byte, programId []byte) (string, uint8, er
 }
 
 func CreateProgramAddressSync(seeds [][]byte, programID []byte) (string, bool) {
-	buf := []byte{}
+	var buf []byte
 
 	for _, seed := range seeds {
 		if len(seed) > MaxSeedLength {
@@ -42,7 +42,7 @@ func CreateProgramAddressSync(seeds [][]byte, programID []byte) (string, bool) {
 	}
 
 	buf = append(buf, programID[:]...)
-	buf = append(buf, []byte(PDA_MARKER)...)
+	buf = append(buf, []byte(PdaMarker)...)
 	hash := sha256.Sum256(buf)
 
 	if IsOnCurve(hash[:]) {

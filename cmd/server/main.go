@@ -42,16 +42,21 @@ func main() {
 	logger.Information("http://localhost:8080")
 
 	// checkGoRoutines()
+	// test()
 
 	if err := server.ListenAndServe(); err != nil {
 		panic(err)
 	}
 
-	// test()
 }
 
 func checkGoRoutines() {
-	go http.ListenAndServe("localhost:6060", nil)
+	go func() {
+		err := http.ListenAndServe("localhost:6060", nil)
+		if err != nil {
+			panic(err)
+		}
+	}()
 
 	go func() {
 		for {
@@ -65,7 +70,7 @@ func checkGoRoutines() {
 func test() {
 	// monitoring.StartAFKMonitor()
 
-	// privateKey, err := solana.PrivateKeyFromBase58(config.GetConfig().Wallet_Private_Key)
+	// privateKey, err := solana.PrivateKeyFromBase58(config.GetConfig().WalletPrivateKey)
 	// if err != nil {
 	// 	logger.Error("Error creating private key from base58", err)
 	// 	return

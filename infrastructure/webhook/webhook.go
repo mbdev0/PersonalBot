@@ -49,7 +49,12 @@ func sendDiscordMessage(webhookURL string, coin models.Coin) error {
 		return err
 	}
 
-	defer req.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			logger.Error(err.Error())
+		}
+	}(req.Body)
 
 	if req.StatusCode != 204 {
 

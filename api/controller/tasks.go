@@ -48,10 +48,10 @@ func (tc *TaskController) GetTask(id string) (*dto.ResponseTask, error) {
 }
 
 func (tc *TaskController) GetAllTasks() ([]dto.ResponseTask, error) {
-	tasks := tc.TaskService.GetAllTasks()
+	allTasks := tc.TaskService.GetAllTasks()
 
-	response := make([]dto.ResponseTask, 0, len(tasks))
-	for _, task := range tasks {
+	response := make([]dto.ResponseTask, 0, len(allTasks))
+	for _, task := range allTasks {
 		responseObj, err := mapper.MapTaskToReponseTask(task)
 		if err != nil {
 			return nil, err

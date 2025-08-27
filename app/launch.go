@@ -13,17 +13,20 @@ import (
 func Launch() {
 	err := config.LoadConfig()
 	if err != nil {
-		logger.Error("Error reading config file", err)
+		logger.Error("Error reading userConfig file", err)
 		return
 	}
 
-	config := config.GetConfig()
-	fmt.Println("HTTP Node: ", config.HttpNode)
-	fmt.Println("WS Node: ", config.WsNode)
-	fmt.Println("Webhook: ", config.Webhook)
+	userConfig := config.GetConfig()
+	fmt.Println("HTTP Node: ", userConfig.HttpNode)
+	fmt.Println("WS Node: ", userConfig.WsNode)
+	fmt.Println("Webhook: ", userConfig.Webhook)
 
 	pumpfun_idl.GetIdlMap()
-	solana_price.GetSolPrice()
+	_, err = solana_price.GetSolPrice()
+	if err != nil {
+		return
+	}
 	lookuptable.GetAddressLookupTable()
 	validator.GetValidator()
 }

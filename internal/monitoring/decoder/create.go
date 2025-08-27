@@ -29,7 +29,7 @@ func DecodeCreateInstruction(data []byte) (*models.DecodedCreateInstruction, err
 		return nil, err
 	}
 
-	args.IPFS_URL, err = readStringWithLengthAtStart(buf)
+	args.IpfsUrl, err = readStringWithLengthAtStart(buf)
 	if err != nil {
 		logger.Error("Error reading the IPFS_URL", err)
 		return nil, err
@@ -44,8 +44,8 @@ func UpdateCoinFromDecodedInstruction(coin *models.Coin, instruction *models.Dec
 	}
 
 	coin.CoinData = models.MintData{
-		Name:     instruction.Name,
-		Symbol:   instruction.Symbol,
-		IPFS_URL: instruction.IPFS_URL,
+		Name:    instruction.Name,
+		Symbol:  instruction.Symbol,
+		IpfsUrl: instruction.IpfsUrl,
 	}
 }

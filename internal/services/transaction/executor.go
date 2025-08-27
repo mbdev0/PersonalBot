@@ -21,9 +21,9 @@ func (e *Executor) New(subhub *subscriptionhub.Hub) {
 func (e *Executor) GetImplementation(task tasks.Task) (Transaction, error) {
 	switch t := task.(type) {
 	case *tasks.BuyTask:
-		return &buy.BuyTransaction{BuyTask: t}, nil
+		return &buy.Transaction{BuyTask: t}, nil
 	case *tasks.SellTask:
-		return &sell.SellTransaction{Task: t}, nil
+		return &sell.Transaction{Task: t}, nil
 	}
 
 	return nil, fmt.Errorf("no transaction found for the task: %s", task.Type())
@@ -37,12 +37,6 @@ func (e *Executor) Execute(done chan struct{}, transaction Transaction) {
 	reporter := subscriptionhub.TaskReporter{}
 	reporter.New(task, e.subhub)
 
-	if task == nil {
-		e.transitionAndPublishTask(task, fmt.Errorf("task not set in transaction"))
-		close(done)
-		return
-	}
-
 	err := validator.ValidateStruct(task)
 	if err != nil {
 		e.transitionAndPublishTask(task, err)
@@ -50,7 +44,13 @@ func (e *Executor) Execute(done chan struct{}, transaction Transaction) {
 		return
 	}
 
-	transition.AutoTransitionTask(task, nil) //from running to next step
+	err = transition.AutoTransitionTask(task, nil) //from running to next step
+	if err != nil {
+		e.transitionAndPublishTask(task, err)
+		close(done)
+		return
+	}
+
 	steps := []func(reporter subscriptionhub.TaskReporter) error{
 		transaction.BuildInstructions,
 		transaction.BuildTransaction,
@@ -77,6 +77,10 @@ func (e *Executor) Execute(done chan struct{}, transaction Transaction) {
 }
 
 func (e *Executor) transitionAndPublishTask(t tasks.Task, err error) {
-	transition.AutoTransitionTask(t, err)
+	err = transition.AutoTransitionTask(t, err)
+	if err != nil {
+		return
+	}
+
 	e.subhub.PublishStateChange(t)
 }

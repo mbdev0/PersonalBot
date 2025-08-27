@@ -13,7 +13,7 @@ import (
 	"github.com/gagliardetto/solana-go"
 )
 
-var marketCap_Multiplier float64 = 1000000
+var marketCapMultiplier float64 = 1000000
 
 func GetMarketCapFrom(bondingCurveValue string) (marketCapVal *big.Float, err error, hasCompleted bool) {
 	bondingCurveData, err, hasCompleted := getBondingCurveData(bondingCurveValue)
@@ -72,7 +72,7 @@ func getMarketCap(bondingCurve models.BondingCurve) (*big.Float, error) {
 	marketCapInSol := new(big.Float).Quo(floatSolRes, floatTokenReserves)
 	marketCap := new(big.Float).Mul(marketCapInSol, bigSolPrice)
 
-	return new(big.Float).Mul(marketCap, big.NewFloat(marketCap_Multiplier)), nil
+	return new(big.Float).Mul(marketCap, big.NewFloat(marketCapMultiplier)), nil
 }
 
 func GetSolanaTokenPrice(bondingCurve models.BondingCurve, tokenAmount uint64) *uint64 {

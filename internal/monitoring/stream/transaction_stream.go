@@ -7,7 +7,6 @@ import (
 	"pump_fun/internal/core/constants"
 	"pump_fun/internal/monitoring/stream/response"
 	"pump_fun/pkg/logger"
-	"time"
 
 	"github.com/avast/retry-go/v4"
 	"github.com/coder/websocket"
@@ -15,18 +14,18 @@ import (
 )
 
 var (
-	ws_url             = config.GetConfig().WsNode
-	connection_timeout = time.Second * 10
+	wsUrl = config.GetConfig().WsNode
 )
 
-func Geyser_Stream_Transactions(transaction_chan chan<- response.TransactionNotification) error {
-	ctx, cancel := context.WithTimeout(context.Background(), connection_timeout)
+func GeyserStreamTransactions(transactionChan chan<- response.TransactionNotification) error {
+	// ctx, cancel := context.WithTimeout(context.Background(), connection_timeout)
+	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
 	ws, err := retry.DoWithData(
 		func() (*websocket.Conn, error) {
 			fmt.Println("Connecting to websocket...")
-			ws, _, err := websocket.Dial(ctx, ws_url, nil)
+			ws, _, err := websocket.Dial(ctx, wsUrl, nil)
 			if err != nil {
 				return nil, err
 			}
@@ -37,7 +36,13 @@ func Geyser_Stream_Transactions(transaction_chan chan<- response.TransactionNoti
 		return err
 	}
 
-	defer ws.Close(websocket.StatusNormalClosure, "websocket closed")
+	defer func(ws *websocket.Conn, code websocket.StatusCode, reason string) {
+		err := ws.Close(code, reason)
+		if err != nil {
+			logger.Error(err.Error())
+		}
+	}(ws, websocket.StatusNormalClosure, "websocket closed")
+
 	ws.SetReadLimit(constants.WebSocketReadLimit)
 
 	err = wsjson.Write(ctx, ws, map[string]interface{}{
@@ -75,10 +80,10 @@ func Geyser_Stream_Transactions(transaction_chan chan<- response.TransactionNoti
 		err = wsjson.Read(ctx, ws, &out)
 
 		if err != nil {
-			logger.Error("Error reading from websocket", err)
+			logger.Error("Error reading from websocket: ", err)
 			return err
 		}
 
-		transaction_chan <- out
+		transactionChan <- out
 	}
 }

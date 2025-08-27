@@ -38,7 +38,7 @@ func createBuyTask(req *dto.RequestTask) (task *tasks.BuyTask, err error) {
 		return nil, fmt.Errorf("buy fee not filled in")
 	}
 
-	bigBuyAmount := big.NewInt(int64((*req.BuyAmount * constants.LamportsConversion)))
+	bigBuyAmount := big.NewInt(int64(*req.BuyAmount * constants.LamportsConversion))
 
 	wallet, err := solana.PrivateKeyFromBase58(req.WalletAddressPrivateKey)
 	if err != nil {

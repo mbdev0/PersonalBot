@@ -53,7 +53,14 @@ func marketCapMonitor(ctx context.Context, bondingCurveAddress string) {
 
 	accountInfoChan := make(chan response.AccountSubscribeModel, 20)
 
-	go stream.Geyser_Stream_AccountInfo(ctx, bondingCurveAddress, accountInfoChan)
+	go func() {
+		err := stream.GeyserStreamAccountInfo(ctx, bondingCurveAddress, accountInfoChan)
+		if err != nil {
+			logger.Error("Error getting account info", err)
+			close(accountInfoChan)
+			return
+		}
+	}()
 
 	for accountInfo := range accountInfoChan {
 		marketCap, err, hasCompleted := bondingcurve.GetMarketCapFrom(accountInfo.Params.Result.Value.Data[0])

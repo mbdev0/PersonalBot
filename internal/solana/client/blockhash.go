@@ -13,7 +13,7 @@ func IsBlockhashExpired(lastValidBlockheight uint64, ctx context.Context) (bool,
 	if err != nil {
 		return false, err
 	}
-	return (resp > lastValidBlockheight-150), nil
+	return resp > lastValidBlockheight-150, nil
 }
 
 func GetLatestBlockhash(ctx context.Context) (*rpc.GetLatestBlockhashResult, error) {

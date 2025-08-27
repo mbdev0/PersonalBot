@@ -33,8 +33,8 @@ func GetSellInstruction(sellTask *tasks.SellTask) (*solana.GenericInstruction, e
 		return nil, err
 	}
 
-	sell_instructions := solana.NewInstruction(solana.MustPublicKeyFromBase58(constants.Program), accounts, instructionData)
-	return sell_instructions, nil
+	sellInstructions := solana.NewInstruction(solana.MustPublicKeyFromBase58(constants.Program), accounts, instructionData)
+	return sellInstructions, nil
 }
 
 func getAccounts(sellTask *tasks.SellTask) ([]*solana.AccountMeta, error) {
@@ -138,10 +138,10 @@ func getTokenAmountAndSolOutput(sellTask *tasks.SellTask) (tokenAmount *uint64, 
 		*tokenAmount = uint64(float64(*tokenAmount) * percentageToSell)
 	}
 
-	sol_output := bondingcurve.GetSolanaTokenPrice(*bondingCurveData, *tokenAmount)
-	slippage_sol_output := float64(*sol_output) * (1 - sellTask.Slippage)
-	min_sol_output := uint64(slippage_sol_output)
+	solAmnt := bondingcurve.GetSolanaTokenPrice(*bondingCurveData, *tokenAmount)
+	slippageSolOutput := float64(*solAmnt) * (1 - sellTask.Slippage)
+	minSolOutput := uint64(slippageSolOutput)
 
-	return tokenAmount, &min_sol_output, nil
+	return tokenAmount, &minSolOutput, nil
 
 }
