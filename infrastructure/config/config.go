@@ -26,7 +26,10 @@ func LoadConfig() error {
 
 func GetConfig() *models.Config {
 	once.Do(func() {
-		LoadConfig()
+		err := LoadConfig()
+		if err != nil {
+			return
+		}
 	})
 	return config
 }

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 
 	"github.com/mr-tron/base58"
@@ -25,9 +26,11 @@ func DecryptTransactionNotificationForCoin(transaction response.TransactionNotif
 		return nil
 	}
 
-	ipfsData, err := GetIPFSData(coin.CoinData.IPFS_URL)
+	// we always get the IPFS data even when it's slow to get a response
+	// TODO: ideally we should return basic information to the monitor first - access ipfs url if needed
+	ipfsData, err := GetIPFSData(coin.CoinData.IpfsUrl)
 	if err != nil {
-		logger.Error("Error getting IPFS data - IPFSURL: ", coin.CoinData.IPFS_URL, " ", err)
+		logger.Error("Error getting IPFS data - IpfsUrl: ", coin.CoinData.IpfsUrl, " ", err)
 		return nil
 	}
 
@@ -109,7 +112,13 @@ func GetIPFSData(ipfsURL string) (*models.IPFS, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to make HTTP request: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			logger.Error(err.Error())
+			return
+		}
+	}(resp.Body)
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)

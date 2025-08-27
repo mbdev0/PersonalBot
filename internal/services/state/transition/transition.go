@@ -6,7 +6,7 @@ import (
 	"pump_fun/pkg/logger"
 )
 
-var StateTransitions map[tasks.TaskState]tasks.Transistion = map[tasks.TaskState]tasks.Transistion{
+var StateTransitions = map[tasks.TaskState]tasks.Transistion{
 	//current : next, on error
 	tasks.TaskCreate:         {Next: tasks.TaskRun, OnError: tasks.TaskFail},
 	tasks.TaskRun:            {Next: tasks.TxInstructionBuild, OnError: tasks.TaskValidationFailed},

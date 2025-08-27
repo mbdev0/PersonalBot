@@ -59,7 +59,12 @@ func (th *TaskHandler) CreateTask(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusCreated)
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(createdTask)
+
+	err = json.NewEncoder(w).Encode(createdTask)
+	if err != nil {
+		logger.Error(err.Error())
+		return
+	}
 }
 
 func (th *TaskHandler) GetTaskById(w http.ResponseWriter, r *http.Request) {
@@ -128,7 +133,11 @@ func (th *TaskHandler) UpdateTask(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(updatedTask)
+	err = json.NewEncoder(w).Encode(updatedTask)
+	if err != nil {
+		logger.Error("error whilst encoding task", err)
+		return
+	}
 }
 
 func (th *TaskHandler) DeleteTask(w http.ResponseWriter, r *http.Request) {
@@ -174,7 +183,12 @@ func (th *TaskHandler) Subscribe(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	defer c.CloseNow()
+	defer func(c *websocket.Conn) {
+		err := c.CloseNow()
+		if err != nil {
+			logger.Error(err.Error())
+		}
+	}(c)
 
 	wsWrite := make(chan tasks.TaskEvent, 1000)
 	defer close(wsWrite)
@@ -210,9 +224,15 @@ func (th *TaskHandler) Subscribe(w http.ResponseWriter, r *http.Request) {
 
 			if err != nil {
 				resp.Error = err.Error()
-				wsjson.Write(ctx, c, resp)
+				err := wsjson.Write(ctx, c, resp)
+				if err != nil {
+					logger.Error("error whilst trying to write to WS, error: " + err.Error())
+				}
 			}
-			wsjson.Write(ctx, c, resp)
+			err := wsjson.Write(ctx, c, resp)
+			if err != nil {
+				logger.Error("error whilst trying to write to WS, error: " + err.Error())
+			}
 		}
 		for msg := range wsWrite {
 			writeToWs(msg)
@@ -229,7 +249,10 @@ func (th *TaskHandler) Subscribe(w http.ResponseWriter, r *http.Request) {
 
 		if err != nil {
 			resp.Error = err.Error()
-			wsjson.Write(ctx, c, resp)
+			err := wsjson.Write(ctx, c, resp)
+			if err != nil {
+				logger.Error("error whilst trying to write to WS, error: " + err.Error())
+			}
 			return
 		}
 
@@ -238,7 +261,10 @@ func (th *TaskHandler) Subscribe(w http.ResponseWriter, r *http.Request) {
 			sub, err := th.controller.Subscribe(msg.Id)
 			if err != nil {
 				resp.Error = err.Error()
-				wsjson.Write(ctx, c, resp)
+				err := wsjson.Write(ctx, c, resp)
+				if err != nil {
+					logger.Error("error whilst trying to write to WS, error: " + err.Error())
+				}
 				continue
 			}
 			subscribers <- *sub
@@ -247,12 +273,18 @@ func (th *TaskHandler) Subscribe(w http.ResponseWriter, r *http.Request) {
 			err := th.controller.Unsubcribe(msg.Id)
 			if err != nil {
 				resp.Error = err.Error()
-				wsjson.Write(ctx, c, resp)
+				err := wsjson.Write(ctx, c, resp)
+				if err != nil {
+					logger.Error("error whilst trying to write to WS, error: " + err.Error())
+				}
 				continue
 			}
 		default:
 			resp.Error = "message type wasn't 'Subscribe' or 'Unsubscribe"
-			wsjson.Write(ctx, c, resp)
+			err := wsjson.Write(ctx, c, resp)
+			if err != nil {
+				logger.Error("error whilst trying to write to WS, error: " + err.Error())
+			}
 		}
 	}
 
@@ -260,5 +292,9 @@ func (th *TaskHandler) Subscribe(w http.ResponseWriter, r *http.Request) {
 
 func (th *TaskHandler) Test(w http.ResponseWriter, r *http.Request) {
 	res := th.controller.TestEP()
-	w.Write([]byte(res))
+	_, err := w.Write([]byte(res))
+
+	if err != nil {
+		logger.Error(err.Error())
+	}
 }

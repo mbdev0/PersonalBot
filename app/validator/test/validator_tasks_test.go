@@ -1,6 +1,7 @@
 package validator_test
 
 import (
+	"errors"
 	"pump_fun/app/validator"
 	"pump_fun/internal/core/tasks"
 	"pump_fun/internal/solana/utils"
@@ -55,7 +56,9 @@ func getAllFieldsFor(task interface{}, tag string) []string {
 func getValidationErrorSlice(t *testing.T, errs error, tag string) []string {
 	t.Helper()
 
-	validationErrors, ok := errs.(v.ValidationErrors)
+	var validationErrors v.ValidationErrors
+	ok := errors.As(errs, &validationErrors)
+
 	if !ok {
 		t.Fatalf("Expected validation errors, got: %v", errs)
 	}

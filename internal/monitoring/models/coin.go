@@ -1,16 +1,16 @@
 package models
 
 type DecodedCreateInstruction struct {
-	Name     string
-	Symbol   string
-	IPFS_URL string
+	Name    string
+	Symbol  string
+	IpfsUrl string
 }
 
 type MintData struct {
 	Signature        string
 	Name             string
 	Symbol           string
-	IPFS_URL         string
+	IpfsUrl          string
 	TokenAddr        string
 	CreatorAddr      string
 	BondingCurveAddr string
@@ -24,7 +24,7 @@ type IPFS struct {
 	WebsiteURL  string `json:"website"`
 }
 
-// Compositions of the two structs above
+// Coin Compositions of the two structs above
 type Coin struct {
 	CoinData MintData
 	IPFSData IPFS

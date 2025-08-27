@@ -38,7 +38,12 @@ func loadIdlIntoModel() (*PumpFunIdl, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer jsonFile.Close()
+	defer func(jsonFile *os.File) {
+		err := jsonFile.Close()
+		if err != nil {
+			logger.Error("Error closing file", err)
+		}
+	}(jsonFile)
 
 	byteValue, _ := io.ReadAll(jsonFile)
 

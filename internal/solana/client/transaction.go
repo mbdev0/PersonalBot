@@ -107,7 +107,7 @@ func ConfirmTransactionWithStream(sig solana.Signature, ctx context.Context, str
 
 			expired, err := IsBlockhashExpired(status.Slot, ctx)
 			if err != nil {
-				msg.Err = fmt.Sprintf("blockhash expiration check failed: %w", err)
+				msg.Err = fmt.Sprintf("blockhash expiration check failed: %v", err)
 				stream <- msg
 				return
 			}

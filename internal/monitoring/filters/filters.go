@@ -6,7 +6,7 @@ import (
 
 func HandleCoinFiltering(coin *models.Coin) *models.Coin {
 	pipeline := FilterPipeline{}
-	// pipeline.AddFilter(filters.HasWebsite())
+	pipeline.AddFilter(HasWebsite())
 
 	result := pipeline.ApplyFilters(coin)
 	return result

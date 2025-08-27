@@ -11,11 +11,11 @@ import (
 	"github.com/coder/websocket/wsjson"
 )
 
-func Geyser_Stream_AccountInfo(ctx context.Context, address string, accountinfo_chan chan response.AccountSubscribeModel) error {
+func GeyserStreamAccountInfo(ctx context.Context, address string, accountinfoChan chan response.AccountSubscribeModel) error {
 
 	ws, err := retry.DoWithData(
 		func() (*websocket.Conn, error) {
-			ws, _, err := websocket.Dial(ctx, ws_url, nil)
+			ws, _, err := websocket.Dial(ctx, wsUrl, nil)
 			if err != nil {
 				return nil, err
 			}
@@ -60,6 +60,6 @@ func Geyser_Stream_AccountInfo(ctx context.Context, address string, accountinfo_
 			return err
 		}
 
-		accountinfo_chan <- out
+		accountinfoChan <- out
 	}
 }
