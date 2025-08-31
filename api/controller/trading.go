@@ -56,7 +56,7 @@ func (sc *StrategyController) GetBy(id string) (*dto.TradingTaskResponse, error)
 
 func (sc *StrategyController) GetAll() ([]dto.TradingTaskResponse, error) {
 	allTasks := sc.strategyService.GetAll()
-	responseAllTasks := make([]dto.TradingTaskResponse, len(allTasks))
+	responseAllTasks := make([]dto.TradingTaskResponse, 0, len(allTasks))
 
 	for _, val := range allTasks {
 		resp, err := mapper.MapTradingTaskToDto(val)
@@ -76,6 +76,9 @@ func (sc *StrategyController) Update(id string, tsk dto.TradingTaskPatch) (*dto.
 	}
 
 	patch, err := mapper.MapTradingTaskPatchDtoToTradingTaskPatch(tsk, dto.TradingType(task.StrategyType()))
+	if err != nil {
+		return nil, fmt.Errorf("error whilst mapping %w", err)
+	}
 
 	resp, err := sc.strategyService.Update(task, patch)
 	if err != nil {
