@@ -4,11 +4,18 @@ import (
 	"pump_fun/internal/monitoring/models"
 )
 
-type FilterPipeline struct {
-	filters []Filter
+type FilterInfo struct {
+	Name string
+	Fn   Filter
 }
 
-func (p *FilterPipeline) AddFilter(filter Filter) {
+type Filter func(*models.Coin) *models.Coin
+
+type FilterPipeline struct {
+	filters []FilterInfo
+}
+
+func (p *FilterPipeline) AddFilter(filter FilterInfo) {
 	p.filters = append(p.filters, filter)
 }
 
@@ -20,7 +27,7 @@ func (p *FilterPipeline) ApplyFilters(coin *models.Coin) *models.Coin {
 	}
 
 	for _, filter := range p.filters {
-		data = filter(coin)
+		data = filter.Fn(coin)
 		if data == nil {
 			return nil
 		}
@@ -28,31 +35,40 @@ func (p *FilterPipeline) ApplyFilters(coin *models.Coin) *models.Coin {
 	return data
 }
 
-type Filter func(*models.Coin) *models.Coin
-
-func HasWebsite() Filter {
-	return func(coin *models.Coin) *models.Coin {
-		if coin.IPFSData.WebsiteURL == "" {
-			return nil
-		}
-		return coin
+func HasWebsite() FilterInfo {
+	return FilterInfo{
+		Name: HasWebsiteFilter,
+		Fn: func(coin *models.Coin) *models.Coin {
+			if coin.IPFSData.WebsiteURL == "" {
+				return nil
+			}
+			return coin
+		},
 	}
+
 }
 
-func HasTwitter() Filter {
-	return func(coin *models.Coin) *models.Coin {
-		if coin.IPFSData.TwitterURL == "" {
-			return nil
-		}
-		return coin
+func HasTwitter() FilterInfo {
+	return FilterInfo{
+		Name: HasTwitterFilter,
+		Fn: func(coin *models.Coin) *models.Coin {
+			if coin.IPFSData.TwitterURL == "" {
+				return nil
+			}
+			return coin
+		},
 	}
+
 }
 
-func HasTelegram() Filter {
-	return func(coin *models.Coin) *models.Coin {
-		if coin.IPFSData.TelegramURL == "" {
-			return nil
-		}
-		return coin
+func HasTelegram() FilterInfo {
+	return FilterInfo{
+		Name: HasTelegramFilter,
+		Fn: func(coin *models.Coin) *models.Coin {
+			if coin.IPFSData.TelegramURL == "" {
+				return nil
+			}
+			return coin
+		},
 	}
 }

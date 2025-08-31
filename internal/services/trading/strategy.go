@@ -1,6 +1,7 @@
 package trading
 
 import (
+	"context"
 	"pump_fun/internal/core/strategies"
 	"pump_fun/internal/core/tasks"
 	"pump_fun/internal/monitoring"
@@ -12,20 +13,18 @@ import (
 	"github.com/gagliardetto/solana-go"
 )
 
-type Service struct {
+type Strategy struct {
 	taskService *taskservice.TaskService
 }
 
-func (s *Service) NewService(ts *taskservice.TaskService) {
+func (s *Strategy) NewTradingStrategy(ts *taskservice.TaskService) {
 	s.taskService = ts
 }
 
-func (s *Service) AfkSniping(afkTask strategies.Afk) {
+func (s *Strategy) AfkSniping(afkTask *strategies.Afk, ctx context.Context) {
 	coins := make(chan models.Coin, 100)
 	defer close(coins)
 
-	// how do we pass filterPipeline to the AFK Monitor?
-	// create filterPipeline pipeline here then pass it in?
 	filterPipeline := filters.FilterPipeline{}
 	for _, f := range afkTask.Filters {
 		filterPipeline.AddFilter(f())
@@ -51,10 +50,9 @@ func (s *Service) AfkSniping(afkTask strategies.Afk) {
 			return
 		}
 	}
-
 }
 
-func (s *Service) createBuyTask(afkTask strategies.Afk, tokenAddr solana.PublicKey) *tasks.BuyTask {
+func (s *Strategy) createBuyTask(afkTask strategies.Afk, tokenAddr solana.PublicKey) *tasks.BuyTask {
 	// buyTask := tasks.BuyTask{}
 	bt := tasks.NewBuyTask(afkTask.Wallet, tokenAddr,
 		[]tasks.Option{tasks.WithSlippage(afkTask.Slippage), tasks.WithComputeUnits(uint32(afkTask.ComputeUnits))},

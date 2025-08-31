@@ -11,6 +11,7 @@ import (
 	"pump_fun/internal/services/state"
 	subscriptionhub "pump_fun/internal/services/subscription_hub"
 	taskservice "pump_fun/internal/services/task_service"
+	"pump_fun/internal/services/trading"
 	"pump_fun/pkg/logger"
 	"runtime"
 	"time"
@@ -27,11 +28,22 @@ func main() {
 	stateManger.New(&subhub)
 	taskService := taskservice.TaskService{StateMachine: &fsm, StateManager: &stateManger, Hub: &subhub}
 	taskService.NewTaskService()
+
+	tradingStrategy := trading.Strategy{}
+	tradingStrategy.NewTradingStrategy(&taskService)
+	tradingService := trading.Service{}
+	tradingService.NewTradingService(&tradingStrategy)
+
+	tradingController := controller.StrategyController{}
+	tradingController.New(&tradingService)
+	tradingHandler := http.StripPrefix("/api/trading", handler.NewTradingHandler(&tradingController))
+
 	buyController := controller.TaskController{TaskService: &taskService}
 	buyHandler := http.StripPrefix("/api/tasks", handler.NewTaskHandler(&buyController))
 
 	mux := http.NewServeMux()
 	mux.Handle("/api/tasks/", buyHandler)
+	mux.Handle("/api/trading/", tradingHandler)
 
 	server := &http.Server{
 		Addr:    ":8080",
