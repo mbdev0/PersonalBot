@@ -25,13 +25,15 @@ func MapTradingTaskDtoToTradingTask(src dto.TradingTask) (strategies.Task, error
 
 func mapAfkDtoToAfk(src dto.TradingTask) (dst *strategies.Afk, err error) {
 	dest := strategies.Afk{}
+	dest.New()
+
 	dest.BuyFee = src.BuyFee
 	dest.ComputeUnits = float64(src.ComputeUnits)
 	dest.Slippage = src.Slippage
 	dest.BuyAmount = utils.ConvertSolToLamport(src.BuyAmount)
 	dest.Wallet, err = solana.PrivateKeyFromBase58(src.Wallet)
 	if err != nil {
-		return nil, fmt.Errorf("error whilst mapping wallet")
+		return nil, fmt.Errorf("error whilst mapping wallet %w", err)
 	}
 
 	dest.Filters = mapFiltersToDestFilters(src.Filters)
@@ -40,7 +42,7 @@ func mapAfkDtoToAfk(src dto.TradingTask) (dst *strategies.Afk, err error) {
 }
 
 func mapFiltersToDestFilters(srcFilters dto.Filters) []strategies.StrategyFilter {
-	destFilters := make([]strategies.StrategyFilter, 3)
+	destFilters := make([]strategies.StrategyFilter, 0)
 
 	extractAndCheck := func(f *bool) bool {
 		return f != nil && *f
@@ -49,10 +51,10 @@ func mapFiltersToDestFilters(srcFilters dto.Filters) []strategies.StrategyFilter
 	if extractAndCheck(srcFilters.HasTelegram) {
 		destFilters = append(destFilters, filters.HasTelegram)
 	}
-	if extractAndCheck(srcFilters.HasTelegram) {
+	if extractAndCheck(srcFilters.HasTwitter) {
 		destFilters = append(destFilters, filters.HasTwitter)
 	}
-	if extractAndCheck(srcFilters.HasTelegram) {
+	if extractAndCheck(srcFilters.HasWebsite) {
 		destFilters = append(destFilters, filters.HasWebsite)
 	}
 

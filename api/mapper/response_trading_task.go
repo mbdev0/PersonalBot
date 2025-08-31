@@ -22,6 +22,8 @@ func MapTradingTaskToDto(src strategies.Task) (dest *dto.TradingTaskResponse, er
 
 func mapAfkToAfkResponse(src *strategies.Afk) (dest *dto.TradingTaskResponse, err error) {
 	dst := dto.TradingTaskResponse{}
+	dst.Type = dto.TradingType(src.StrategyType())
+	dst.Id = src.StrategyTaskId()
 	dst.BuyAmount = utils.ConvertLamportToSol(src.BuyAmount)
 	dst.BuyFee = src.BuyFee
 	dst.ComputeUnits = src.ComputeUnits
