@@ -30,21 +30,22 @@ func NewTaskHandler(controller *controller.TaskController) http.Handler {
 }
 
 func (th *TaskHandler) registerRoutes(mux *http.ServeMux) {
-	mux.HandleFunc("POST /create", th.CreateTask)
+	mux.HandleFunc("POST /create", th.createTask)
 	mux.HandleFunc("GET /test", th.Test)
-	mux.HandleFunc("GET /task/{id}", th.GetTaskById)
-	mux.HandleFunc("GET /task", th.GetTasks)
-	mux.HandleFunc("PUT /task/{id}", th.UpdateTask)
-	mux.HandleFunc("DELETE /task/{id}", th.DeleteTask)
-	mux.HandleFunc("POST /transition/{id}", th.TransitionTask)
-	mux.HandleFunc("/subscribe", th.Subscribe)
+	mux.HandleFunc("GET /task/{id}", th.getTaskById)
+	mux.HandleFunc("GET /task", th.getTasks)
+	mux.HandleFunc("PUT /task/{id}", th.updateTask)
+	mux.HandleFunc("DELETE /task/{id}", th.deleteTask)
+	mux.HandleFunc("POST /transition/{id}", th.transitionTask)
+	mux.HandleFunc("/subscribe", th.subscribe)
 }
 
-func (th *TaskHandler) CreateTask(w http.ResponseWriter, r *http.Request) {
+func (th *TaskHandler) createTask(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	decoder.DisallowUnknownFields()
 
 	var reqTask dto.RequestTask
+
 	err := decoder.Decode(&reqTask)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
@@ -67,7 +68,7 @@ func (th *TaskHandler) CreateTask(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (th *TaskHandler) GetTaskById(w http.ResponseWriter, r *http.Request) {
+func (th *TaskHandler) getTaskById(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
 	if id == "" {
 		http.Error(w, fmt.Errorf("invalid id string passed").Error(), http.StatusBadRequest)
@@ -94,7 +95,7 @@ func (th *TaskHandler) GetTaskById(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func (th *TaskHandler) GetTasks(w http.ResponseWriter, r *http.Request) {
+func (th *TaskHandler) getTasks(w http.ResponseWriter, r *http.Request) {
 	allTasks, err := th.controller.GetAllTasks()
 
 	if err != nil {
@@ -108,7 +109,7 @@ func (th *TaskHandler) GetTasks(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (th *TaskHandler) UpdateTask(w http.ResponseWriter, r *http.Request) {
+func (th *TaskHandler) updateTask(w http.ResponseWriter, r *http.Request) {
 	//we extract id from the path
 	id := r.PathValue("id")
 
@@ -140,7 +141,7 @@ func (th *TaskHandler) UpdateTask(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (th *TaskHandler) DeleteTask(w http.ResponseWriter, r *http.Request) {
+func (th *TaskHandler) deleteTask(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
 	err := th.controller.DeleteTask(id)
 
@@ -152,7 +153,7 @@ func (th *TaskHandler) DeleteTask(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func (th *TaskHandler) TransitionTask(w http.ResponseWriter, r *http.Request) {
+func (th *TaskHandler) transitionTask(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	decoder.DisallowUnknownFields()
 
@@ -174,7 +175,7 @@ func (th *TaskHandler) TransitionTask(w http.ResponseWriter, r *http.Request) {
 	logger.Error(err)
 }
 
-func (th *TaskHandler) Subscribe(w http.ResponseWriter, r *http.Request) {
+func (th *TaskHandler) subscribe(w http.ResponseWriter, r *http.Request) {
 	subscribers := make(chan subscriptionhub.Subscription, th.bufferSize)
 	defer close(subscribers)
 

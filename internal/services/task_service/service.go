@@ -35,7 +35,7 @@ func (ts *TaskService) GetTaskWith(id string) (tasks.Task, error) {
 	defer ts.mu.Unlock()
 	task, ok := ts.Tasks[id]
 	if !ok {
-		return nil, fmt.Errorf("Task not found with the id: " + id)
+		return nil, fmt.Errorf("task not found with the id: " + id)
 	}
 	return task, nil
 }
