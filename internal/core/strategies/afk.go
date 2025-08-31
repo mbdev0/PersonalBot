@@ -25,6 +25,7 @@ type Afk struct {
 
 func (a *Afk) New() {
 	a.id = uuid.NewString()
+	a.strategyType = AFK
 }
 
 func (a *Afk) StrategyTaskId() string {
