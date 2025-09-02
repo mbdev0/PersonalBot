@@ -1,6 +1,7 @@
 package sell
 
 import (
+	"context"
 	"fmt"
 	lookuptable "pump_fun/app/lookup_table"
 	"pump_fun/internal/core/tasks"
@@ -21,8 +22,8 @@ type Transaction struct {
 	signature    solana.Signature
 }
 
-func (st *Transaction) BuildInstructions(reporter subscriptionhub.TaskReporter) error {
-	sellInstructions, err := getAllInstructionsForSell(st.Task)
+func (st *Transaction) BuildInstructions(ctx context.Context, reporter subscriptionhub.TaskReporter) error {
+	sellInstructions, err := getAllInstructionsForSell(st.Task, ctx)
 	if err != nil {
 		logger.Error("Error getting instructions for sell task", err)
 		return err
@@ -37,12 +38,12 @@ func (st *Transaction) BuildInstructions(reporter subscriptionhub.TaskReporter) 
 	return nil
 }
 
-func (st *Transaction) BuildTransaction(reporter subscriptionhub.TaskReporter) error {
+func (st *Transaction) BuildTransaction(ctx context.Context, reporter subscriptionhub.TaskReporter) error {
 	if st.Task == nil {
 		return fmt.Errorf("sell task is null - check if sell task was set")
 	}
 
-	latestHash, err := client.GetLatestBlockhash(st.Task.Ctx())
+	latestHash, err := client.GetLatestBlockhash(ctx)
 	if err != nil {
 		logger.Error("Error getting latest blockhash", err)
 		return err
@@ -70,7 +71,7 @@ func (st *Transaction) BuildTransaction(reporter subscriptionhub.TaskReporter) e
 	return nil
 }
 
-func (st *Transaction) SendTransaction(reporter subscriptionhub.TaskReporter) error {
+func (st *Transaction) SendTransaction(ctx context.Context, reporter subscriptionhub.TaskReporter) error {
 	rpcClient := client.GetClient()
 
 	// simulate the transaction
@@ -91,7 +92,7 @@ func (st *Transaction) SendTransaction(reporter subscriptionhub.TaskReporter) er
 	// fmt.Println(txResp.String())
 
 	// SEND TRANSACTION WITH NO OPTS
-	txResp, err := rpcClient.SendTransaction(st.Task.Ctx(), st.transaction)
+	txResp, err := rpcClient.SendTransaction(ctx, st.transaction)
 	if err != nil {
 		logger.Error(err)
 		return err
@@ -102,12 +103,12 @@ func (st *Transaction) SendTransaction(reporter subscriptionhub.TaskReporter) er
 	return nil
 }
 
-func (st *Transaction) ConfirmTransaction(reporter subscriptionhub.TaskReporter) error {
+func (st *Transaction) ConfirmTransaction(ctx context.Context, reporter subscriptionhub.TaskReporter) error {
 	stream := make(chan client.ConfirmMessage, 100)
 
 	go func(stream chan client.ConfirmMessage) {
 		defer close(stream)
-		client.ConfirmTransactionWithStream(st.signature, st.Task.Ctx(), stream)
+		client.ConfirmTransactionWithStream(st.signature, ctx, stream)
 	}(stream)
 
 	for msg := range stream {
@@ -123,11 +124,11 @@ func (st *Transaction) GetTask() tasks.Task {
 	return st.Task
 }
 
-func getAllInstructionsForSell(sellTask *tasks.SellTask) ([]solana.Instruction, error) {
+func getAllInstructionsForSell(sellTask *tasks.SellTask, ctx context.Context) ([]solana.Instruction, error) {
 	computeLimitInstruction := instructions.GetComputeUnitLimitInstruction(sellTask.ComputeUnits)
 	computeLimitBudgetInstruction := instructions.GetComputeUnitBudgetInstruction(sellTask.Fee, sellTask.ComputeUnits)
 
-	sellInstructions, err := pumpInstructions.GetSellInstruction(sellTask)
+	sellInstructions, err := pumpInstructions.GetSellInstruction(sellTask, ctx)
 	if err != nil {
 		logger.Error("Error getting sell instruction", err)
 		return nil, err

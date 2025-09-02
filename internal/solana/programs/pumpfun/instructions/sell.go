@@ -19,14 +19,14 @@ import (
 var bondingCurveData *models.BondingCurve
 var associatedTokenAddress solana.PublicKey
 
-func GetSellInstruction(sellTask *tasks.SellTask) (*solana.GenericInstruction, error) {
-	accounts, err := getAccounts(sellTask)
+func GetSellInstruction(sellTask *tasks.SellTask, ctx context.Context) (*solana.GenericInstruction, error) {
+	accounts, err := getAccounts(sellTask, ctx)
 	if err != nil {
 		logger.Error("Error getting accounts for sell instruction", err)
 		return nil, err
 	}
 
-	instructionData, err := getInstructionData(sellTask)
+	instructionData, err := getInstructionData(sellTask, ctx)
 
 	if err != nil {
 		logger.Error("Error getting instruction data for sell instruction", err)
@@ -37,7 +37,7 @@ func GetSellInstruction(sellTask *tasks.SellTask) (*solana.GenericInstruction, e
 	return sellInstructions, nil
 }
 
-func getAccounts(sellTask *tasks.SellTask) ([]*solana.AccountMeta, error) {
+func getAccounts(sellTask *tasks.SellTask, ctx context.Context) ([]*solana.AccountMeta, error) {
 	bondingCurveAddress, err := pda.GetBondingCurveAddress(sellTask.Token.String())
 	if err != nil {
 		logger.Error("Error getting bonding curve address:", err)
@@ -57,7 +57,7 @@ func getAccounts(sellTask *tasks.SellTask) ([]*solana.AccountMeta, error) {
 	}
 	associatedTokenAddress = ATA
 
-	creatorAddress, err := getCreatorVaultAddress(bondingCurveAddress, sellTask.Ctx())
+	creatorAddress, err := getCreatorVaultAddress(bondingCurveAddress, ctx)
 	if err != nil {
 		logger.Error("Error getting creator vault address:", err)
 		return nil, err
@@ -101,9 +101,9 @@ func getCreatorVaultAddress(bondingCurveAddress string, ctx context.Context) (st
 	return creatorAddress, nil
 }
 
-func getInstructionData(sellTask *tasks.SellTask) ([]byte, error) {
+func getInstructionData(sellTask *tasks.SellTask, ctx context.Context) ([]byte, error) {
 
-	tokenAmount, solOutput, err := getTokenAmountAndSolOutput(sellTask)
+	tokenAmount, solOutput, err := getTokenAmountAndSolOutput(sellTask, ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -129,8 +129,8 @@ func getInstructionData(sellTask *tasks.SellTask) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func getTokenAmountAndSolOutput(sellTask *tasks.SellTask) (tokenAmount *uint64, solOutput *uint64, err error) {
-	tokenAmount, err = client.GetTokenAccountBalance(associatedTokenAddress, sellTask.Ctx())
+func getTokenAmountAndSolOutput(sellTask *tasks.SellTask, ctx context.Context) (tokenAmount *uint64, solOutput *uint64, err error) {
+	tokenAmount, err = client.GetTokenAccountBalance(associatedTokenAddress, ctx)
 	if err != nil {
 		return nil, nil, err
 	}

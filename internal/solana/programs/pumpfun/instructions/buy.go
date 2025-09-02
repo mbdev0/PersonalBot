@@ -27,9 +27,9 @@ type AccountAddressesSet struct {
 	UserVolumeAccumulator         string
 }
 
-func GetBuyInstruction(buyTask *tasks.BuyTask) (instruction *solana.GenericInstruction, err error) {
+func GetBuyInstruction(buyTask *tasks.BuyTask, ctx context.Context) (instruction *solana.GenericInstruction, err error) {
 
-	accountAddressesSet, err := setupAccountAddressSet(buyTask)
+	accountAddressesSet, err := setupAccountAddressSet(buyTask, ctx)
 	if err != nil {
 		return nil, fmt.Errorf("error setting up account address set: %w", err)
 	}
@@ -48,14 +48,14 @@ func GetBuyInstruction(buyTask *tasks.BuyTask) (instruction *solana.GenericInstr
 
 }
 
-func setupAccountAddressSet(buyTask *tasks.BuyTask) (AccountAddressesSet, error) {
+func setupAccountAddressSet(buyTask *tasks.BuyTask, ctx context.Context) (AccountAddressesSet, error) {
 	accountAddressesSet := &AccountAddressesSet{
 		TokenAddress:  buyTask.Token.String(),
 		WalletAddress: buyTask.Wallet.PublicKey().String(),
 	}
 
 	// Get and Set bonding curve information
-	err := setBondingCurveInformation(accountAddressesSet, buyTask.Ctx())
+	err := setBondingCurveInformation(accountAddressesSet, ctx)
 	if err != nil {
 		return *accountAddressesSet, err
 	}
