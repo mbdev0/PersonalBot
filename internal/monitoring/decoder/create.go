@@ -7,7 +7,7 @@ import (
 	"pump_fun/pkg/logger"
 )
 
-func DecodeCreateInstruction(data []byte) (*models.DecodedCreateInstruction, error) {
+func decodeCreateInstruction(data []byte) (*models.DecodedCreateInstruction, error) {
 	isCreate := len(data) < 8 || !bytes.Equal(data[:8], constants.CreateInstructionDiscriminator[:])
 	if isCreate {
 		return nil, nil
@@ -38,7 +38,7 @@ func DecodeCreateInstruction(data []byte) (*models.DecodedCreateInstruction, err
 	return &args, nil
 }
 
-func UpdateCoinFromDecodedInstruction(coin *models.Coin, instruction *models.DecodedCreateInstruction) {
+func updateCoinFromDecodedInstruction(coin *models.Coin, instruction *models.DecodedCreateInstruction) {
 	if instruction == nil {
 		return
 	}
