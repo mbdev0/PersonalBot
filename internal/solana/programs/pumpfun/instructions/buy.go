@@ -132,6 +132,8 @@ func buildAccounts(accountAddressesSet AccountAddressesSet) (accounts []*solana.
 		utils.GetAccountMeta(constants.Program, false, false),
 		utils.GetAccountMeta(constants.GlobalVolumeAccumulator, true, false),
 		utils.GetAccountMeta(accountAddressesSet.UserVolumeAccumulator, true, false),
+		utils.GetAccountMeta(constants.FeeConfig, false, false),
+		utils.GetAccountMeta(constants.FeeProgram, false, false),
 	}
 	return accounts
 }
