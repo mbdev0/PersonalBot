@@ -18,7 +18,7 @@ To view tests coverage
 
 To run the program:
 ```bash
-  go build
-  ./pump_fun
+  go build ./cmd/server
+  ./server
 ```
 in the root directory
