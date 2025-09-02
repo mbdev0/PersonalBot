@@ -76,6 +76,8 @@ func getAccounts(sellTask *tasks.SellTask) ([]*solana.AccountMeta, error) {
 		utils.GetAccountMeta(constants.TokenProgram, false, false),
 		utils.GetAccountMeta(constants.EventAuthority, false, false),
 		utils.GetAccountMeta(constants.Program, false, false),
+		utils.GetAccountMeta(constants.FeeConfig, false, false),
+		utils.GetAccountMeta(constants.FeeProgram, false, false),
 	}
 
 	return accounts, nil

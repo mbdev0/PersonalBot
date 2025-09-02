@@ -12,4 +12,6 @@ const (
 	AddressLookupTableAccount = "8kocA3MjcqJv6i7wLsG5NXUGTc6QVbFFPkLTZEuNtQPU"
 	GlobalVolumeAccumulator   = "Hq2wp8uJ9jCPsYgNHex8RtqdvMPfVGoYwjvF1ATiwn2Y"
 	UserVolumeAccumulatorPart = "3Rhd6YDYmUXARxTVuEN1G3ktixHYfyZs"
+	FeeConfig                 = "8Wf5TiAheLUqBrKXeYg2JtAFFMWtKdG2BSFgqUcPVwTt"
+	FeeProgram                = "pfeeUxB6jkeY1Hxd7CsFCAjcbHA9rWtchMGdZ6VojVZ"
 )
