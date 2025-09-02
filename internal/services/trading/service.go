@@ -102,6 +102,11 @@ func (s *Service) Start(id string, ctx context.Context) error {
 		return fmt.Errorf("task not found with id: %s", id)
 	}
 
+	_, isRunning := s.running[id]
+	if isRunning {
+		return fmt.Errorf("task is already running %s", id)
+	}
+
 	ctxCancel, cancel := context.WithCancel(ctx)
 
 	switch tsk := task.(type) {
