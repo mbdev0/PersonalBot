@@ -157,8 +157,12 @@ func TestFieldsWithZeroEntriesReturnRequiredError(t *testing.T) {
 		})
 
 	errs := validate.Struct(buyTask)
-	validationSlice := getValidationErrorSlice(t, errs, "required")
-	fields := []string{"BuyAmount", "Slippage", "BuyFee", "ComputeUnits"}
+	// Collect errors for both required + gtZero
+	requiredSlice := getValidationErrorSlice(t, errs, "required")
+	gtZeroSlice := getValidationErrorSlice(t, errs, "gtZero")
+	validationSlice := append(requiredSlice, gtZeroSlice...)
+
+	fields := []string{"BuyAmount", "Slippage", "Fee", "ComputeUnits"}
 
 	for _, field := range fields {
 		if !slices.Contains(validationSlice, field) {

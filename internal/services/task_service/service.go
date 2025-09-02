@@ -35,7 +35,7 @@ func (ts *TaskService) GetTaskWith(id string) (tasks.Task, error) {
 	defer ts.mu.Unlock()
 	task, ok := ts.Tasks[id]
 	if !ok {
-		return nil, fmt.Errorf("task not found with the id: " + id)
+		return nil, fmt.Errorf("task not found with the id: %s", id)
 	}
 	return task, nil
 }
@@ -64,7 +64,7 @@ func (ts *TaskService) DeleteTask(id string) (err error) {
 	defer ts.mu.Unlock()
 	_, ok := ts.Tasks[id]
 	if !ok {
-		return fmt.Errorf("task not found with id: " + id)
+		return fmt.Errorf("task not found with id: %s", id)
 	}
 
 	delete(ts.Tasks, id)
@@ -77,7 +77,7 @@ func (ts *TaskService) TransitionTask(id string, newState tasks.TaskState) (err 
 	defer ts.mu.Unlock()
 	task, ok := ts.Tasks[id]
 	if !ok {
-		return fmt.Errorf("Task not found with the id: " + id)
+		return fmt.Errorf("Task not found with the id: %s", id)
 	}
 
 	err = ts.StateMachine.Transition(task, newState)
