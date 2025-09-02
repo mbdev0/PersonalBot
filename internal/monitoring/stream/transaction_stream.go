@@ -17,9 +17,23 @@ var (
 	wsUrl = config.GetConfig().WsNode
 )
 
-func GeyserStreamTransactions(transactionChan chan<- response.TransactionNotification) error {
+func StartGeyserTransactionStream(transactionChan chan<- response.TransactionNotification, ctx context.Context) error {
+	for {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		default:
+			err := geyserStreamTransactions(transactionChan, ctx)
+			if err != nil {
+				return err
+			}
+		}
+	}
+}
+
+func geyserStreamTransactions(transactionChan chan<- response.TransactionNotification, ctx context.Context) error {
 	// ctx, cancel := context.WithTimeout(context.Background(), connection_timeout)
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
 	ws, err := retry.DoWithData(
