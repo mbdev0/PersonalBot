@@ -12,6 +12,7 @@ import (
 	"pump_fun/pkg/logger"
 
 	"github.com/gagliardetto/solana-go"
+	"github.com/gagliardetto/solana-go/rpc"
 )
 
 type Transaction struct {
@@ -83,18 +84,20 @@ func (bt *Transaction) SendTransaction(reporter subscriptionhub.TaskReporter) er
 
 	// SEND TRANSACTION WITH OPTIONS
 	// maxRetries := uint(5)
-	// txResp, err := rpcClient.SendTransactionWithOpts(bt.BuyTask.Ctx(), bt.transaction, rpc.TransactionOpts{Encoding: solana.EncodingBase64, SkipPreflight: false, MaxRetries: &maxRetries})
-	// if err != nil {
-	// 	logger.Error(err)
-	// }
-	// fmt.Println(txResp.String())
-
-	// SEND TRANSACTION WITH NO OPTS
-	txResp, err := rpcClient.SendTransaction(bt.BuyTask.Ctx(), bt.transaction)
+	txResp, err := rpcClient.SendTransactionWithOpts(bt.BuyTask.Ctx(), bt.transaction, rpc.TransactionOpts{Encoding: solana.EncodingBase64, SkipPreflight: true})
 	if err != nil {
 		logger.Error(err)
 		return err
 	}
+	fmt.Println(txResp.String())
+
+	// SEND TRANSACTION WITH NO OPTS
+	// fmt.Println(bt.transaction.String())
+	// txResp, err := rpcClient.SendTransaction(bt.BuyTask.Ctx(), bt.transaction)
+	// if err != nil {
+	// 	logger.Error(err)
+	// 	return err
+	// }
 
 	bt.signature = txResp
 	reporter.Report(fmt.Sprintf("Tx Sent: %s", txResp))

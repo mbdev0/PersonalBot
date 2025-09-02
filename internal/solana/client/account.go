@@ -17,7 +17,7 @@ func GetAccountInfo(address string, ctx context.Context) (*rpc.GetAccountInfoRes
 	defer cancel()
 
 	accountInfo, err := client.GetAccountInfoWithOpts(ctx, solana.MustPublicKeyFromBase58(address), &rpc.GetAccountInfoOpts{
-		Encoding: solana.EncodingBase64})
+		Encoding: solana.EncodingBase64, Commitment: rpc.CommitmentConfirmed})
 
 	if err != nil {
 		return nil, err
@@ -40,3 +40,14 @@ func GetAccountInfoLimited(address string) (*rpc.GetAccountInfoResult, error) {
 
 	return accountInfo, nil
 }
+
+// func GetAccountInfoUntilResponse(address string, ctx context.Context) (*rpc.GetAccountInfoResult, error) {
+// 	client := GetClient()
+// 	ctx, cancel := context.WithTimeout(ctx, timeout)
+// 	defer cancel()
+
+// 	for {
+// 		accountInfo, err
+// 	}
+
+// }

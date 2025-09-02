@@ -7,6 +7,8 @@ import (
 	"pump_fun/api/controller"
 	"pump_fun/api/dto"
 	"pump_fun/pkg/logger"
+
+	"github.com/google/uuid"
 )
 
 type TradingHandler struct {
@@ -26,6 +28,9 @@ func (th *TradingHandler) registerRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /task", th.getTasks)
 	mux.HandleFunc("PUT /task/{id}", th.updateTask)
 	mux.HandleFunc("DELETE /task/{id}", th.deleteTask)
+	mux.HandleFunc("GET /task/{id}/start", th.startTask)
+	mux.HandleFunc("GET /task/{id}/stop", th.stopTask)
+
 }
 
 func (th *TradingHandler) createTask(w http.ResponseWriter, r *http.Request) {
@@ -141,5 +146,36 @@ func (th *TradingHandler) deleteTask(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-//should we split up the strats e.g. /afk/start /afk/stop /afk/create /afk/delete /afk/get
-// or should we combine the strats e.g. /trading/create /trading/start etc.
+func (th *TradingHandler) startTask(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	err := uuid.Validate(id)
+	if err != nil {
+		http.Error(w, "parameter value for id is not a valid uuid", http.StatusBadRequest)
+		return
+	}
+
+	err = th.strategyController.Start(id, r.Context())
+	if err != nil {
+		http.Error(w, fmt.Sprintf("error whilst starting task: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func (th *TradingHandler) stopTask(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	err := uuid.Validate(id)
+	if err != nil {
+		http.Error(w, "parameter value for id is not a valid uuid", http.StatusBadRequest)
+		return
+	}
+
+	err = th.strategyController.Stop(id)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("error whilst stopping task: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}

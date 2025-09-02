@@ -47,6 +47,10 @@ func mapFiltersToResponseFilters(src []strategies.StrategyFilter) dto.Filters {
 			dest.HasTwitter = &b
 		case "HasTelegram":
 			dest.HasTelegram = &b
+		case "DevWallet":
+			if filter.Value != "" {
+				dest.DevWallet = &filter.Value
+			}
 		}
 	}
 
