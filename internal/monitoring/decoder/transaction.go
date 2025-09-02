@@ -28,7 +28,7 @@ func DecryptTransactionNotificationForCoin(transaction response.TransactionNotif
 
 	// we always get the IPFS data even when it's slow to get a response
 	// TODO: ideally we should return basic information to the monitor first - access ipfs url if needed
-	ipfsData, err := GetIPFSData(coin.CoinData.IpfsUrl)
+	ipfsData, err := getIPFSData(coin.CoinData.IpfsUrl)
 	if err != nil {
 		logger.Error("Error getting IPFS data - IpfsUrl: ", coin.CoinData.IpfsUrl, " ", err)
 		return nil
@@ -88,12 +88,12 @@ func getCreatedCoinWithBuyData(transaction response.TransactionNotification) (mo
 func createCoinFromInstruction(instruction response.Instruction, instructionData []byte) (models.Coin, error) {
 	coin := models.Coin{}
 
-	decodedInstruction, err := DecodeCreateInstruction(instructionData)
+	decodedInstruction, err := decodeCreateInstruction(instructionData)
 	if err != nil {
 		logger.Error("Error decoding create instruction", err)
 		return coin, err
 	}
-	UpdateCoinFromDecodedInstruction(&coin, decodedInstruction)
+	updateCoinFromDecodedInstruction(&coin, decodedInstruction)
 	assignCoinAddresses(&coin, instruction)
 
 	return coin, nil
@@ -107,7 +107,7 @@ func assignCoinAddresses(coin *models.Coin, instruction response.Instruction) {
 	coin.CoinData.BondingCurveAddr = instruction.Accounts[createAccountIDL["bondingCurve"]]
 }
 
-func GetIPFSData(ipfsURL string) (*models.IPFS, error) {
+func getIPFSData(ipfsURL string) (*models.IPFS, error) {
 	resp, err := http.Get(ipfsURL)
 	if err != nil {
 		return nil, fmt.Errorf("failed to make HTTP request: %w", err)
