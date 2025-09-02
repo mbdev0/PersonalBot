@@ -28,8 +28,8 @@ func (th *TradingHandler) registerRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /task", th.getTasks)
 	mux.HandleFunc("PUT /task/{id}", th.updateTask)
 	mux.HandleFunc("DELETE /task/{id}", th.deleteTask)
-	mux.HandleFunc("GET /task/{id}/start", th.startTask)
-	mux.HandleFunc("GET /task/{id}/stop", th.stopTask)
+	mux.HandleFunc("GET /task/start/{id}", th.startTask)
+	mux.HandleFunc("GET /task/stop/{id}", th.stopTask)
 
 }
 
@@ -154,7 +154,7 @@ func (th *TradingHandler) startTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = th.strategyController.Start(id, r.Context())
+	err = th.strategyController.Start(id)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("error whilst starting task: %v", err), http.StatusInternalServerError)
 		return

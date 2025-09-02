@@ -94,7 +94,7 @@ func (s *Service) Update(task strategies.Task, patch strategies.Patch) (strategi
 	return task, nil
 }
 
-func (s *Service) Start(id string, ctx context.Context) error {
+func (s *Service) Start(id string) error {
 	task, ok := s.tasks[id]
 	if !ok {
 		return fmt.Errorf("task not found with id: %s", id)
@@ -105,13 +105,12 @@ func (s *Service) Start(id string, ctx context.Context) error {
 		return fmt.Errorf("task is already running %s", id)
 	}
 
-	ctxCancel, cancel := context.WithCancel(ctx)
+	ctxCancel, cancel := context.WithCancel(context.Background())
 
 	switch tsk := task.(type) {
 	case *strategies.Afk:
-		tsk.Cancel = cancel
 		go s.strategy.AfkSniping(tsk, ctxCancel)
-		s.running[task.StrategyTaskId()] = tsk.Cancel
+		s.running[task.StrategyTaskId()] = cancel
 	default:
 		//if the task matches no type
 		cancel()

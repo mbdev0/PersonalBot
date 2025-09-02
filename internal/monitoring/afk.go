@@ -1,6 +1,7 @@
 package monitoring
 
 import (
+	"context"
 	"pump_fun/internal/monitoring/decoder"
 	"pump_fun/internal/monitoring/filters"
 	"pump_fun/internal/monitoring/models"
@@ -15,7 +16,7 @@ var startMonitoring = true
 var transactionChanSize = 1000
 var coinChanSize = 1000
 
-func StartAFKMonitor(filters filters.FilterPipeline, coins chan<- models.Coin) {
+func StartAFKMonitor(filters filters.FilterPipeline, coins chan<- models.Coin, ctx context.Context) {
 	var wg sync.WaitGroup
 	if startMonitoring {
 		wg.Add(1)
@@ -26,9 +27,9 @@ func StartAFKMonitor(filters filters.FilterPipeline, coins chan<- models.Coin) {
 			defer close(transactionNotificationChan)
 			defer close(coinStructChan)
 
-			go streamTransactions(transactionNotificationChan)
+			go streamTransactions(transactionNotificationChan, ctx)
 
-			go decryptAndFilterTransactions(filters, transactionNotificationChan, coinStructChan)
+			go decryptAndFilterTransactions(filters, transactionNotificationChan, coinStructChan, ctx)
 
 			for coinStruct := range coinStructChan {
 				coins <- coinStruct
@@ -40,20 +41,24 @@ func StartAFKMonitor(filters filters.FilterPipeline, coins chan<- models.Coin) {
 	wg.Wait()
 }
 
-func streamTransactions(transactionNotificationChan chan<- response.TransactionNotification) {
-	err := stream.GeyserStreamTransactions(transactionNotificationChan)
+func streamTransactions(transactionNotificationChan chan<- response.TransactionNotification, ctx context.Context) {
+	err := stream.StartGeyserTransactionStream(transactionNotificationChan, ctx) //pass in ctx here
 	if err != nil {
 		logger.Error("Error in Geyser_Stream_Transactions ", err)
-		close(transactionNotificationChan)
+		return
 	}
 }
 
-func decryptAndFilterTransactions(filters filters.FilterPipeline, transactionNotificationChan <-chan response.TransactionNotification, coinStructChan chan<- models.Coin) {
-	defer close(coinStructChan)
-	for transaction := range transactionNotificationChan {
-		go func(transaction response.TransactionNotification, coinStructChan chan<- models.Coin) {
-			handleTransactionNotification(filters, transaction, coinStructChan)
-		}(transaction, coinStructChan)
+func decryptAndFilterTransactions(filters filters.FilterPipeline, transactionNotificationChan <-chan response.TransactionNotification, coinStructChan chan<- models.Coin, ctx context.Context) {
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case transaction := <-transactionNotificationChan:
+			go func(transaction response.TransactionNotification) {
+				handleTransactionNotification(filters, transaction, coinStructChan)
+			}(transaction)
+		}
 	}
 }
 

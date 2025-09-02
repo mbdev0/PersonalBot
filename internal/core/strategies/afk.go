@@ -1,7 +1,6 @@
 package strategies
 
 import (
-	"context"
 	"math/big"
 	"pump_fun/internal/monitoring/filters"
 
@@ -20,7 +19,6 @@ type Afk struct {
 	Slippage     float64
 	ComputeUnits float64
 	Wallet       solana.PrivateKey
-	Cancel       context.CancelFunc
 }
 
 func (a *Afk) New() {

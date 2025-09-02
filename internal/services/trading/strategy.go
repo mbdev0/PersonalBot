@@ -30,7 +30,7 @@ func (s *Strategy) AfkSniping(afkTask *strategies.Afk, ctx context.Context) {
 		filterPipeline.AddFilter(f())
 	}
 
-	go monitoring.StartAFKMonitor(filterPipeline, coins)
+	go monitoring.StartAFKMonitor(filterPipeline, coins, ctx)
 	logger.Information("started afk monitor")
 
 	for coin := range coins {
@@ -38,6 +38,7 @@ func (s *Strategy) AfkSniping(afkTask *strategies.Afk, ctx context.Context) {
 		if err != nil {
 			logger.Error("couldn't read token address correctly: " + err.Error())
 		}
+
 		t := s.createBuyTask(afkTask, coinAddr)
 
 		bt, err := s.taskService.Create(t)

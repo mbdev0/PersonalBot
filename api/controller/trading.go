@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"context"
 	"fmt"
 	"pump_fun/api/dto"
 	"pump_fun/api/mapper"
@@ -94,8 +93,8 @@ func (sc *StrategyController) Update(id string, tsk dto.TradingTaskPatch) (*dto.
 	return mappedResp, nil
 }
 
-func (sc *StrategyController) Start(id string, ctx context.Context) error {
-	err := sc.strategyService.Start(id, ctx)
+func (sc *StrategyController) Start(id string) error {
+	err := sc.strategyService.Start(id)
 	if err != nil {
 		return err
 	}
