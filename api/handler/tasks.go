@@ -172,7 +172,9 @@ func (th *TaskHandler) transitionTask(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusNoContent)
-	logger.Error(err)
+	if err != nil {
+		logger.Error(err)
+	}
 }
 
 func (th *TaskHandler) subscribe(w http.ResponseWriter, r *http.Request) {

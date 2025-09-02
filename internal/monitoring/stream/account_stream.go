@@ -35,7 +35,7 @@ func GeyserStreamAccountInfo(ctx context.Context, address string, accountinfoCha
 		"params": []interface{}{
 			address,
 			map[string]interface{}{
-				"commitment": "confirmed",
+				"commitment": "processed",
 				"encoding":   "base64",
 			},
 		},

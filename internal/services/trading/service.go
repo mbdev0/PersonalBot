@@ -95,8 +95,6 @@ func (s *Service) Update(task strategies.Task, patch strategies.Patch) (strategi
 }
 
 func (s *Service) Start(id string, ctx context.Context) error {
-	// this will probably be a switch case over the task type and run the function underneath
-	// we will do a go func with a ctx that we derive from the request
 	task, ok := s.tasks[id]
 	if !ok {
 		return fmt.Errorf("task not found with id: %s", id)
