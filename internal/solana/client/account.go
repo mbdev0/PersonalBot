@@ -17,7 +17,7 @@ func GetAccountInfo(address string, ctx context.Context) (*rpc.GetAccountInfoRes
 	defer cancel()
 
 	accountInfo, err := client.GetAccountInfoWithOpts(ctx, solana.MustPublicKeyFromBase58(address), &rpc.GetAccountInfoOpts{
-		Encoding: solana.EncodingBase64, Commitment: rpc.CommitmentConfirmed})
+		Encoding: solana.EncodingBase64, Commitment: rpc.CommitmentProcessed})
 
 	if err != nil {
 		return nil, err
