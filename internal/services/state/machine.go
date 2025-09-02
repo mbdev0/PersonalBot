@@ -16,7 +16,7 @@ func (m *Machine) Transition(task tasks.Task, newState tasks.TaskState) error {
 	}
 
 	if !transition.IsAbleToTransitionTo(newState, task) {
-		return fmt.Errorf("Task not able to transition to next state: " + newState.ToString())
+		return fmt.Errorf("Task not able to transition to next state: %s", newState.ToString())
 	}
 
 	if newState == tasks.TaskCancel {

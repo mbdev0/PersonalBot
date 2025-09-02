@@ -13,7 +13,7 @@ func MapTaskToReponseTask(task tasks.Task) (*dto.ResponseTask, error) {
 	case *tasks.SellTask:
 		return mapSellToResponseTask(t), nil
 	default:
-		return nil, fmt.Errorf("no mapper created for type: " + t.Type())
+		return nil, fmt.Errorf("no mapper created for type: %s", t.Type())
 	}
 }
 

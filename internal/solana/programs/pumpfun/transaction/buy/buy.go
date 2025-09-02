@@ -115,7 +115,7 @@ func (bt *Transaction) ConfirmTransaction(ctx context.Context, reporter subscrip
 
 	for msg := range stream {
 		if msg.Err != "" {
-			return fmt.Errorf(msg.Err)
+			return fmt.Errorf("%v", msg.Err)
 		}
 		reporter.Report(msg.Message)
 	}
