@@ -74,6 +74,7 @@ func GeyserStreamTransactions(transactionChan chan<- response.TransactionNotific
 	if err != nil {
 		return err
 	}
+	logger.Information("connected to ws")
 
 	for {
 		out := response.TransactionNotification{}

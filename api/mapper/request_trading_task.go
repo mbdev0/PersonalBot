@@ -58,5 +58,12 @@ func mapFiltersToDestFilters(srcFilters dto.Filters) []strategies.StrategyFilter
 		destFilters = append(destFilters, filters.HasWebsite)
 	}
 
+	if srcFilters.DevWallet != nil && *srcFilters.DevWallet != "" {
+		wallet := *srcFilters.DevWallet
+		destFilters = append(destFilters, func() filters.FilterInfo {
+			return filters.DevWallet(wallet)
+		})
+	}
+
 	return destFilters
 }

@@ -30,14 +30,15 @@ func (s *Strategy) AfkSniping(afkTask *strategies.Afk, ctx context.Context) {
 		filterPipeline.AddFilter(f())
 	}
 
-	monitoring.StartAFKMonitor(filterPipeline, coins)
+	go monitoring.StartAFKMonitor(filterPipeline, coins)
+	logger.Information("started afk monitor")
 
 	for coin := range coins {
 		coinAddr, err := solana.PublicKeyFromBase58(coin.CoinData.TokenAddr)
 		if err != nil {
 			logger.Error("couldn't read token address correctly: " + err.Error())
 		}
-		t := s.createBuyTask(strategies.Afk{}, coinAddr)
+		t := s.createBuyTask(afkTask, coinAddr)
 
 		bt, err := s.taskService.Create(t)
 		if err != nil {
@@ -52,7 +53,7 @@ func (s *Strategy) AfkSniping(afkTask *strategies.Afk, ctx context.Context) {
 	}
 }
 
-func (s *Strategy) createBuyTask(afkTask strategies.Afk, tokenAddr solana.PublicKey) *tasks.BuyTask {
+func (s *Strategy) createBuyTask(afkTask *strategies.Afk, tokenAddr solana.PublicKey) *tasks.BuyTask {
 	// buyTask := tasks.BuyTask{}
 	bt := tasks.NewBuyTask(afkTask.Wallet, tokenAddr,
 		[]tasks.Option{tasks.WithSlippage(afkTask.Slippage), tasks.WithComputeUnits(uint32(afkTask.ComputeUnits))},

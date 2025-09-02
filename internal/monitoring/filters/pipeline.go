@@ -5,8 +5,9 @@ import (
 )
 
 type FilterInfo struct {
-	Name string
-	Fn   Filter
+	Name  string
+	Fn    Filter
+	Value string
 }
 
 type Filter func(*models.Coin) *models.Coin
@@ -70,5 +71,18 @@ func HasTelegram() FilterInfo {
 			}
 			return coin
 		},
+	}
+}
+
+func DevWallet(devWallet string) FilterInfo {
+	return FilterInfo{
+		Name: DevWalletFilter,
+		Fn: func(coin *models.Coin) *models.Coin {
+			if coin.CoinData.CreatorAddr != devWallet {
+				return nil
+			}
+			return coin
+		},
+		Value: devWallet,
 	}
 }
