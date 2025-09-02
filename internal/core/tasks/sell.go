@@ -24,7 +24,6 @@ type SellTask struct {
 }
 
 func NewSellTask(pk solana.PrivateKey, token solana.PublicKey, common []Option, sellOpt []SellOption) *SellTask {
-	ctx, cancel := context.WithCancel(context.Background())
 
 	st := &SellTask{
 		id:       uuid.NewString(),
@@ -32,8 +31,6 @@ func NewSellTask(pk solana.PrivateKey, token solana.PublicKey, common []Option, 
 		state:    State{TaskState: TaskCreate},
 		Wallet:   pk,
 		Token:    token,
-		ctx:      ctx,
-		cancel:   cancel,
 		mu:       &sync.RWMutex{},
 	}
 
@@ -66,21 +63,4 @@ func (st *SellTask) SetState(newState State) {
 	st.mu.Lock()
 	defer st.mu.Unlock()
 	st.state = newState
-}
-
-func (st *SellTask) ResetCtx() {
-	ctx, cancel := context.WithCancel(context.Background())
-	st.ctx = ctx
-	st.cancel = cancel
-}
-
-func (st *SellTask) Cancel() {
-	if st.ctx != nil {
-		st.cancel()
-
-	}
-}
-
-func (st *SellTask) Ctx() context.Context {
-	return st.ctx
 }

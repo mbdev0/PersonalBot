@@ -1,6 +1,7 @@
 package buy
 
 import (
+	"context"
 	"fmt"
 	lookuptable "pump_fun/app/lookup_table"
 	"pump_fun/internal/core/tasks"
@@ -22,12 +23,12 @@ type Transaction struct {
 	signature    solana.Signature
 }
 
-func (bt *Transaction) BuildInstructions(reporter subscriptionhub.TaskReporter) error {
+func (bt *Transaction) BuildInstructions(ctx context.Context, reporter subscriptionhub.TaskReporter) error {
 	if bt.BuyTask == nil {
 		return fmt.Errorf("buy task was nil - make sure buy task is set")
 	}
 
-	buyInstructions, err := getAllInstructionsForBuy(bt.BuyTask)
+	buyInstructions, err := getAllInstructionsForBuy(bt.BuyTask, ctx)
 	if buyInstructions == nil || err != nil {
 		logger.Error("Error creating buy instructions - no instructions created")
 		return err
@@ -38,12 +39,12 @@ func (bt *Transaction) BuildInstructions(reporter subscriptionhub.TaskReporter) 
 	return nil
 }
 
-func (bt *Transaction) BuildTransaction(reporter subscriptionhub.TaskReporter) error {
+func (bt *Transaction) BuildTransaction(ctx context.Context, reporter subscriptionhub.TaskReporter) error {
 	if bt.BuyTask == nil {
 		return fmt.Errorf("buy task was nil - make sure buy task is set")
 	}
 
-	latestHash, err := client.GetLatestBlockhash(bt.BuyTask.Ctx())
+	latestHash, err := client.GetLatestBlockhash(ctx)
 	if err != nil {
 		logger.Error("Error getting latest blockhash", err)
 		return err
@@ -72,7 +73,7 @@ func (bt *Transaction) BuildTransaction(reporter subscriptionhub.TaskReporter) e
 	return nil
 }
 
-func (bt *Transaction) SendTransaction(reporter subscriptionhub.TaskReporter) error {
+func (bt *Transaction) SendTransaction(ctx context.Context, reporter subscriptionhub.TaskReporter) error {
 	rpcClient := client.GetClient()
 	// SIMULATE TRANSACTION
 	// txResp, err := rpcClient.SimulateTransaction(bt.BuyTask.Ctx(), bt.transaction)
@@ -84,7 +85,7 @@ func (bt *Transaction) SendTransaction(reporter subscriptionhub.TaskReporter) er
 
 	// SEND TRANSACTION WITH OPTIONS
 	// maxRetries := uint(5)
-	txResp, err := rpcClient.SendTransactionWithOpts(bt.BuyTask.Ctx(), bt.transaction, rpc.TransactionOpts{Encoding: solana.EncodingBase64, SkipPreflight: true})
+	txResp, err := rpcClient.SendTransactionWithOpts(ctx, bt.transaction, rpc.TransactionOpts{Encoding: solana.EncodingBase64, SkipPreflight: true})
 	if err != nil {
 		logger.Error(err)
 		return err
@@ -104,12 +105,12 @@ func (bt *Transaction) SendTransaction(reporter subscriptionhub.TaskReporter) er
 	return nil
 }
 
-func (bt *Transaction) ConfirmTransaction(reporter subscriptionhub.TaskReporter) error {
+func (bt *Transaction) ConfirmTransaction(ctx context.Context, reporter subscriptionhub.TaskReporter) error {
 	stream := make(chan client.ConfirmMessage, 100)
 
 	go func(stream chan client.ConfirmMessage) {
 		defer close(stream)
-		client.ConfirmTransactionWithStream(bt.signature, bt.BuyTask.Ctx(), stream)
+		client.ConfirmTransactionWithStream(bt.signature, ctx, stream)
 	}(stream)
 
 	for msg := range stream {
@@ -126,16 +127,16 @@ func (bt *Transaction) GetTask() tasks.Task {
 	return bt.BuyTask
 }
 
-func getAllInstructionsForBuy(buyTask *tasks.BuyTask) (buyInstructions []solana.Instruction, err error) {
+func getAllInstructionsForBuy(buyTask *tasks.BuyTask, ctx context.Context) (buyInstructions []solana.Instruction, err error) {
 
 	computeLimitInstruction := instructions.GetComputeUnitLimitInstruction(buyTask.ComputeUnits)
 	computeLimitBudgetInstruction := instructions.GetComputeUnitBudgetInstruction(buyTask.Fee, buyTask.ComputeUnits)
-	idEmponenetInstruction, err := instructions.GetIdempotentInstruction(buyTask.Wallet.PublicKey(), buyTask.Token, buyTask.Ctx())
+	idEmponenetInstruction, err := instructions.GetIdempotentInstruction(buyTask.Wallet.PublicKey(), buyTask.Token, ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	buyInstruction, err := pumpInstructions.GetBuyInstruction(buyTask)
+	buyInstruction, err := pumpInstructions.GetBuyInstruction(buyTask, ctx)
 
 	if err != nil {
 		logger.Error("Error creating buy instruction", err)

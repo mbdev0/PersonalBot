@@ -1,6 +1,7 @@
 package transaction
 
 import (
+	"context"
 	"fmt"
 	"pump_fun/internal/core/tasks"
 	"pump_fun/internal/core/validator"
@@ -29,10 +30,9 @@ func (e *Executor) GetImplementation(task tasks.Task) (Transaction, error) {
 	return nil, fmt.Errorf("no transaction found for the task: %s", task.Type())
 }
 
-func (e *Executor) Execute(done chan struct{}, transaction Transaction) {
+func (e *Executor) Execute(done chan struct{}, transaction Transaction, ctx context.Context) {
 
 	task := transaction.GetTask()
-	ctx := task.Ctx()
 
 	reporter := subscriptionhub.TaskReporter{}
 	reporter.New(task, e.subhub)
@@ -51,7 +51,7 @@ func (e *Executor) Execute(done chan struct{}, transaction Transaction) {
 		return
 	}
 
-	steps := []func(reporter subscriptionhub.TaskReporter) error{
+	steps := []func(ctx context.Context, reporter subscriptionhub.TaskReporter) error{
 		transaction.BuildInstructions,
 		transaction.BuildTransaction,
 		transaction.SendTransaction,
@@ -65,7 +65,7 @@ func (e *Executor) Execute(done chan struct{}, transaction Transaction) {
 			return
 		}
 
-		err := step(reporter)
+		err := step(ctx, reporter)
 		e.transitionAndPublishTask(task, err)
 		if err != nil {
 			close(done)
