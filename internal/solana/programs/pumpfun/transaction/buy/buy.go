@@ -1,10 +1,13 @@
 package buy
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	lookuptable "pump_fun/app/lookup_table"
+	"pump_fun/internal/core/constants"
 	"pump_fun/internal/core/tasks"
+	"pump_fun/internal/monitoring/decoder"
 	subscriptionhub "pump_fun/internal/services/subscription_hub"
 	"pump_fun/internal/solana/client"
 	"pump_fun/internal/solana/instructions"
@@ -14,6 +17,7 @@ import (
 
 	"github.com/gagliardetto/solana-go"
 	"github.com/gagliardetto/solana-go/rpc"
+	"github.com/mr-tron/base58/base58"
 )
 
 type Transaction struct {
@@ -28,7 +32,7 @@ func (bt *Transaction) BuildInstructions(ctx context.Context, reporter subscript
 		return fmt.Errorf("buy task was nil - make sure buy task is set")
 	}
 
-	buyInstructions, err := getAllInstructionsForBuy(bt.BuyTask, ctx)
+	buyInstructions, err := bt.getAllInstructionsForBuy(bt.BuyTask, ctx)
 	if buyInstructions == nil || err != nil {
 		logger.Error("Error creating buy instructions - no instructions created")
 		return err
@@ -120,6 +124,11 @@ func (bt *Transaction) ConfirmTransaction(ctx context.Context, reporter subscrip
 		reporter.Report(msg.Message)
 	}
 
+	tokenAmnt, solAmnt, err := bt.extractTokenAndSolFromTx(bt.signature, ctx)
+	if err != nil {
+		return err
+	}
+	fmt.Println(tokenAmnt, solAmnt)
 	return nil
 }
 
@@ -127,7 +136,64 @@ func (bt *Transaction) GetTask() tasks.Task {
 	return bt.BuyTask
 }
 
-func getAllInstructionsForBuy(buyTask *tasks.BuyTask, ctx context.Context) (buyInstructions []solana.Instruction, err error) {
+func (bt *Transaction) extractTokenAndSolFromTx(signature solana.Signature, ctx context.Context) (tokenAmount float64, solAmount float64, err error) {
+	solClient := client.GetClient()
+	tx, err := solClient.GetParsedTransaction(ctx, signature, &rpc.GetParsedTransactionOpts{Commitment: rpc.CommitmentConfirmed, MaxSupportedTransactionVersion: &rpc.MaxSupportedTransactionVersion0})
+	if err != nil {
+		return tokenAmount, solAmount, err
+	}
+
+	if tx.Meta.Err != nil {
+		return tokenAmount, solAmount, fmt.Errorf("error in transaction whilst extracting token amount + sol amount")
+	}
+
+	transactionMessage := tx.Transaction.Message
+
+	instructions := transactionMessage.Instructions
+	//extract token amount
+	for _, instruction := range instructions {
+		logger.Information(base58.Decode(instruction.Data.String()))
+		instructionData, err := base58.Decode(instruction.Data.String())
+		if err != nil {
+			return tokenAmount, solAmount, err
+		}
+		if len(instructionData) < 8 {
+			continue
+		}
+
+		if !bytes.HasPrefix(instructionData, constants.BuyInstructionDiscriminator[:]) {
+			continue
+		}
+
+		tokenAmountInt, err := decoder.ExtractTokenAmountFromBuyInstruction(instructionData)
+		if err != nil {
+			return tokenAmount, solAmount, err
+		}
+
+		tokenAmount = float64(tokenAmountInt) / constants.TokenAmountDecimals
+	}
+
+	//extract sol amount
+	walletPubkey := bt.BuyTask.Wallet.PublicKey()
+	var walletIndex int = -1
+
+	for i, account := range transactionMessage.AccountKeys {
+		if account.PublicKey == walletPubkey {
+			walletIndex = i
+		}
+	}
+
+	if walletIndex == -1 {
+		return tokenAmount, solAmount, fmt.Errorf("could not find user's wallet in account keys")
+	}
+
+	solAmountLamport := tx.Meta.PreBalances[walletIndex] - tx.Meta.PostBalances[walletIndex]
+	solAmount = float64(solAmountLamport) / float64(solana.LAMPORTS_PER_SOL)
+
+	return tokenAmount, solAmount, nil
+}
+
+func (bt *Transaction) getAllInstructionsForBuy(buyTask *tasks.BuyTask, ctx context.Context) (buyInstructions []solana.Instruction, err error) {
 
 	computeLimitInstruction := instructions.GetComputeUnitLimitInstruction(buyTask.ComputeUnits)
 	computeLimitBudgetInstruction := instructions.GetComputeUnitBudgetInstruction(buyTask.Fee, buyTask.ComputeUnits)
