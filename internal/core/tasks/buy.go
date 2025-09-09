@@ -44,14 +44,12 @@ func NewBuyTask(pk solana.PrivateKey, token solana.PublicKey, common []Option, b
 }
 
 func (bt *BuyTask) Id() string {
-	bt.mu.RLock()
-	defer bt.mu.RUnlock()
 	return bt.id
 }
 
-func (bt *BuyTask) Type() string { return bt.taskType }                                    //could remove rlock
+func (bt *BuyTask) Type() string { return bt.taskType }
 func (bt *BuyTask) State() State { bt.mu.RLock(); defer bt.mu.RUnlock(); return bt.state } // keep as RLock as many routines might alter
 
-func (bt *BuyTask) SetComputeUnit(cu uint32)     { bt.ComputeUnits = cu } //only main thread sets this
+func (bt *BuyTask) SetComputeUnit(cu uint32)     { bt.ComputeUnits = cu }
 func (bt *BuyTask) SetSlippage(slippage float64) { bt.Slippage = slippage }
-func (bt *BuyTask) SetState(newState State)      { bt.mu.Lock(); defer bt.mu.Unlock(); bt.state = newState } //should be locked
+func (bt *BuyTask) SetState(newState State)      { bt.mu.Lock(); defer bt.mu.Unlock(); bt.state = newState }
