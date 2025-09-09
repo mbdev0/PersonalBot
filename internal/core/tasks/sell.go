@@ -46,19 +46,11 @@ func NewSellTask(pk solana.PrivateKey, token solana.PublicKey, common []Option, 
 }
 
 func (st *SellTask) State() State { st.mu.RLock(); defer st.mu.RUnlock(); return st.state }
-func (st *SellTask) Id() string   { st.mu.RLock(); defer st.mu.RUnlock(); return st.id }
-func (st *SellTask) Type() string { st.mu.RLock(); defer st.mu.RUnlock(); return st.taskType }
+func (st *SellTask) Id() string   { return st.id }
+func (st *SellTask) Type() string { return st.taskType }
 
-func (st *SellTask) SetComputeUnit(cu uint32) {
-	st.mu.Lock()
-	defer st.mu.Unlock()
-	st.ComputeUnits = cu
-}
-func (st *SellTask) SetSlippage(slippage float64) {
-	st.mu.Lock()
-	defer st.mu.Unlock()
-	st.Slippage = slippage
-}
+func (st *SellTask) SetComputeUnit(cu uint32)     { st.ComputeUnits = cu }
+func (st *SellTask) SetSlippage(slippage float64) { st.Slippage = slippage }
 func (st *SellTask) SetState(newState State) {
 	st.mu.Lock()
 	defer st.mu.Unlock()
