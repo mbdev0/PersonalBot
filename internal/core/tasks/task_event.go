@@ -1,16 +1,20 @@
 package tasks
 
+import "pump_fun/internal/core/position"
+
 type TaskEvent struct {
-	TaskId    string
-	State     State
-	Time      string
-	Message   string
-	EventType EventType
+	TaskId          string
+	State           State
+	Time            string
+	Message         string
+	EventType       EventType
+	PositionDetails *position.PositionMessage
 }
 
-type EventType int
+type EventType string
 
 const (
-	StateUpdate = iota
-	ProgressMessage
+	StateUpdate     = "StatusUpdate"
+	ProgressMessage = "ProgressMessage"
+	PositionUpdate  = "PositionUpdate"
 )
