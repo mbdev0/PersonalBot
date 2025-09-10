@@ -10,8 +10,8 @@ type Position struct {
 	PositionId         string
 	TokenAddress       solana.PublicKey
 	WalletAddress      solana.PublicKey
-	InitialTokenAmount *big.Int
-	TokenRemaining     *big.Int
+	InitialTokenAmount *big.Float
+	TokenRemaining     *big.Float
 	RemaningCostBasis  *big.Float
 	FinalizedProfit    *big.Float
 	//unfinalized will be calculated on the spot

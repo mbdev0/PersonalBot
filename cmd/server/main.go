@@ -2,19 +2,18 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 	_ "net/http/pprof"
 	"pump_fun/api/controller"
 	"pump_fun/api/handler"
 	"pump_fun/app"
+	"pump_fun/internal/services/position"
 	"pump_fun/internal/services/state"
 	subscriptionhub "pump_fun/internal/services/subscription_hub"
 	taskservice "pump_fun/internal/services/task_service"
 	"pump_fun/internal/services/trading"
+	"pump_fun/internal/services/transaction"
 	"pump_fun/pkg/logger"
-	"runtime"
-	"time"
 )
 
 func main() {
@@ -24,8 +23,15 @@ func main() {
 	fsm := state.Machine{}
 	subhub := subscriptionhub.Hub{}
 	subhub.New()
+
+	positionService := position.NewPositionService()
+
+	executor := transaction.Executor{}
+	executor.New(&subhub, &positionService)
+
 	stateManger := state.Manager{}
-	stateManger.New(&subhub)
+	stateManger.New(&subhub, &executor)
+
 	taskService := taskservice.TaskService{StateMachine: &fsm, StateManager: &stateManger, Hub: &subhub}
 	taskService.NewTaskService()
 
@@ -41,9 +47,13 @@ func main() {
 	buyController := controller.TaskController{TaskService: &taskService}
 	buyHandler := http.StripPrefix("/api/tasks", handler.NewTaskHandler(&buyController))
 
+	positionController := controller.PositionController{PositionService: &positionService}
+	positionHandler := http.StripPrefix("/api/position", handler.NewPositionHandler(&positionController))
+
 	mux := http.NewServeMux()
 	mux.Handle("/api/tasks/", buyHandler)
 	mux.Handle("/api/trading/", tradingHandler)
+	mux.Handle("/api/position/", positionHandler)
 
 	server := &http.Server{
 		Addr:    ":8080",
@@ -62,22 +72,22 @@ func main() {
 
 }
 
-func checkGoRoutines() {
-	go func() {
-		err := http.ListenAndServe("localhost:6060", nil)
-		if err != nil {
-			panic(err)
-		}
-	}()
+// func checkGoRoutines() {
+// 	go func() {
+// 		err := http.ListenAndServe("localhost:6060", nil)
+// 		if err != nil {
+// 			panic(err)
+// 		}
+// 	}()
 
-	go func() {
-		for {
-			time.Sleep(3 * time.Second)
-			fmt.Printf("Number of goroutines: %d\n", runtime.NumGoroutine())
-		}
-	}()
+// 	go func() {
+// 		for {
+// 			time.Sleep(3 * time.Second)
+// 			fmt.Printf("Number of goroutines: %d\n", runtime.NumGoroutine())
+// 		}
+// 	}()
 
-}
+// }
 
 func test() {
 	// monitoring.StartAFKMonitor()

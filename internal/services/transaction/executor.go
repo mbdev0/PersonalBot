@@ -3,8 +3,10 @@ package transaction
 import (
 	"context"
 	"fmt"
+	"math/big"
 	"pump_fun/internal/core/tasks"
 	"pump_fun/internal/core/validator"
+	"pump_fun/internal/services/position"
 	"pump_fun/internal/services/state/transition"
 	subscriptionhub "pump_fun/internal/services/subscription_hub"
 	"pump_fun/internal/solana/programs/pumpfun/transaction/buy"
@@ -12,11 +14,14 @@ import (
 )
 
 type Executor struct {
-	subhub *subscriptionhub.Hub
+	subhub          *subscriptionhub.Hub
+	positionService *position.Service
 }
 
-func (e *Executor) New(subhub *subscriptionhub.Hub) {
+func (e *Executor) New(subhub *subscriptionhub.Hub, posService *position.Service) {
 	e.subhub = subhub
+	e.positionService = posService
+
 }
 
 func (e *Executor) GetImplementation(task tasks.Task) (Transaction, error) {
@@ -70,6 +75,25 @@ func (e *Executor) Execute(done chan struct{}, transaction Transaction, ctx cont
 		if err != nil {
 			close(done)
 			return
+		}
+	}
+
+	if task.State().TaskState == tasks.TaskDone {
+		switch t := task.(type) {
+		case *tasks.BuyTask:
+			//get token amount and sol recieved -> how?
+			tokenAmount, solAmount, err := transaction.ExtractTokenAndSolFromTx(transaction.GetSignature(), ctx)
+			if err != nil {
+				//transition err?
+			}
+			e.positionService.ReportBuy(t.Id(), t.Token, t.Wallet.PublicKey(), big.NewFloat(tokenAmount), big.NewFloat(solAmount))
+
+		case *tasks.SellTask:
+			tokenAmount, solAmount, err := transaction.ExtractTokenAndSolFromTx(transaction.GetSignature(), ctx)
+			if err != nil {
+				//something
+			}
+			e.positionService.ReportSell(t.Id(), big.NewFloat(tokenAmount), big.NewFloat(solAmount))
 		}
 	}
 

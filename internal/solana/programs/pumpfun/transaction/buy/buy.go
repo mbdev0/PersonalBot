@@ -124,11 +124,13 @@ func (bt *Transaction) ConfirmTransaction(ctx context.Context, reporter subscrip
 		reporter.Report(msg.Message)
 	}
 
-	tokenAmnt, solAmnt, err := bt.extractTokenAndSolFromTx(bt.signature, ctx)
+	tokenAmnt, solAmnt, err := bt.ExtractTokenAndSolFromTx(bt.signature, ctx)
 	if err != nil {
 		return err
 	}
+
 	fmt.Println(tokenAmnt, solAmnt)
+
 	return nil
 }
 
@@ -136,7 +138,11 @@ func (bt *Transaction) GetTask() tasks.Task {
 	return bt.BuyTask
 }
 
-func (bt *Transaction) extractTokenAndSolFromTx(signature solana.Signature, ctx context.Context) (tokenAmount float64, solAmount float64, err error) {
+func (bt *Transaction) GetSignature() solana.Signature {
+	return bt.signature
+}
+
+func (bt *Transaction) ExtractTokenAndSolFromTx(signature solana.Signature, ctx context.Context) (tokenAmount float64, solAmount float64, err error) {
 	solClient := client.GetClient()
 	tx, err := solClient.GetParsedTransaction(ctx, signature, &rpc.GetParsedTransactionOpts{Commitment: rpc.CommitmentConfirmed, MaxSupportedTransactionVersion: &rpc.MaxSupportedTransactionVersion0})
 	if err != nil {
@@ -165,7 +171,7 @@ func (bt *Transaction) extractTokenAndSolFromTx(signature solana.Signature, ctx 
 			continue
 		}
 
-		tokenAmountInt, err := decoder.ExtractTokenAmountFromBuyInstruction(instructionData)
+		tokenAmountInt, err := decoder.ExtractTokenAmountFromPfInstruction(instructionData)
 		if err != nil {
 			return tokenAmount, solAmount, err
 		}
