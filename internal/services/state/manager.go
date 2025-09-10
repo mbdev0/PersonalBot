@@ -13,17 +13,13 @@ import (
 type Manager struct {
 	executor *transaction.Executor
 	running  map[string]context.CancelFunc
-	mu       sync.Mutex
+	mu       *sync.Mutex
 }
 
-func (m *Manager) New(subhub *subscriptionhub.Hub) {
+func (m *Manager) New(subhub *subscriptionhub.Hub, executor *transaction.Executor) {
 	m.running = map[string]context.CancelFunc{}
-
-	executor := &transaction.Executor{}
-	executor.New(subhub)
-
 	m.executor = executor
-	m.mu = sync.Mutex{}
+	m.mu = &sync.Mutex{}
 }
 
 func (m *Manager) ExecuteAction(state tasks.TaskState, task tasks.Task) error {
