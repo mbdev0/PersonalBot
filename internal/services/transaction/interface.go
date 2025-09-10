@@ -4,6 +4,8 @@ import (
 	"context"
 	"pump_fun/internal/core/tasks"
 	subscriptionhub "pump_fun/internal/services/subscription_hub"
+
+	"github.com/gagliardetto/solana-go"
 )
 
 type Transaction interface {
@@ -11,5 +13,7 @@ type Transaction interface {
 	BuildTransaction(ctx context.Context, reporter subscriptionhub.TaskReporter) error
 	SendTransaction(ctx context.Context, reporter subscriptionhub.TaskReporter) error
 	ConfirmTransaction(ctx context.Context, reporter subscriptionhub.TaskReporter) error
+	ExtractTokenAndSolFromTx(signature solana.Signature, ctx context.Context) (tokenAmount float64, solAmount float64, err error)
 	GetTask() tasks.Task
+	GetSignature() solana.Signature
 }
