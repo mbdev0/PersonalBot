@@ -82,15 +82,22 @@ func createSellTask(reqTask *dto.RequestTask) (task *tasks.SellTask, err error) 
 		return nil, fmt.Errorf("private key is not valid/not found")
 	}
 
+	sellOptions := []tasks.SellOption{
+		tasks.WithSellAmount(*reqTask.SellAmount),
+		tasks.WithSellFee(*reqTask.SellFee),
+	}
+
+	if reqTask.SellPositionId != nil {
+		positionOpt := tasks.WithSellPositionId(*reqTask.SellPositionId)
+		sellOptions = append(sellOptions, positionOpt)
+	}
+
 	sellTask := tasks.NewSellTask(wallet, token,
 		[]tasks.Option{
 			tasks.WithComputeUnits(reqTask.ComputeUnits),
 			tasks.WithSlippage(reqTask.Slippage),
 		},
-		[]tasks.SellOption{
-			tasks.WithSellAmount(*reqTask.SellAmount),
-			tasks.WithSellFee(*reqTask.SellFee),
-		},
+		sellOptions,
 	)
 
 	return sellTask, nil

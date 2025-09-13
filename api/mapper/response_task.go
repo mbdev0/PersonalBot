@@ -50,6 +50,7 @@ func mapSellToResponseTask(t *tasks.SellTask) *dto.ResponseTask {
 	fee := t.Fee
 	responseTask.SellAmount = &sellAmnt
 	responseTask.SellFee = &fee
+	responseTask.SellPositionId = &t.Position_id
 
 	return &responseTask
 }
