@@ -21,6 +21,16 @@ func NewPositionService() Service {
 	}
 }
 
+func (s *Service) FindPositionIfExists(token solana.PublicKey, walletAddress solana.PublicKey) (*position.Position, bool) {
+	for _, value := range s.positions {
+		if value.TokenAddress == token && value.WalletAddress == walletAddress {
+			return value, true
+		}
+	}
+
+	return nil, false
+}
+
 func (s *Service) ReportBuy(buytaskid string, tokenaddress solana.PublicKey, walletAddress solana.PublicKey, tokenAmount *big.Float, solSpent *big.Float) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -31,7 +41,7 @@ func (s *Service) ReportBuy(buytaskid string, tokenaddress solana.PublicKey, wal
 		WalletAddress:      walletAddress,
 		InitialTokenAmount: tokenAmount,
 		TokenRemaining:     tokenAmount,
-		RemaningCostBasis:  solSpent,
+		RemainingCostBasis: solSpent,
 		FinalizedProfit:    big.NewFloat(0),
 	}
 
@@ -59,12 +69,12 @@ func (s *Service) ReportSell(buyTaskId string, tokensSold *big.Float, solRecieve
 		pos.TokenRemaining,
 	)
 
-	costBasisofSoldTokens := new(big.Float).Mul(sellRatio, pos.RemaningCostBasis)
+	costBasisofSoldTokens := new(big.Float).Mul(sellRatio, pos.RemainingCostBasis)
 	realizedBasisFromSale := new(big.Float).Sub(solRecieved, costBasisofSoldTokens)
 
-	pos.RemaningCostBasis.Sub(pos.RemaningCostBasis, costBasisofSoldTokens)
-	pos.FinalizedProfit.Add(pos.FinalizedProfit, realizedBasisFromSale)
-	pos.TokenRemaining.Sub(pos.TokenRemaining, tokensSold)
+	pos.RemainingCostBasis = new(big.Float).Sub(pos.RemainingCostBasis, costBasisofSoldTokens)
+	pos.FinalizedProfit = new(big.Float).Add(pos.FinalizedProfit, realizedBasisFromSale)
+	pos.TokenRemaining = new(big.Float).Sub(pos.TokenRemaining, tokensSold)
 
 	//can send a webhook here too
 	//publish the position for buytaskid has been updated

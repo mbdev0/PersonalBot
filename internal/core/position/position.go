@@ -12,7 +12,7 @@ type Position struct {
 	WalletAddress      solana.PublicKey
 	InitialTokenAmount *big.Float
 	TokenRemaining     *big.Float
-	RemaningCostBasis  *big.Float
+	RemainingCostBasis *big.Float
 	FinalizedProfit    *big.Float
 	//unfinalized will be calculated on the spot
 	// total pnl will be calculated on the spot

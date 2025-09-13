@@ -75,7 +75,7 @@ func (pr *PositionReporter) getProfitValues(pos *positionmodels.Position, market
 	}
 
 	tokenValue := pr.calculateTokenValueInSol(marketCap, pos.InitialTokenAmount, *solPrice)
-	unrealizedPnl := new(big.Float).Sub(tokenValue, pos.RemaningCostBasis)
+	unrealizedPnl := new(big.Float).Sub(tokenValue, pos.RemainingCostBasis)
 
 	totalPnL := new(big.Float).Add(pos.FinalizedProfit, unrealizedPnl)
 
