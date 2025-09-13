@@ -6,6 +6,7 @@ import (
 	"encoding/binary"
 	"pump_fun/internal/core/constants"
 	"pump_fun/internal/core/models"
+	"pump_fun/internal/core/position"
 	"pump_fun/internal/core/tasks"
 	"pump_fun/internal/solana/client"
 	bondingcurve "pump_fun/internal/solana/programs/pumpfun/bonding_curve"
@@ -19,14 +20,14 @@ import (
 var bondingCurveData *models.BondingCurve
 var associatedTokenAddress solana.PublicKey
 
-func GetSellInstruction(sellTask *tasks.SellTask, ctx context.Context) (*solana.GenericInstruction, error) {
+func GetSellInstruction(sellTask *tasks.SellTask, ctx context.Context, position *position.Position) (*solana.GenericInstruction, error) {
 	accounts, err := getAccounts(sellTask, ctx)
 	if err != nil {
 		logger.Error("Error getting accounts for sell instruction", err)
 		return nil, err
 	}
 
-	instructionData, err := getInstructionData(sellTask, ctx)
+	instructionData, err := getInstructionData(sellTask, ctx, position)
 
 	if err != nil {
 		logger.Error("Error getting instruction data for sell instruction", err)
@@ -101,9 +102,11 @@ func getCreatorVaultAddress(bondingCurveAddress string, ctx context.Context) (st
 	return creatorAddress, nil
 }
 
-func getInstructionData(sellTask *tasks.SellTask, ctx context.Context) ([]byte, error) {
+func getInstructionData(sellTask *tasks.SellTask, ctx context.Context, position *position.Position) ([]byte, error) {
 
-	tokenAmount, solOutput, err := getTokenAmountAndSolOutput(sellTask, ctx)
+	tokenAmount, solOutput, err := getTokenAmountAndSolOutput(sellTask, ctx, position)
+	logger.Information("token amount: ", *tokenAmount, "|||| solamount: ", *solOutput)
+
 	if err != nil {
 		return nil, err
 	}
@@ -129,10 +132,16 @@ func getInstructionData(sellTask *tasks.SellTask, ctx context.Context) ([]byte, 
 	return buf.Bytes(), nil
 }
 
-func getTokenAmountAndSolOutput(sellTask *tasks.SellTask, ctx context.Context) (tokenAmount *uint64, solOutput *uint64, err error) {
-	tokenAmount, err = client.GetTokenAccountBalance(associatedTokenAddress, ctx)
-	if err != nil {
-		return nil, nil, err
+func getTokenAmountAndSolOutput(sellTask *tasks.SellTask, ctx context.Context, position *position.Position) (tokenAmount *uint64, solOutput *uint64, err error) {
+	if position != nil {
+		logger.Information("position is not nil")
+		tokens, _ := position.TokenRemaining.Uint64()
+		tokenAmount = &tokens
+	} else {
+		tokenAmount, err = client.GetTokenAccountBalance(associatedTokenAddress, ctx)
+		if err != nil {
+			return nil, nil, err
+		}
 	}
 
 	if sellTask.SellPercentage > 0 && sellTask.SellPercentage <= 1 {

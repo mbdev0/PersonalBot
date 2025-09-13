@@ -9,8 +9,12 @@ import (
 	"pump_fun/internal/services/position"
 	"pump_fun/internal/services/state/transition"
 	subscriptionhub "pump_fun/internal/services/subscription_hub"
+	"pump_fun/internal/solana/client"
 	"pump_fun/internal/solana/programs/pumpfun/transaction/buy"
 	"pump_fun/internal/solana/programs/pumpfun/transaction/sell"
+	"pump_fun/pkg/logger"
+
+	"github.com/gagliardetto/solana-go"
 )
 
 type Executor struct {
@@ -36,28 +40,32 @@ func (e *Executor) GetImplementation(task tasks.Task) (Transaction, error) {
 }
 
 func (e *Executor) Execute(done chan struct{}, transaction Transaction, ctx context.Context) {
+	defer close(done)
 
 	task := transaction.GetTask()
-
 	reporter := subscriptionhub.TaskReporter{}
 	reporter.New(task, e.subhub)
 
 	err := validator.ValidateStruct(task)
 	if err != nil {
 		e.transitionAndPublishTask(task, err)
-		close(done)
 		return
 	}
+
+	e.handlePositionOnSell(task, ctx)
 
 	err = transition.AutoTransitionTask(task, nil) //from running to next step
 	if err != nil {
 		e.transitionAndPublishTask(task, err)
-		close(done)
 		return
 	}
 
 	steps := []func(ctx context.Context, reporter subscriptionhub.TaskReporter) error{
-		transaction.BuildInstructions,
+
+		func(ctx context.Context, reporter subscriptionhub.TaskReporter) error {
+			return transaction.BuildInstructionsWithPosition(ctx, reporter, e.positionService)
+		},
+		// transaction.BuildInstructions,
 		transaction.BuildTransaction,
 		transaction.SendTransaction,
 		transaction.ConfirmTransaction,
@@ -66,38 +74,18 @@ func (e *Executor) Execute(done chan struct{}, transaction Transaction, ctx cont
 	for _, step := range steps {
 		if err := ctx.Err(); err != nil {
 			e.transitionAndPublishTask(task, err)
-			close(done)
 			return
 		}
 
 		err := step(ctx, reporter)
 		e.transitionAndPublishTask(task, err)
 		if err != nil {
-			close(done)
 			return
 		}
 	}
-
 	if task.State().TaskState == tasks.TaskDone {
-		switch t := task.(type) {
-		case *tasks.BuyTask:
-			//get token amount and sol recieved -> how?
-			tokenAmount, solAmount, err := transaction.ExtractTokenAndSolFromTx(transaction.GetSignature(), ctx)
-			if err != nil {
-				//transition err?
-			}
-			e.positionService.ReportBuy(t.Id(), t.Token, t.Wallet.PublicKey(), big.NewFloat(tokenAmount), big.NewFloat(solAmount))
-
-		case *tasks.SellTask:
-			tokenAmount, solAmount, err := transaction.ExtractTokenAndSolFromTx(transaction.GetSignature(), ctx)
-			if err != nil {
-				//something
-			}
-			e.positionService.ReportSell(t.Id(), big.NewFloat(tokenAmount), big.NewFloat(solAmount))
-		}
+		e.updatePositionOnCompleted(task, transaction, ctx)
 	}
-
-	close(done)
 }
 
 func (e *Executor) transitionAndPublishTask(t tasks.Task, err error) {
@@ -107,4 +95,61 @@ func (e *Executor) transitionAndPublishTask(t tasks.Task, err error) {
 	}
 
 	e.subhub.PublishStateChange(t)
+}
+
+func (e *Executor) handlePositionOnSell(task tasks.Task, ctx context.Context) {
+	st, ok := task.(*tasks.SellTask)
+	if !ok || st.Position_id != "" {
+		return
+	}
+
+	_, exists := e.positionService.FindPositionIfExists(st.Token, st.Wallet.PublicKey())
+	if exists {
+		return
+	}
+
+	ata, _, err := solana.FindAssociatedTokenAddress(st.Wallet.PublicKey(), st.Token)
+	if err != nil {
+		e.transitionAndPublishTask(task, err)
+		return
+	}
+
+	tokens, err := client.GetTokenAccountBalance(ata, ctx)
+	if err != nil {
+		e.transitionAndPublishTask(task, err)
+		return
+	}
+
+	logger.Information("tokens: ", *tokens)
+	e.positionService.ReportBuy(st.Id(), st.Token, st.Wallet.PublicKey(), new(big.Float).SetUint64(*tokens), new(big.Float).SetFloat64(0))
+
+}
+func (e *Executor) updatePositionOnCompleted(task tasks.Task, transaction Transaction, ctx context.Context) {
+	tokenAmount, solAmount, err := transaction.ExtractTokenAndSolFromTx(transaction.GetSignature(), ctx)
+	if err != nil {
+		logger.Error("error: ", err)
+		e.transitionAndPublishTask(task, err)
+		return
+	}
+	logger.Information("tokens extracted: ", tokenAmount, " solana amount: ", solAmount)
+
+	switch t := task.(type) {
+	case *tasks.BuyTask:
+		e.positionService.ReportBuy(t.Id(), t.Token, t.Wallet.PublicKey(), new(big.Float).SetFloat64(tokenAmount), new(big.Float).SetFloat64(solAmount))
+	case *tasks.SellTask:
+		e.handleSellTaskReporting(t, tokenAmount, solAmount)
+	}
+}
+
+func (e *Executor) handleSellTaskReporting(t *tasks.SellTask, tokenAmount float64, solAmount float64) {
+	tokensSold := new(big.Float).SetFloat64(tokenAmount)
+	solReceived := new(big.Float).SetFloat64(solAmount)
+	if t.Position_id == "" {
+		pos, _ := e.positionService.FindPositionIfExists(t.Token, t.Wallet.PublicKey())
+		e.positionService.ReportSell(pos.PositionId, tokensSold, solReceived)
+	} else {
+		e.positionService.ReportSell(t.Position_id, tokensSold, solReceived)
+
+	}
+
 }

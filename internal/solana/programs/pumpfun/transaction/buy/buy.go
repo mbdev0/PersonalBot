@@ -8,6 +8,7 @@ import (
 	"pump_fun/internal/core/constants"
 	"pump_fun/internal/core/tasks"
 	"pump_fun/internal/monitoring/decoder"
+	"pump_fun/internal/services/position"
 	subscriptionhub "pump_fun/internal/services/subscription_hub"
 	"pump_fun/internal/solana/client"
 	"pump_fun/internal/solana/instructions"
@@ -27,7 +28,11 @@ type Transaction struct {
 	signature    solana.Signature
 }
 
-func (bt *Transaction) BuildInstructions(ctx context.Context, reporter subscriptionhub.TaskReporter) error {
+func (bt *Transaction) BuildInstructionsWithPosition(ctx context.Context, reporter subscriptionhub.TaskReporter, ps *position.Service) error {
+	return bt.buildInstructions(ctx, reporter)
+}
+
+func (bt *Transaction) buildInstructions(ctx context.Context, reporter subscriptionhub.TaskReporter) error {
 	if bt.BuyTask == nil {
 		return fmt.Errorf("buy task was nil - make sure buy task is set")
 	}
@@ -158,7 +163,6 @@ func (bt *Transaction) ExtractTokenAndSolFromTx(signature solana.Signature, ctx 
 	instructions := transactionMessage.Instructions
 	//extract token amount
 	for _, instruction := range instructions {
-		logger.Information(base58.Decode(instruction.Data.String()))
 		instructionData, err := base58.Decode(instruction.Data.String())
 		if err != nil {
 			return tokenAmount, solAmount, err
@@ -176,7 +180,7 @@ func (bt *Transaction) ExtractTokenAndSolFromTx(signature solana.Signature, ctx 
 			return tokenAmount, solAmount, err
 		}
 
-		tokenAmount = float64(tokenAmountInt) / constants.TokenAmountDecimals
+		tokenAmount = float64(tokenAmountInt)
 	}
 
 	//extract sol amount
@@ -194,7 +198,7 @@ func (bt *Transaction) ExtractTokenAndSolFromTx(signature solana.Signature, ctx 
 	}
 
 	solAmountLamport := tx.Meta.PreBalances[walletIndex] - tx.Meta.PostBalances[walletIndex]
-	solAmount = float64(solAmountLamport) / float64(solana.LAMPORTS_PER_SOL)
+	solAmount = float64(solAmountLamport)
 
 	return tokenAmount, solAmount, nil
 }

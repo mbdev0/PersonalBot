@@ -11,6 +11,7 @@ import (
 type SellTask struct {
 	taskType       string
 	id             string
+	Position_id    string
 	Wallet         solana.PrivateKey
 	Token          solana.PublicKey
 	SellPercentage float64

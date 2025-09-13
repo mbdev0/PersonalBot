@@ -4,10 +4,13 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"math/big"
 	lookuptable "pump_fun/app/lookup_table"
 	"pump_fun/internal/core/constants"
+	positionmodel "pump_fun/internal/core/position"
 	"pump_fun/internal/core/tasks"
 	"pump_fun/internal/monitoring/decoder"
+	"pump_fun/internal/services/position"
 	subscriptionhub "pump_fun/internal/services/subscription_hub"
 	"pump_fun/internal/solana/client"
 	"pump_fun/internal/solana/instructions"
@@ -27,8 +30,9 @@ type Transaction struct {
 	signature    solana.Signature
 }
 
-func (st *Transaction) BuildInstructions(ctx context.Context, reporter subscriptionhub.TaskReporter) error {
-	sellInstructions, err := getAllInstructionsForSell(st.Task, ctx)
+func (st *Transaction) BuildInstructionsWithPosition(ctx context.Context, reporter subscriptionhub.TaskReporter, ps *position.Service) error {
+
+	sellInstructions, err := getAllInstructionsForSell(st.Task, ctx, ps)
 	if err != nil {
 		logger.Error("Error getting instructions for sell task", err)
 		return err
@@ -42,6 +46,22 @@ func (st *Transaction) BuildInstructions(ctx context.Context, reporter subscript
 	reporter.Report("Instructions Built")
 	return nil
 }
+
+// func (st *Transaction) BuildInstructions(ctx context.Context, reporter subscriptionhub.TaskReporter) error {
+// 	sellInstructions, err := getAllInstructionsForSell(st.Task, ctx)
+// 	if err != nil {
+// 		logger.Error("Error getting instructions for sell task", err)
+// 		return err
+// 	}
+
+// 	if len(sellInstructions) == 0 {
+// 		return fmt.Errorf("sell instruction's weren't generated properly - check sell instruction builder")
+// 	}
+
+// 	st.instructions = sellInstructions
+// 	reporter.Report("Instructions Built")
+// 	return nil
+// }
 
 func (st *Transaction) BuildTransaction(ctx context.Context, reporter subscriptionhub.TaskReporter) error {
 	if st.Task == nil {
@@ -146,7 +166,6 @@ func (st *Transaction) ExtractTokenAndSolFromTx(signature solana.Signature, ctx 
 	instructions := transactionMessage.Instructions
 	//extract token amount
 	for _, instruction := range instructions {
-		logger.Information(base58.Decode(instruction.Data.String()))
 		instructionData, err := base58.Decode(instruction.Data.String())
 		if err != nil {
 			return tokenAmount, solAmount, err
@@ -155,7 +174,7 @@ func (st *Transaction) ExtractTokenAndSolFromTx(signature solana.Signature, ctx 
 			continue
 		}
 
-		if !bytes.HasPrefix(instructionData, constants.BuyInstructionDiscriminator[:]) {
+		if !bytes.HasPrefix(instructionData, constants.SellInstructionDiscriminator[:]) {
 			continue
 		}
 
@@ -164,7 +183,7 @@ func (st *Transaction) ExtractTokenAndSolFromTx(signature solana.Signature, ctx 
 			return tokenAmount, solAmount, err
 		}
 
-		tokenAmount = float64(tokenAmountInt) / constants.TokenAmountDecimals
+		tokenAmount = float64(tokenAmountInt)
 	}
 
 	//extract sol amount
@@ -181,8 +200,11 @@ func (st *Transaction) ExtractTokenAndSolFromTx(signature solana.Signature, ctx 
 		return tokenAmount, solAmount, fmt.Errorf("could not find user's wallet in account keys")
 	}
 
-	solAmountLamport := tx.Meta.PreBalances[walletIndex] - tx.Meta.PostBalances[walletIndex]
-	solAmount = float64(solAmountLamport) / float64(solana.LAMPORTS_PER_SOL)
+	preBalance := int64(tx.Meta.PostBalances[walletIndex])
+	postBalance := int64(tx.Meta.PreBalances[walletIndex])
+
+	solAmountLamport := postBalance - preBalance
+	solAmount = float64(solAmountLamport)
 
 	return tokenAmount, solAmount, nil
 }
@@ -191,11 +213,31 @@ func (st *Transaction) GetTask() tasks.Task {
 	return st.Task
 }
 
-func getAllInstructionsForSell(sellTask *tasks.SellTask, ctx context.Context) ([]solana.Instruction, error) {
+func getAllInstructionsForSell(sellTask *tasks.SellTask, ctx context.Context, ps *position.Service) ([]solana.Instruction, error) {
+	// we need to check if the user passed a positionId -> if so position == nil
+	// else we retrieve the positonId
+
+	var pos *positionmodel.Position
+	if sellTask.Position_id != "" {
+		position, err := ps.GetById(sellTask.Position_id)
+		if err != nil {
+			return nil, err
+		}
+
+		isTokensRemaining := position.TokenRemaining.Cmp(big.NewFloat(0)) == -1 || position.TokenRemaining.Cmp(big.NewFloat(0)) == 0
+		if isTokensRemaining {
+			return nil, fmt.Errorf("no tokens remaining")
+		}
+
+		pos = position
+	} else {
+		pos = nil
+	}
+
 	computeLimitInstruction := instructions.GetComputeUnitLimitInstruction(sellTask.ComputeUnits)
 	computeLimitBudgetInstruction := instructions.GetComputeUnitBudgetInstruction(sellTask.Fee, sellTask.ComputeUnits)
 
-	sellInstructions, err := pumpInstructions.GetSellInstruction(sellTask, ctx)
+	sellInstructions, err := pumpInstructions.GetSellInstruction(sellTask, ctx, pos)
 	if err != nil {
 		logger.Error("Error getting sell instruction", err)
 		return nil, err
