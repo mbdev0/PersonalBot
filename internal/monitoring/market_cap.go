@@ -2,6 +2,7 @@ package monitoring
 
 import (
 	"context"
+	"math/big"
 	"pump_fun/internal/monitoring/stream"
 	"pump_fun/internal/monitoring/stream/response"
 	bondingcurve "pump_fun/internal/solana/programs/pumpfun/bonding_curve"
@@ -28,18 +29,18 @@ Example usage:
 
 */
 
-func StartMarketCapMonitor(ctx context.Context, bondingCurveAddress string) {
+func StartMarketCapMonitor(ctx context.Context, bondingCurveAddress string, marketCapChan chan<- *big.Float) {
 	for {
 		select {
 		case <-ctx.Done():
 			return
 		default:
 		}
-		marketCapMonitor(ctx, bondingCurveAddress)
+		marketCapMonitor(ctx, bondingCurveAddress, marketCapChan)
 	}
 }
 
-func marketCapMonitor(ctx context.Context, bondingCurveAddress string) {
+func marketCapMonitor(ctx context.Context, bondingCurveAddress string, marketCapChan chan<- *big.Float) {
 	marketCapInit, err, hasCompleted := bondingcurve.GetMarketCapInitial(bondingCurveAddress, ctx)
 
 	if err != nil {
@@ -50,26 +51,29 @@ func marketCapMonitor(ctx context.Context, bondingCurveAddress string) {
 	}
 
 	logger.Information("Initial market cap: ", marketCapInit.String())
+	marketCapChan <- marketCapInit
 
 	accountInfoChan := make(chan response.AccountSubscribeModel, 20)
 
-	go func() {
-		err := stream.GeyserStreamAccountInfo(ctx, bondingCurveAddress, accountInfoChan)
+	go func(c context.Context) {
+		err := stream.GeyserStreamAccountInfo(c, bondingCurveAddress, accountInfoChan)
 		if err != nil {
 			logger.Error("Error getting account info", err)
 			close(accountInfoChan)
 			return
 		}
-	}()
+	}(ctx)
 
 	for accountInfo := range accountInfoChan {
 		marketCap, err, hasCompleted := bondingcurve.GetMarketCapFrom(accountInfo.Params.Result.Value.Data[0])
 		if err != nil {
 			logger.Error("Error getting market cap", err)
 			if hasCompleted {
+				logger.Error("coin has completed bonding curve")
 				return
 			}
 		}
+		marketCapChan <- marketCap
 		logger.Information("Market cap: ", marketCap.String())
 	}
 

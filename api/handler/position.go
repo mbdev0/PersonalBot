@@ -1,11 +1,18 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"pump_fun/api/controller"
+	"pump_fun/api/dto"
+	"pump_fun/internal/services/subscription_hub/position"
 	"pump_fun/pkg/logger"
+
+	"github.com/coder/websocket"
+	"github.com/coder/websocket/wsjson"
 )
 
 type PositionHandler struct {
@@ -23,6 +30,8 @@ func NewPositionHandler(controller *controller.PositionController) http.Handler 
 func (ph *PositionHandler) registerRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /position/{id}", ph.getPositionById)
 	mux.HandleFunc("GET /positions", ph.getPositions)
+	mux.HandleFunc("/positions/sub", ph.subscribe)
+	mux.HandleFunc("GET /positions/test", ph.simpleWebSocketTest)
 }
 
 func (ph *PositionHandler) getPositionById(w http.ResponseWriter, r *http.Request) {
@@ -57,5 +66,153 @@ func (ph *PositionHandler) getPositions(w http.ResponseWriter, r *http.Request) 
 	err := json.NewEncoder(w).Encode(allPositions)
 	if err != nil {
 		logger.Error("error", err)
+	}
+}
+
+func (ph *PositionHandler) subscribe(w http.ResponseWriter, r *http.Request) {
+	subscribers := make(chan position.Subscription, 1000)
+	defer close(subscribers)
+
+	for k, v := range r.Header {
+		log.Printf("Header: %s = %v", k, v)
+	}
+
+	//upgrade to ws
+	c, err := websocket.Accept(w, r, nil)
+
+	if err != nil {
+		fmt.Println(err)
+		http.Error(w, "error whilst trying to transition to WS", http.StatusInternalServerError)
+		return
+	}
+
+	defer func(c *websocket.Conn) {
+		fmt.Println("closing!!!")
+		err := c.CloseNow()
+		if err != nil {
+			logger.Error(err.Error())
+		}
+	}(c)
+
+	wsWriteChan := make(chan dto.PositionResponse, 1000)
+	defer close(wsWriteChan)
+
+	//fan in loop
+	go ph.fanIn(subscribers, wsWriteChan)
+
+	ctx, cancel := context.WithCancel(r.Context())
+	defer cancel()
+
+	//ws write loop
+	go ph.writeToWs(wsWriteChan, c, ctx)
+
+	for {
+		// var msg *dto.PositionSubscribe
+		// resp := dto.PositionResponse{}
+
+		var msg any
+		err := wsjson.Read(ctx, c, &msg)
+		if err != nil {
+			if websocket.CloseStatus(err) != -1 || ctx.Err() != nil {
+				logger.Information("WebSocket connection closed or context cancelled")
+				return // Clean exit
+			}
+
+			fmt.Println(err)
+			// wsjson.Write(ctx, c, "error")
+			// ph.handleError(err, resp, c, ctx)
+			return
+		}
+		fmt.Println(msg)
+
+		// switch msg.Type {
+		// case dto.Subscribe:
+		// 	sub, err := ph.controller.Subscribe(msg.Id)
+		// 	if err != nil {
+		// 		ph.handleError(err, resp, c, ctx)
+		// 		continue
+		// 	}
+		// 	subscribers <- *sub
+
+		// case dto.Unsubscribe:
+		// 	err := ph.controller.Unsubscribe(msg.Id)
+		// 	if err != nil {
+		// 		ph.handleError(err, resp, c, ctx)
+		// 		continue
+		// 	}
+		// }
+	}
+
+	//go func() -> for every sub in ph.subs -> go func() -> write to wsWriteChan
+	//ws write loop (in go func)
+	//	for every msg -> write to ws
+	//ws read loop (blocking)
+	//	if sub -> call ph.posservice.sub, add to ph.subs => chan of subs
+	//	if unsub ->  call ph.posservice.unsub, remove from ph.subs + call cancelCtx to kill go routine
+}
+
+func (ph *PositionHandler) fanIn(subscribers <-chan position.Subscription, wsWriteChan chan<- dto.PositionResponse) {
+	for sub := range subscribers {
+		go ph.readFromSub(sub, wsWriteChan)
+	}
+}
+
+func (ph *PositionHandler) readFromSub(sub position.Subscription, wsWriteChan chan<- dto.PositionResponse) {
+	for msg := range sub.SubChan {
+		posResp := dto.PositionResponse{
+			PositionMessage: &msg,
+		}
+		select {
+		case wsWriteChan <- posResp:
+		default:
+			logger.Error("Not able to push position response message to WS Write")
+		}
+	}
+}
+
+func (ph *PositionHandler) writeToWs(ws <-chan dto.PositionResponse, c *websocket.Conn, ctx context.Context) {
+	for msg := range ws {
+		err := wsjson.Write(ctx, c, msg)
+		if err != nil {
+			logger.Error(err)
+		}
+	}
+}
+
+func (ph *PositionHandler) handleError(err error, resp dto.PositionResponse, c *websocket.Conn, ctx context.Context) {
+	resp.Error = err.Error()
+	wsErr := wsjson.Write(ctx, c, resp)
+	if wsErr != nil {
+		logger.Error(wsErr)
+	}
+}
+
+func (ph *PositionHandler) simpleWebSocketTest(w http.ResponseWriter, r *http.Request) {
+	c, err := websocket.Accept(w, r, &websocket.AcceptOptions{
+		CompressionMode: websocket.CompressionDisabled,
+	})
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer c.Close(websocket.StatusInternalError, "server error")
+
+	ctx := context.Background()
+
+	// Just echo messages back
+	for {
+		_, msg, err := c.Read(ctx)
+		if err != nil {
+			fmt.Printf("Read error: %v\n", err)
+			return
+		}
+
+		fmt.Printf("Received: %s\n", msg)
+
+		err = c.Write(ctx, websocket.MessageText, []byte("Echo: "+string(msg)))
+		if err != nil {
+			fmt.Printf("Write error: %v\n", err)
+			return
+		}
 	}
 }

@@ -186,6 +186,7 @@ func (th *TaskHandler) subscribe(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+
 	defer func(c *websocket.Conn) {
 		err := c.CloseNow()
 		if err != nil {
@@ -219,20 +220,12 @@ func (th *TaskHandler) subscribe(w http.ResponseWriter, r *http.Request) {
 	//ws loop
 	go func() {
 		writeToWs := func(msg tasks.TaskEvent) {
-			ctx, cancel := context.WithCancel(context.Background())
-			defer cancel()
 
-			var resp dto.SubResponse
+			var resp dto.TaskSubResponse
 			resp.TaskEvent = &msg
+			resp.Error = msg.State.Error
 
-			if err != nil {
-				resp.Error = err.Error()
-				err := wsjson.Write(ctx, c, resp)
-				if err != nil {
-					logger.Error("error whilst trying to write to WS, error: " + err.Error())
-				}
-			}
-			err := wsjson.Write(ctx, c, resp)
+			err := wsjson.Write(r.Context(), c, resp)
 			if err != nil {
 				logger.Error("error whilst trying to write to WS, error: " + err.Error())
 			}
@@ -243,15 +236,16 @@ func (th *TaskHandler) subscribe(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	//read loop
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(context.Background())	
 	defer cancel()
 	for {
-		var msg *dto.Subscribe
-		resp := dto.SubResponse{}
+		var msg *dto.TaskSubscribe
+		resp := dto.TaskSubResponse{}
 		err := wsjson.Read(ctx, c, &msg)
 
 		if err != nil {
 			resp.Error = err.Error()
+			wsjson.Write(ctx, c, "err")
 			err := wsjson.Write(ctx, c, resp)
 			if err != nil {
 				logger.Error("error whilst trying to write to WS, error: " + err.Error())
@@ -260,7 +254,7 @@ func (th *TaskHandler) subscribe(w http.ResponseWriter, r *http.Request) {
 		}
 
 		switch msg.Type {
-		case "Subscribe":
+		case dto.Subscribe:
 			sub, err := th.controller.Subscribe(msg.Id)
 			if err != nil {
 				resp.Error = err.Error()
@@ -272,7 +266,7 @@ func (th *TaskHandler) subscribe(w http.ResponseWriter, r *http.Request) {
 			}
 			subscribers <- *sub
 
-		case "Unsubscribe":
+		case dto.Unsubscribe:
 			err := th.controller.Unsubcribe(msg.Id)
 			if err != nil {
 				resp.Error = err.Error()
@@ -290,7 +284,6 @@ func (th *TaskHandler) subscribe(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
-
 }
 
 func (th *TaskHandler) Test(w http.ResponseWriter, r *http.Request) {

@@ -3,13 +3,14 @@ package main
 
 import (
 	"net/http"
-	_ "net/http/pprof"
 	"pump_fun/api/controller"
 	"pump_fun/api/handler"
 	"pump_fun/app"
 	"pump_fun/internal/services/position"
 	"pump_fun/internal/services/state"
 	subscriptionhub "pump_fun/internal/services/subscription_hub"
+	positionhub "pump_fun/internal/services/subscription_hub/position"
+
 	taskservice "pump_fun/internal/services/task_service"
 	"pump_fun/internal/services/trading"
 	"pump_fun/internal/services/transaction"
@@ -21,18 +22,19 @@ func main() {
 
 	//TODO: move the init of api's into launch and return one mux back
 	fsm := state.Machine{}
-	subhub := subscriptionhub.Hub{}
-	subhub.New()
+	taskSubhub := subscriptionhub.Hub{}
+	taskSubhub.New()
 
-	positionService := position.NewPositionService()
+	posSubhub := positionhub.NewSubscriptionHub()
+	positionService := position.NewPositionService(posSubhub)
 
 	executor := transaction.Executor{}
-	executor.New(&subhub, &positionService)
+	executor.New(&taskSubhub, &positionService)
 
 	stateManger := state.Manager{}
-	stateManger.New(&subhub, &executor)
+	stateManger.New(&taskSubhub, &executor)
 
-	taskService := taskservice.TaskService{StateMachine: &fsm, StateManager: &stateManger, Hub: &subhub}
+	taskService := taskservice.TaskService{StateMachine: &fsm, StateManager: &stateManger, Hub: &taskSubhub}
 	taskService.NewTaskService()
 
 	tradingStrategy := trading.Strategy{}

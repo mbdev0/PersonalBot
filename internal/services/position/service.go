@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/big"
 	"pump_fun/internal/core/position"
+	position_hub "pump_fun/internal/services/subscription_hub/position"
 	"sync"
 
 	"github.com/gagliardetto/solana-go"
@@ -12,12 +13,14 @@ import (
 type Service struct {
 	positions map[string]*position.Position
 	mu        *sync.Mutex
+	subhub    *position_hub.SubscriptionHub
 }
 
-func NewPositionService() Service {
+func NewPositionService(subhub *position_hub.SubscriptionHub) Service {
 	return Service{
 		positions: map[string]*position.Position{},
 		mu:        &sync.Mutex{},
+		subhub:    subhub,
 	}
 }
 
@@ -47,8 +50,8 @@ func (s *Service) ReportBuy(buytaskid string, tokenaddress solana.PublicKey, wal
 
 	s.positions[newPosition.PositionId] = &newPosition
 
-	//can send a webhook
-	//publish a position has been created for buytaskid
+	//publish buy to positionhub -> handle ctx in there
+	s.subhub.PublishPositionCreate(&newPosition)
 }
 
 func (s *Service) ReportSell(buyTaskId string, tokensSold *big.Float, solRecieved *big.Float) error {
@@ -76,8 +79,20 @@ func (s *Service) ReportSell(buyTaskId string, tokensSold *big.Float, solRecieve
 	pos.FinalizedProfit = new(big.Float).Add(pos.FinalizedProfit, realizedBasisFromSale)
 	pos.TokenRemaining = new(big.Float).Sub(pos.TokenRemaining, tokensSold)
 
-	//can send a webhook here too
-	//publish the position for buytaskid has been updated
+	//publish sell
+	err := s.subhub.PublishPositionUpdate(pos)
+	if err != nil {
+		return err
+	}
+
+	// if pos.remainingTokens <= 0 -> publish -> close stream
+	isTokensRemaining := pos.TokenRemaining.Cmp(big.NewFloat(0)) == 0 || pos.TokenRemaining.Cmp(big.NewFloat(0)) == -1
+	if !isTokensRemaining {
+		err := s.subhub.PublishPositionStop(pos)
+		if err != nil {
+			return err
+		}
+	}
 
 	return nil
 }
@@ -102,3 +117,41 @@ func (s *Service) GetAll() []position.Position {
 
 	return allPos
 }
+
+func (s *Service) Subscribe(id string) (*position_hub.Subscription, error) {
+	sub, err := s.subhub.Subscribe(id)
+	if err != nil {
+		return nil, err
+	}
+
+	return sub, nil
+}
+
+func (s *Service) Unsubscribe(id string) error {
+	err := s.subhub.Unsubscribe(id)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Subscribe
+//	handler
+//	controller
+//	pos_service
+//	subhub ->
+//	streamer -> streamer needs to publish messages...
+// 			 -> passes position messages to channel given from subhub
+// subhub 	 -> reads each message and publishes
+
+// Unsubscribe
+//	handler
+//	controller
+//	pos_service
+//	subhub
+//	streamer
+
+// Unsub via no tokens remaining
+// pos_Service
+// streamer -> stop
