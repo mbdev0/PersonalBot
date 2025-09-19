@@ -65,7 +65,6 @@ func (e *Executor) Execute(done chan struct{}, transaction Transaction, ctx cont
 		func(ctx context.Context, reporter subscriptionhub.TaskReporter) error {
 			return transaction.BuildInstructionsWithPosition(ctx, reporter, e.positionService)
 		},
-		// transaction.BuildInstructions,
 		transaction.BuildTransaction,
 		transaction.SendTransaction,
 		transaction.ConfirmTransaction,
@@ -149,7 +148,5 @@ func (e *Executor) handleSellTaskReporting(t *tasks.SellTask, tokenAmount float6
 		e.positionService.ReportSell(pos.PositionId, tokensSold, solReceived)
 	} else {
 		e.positionService.ReportSell(t.Position_id, tokensSold, solReceived)
-
 	}
-
 }

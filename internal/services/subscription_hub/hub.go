@@ -2,7 +2,6 @@ package subscriptionhub
 
 import (
 	"fmt"
-	"pump_fun/internal/core/position"
 	"pump_fun/internal/core/tasks"
 	"pump_fun/pkg/logger"
 	"sync"
@@ -125,19 +124,6 @@ func (h *Hub) PublishMessage(task tasks.Task, message string) {
 		Time:      time.Now().Local().String(),
 		Message:   message,
 		EventType: tasks.ProgressMessage,
-	}
-
-	h.publish(task, taskEvent)
-}
-
-func (h *Hub) PublishPositionUpdate(task tasks.Task, position position.PositionMessage) {
-	taskEvent := tasks.TaskEvent{
-		TaskId:          task.Id(),
-		State:           task.State(),
-		Time:            time.Now().Local().String(),
-		Message:         "",
-		EventType:       tasks.PositionUpdate,
-		PositionDetails: &position,
 	}
 
 	h.publish(task, taskEvent)
