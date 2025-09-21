@@ -143,10 +143,17 @@ func (e *Executor) updatePositionOnCompleted(task tasks.Task, transaction Transa
 func (e *Executor) handleSellTaskReporting(t *tasks.SellTask, tokenAmount float64, solAmount float64) {
 	tokensSold := new(big.Float).SetFloat64(tokenAmount)
 	solReceived := new(big.Float).SetFloat64(solAmount)
+	//TODO: handle errors properly here
 	if t.Position_id == "" {
 		pos, _ := e.positionService.FindPositionIfExists(t.Token, t.Wallet.PublicKey())
-		e.positionService.ReportSell(pos.PositionId, tokensSold, solReceived)
+		err := e.positionService.ReportSell(pos.PositionId, tokensSold, solReceived)
+		if err != nil {
+			logger.Error(err)
+		}
 	} else {
-		e.positionService.ReportSell(t.Position_id, tokensSold, solReceived)
+		err := e.positionService.ReportSell(t.Position_id, tokensSold, solReceived)
+		if err != nil {
+			logger.Error(err)
+		}
 	}
 }
