@@ -58,12 +58,12 @@ func main() {
 	mux.Handle("/api/position/", positionHandler)
 
 	server := &http.Server{
-		Addr:    ":8080",
+		Addr:    ":9090",
 		Handler: mux,
 	}
 
-	logger.Information("Starting server on port 8080:")
-	logger.Information("http://localhost:8080")
+	logger.Information("Starting server on port 9090:")
+	logger.Information("http://localhost:9090")
 
 	// checkGoRoutines()
 	// test()
