@@ -86,7 +86,7 @@ func (s *Service) ReportSell(buyTaskId string, tokensSold *big.Float, solRecieve
 	}
 
 	// if pos.remainingTokens <= 0 -> publish -> close stream
-	isTokensRemaining := pos.TokenRemaining.Cmp(big.NewFloat(0)) == 0 || pos.TokenRemaining.Cmp(big.NewFloat(0)) == -1
+	isTokensRemaining := pos.TokenRemaining.Cmp(big.NewFloat(0)) == 1
 	if !isTokensRemaining {
 		err := s.subhub.PublishPositionStop(pos)
 		if err != nil {

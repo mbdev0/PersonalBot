@@ -224,8 +224,8 @@ func getAllInstructionsForSell(sellTask *tasks.SellTask, ctx context.Context, ps
 			return nil, err
 		}
 
-		isTokensRemaining := position.TokenRemaining.Cmp(big.NewFloat(0)) == -1 || position.TokenRemaining.Cmp(big.NewFloat(0)) == 0
-		if isTokensRemaining {
+		isTokensRemaining := position.TokenRemaining.Cmp(big.NewFloat(0)) == 1
+		if !isTokensRemaining {
 			return nil, fmt.Errorf("no tokens remaining")
 		}
 
