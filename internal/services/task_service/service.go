@@ -5,7 +5,6 @@ import (
 	"pump_fun/internal/core/tasks"
 	"pump_fun/internal/services/state"
 	subscriptionhub "pump_fun/internal/services/subscription_hub"
-	"pump_fun/pkg/logger"
 	"sync"
 )
 
@@ -13,27 +12,26 @@ type TaskService struct {
 	StateMachine *state.Machine
 	StateManager *state.Manager
 	Hub          *subscriptionhub.Hub
-	Tasks        map[string]tasks.Task
+	tasks        map[string]tasks.Task
 	mu           sync.Mutex
 }
 
 func (ts *TaskService) NewTaskService() {
-	ts.Tasks = map[string]tasks.Task{}
+	ts.tasks = map[string]tasks.Task{}
 }
 
 func (ts *TaskService) Create(task tasks.Task) (tasks.Task, error) {
 	ts.mu.Lock()
 	defer ts.mu.Unlock()
 
-	ts.Tasks[task.Id()] = task
-	logger.Information(ts.Tasks)
+	ts.tasks[task.Id()] = task
 	return task, nil
 }
 
 func (ts *TaskService) GetTaskWith(id string) (tasks.Task, error) {
 	ts.mu.Lock()
 	defer ts.mu.Unlock()
-	task, ok := ts.Tasks[id]
+	task, ok := ts.tasks[id]
 	if !ok {
 		return nil, fmt.Errorf("task not found with the id: %s", id)
 	}
@@ -43,8 +41,8 @@ func (ts *TaskService) GetTaskWith(id string) (tasks.Task, error) {
 func (ts *TaskService) GetAllTasks() []tasks.Task {
 	ts.mu.Lock()
 	defer ts.mu.Unlock()
-	allTasks := make([]tasks.Task, 0, len(ts.Tasks))
-	for _, val := range ts.Tasks {
+	allTasks := make([]tasks.Task, 0, len(ts.tasks))
+	for _, val := range ts.tasks {
 		allTasks = append(allTasks, val)
 	}
 	return allTasks
@@ -62,12 +60,12 @@ func (ts *TaskService) UpdateTask(task tasks.Task, patch tasks.TaskPatch) (tasks
 func (ts *TaskService) DeleteTask(id string) (err error) {
 	ts.mu.Lock()
 	defer ts.mu.Unlock()
-	_, ok := ts.Tasks[id]
+	_, ok := ts.tasks[id]
 	if !ok {
 		return fmt.Errorf("task not found with id: %s", id)
 	}
 
-	delete(ts.Tasks, id)
+	delete(ts.tasks, id)
 	return nil
 }
 
@@ -75,7 +73,7 @@ func (ts *TaskService) TransitionTask(id string, newState tasks.TaskState) (err 
 	// in here we'll manage changing state
 	ts.mu.Lock()
 	defer ts.mu.Unlock()
-	task, ok := ts.Tasks[id]
+	task, ok := ts.tasks[id]
 	if !ok {
 		return fmt.Errorf("Task not found with the id: %s", id)
 	}
