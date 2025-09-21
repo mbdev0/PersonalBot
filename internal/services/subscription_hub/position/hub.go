@@ -120,9 +120,6 @@ func (sh *SubscriptionHub) publish(id string, posMessage *position.PositionMessa
 	defer sh.mu.Unlock()
 	if sub, ok := sh.subscriptions[id]; ok {
 		sub.SubChan <- *posMessage
-		logger.Information("pushing to subchan: ", *posMessage)
-	} else {
-		logger.Information("position not found during publish")
 	}
 
 	sh.last[id] = posMessage
@@ -136,7 +133,7 @@ func (sh *SubscriptionHub) PublishPositionUpdate(pos *position.Position) error {
 	}
 	//	get mcap
 	sh.mu.Lock()
-	mcap, _, err := big.ParseFloat(posMessage.MarketCap, 10, 9, big.ToNearestEven)
+	mcap, _, err := big.ParseFloat(posMessage.MarketCap, 10, 64, big.ToNearestEven)
 	if err != nil {
 		return err
 	}
@@ -204,7 +201,7 @@ func (sh *SubscriptionHub) generatePositionMessage(pos *position.Position, marke
 	totalPnl, unrealizedPnl := sh.getProfitValues(pos, marketCap)
 
 	totalPnl.Quo(totalPnl, big.NewFloat(constants.LamportsConversion))
-	unrealizedPnl.Quo(totalPnl, big.NewFloat(constants.LamportsConversion))
+	unrealizedPnl.Quo(unrealizedPnl, big.NewFloat(constants.LamportsConversion))
 	finalizedProfit := new(big.Float).Quo(pos.FinalizedProfit, big.NewFloat(constants.LamportsConversion))
 	tokensRemaining := new(big.Float).Quo(pos.TokenRemaining, big.NewFloat(constants.TokenAmountDecimals))
 
