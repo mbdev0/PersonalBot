@@ -30,8 +30,7 @@ func NewPositionHandler(controller *controller.PositionController) http.Handler 
 func (ph *PositionHandler) registerRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /position/{id}", ph.getPositionById)
 	mux.HandleFunc("GET /positions", ph.getPositions)
-	mux.HandleFunc("/positions/sub", ph.subscribe)
-	mux.HandleFunc("GET /positions/test", ph.simpleWebSocketTest)
+	mux.HandleFunc("/subscribe", ph.subscribe)
 }
 
 func (ph *PositionHandler) getPositionById(w http.ResponseWriter, r *http.Request) {
@@ -87,7 +86,6 @@ func (ph *PositionHandler) subscribe(w http.ResponseWriter, r *http.Request) {
 	}
 
 	defer func(c *websocket.Conn) {
-		fmt.Println("closing!!!")
 		err := c.CloseNow()
 		if err != nil {
 			logger.Error(err.Error())
@@ -107,40 +105,36 @@ func (ph *PositionHandler) subscribe(w http.ResponseWriter, r *http.Request) {
 	go ph.writeToWs(wsWriteChan, c, ctx)
 
 	for {
-		// var msg *dto.PositionSubscribe
-		// resp := dto.PositionResponse{}
+		var msg *dto.PositionSubscribe
+		resp := dto.PositionResponse{}
 
-		var msg any
 		err := wsjson.Read(ctx, c, &msg)
 		if err != nil {
 			if websocket.CloseStatus(err) != -1 || ctx.Err() != nil {
 				logger.Information("WebSocket connection closed or context cancelled")
 				return // Clean exit
 			}
-
-			fmt.Println(err)
-			// wsjson.Write(ctx, c, "error")
-			// ph.handleError(err, resp, c, ctx)
+			ph.handleError(err, resp, c, ctx)
 			return
 		}
 		fmt.Println(msg)
 
-		// switch msg.Type {
-		// case dto.Subscribe:
-		// 	sub, err := ph.controller.Subscribe(msg.Id)
-		// 	if err != nil {
-		// 		ph.handleError(err, resp, c, ctx)
-		// 		continue
-		// 	}
-		// 	subscribers <- *sub
+		switch msg.Type {
+		case dto.Subscribe:
+			sub, err := ph.controller.Subscribe(msg.Id)
+			if err != nil {
+				ph.handleError(err, resp, c, ctx)
+				continue
+			}
+			subscribers <- *sub
 
-		// case dto.Unsubscribe:
-		// 	err := ph.controller.Unsubscribe(msg.Id)
-		// 	if err != nil {
-		// 		ph.handleError(err, resp, c, ctx)
-		// 		continue
-		// 	}
-		// }
+		case dto.Unsubscribe:
+			err := ph.controller.Unsubscribe(msg.Id)
+			if err != nil {
+				ph.handleError(err, resp, c, ctx)
+				continue
+			}
+		}
 	}
 
 	//go func() -> for every sub in ph.subs -> go func() -> write to wsWriteChan
@@ -153,12 +147,14 @@ func (ph *PositionHandler) subscribe(w http.ResponseWriter, r *http.Request) {
 
 func (ph *PositionHandler) fanIn(subscribers <-chan position.Subscription, wsWriteChan chan<- dto.PositionResponse) {
 	for sub := range subscribers {
+		fmt.Println("subscribers!")
 		go ph.readFromSub(sub, wsWriteChan)
 	}
 }
 
 func (ph *PositionHandler) readFromSub(sub position.Subscription, wsWriteChan chan<- dto.PositionResponse) {
 	for msg := range sub.SubChan {
+		fmt.Println("message from sub!")
 		posResp := dto.PositionResponse{
 			PositionMessage: &msg,
 		}
@@ -184,35 +180,5 @@ func (ph *PositionHandler) handleError(err error, resp dto.PositionResponse, c *
 	wsErr := wsjson.Write(ctx, c, resp)
 	if wsErr != nil {
 		logger.Error(wsErr)
-	}
-}
-
-func (ph *PositionHandler) simpleWebSocketTest(w http.ResponseWriter, r *http.Request) {
-	c, err := websocket.Accept(w, r, &websocket.AcceptOptions{
-		CompressionMode: websocket.CompressionDisabled,
-	})
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	defer c.Close(websocket.StatusInternalError, "server error")
-
-	ctx := context.Background()
-
-	// Just echo messages back
-	for {
-		_, msg, err := c.Read(ctx)
-		if err != nil {
-			fmt.Printf("Read error: %v\n", err)
-			return
-		}
-
-		fmt.Printf("Received: %s\n", msg)
-
-		err = c.Write(ctx, websocket.MessageText, []byte("Echo: "+string(msg)))
-		if err != nil {
-			fmt.Printf("Write error: %v\n", err)
-			return
-		}
 	}
 }

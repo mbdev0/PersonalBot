@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math/big"
 	"pump_fun/infrastructure/solana_price"
+	"pump_fun/internal/core/constants"
 	"pump_fun/internal/core/position"
 	"pump_fun/internal/monitoring"
 	"pump_fun/internal/solana/programs/pumpfun/pda"
@@ -20,18 +21,20 @@ type Subscription struct {
 }
 
 type SubscriptionHub struct {
-	subscriptions map[string]*Subscription
-	last          map[string]*position.PositionMessage
-	bufferSize    int
-	mu            *sync.Mutex
+	subscriptions   map[string]*Subscription
+	activePositions map[string]*position.Position
+	last            map[string]*position.PositionMessage
+	bufferSize      int
+	mu              *sync.Mutex
 }
 
 func NewSubscriptionHub() *SubscriptionHub {
 	return &SubscriptionHub{
-		subscriptions: map[string]*Subscription{},
-		last:          map[string]*position.PositionMessage{},
-		bufferSize:    1000,
-		mu:            &sync.Mutex{},
+		subscriptions:   map[string]*Subscription{},
+		activePositions: map[string]*position.Position{},
+		last:            map[string]*position.PositionMessage{},
+		bufferSize:      1000,
+		mu:              &sync.Mutex{},
 	}
 }
 
@@ -42,11 +45,39 @@ func (sh *SubscriptionHub) Subscribe(positionId string) (*Subscription, error) {
 		return nil, fmt.Errorf("position already subbed to")
 	}
 
+	ctx, cancel := context.WithCancel(context.Background())
+
 	sub := &Subscription{
-		sub_id:  positionId,
-		SubChan: make(chan position.PositionMessage, sh.bufferSize),
-		cancel:  sh.cancel(positionId),
+		sub_id:    positionId,
+		SubChan:   make(chan position.PositionMessage, sh.bufferSize),
+		cancel:    sh.cancel(positionId),
+		cancelCtx: cancel,
 	}
+
+	p, ok := sh.activePositions[positionId]
+	if !ok {
+		return nil, fmt.Errorf("position has not been created yet")
+	}
+
+	go func(s *Subscription, c context.Context, pos *position.Position) {
+		marketCapChan := make(chan *big.Float, sh.bufferSize)
+
+		bondingCurveAddress, err := pda.GetBondingCurveAddress(pos.TokenAddress.String())
+		if err != nil {
+			logger.Error(err)
+		}
+		// start marketcap streaming
+		go monitoring.StartMarketCapMonitor(ctx, bondingCurveAddress, marketCapChan)
+
+		// then foreach in mcap
+		for mcap := range marketCapChan {
+			positionMessage := sh.generatePositionMessage(pos, mcap)
+			positionMessage.MessageType = position.Update
+			fmt.Println(positionMessage)
+			//publish the profit, mcap, position
+			sh.publish(s.sub_id, &positionMessage)
+		}
+	}(sub, ctx, p)
 
 	if last, ok := sh.last[positionId]; ok {
 		select {
@@ -89,11 +120,12 @@ func (sh *SubscriptionHub) publish(id string, posMessage *position.PositionMessa
 	defer sh.mu.Unlock()
 	if sub, ok := sh.subscriptions[id]; ok {
 		sub.SubChan <- *posMessage
+		logger.Information("pushing to subchan: ", *posMessage)
+	} else {
+		logger.Information("position not found during publish")
 	}
 
-	if _, ok := sh.last[id]; ok {
-		sh.last[id] = posMessage
-	}
+	sh.last[id] = posMessage
 }
 
 func (sh *SubscriptionHub) PublishPositionUpdate(pos *position.Position) error {
@@ -110,6 +142,8 @@ func (sh *SubscriptionHub) PublishPositionUpdate(pos *position.Position) error {
 	}
 	//	regenerate profit etc.
 	message := sh.generatePositionMessage(pos, mcap)
+	message.Message = "Position Update"
+	message.MessageType = position.Update
 	sh.mu.Unlock()
 
 	//	publish
@@ -118,48 +152,26 @@ func (sh *SubscriptionHub) PublishPositionUpdate(pos *position.Position) error {
 }
 
 func (sh *SubscriptionHub) PublishPositionCreate(p *position.Position) {
-	ctx, cancel := context.WithCancel(context.Background())
 
-	sub := Subscription{
-		sub_id:    p.PositionId,
-		SubChan:   make(chan position.PositionMessage, sh.bufferSize),
-		cancel:    sh.cancel(p.PositionId),
-		cancelCtx: cancel,
-	}
 	sh.mu.Lock()
-	sh.subscriptions[sub.sub_id] = &sub
+	sh.activePositions[p.PositionId] = p
 	sh.mu.Unlock()
+
+	//TODO: make this convert the finalized profit in a new big.float
+	// so the original position isn't edited
+	p.FinalizedProfit.Quo(p.FinalizedProfit, big.NewFloat(constants.LamportsConversion))
+	p.TokenRemaining.Quo(p.TokenRemaining, big.NewFloat(constants.TokenAmountDecimals))
 
 	posMessage := position.PositionMessage{
 		MessageType:      position.Created,
-		BuyTaskId:        sub.sub_id,
-		UnrealizedProfit: "",
+		BuyTaskId:        p.PositionId,
+		UnrealizedProfit: "0",
 		RealizedProfit:   p.FinalizedProfit.Text('f', 9),
 		RemainingTokens:  p.TokenRemaining.Text('f', 9),
 		Message:          "Position Created",
 	}
 
 	sh.publish(p.PositionId, &posMessage)
-
-	go func(s *Subscription, c context.Context, pos *position.Position) {
-		marketCapChan := make(chan *big.Float, sh.bufferSize)
-
-		bondingCurveAddress, err := pda.GetBondingCurveAddress(pos.TokenAddress.String())
-		if err != nil {
-			logger.Error(err)
-		}
-		// start marketcap streaming
-		go monitoring.StartMarketCapMonitor(ctx, bondingCurveAddress, marketCapChan)
-
-		// then foreach in mcap
-		for mcap := range marketCapChan {
-			positionMessage := sh.generatePositionMessage(pos, mcap)
-			positionMessage.MessageType = position.Update
-			fmt.Println(positionMessage)
-			//publish the profit, mcap, position
-			sh.publish(s.sub_id, &positionMessage)
-		}
-	}(&sub, ctx, p)
 }
 
 func (sh *SubscriptionHub) PublishPositionStop(pos *position.Position) error {
@@ -180,6 +192,9 @@ func (sh *SubscriptionHub) PublishPositionStop(pos *position.Position) error {
 		Message:          "Position Closed",
 	}
 	//when the position is closed
+	sh.mu.Lock()
+	delete(sh.activePositions, pos.PositionId)
+	sh.mu.Unlock()
 
 	sh.publish(pos.PositionId, &message)
 	return nil
@@ -188,6 +203,11 @@ func (sh *SubscriptionHub) PublishPositionStop(pos *position.Position) error {
 func (sh *SubscriptionHub) generatePositionMessage(pos *position.Position, marketCap *big.Float) position.PositionMessage {
 	//we need unrealized profit -> remaning tokens (in sol)
 	totalPnl, unrealizedPnl := sh.getProfitValues(pos, marketCap)
+
+	totalPnl.Quo(totalPnl, big.NewFloat(constants.LamportsConversion))
+	unrealizedPnl.Quo(totalPnl, big.NewFloat(constants.LamportsConversion))
+	pos.FinalizedProfit.Quo(pos.FinalizedProfit, big.NewFloat(constants.LamportsConversion))
+	pos.TokenRemaining.Quo(pos.TokenRemaining, big.NewFloat(constants.TokenAmountDecimals))
 
 	posMessage := position.PositionMessage{
 		BuyTaskId:        pos.PositionId,
@@ -207,7 +227,7 @@ func (sh *SubscriptionHub) getProfitValues(pos *position.Position, marketCap *bi
 		logger.Error(err)
 	}
 
-	tokenValue := sh.calculateTokenValueInSol(marketCap, pos.InitialTokenAmount, *solPrice)
+	tokenValue := sh.calculateTokenValueInSol(marketCap, pos.TokenRemaining, *solPrice)
 	unrealizedPnl := new(big.Float).Sub(tokenValue, pos.RemainingCostBasis)
 
 	totalPnL := new(big.Float).Add(pos.FinalizedProfit, unrealizedPnl)
