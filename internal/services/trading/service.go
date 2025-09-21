@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"pump_fun/internal/core/strategies"
-	"pump_fun/pkg/logger"
 	"sync"
 )
 
@@ -31,8 +30,6 @@ func (s *Service) Create(st strategies.Task) (task strategies.Task, err error) {
 	}
 
 	s.tasks[st.StrategyTaskId()] = st
-	logger.Information("task created : ", st)
-	logger.Information("new map: ", s.tasks)
 	return st, nil
 }
 
@@ -49,7 +46,6 @@ func (s *Service) Delete(id string) error {
 	}
 
 	delete(s.tasks, id)
-	logger.Information("deleted map => ", s.tasks)
 	return nil
 
 }
@@ -63,7 +59,6 @@ func (s *Service) GetBy(id string) (strategies.Task, error) {
 		return nil, fmt.Errorf("task not found with id: %s", id)
 	}
 
-	logger.Information("getby ->", task)
 	return task, nil
 }
 
@@ -72,12 +67,10 @@ func (s *Service) GetAll() []strategies.Task {
 	defer s.mu.Unlock()
 
 	allTasks := make([]strategies.Task, 0, len(s.tasks))
-	logger.Information(len(s.tasks))
 	for _, val := range s.tasks {
 		allTasks = append(allTasks, val)
 	}
 
-	logger.Information("get all tasks -> ", allTasks)
 	return allTasks
 }
 
@@ -90,7 +83,6 @@ func (s *Service) Update(task strategies.Task, patch strategies.Patch) (strategi
 		return nil, err
 	}
 
-	logger.Information("task update -> ", task)
 	return task, nil
 }
 

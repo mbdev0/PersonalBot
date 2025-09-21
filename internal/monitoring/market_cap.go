@@ -74,7 +74,6 @@ func marketCapMonitor(ctx context.Context, bondingCurveAddress string, marketCap
 			}
 		}
 		marketCapChan <- marketCap
-		logger.Information("Market cap: ", marketCap.String())
 	}
 
 }

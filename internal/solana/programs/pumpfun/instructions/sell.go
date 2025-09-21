@@ -105,7 +105,6 @@ func getCreatorVaultAddress(bondingCurveAddress string, ctx context.Context) (st
 func getInstructionData(sellTask *tasks.SellTask, ctx context.Context, position *position.Position) ([]byte, error) {
 
 	tokenAmount, solOutput, err := getTokenAmountAndSolOutput(sellTask, ctx, position)
-	logger.Information("token amount: ", *tokenAmount, "|||| solamount: ", *solOutput)
 
 	if err != nil {
 		return nil, err
@@ -134,7 +133,6 @@ func getInstructionData(sellTask *tasks.SellTask, ctx context.Context, position 
 
 func getTokenAmountAndSolOutput(sellTask *tasks.SellTask, ctx context.Context, position *position.Position) (tokenAmount *uint64, solOutput *uint64, err error) {
 	if position != nil {
-		logger.Information("position is not nil")
 		tokens, _ := position.TokenRemaining.Uint64()
 		tokenAmount = &tokens
 	} else {

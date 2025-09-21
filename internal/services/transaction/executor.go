@@ -122,7 +122,6 @@ func (e *Executor) handlePositionOnSell(task tasks.Task, ctx context.Context) {
 		return
 	}
 
-	logger.Information("tokens: ", *tokens)
 	e.positionService.ReportBuy(st.Id(), st.Token, st.Wallet.PublicKey(), new(big.Float).SetUint64(*tokens), new(big.Float).SetFloat64(0))
 
 }
@@ -133,7 +132,6 @@ func (e *Executor) updatePositionOnCompleted(task tasks.Task, transaction Transa
 		e.transitionAndPublishTask(task, err)
 		return nil
 	}
-	logger.Information("tokens extracted: ", tokenAmount, " solana amount: ", solAmount)
 
 	switch t := task.(type) {
 	case *tasks.BuyTask:

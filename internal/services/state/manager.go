@@ -6,7 +6,6 @@ import (
 	"pump_fun/internal/core/tasks"
 	subscriptionhub "pump_fun/internal/services/subscription_hub"
 	"pump_fun/internal/services/transaction"
-	"pump_fun/pkg/logger"
 	"sync"
 )
 
@@ -58,7 +57,6 @@ func (m *Manager) run(task tasks.Task) error {
 
 	go func() {
 
-		logger.Information(m.running)
 		done := make(chan struct{})
 		m.executor.Execute(done, transactionImpl, cancelCtx)
 
@@ -67,7 +65,6 @@ func (m *Manager) run(task tasks.Task) error {
 
 		m.mu.Lock()
 		delete(m.running, task.Id())
-		logger.Information(m.running)
 		m.mu.Unlock()
 	}()
 	return nil
