@@ -154,20 +154,19 @@ func (sh *SubscriptionHub) PublishPositionUpdate(pos *position.Position) error {
 func (sh *SubscriptionHub) PublishPositionCreate(p *position.Position) {
 
 	sh.mu.Lock()
-	sh.activePositions[p.PositionId] = p
-	sh.mu.Unlock()
 
-	//TODO: make this convert the finalized profit in a new big.float
-	// so the original position isn't edited
-	p.FinalizedProfit.Quo(p.FinalizedProfit, big.NewFloat(constants.LamportsConversion))
-	p.TokenRemaining.Quo(p.TokenRemaining, big.NewFloat(constants.TokenAmountDecimals))
+	sh.activePositions[p.PositionId] = p
+	finalizedProfit := new(big.Float).Quo(p.FinalizedProfit, big.NewFloat(constants.LamportsConversion))
+	tokensRemaining := new(big.Float).Quo(p.TokenRemaining, big.NewFloat(constants.TokenAmountDecimals))
+
+	sh.mu.Unlock()
 
 	posMessage := position.PositionMessage{
 		MessageType:      position.Created,
 		BuyTaskId:        p.PositionId,
 		UnrealizedProfit: "0",
-		RealizedProfit:   p.FinalizedProfit.Text('f', 9),
-		RemainingTokens:  p.TokenRemaining.Text('f', 9),
+		RealizedProfit:   finalizedProfit.Text('f', 9),
+		RemainingTokens:  tokensRemaining.Text('f', 9),
 		Message:          "Position Created",
 	}
 
@@ -206,16 +205,16 @@ func (sh *SubscriptionHub) generatePositionMessage(pos *position.Position, marke
 
 	totalPnl.Quo(totalPnl, big.NewFloat(constants.LamportsConversion))
 	unrealizedPnl.Quo(totalPnl, big.NewFloat(constants.LamportsConversion))
-	pos.FinalizedProfit.Quo(pos.FinalizedProfit, big.NewFloat(constants.LamportsConversion))
-	pos.TokenRemaining.Quo(pos.TokenRemaining, big.NewFloat(constants.TokenAmountDecimals))
+	finalizedProfit := new(big.Float).Quo(pos.FinalizedProfit, big.NewFloat(constants.LamportsConversion))
+	tokensRemaining := new(big.Float).Quo(pos.TokenRemaining, big.NewFloat(constants.TokenAmountDecimals))
 
 	posMessage := position.PositionMessage{
 		BuyTaskId:        pos.PositionId,
 		UnrealizedProfit: unrealizedPnl.Text('f', 9),
-		RealizedProfit:   pos.FinalizedProfit.Text('f', 9),
+		RealizedProfit:   finalizedProfit.Text('f', 9),
 		TotalPnL:         totalPnl.Text('f', 9),
 		MarketCap:        marketCap.String(),
-		RemainingTokens:  pos.TokenRemaining.String(),
+		RemainingTokens:  tokensRemaining.String(),
 	}
 
 	return posMessage

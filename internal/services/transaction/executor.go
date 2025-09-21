@@ -83,7 +83,10 @@ func (e *Executor) Execute(done chan struct{}, transaction Transaction, ctx cont
 		}
 	}
 	if task.State().TaskState == tasks.TaskDone {
-		e.updatePositionOnCompleted(task, transaction, ctx)
+		err := e.updatePositionOnCompleted(task, transaction, ctx)
+		if err != nil {
+			task.SetState(tasks.State{TaskState: tasks.TaskDone, Error: fmt.Sprintf("unable to create position: %s", err.Error())})
+		}
 	}
 }
 
@@ -123,12 +126,12 @@ func (e *Executor) handlePositionOnSell(task tasks.Task, ctx context.Context) {
 	e.positionService.ReportBuy(st.Id(), st.Token, st.Wallet.PublicKey(), new(big.Float).SetUint64(*tokens), new(big.Float).SetFloat64(0))
 
 }
-func (e *Executor) updatePositionOnCompleted(task tasks.Task, transaction Transaction, ctx context.Context) {
+func (e *Executor) updatePositionOnCompleted(task tasks.Task, transaction Transaction, ctx context.Context) error {
 	tokenAmount, solAmount, err := transaction.ExtractTokenAndSolFromTx(transaction.GetSignature(), ctx)
 	if err != nil {
 		logger.Error("error: ", err)
 		e.transitionAndPublishTask(task, err)
-		return
+		return nil
 	}
 	logger.Information("tokens extracted: ", tokenAmount, " solana amount: ", solAmount)
 
@@ -136,24 +139,30 @@ func (e *Executor) updatePositionOnCompleted(task tasks.Task, transaction Transa
 	case *tasks.BuyTask:
 		e.positionService.ReportBuy(t.Id(), t.Token, t.Wallet.PublicKey(), new(big.Float).SetFloat64(tokenAmount), new(big.Float).SetFloat64(solAmount))
 	case *tasks.SellTask:
-		e.handleSellTaskReporting(t, tokenAmount, solAmount)
+		err := e.handleSellTaskReporting(t, tokenAmount, solAmount)
+		if err != nil {
+			return err
+		}
 	}
+
+	return nil
 }
 
-func (e *Executor) handleSellTaskReporting(t *tasks.SellTask, tokenAmount float64, solAmount float64) {
+func (e *Executor) handleSellTaskReporting(t *tasks.SellTask, tokenAmount float64, solAmount float64) error {
 	tokensSold := new(big.Float).SetFloat64(tokenAmount)
 	solReceived := new(big.Float).SetFloat64(solAmount)
-	//TODO: handle errors properly here
+
 	if t.Position_id == "" {
 		pos, _ := e.positionService.FindPositionIfExists(t.Token, t.Wallet.PublicKey())
 		err := e.positionService.ReportSell(pos.PositionId, tokensSold, solReceived)
 		if err != nil {
-			logger.Error(err)
+			return err
 		}
 	} else {
 		err := e.positionService.ReportSell(t.Position_id, tokensSold, solReceived)
 		if err != nil {
-			logger.Error(err)
+			return err
 		}
 	}
+	return nil
 }
