@@ -51,11 +51,16 @@ func (s *Strategy) AfkSniping(afkTask *strategies.Afk, ctx context.Context) {
 			logger.Error("error whilst transitioning task: ", err)
 			return
 		}
+
+		// we need to do an internal subscribe to the bt.Id() task
+		// wait for the task to be Done
+		// and then position sub
+		// we then get position values and as soon as a sell strat is hit
+		// sell the token for a set amount
 	}
 }
 
 func (s *Strategy) createBuyTask(afkTask *strategies.Afk, tokenAddr solana.PublicKey) *tasks.BuyTask {
-	// buyTask := tasks.BuyTask{}
 	bt := tasks.NewBuyTask(afkTask.Wallet, tokenAddr,
 		[]tasks.Option{tasks.WithSlippage(afkTask.Slippage), tasks.WithComputeUnits(uint32(afkTask.ComputeUnits))},
 		[]tasks.BuyOption{tasks.WithBuyAmount(afkTask.BuyAmount), tasks.WithBuyFee(afkTask.BuyFee)},

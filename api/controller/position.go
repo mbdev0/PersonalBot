@@ -34,8 +34,8 @@ func (pc *PositionController) GetBy(id string) (dto.PositionDto, error) {
 	return mappedPosition, nil
 }
 
-func (pc *PositionController) Subscribe(id string) (*positionHub.Subscription, error) {
-	sub, err := pc.PositionService.Subscribe(id)
+func (pc *PositionController) Subscribe(id string, isInternalSub bool) (*positionHub.Subscription, error) {
+	sub, err := pc.PositionService.Subscribe(id, isInternalSub)
 	if err != nil {
 		return nil, err
 	}
@@ -43,8 +43,8 @@ func (pc *PositionController) Subscribe(id string) (*positionHub.Subscription, e
 	return sub, nil
 }
 
-func (pc *PositionController) Unsubscribe(id string) error {
-	err := pc.PositionService.Unsubscribe(id)
+func (pc *PositionController) Unsubscribe(id string, isInternalSub bool) error {
+	err := pc.PositionService.Unsubscribe(id, isInternalSub)
 	if err != nil {
 		return err
 	}

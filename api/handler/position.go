@@ -121,7 +121,7 @@ func (ph *PositionHandler) subscribe(w http.ResponseWriter, r *http.Request) {
 
 		switch msg.Type {
 		case dto.Subscribe:
-			sub, err := ph.controller.Subscribe(msg.Id)
+			sub, err := ph.controller.Subscribe(msg.Id, false)
 			if err != nil {
 				ph.handleError(err, resp, c, ctx)
 				continue
@@ -129,7 +129,7 @@ func (ph *PositionHandler) subscribe(w http.ResponseWriter, r *http.Request) {
 			subscribers <- *sub
 
 		case dto.Unsubscribe:
-			err := ph.controller.Unsubscribe(msg.Id)
+			err := ph.controller.Unsubscribe(msg.Id, false)
 			if err != nil {
 				ph.handleError(err, resp, c, ctx)
 				continue

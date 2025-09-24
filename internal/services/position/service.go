@@ -118,8 +118,8 @@ func (s *Service) GetAll() []position.Position {
 	return allPos
 }
 
-func (s *Service) Subscribe(id string) (*position_hub.Subscription, error) {
-	sub, err := s.subhub.Subscribe(id)
+func (s *Service) Subscribe(id string, isInternalSub bool) (*position_hub.Subscription, error) {
+	sub, err := s.subhub.Subscribe(id, isInternalSub)
 	if err != nil {
 		return nil, err
 	}
@@ -127,8 +127,8 @@ func (s *Service) Subscribe(id string) (*position_hub.Subscription, error) {
 	return sub, nil
 }
 
-func (s *Service) Unsubscribe(id string) error {
-	err := s.subhub.Unsubscribe(id)
+func (s *Service) Unsubscribe(id string, isInternalSub bool) error {
+	err := s.subhub.Unsubscribe(id, isInternalSub)
 	if err != nil {
 		return err
 	}

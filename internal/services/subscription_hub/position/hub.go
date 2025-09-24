@@ -14,10 +14,12 @@ import (
 )
 
 type Subscription struct {
-	sub_id    string
-	SubChan   chan position.PositionMessage
-	cancel    func()
-	cancelCtx context.CancelFunc
+	sub_id         string
+	SubChan        chan position.PositionMessage
+	cancel         func()
+	cancelCtx      context.CancelFunc
+	hasInternalSub bool
+	hasClientSub   bool
 }
 
 type SubscriptionHub struct {
@@ -38,7 +40,7 @@ func NewSubscriptionHub() *SubscriptionHub {
 	}
 }
 
-func (sh *SubscriptionHub) Subscribe(positionId string) (*Subscription, error) {
+func (sh *SubscriptionHub) Subscribe(positionId string, isInternalSub bool) (*Subscription, error) {
 	sh.mu.Lock()
 	defer sh.mu.Unlock()
 	if _, ok := sh.subscriptions[positionId]; ok {
@@ -52,6 +54,12 @@ func (sh *SubscriptionHub) Subscribe(positionId string) (*Subscription, error) {
 		SubChan:   make(chan position.PositionMessage, sh.bufferSize),
 		cancel:    sh.cancel(positionId),
 		cancelCtx: cancel,
+	}
+
+	if isInternalSub {
+		sub.hasInternalSub = true
+	} else {
+		sub.hasClientSub = true
 	}
 
 	p, ok := sh.activePositions[positionId]
@@ -101,17 +109,31 @@ func (sh *SubscriptionHub) cancel(positionId string) func() {
 	}
 }
 
-func (sh *SubscriptionHub) Unsubscribe(positionId string) error {
+func (sh *SubscriptionHub) Unsubscribe(positionId string, isInternalSub bool) error {
 	//get the sub if exists
 	pos, ok := sh.subscriptions[positionId]
 	if !ok {
 		return fmt.Errorf("not able to find positon with id: %s", positionId)
 	}
+
+	if isInternalSub {
+		pos.hasInternalSub = false
+	} else {
+		pos.hasClientSub = false
+	}
 	// run the cancel func
 	sh.mu.Lock()
-	pos.cancel()
+	//if there are no subscribers on the task
+	if !pos.hasClientSub && !pos.hasInternalSub {
+		pos.cancel()
+	}
 	sh.mu.Unlock()
 	return nil
+}
+
+func (sh *SubscriptionHub) WaitForCreate(id string) {
+	//wait until position is created in activePositions
+	
 }
 
 func (sh *SubscriptionHub) publish(id string, posMessage *position.PositionMessage) {
