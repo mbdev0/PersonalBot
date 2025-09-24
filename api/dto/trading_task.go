@@ -7,13 +7,14 @@ const (
 )
 
 type TradingTask struct {
-	Type         TradingType `json:"trading_type"`
-	BuyAmount    float64     `json:"buy_amount"`
-	BuyFee       float64     `json:"buy_fee"`
-	ComputeUnits float64     `json:"compute_units"`
-	Slippage     float64     `json:"slippage"`
-	Wallet       string      `json:"wallet"`
-	Filters      Filters     `json:"filters"`
+	Type           TradingType    `json:"trading_type"`
+	BuyAmount      float64        `json:"buy_amount"`
+	BuyFee         float64        `json:"buy_fee"`
+	ComputeUnits   float64        `json:"compute_units"`
+	Slippage       float64        `json:"slippage"`
+	Wallet         string         `json:"wallet"`
+	Filters        Filters        `json:"filters"`
+	SellStrategies SellStrategies `json:"sell_strategies"`
 }
 
 type TradingTaskResponse struct {
