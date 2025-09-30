@@ -54,7 +54,7 @@ func (s *Strategy) handleNewCoin(afkTask *strategies.Afk, ctx context.Context, c
 		return
 	}
 
-	if !s.isSellStrategiesEmpty(afkTask.SellStrategies) {
+	if len(afkTask.SellStrategies) != 0 {
 		pos, ok := s.positionHub.WaitForCreate(bt.Id())
 		if !ok {
 			logger.Error("timeout whilst waiting for position to be created: ", bt.Id())
@@ -93,10 +93,6 @@ func (s *Strategy) createBuyTask(afkTask *strategies.Afk, tokenAddr solana.Publi
 		[]tasks.BuyOption{tasks.WithBuyAmount(afkTask.BuyAmount), tasks.WithBuyFee(afkTask.BuyFee)},
 	)
 	return bt
-}
-
-func (s *Strategy) isSellStrategiesEmpty(strats []strategies.StrategyConfig) bool {
-	return strats == nil || len(strats) == 0
 }
 
 func (s *Strategy) ResolveStrategyConfig(sellStratsConfig []strategies.StrategyConfig, position *position.Position, ctx context.Context) []sell.Strategy {
