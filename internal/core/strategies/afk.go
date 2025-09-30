@@ -11,14 +11,16 @@ import (
 type StrategyFilter func() filters.FilterInfo
 
 type Afk struct {
-	id           string
-	strategyType TradingType
-	Filters      []StrategyFilter
-	BuyAmount    *big.Int
-	BuyFee       float64
-	Slippage     float64
-	ComputeUnits float64
-	Wallet       solana.PrivateKey
+	id             string
+	strategyType   TradingType
+	Filters        []StrategyFilter
+	BuyAmount      *big.Int
+	BuyFee         float64
+	Slippage       float64
+	ComputeUnits   float64
+	Wallet         solana.PrivateKey
+	SellStrategies []StrategyConfig
+	SellFee        float64
 }
 
 func (a *Afk) New() {
