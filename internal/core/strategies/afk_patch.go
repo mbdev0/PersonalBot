@@ -8,12 +8,13 @@ import (
 )
 
 type AfkPatch struct {
-	Filters      *[]StrategyFilter
-	BuyAmount    *big.Int
-	BuyFee       *float64
-	Slippage     *float64
-	ComputeUnits *float64
-	Wallet       *solana.PrivateKey
+	Filters        *[]StrategyFilter
+	BuyAmount      *big.Int
+	BuyFee         *float64
+	Slippage       *float64
+	ComputeUnits   *float64
+	Wallet         *solana.PrivateKey
+	SellStrategies *[]StrategyConfig
 }
 
 func (ap *AfkPatch) ApplyTo(task Task) error {
@@ -44,6 +45,10 @@ func (ap *AfkPatch) ApplyTo(task Task) error {
 
 	if ap.Filters != nil {
 		afk.Filters = *ap.Filters
+	}
+
+	if ap.SellStrategies != nil {
+		afk.SellStrategies = *ap.SellStrategies
 	}
 
 	return nil

@@ -62,5 +62,10 @@ func createAfkPatch(src dto.TradingTaskPatch) (resp *strategies.AfkPatch, err er
 		respPatch.Filters = &filters
 	}
 
+	if src.SellStrategies != nil {
+		strats := mapDTOToStrategyConfigs(*src.SellStrategies)
+		respPatch.SellStrategies = &strats
+	}
+
 	return &respPatch, nil
 }

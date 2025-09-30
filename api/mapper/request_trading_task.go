@@ -37,8 +37,21 @@ func mapAfkDtoToAfk(src dto.TradingTask) (dst *strategies.Afk, err error) {
 	}
 
 	dest.Filters = mapFiltersToDestFilters(src.Filters)
+	dest.SellStrategies = mapDTOToStrategyConfigs(src.SellStrategies)
 
 	return &dest, nil
+}
+
+func mapDTOToStrategyConfigs(dtos []dto.SellStrategyDTO) []strategies.StrategyConfig {
+	configs := make([]strategies.StrategyConfig, len(dtos))
+	for i, dto := range dtos {
+		configs[i] = strategies.StrategyConfig{
+			Type:       strategies.SellStrategyType(dto.Type),
+			Value:      dto.Value,
+			SellAmount: dto.SellAmount,
+		}
+	}
+	return configs
 }
 
 func mapFiltersToDestFilters(srcFilters dto.Filters) []strategies.StrategyFilter {

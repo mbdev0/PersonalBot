@@ -26,7 +26,7 @@ func main() {
 	taskSubhub.New()
 
 	posSubhub := positionhub.NewSubscriptionHub()
-	positionService := position.NewPositionService(posSubhub)
+	positionService := position.NewPositionService(&posSubhub)
 
 	executor := transaction.Executor{}
 	executor.New(&taskSubhub, &positionService)
@@ -38,7 +38,7 @@ func main() {
 	taskService.NewTaskService()
 
 	tradingStrategy := trading.Strategy{}
-	tradingStrategy.NewTradingStrategy(&taskService)
+	tradingStrategy.NewTradingStrategy(&taskService, &posSubhub, &positionService)
 	tradingService := trading.Service{}
 	tradingService.NewTradingService(&tradingStrategy)
 
