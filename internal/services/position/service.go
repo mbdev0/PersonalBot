@@ -38,14 +38,18 @@ func (s *Service) ReportBuy(buytaskid string, tokenaddress solana.PublicKey, wal
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
+	entryPrice := new(big.Float).Quo(solSpent, tokenAmount)
+
 	newPosition := position.Position{
-		PositionId:         buytaskid,
-		TokenAddress:       tokenaddress,
-		WalletAddress:      walletAddress,
-		InitialTokenAmount: tokenAmount,
-		TokenRemaining:     tokenAmount,
-		RemainingCostBasis: solSpent,
-		FinalizedProfit:    big.NewFloat(0),
+		PositionId:          buytaskid,
+		TokenAddress:        tokenaddress,
+		WalletAddress:       walletAddress,
+		InitialTokenAmount:  tokenAmount,
+		TokenRemaining:      tokenAmount,
+		RemainingCostBasis:  solSpent,
+		FinalizedProfit:     big.NewFloat(0),
+		InitialSolanaAmount: solSpent,
+		EntryPrice:          entryPrice,
 	}
 
 	s.positions[newPosition.PositionId] = &newPosition
@@ -135,23 +139,3 @@ func (s *Service) Unsubscribe(id string, isInternalSub bool) error {
 
 	return nil
 }
-
-// Subscribe
-//	handler
-//	controller
-//	pos_service
-//	subhub ->
-//	streamer -> streamer needs to publish messages...
-// 			 -> passes position messages to channel given from subhub
-// subhub 	 -> reads each message and publishes
-
-// Unsubscribe
-//	handler
-//	controller
-//	pos_service
-//	subhub
-//	streamer
-
-// Unsub via no tokens remaining
-// pos_Service
-// streamer -> stop
