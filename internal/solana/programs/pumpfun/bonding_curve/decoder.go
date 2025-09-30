@@ -9,6 +9,7 @@ import (
 	"pump_fun/infrastructure/solana_price"
 	"pump_fun/internal/core/models"
 	"pump_fun/internal/solana/client"
+	"pump_fun/internal/solana/programs/pumpfun/pda"
 
 	"github.com/gagliardetto/solana-go"
 )
@@ -31,6 +32,15 @@ func GetMarketCapFrom(bondingCurveValue string) (marketCapVal *big.Float, err er
 	}
 
 	return marketCap, nil, false
+}
+
+func GetMarketCapFromTokenAddress(tokenAddrress solana.PublicKey, ctx context.Context) (marketCapVal *big.Float, err error, hasCompleted bool) {
+	bondingCurveAddress, err := pda.GetBondingCurveAddress(tokenAddrress.String())
+	if err != nil {
+		return nil, err, false
+	}
+
+	return GetMarketCapFrom(bondingCurveAddress)
 }
 
 func GetMarketCapInitial(bondingCurveAddress string, ctx context.Context) (marketCapVal *big.Float, err error, hasCompleted bool) {

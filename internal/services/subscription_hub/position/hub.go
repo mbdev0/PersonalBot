@@ -9,6 +9,7 @@ import (
 	"pump_fun/internal/core/position"
 	"pump_fun/internal/monitoring"
 	"pump_fun/internal/solana/programs/pumpfun/pda"
+	datastructures "pump_fun/pkg/data_structures"
 	"pump_fun/pkg/logger"
 	"sync"
 )
@@ -23,17 +24,18 @@ type Subscription struct {
 }
 
 type SubscriptionHub struct {
-	subscriptions   map[string]*Subscription
-	activePositions map[string]*position.Position
-	last            map[string]*position.PositionMessage
-	bufferSize      int
-	mu              *sync.Mutex
+	subscriptions    map[string]*Subscription
+	activePositions  datastructures.Map[string, *position.Position]
+	marketCapMonitor map[string]chan big.Float
+	last             map[string]*position.PositionMessage
+	bufferSize       int
+	mu               *sync.Mutex
 }
 
-func NewSubscriptionHub() *SubscriptionHub {
-	return &SubscriptionHub{
+func NewSubscriptionHub() SubscriptionHub {
+	return SubscriptionHub{
 		subscriptions:   map[string]*Subscription{},
-		activePositions: map[string]*position.Position{},
+		activePositions: datastructures.NewMap[string, *position.Position](),
 		last:            map[string]*position.PositionMessage{},
 		bufferSize:      1000,
 		mu:              &sync.Mutex{},
@@ -62,7 +64,7 @@ func (sh *SubscriptionHub) Subscribe(positionId string, isInternalSub bool) (*Su
 		sub.hasClientSub = true
 	}
 
-	p, ok := sh.activePositions[positionId]
+	p, ok := sh.activePositions.Get(positionId)
 	if !ok {
 		return nil, fmt.Errorf("position has not been created yet")
 	}
@@ -131,9 +133,11 @@ func (sh *SubscriptionHub) Unsubscribe(positionId string, isInternalSub bool) er
 	return nil
 }
 
-func (sh *SubscriptionHub) WaitForCreate(id string) {
+func (sh *SubscriptionHub) WaitForCreate(id string) (*position.Position, bool) {
+	pos, ok := sh.activePositions.WaitForEntry(id)
+	return pos, ok
 	//wait until position is created in activePositions
-	
+
 }
 
 func (sh *SubscriptionHub) publish(id string, posMessage *position.PositionMessage) {
@@ -155,10 +159,7 @@ func (sh *SubscriptionHub) PublishPositionUpdate(pos *position.Position) error {
 	}
 	//	get mcap
 	sh.mu.Lock()
-	mcap, _, err := big.ParseFloat(posMessage.MarketCap, 10, 64, big.ToNearestEven)
-	if err != nil {
-		return err
-	}
+	mcap := posMessage.MarketCap
 	//	regenerate profit etc.
 	message := sh.generatePositionMessage(pos, mcap)
 	message.Message = "Position Update"
@@ -174,19 +175,20 @@ func (sh *SubscriptionHub) PublishPositionCreate(p *position.Position) {
 
 	sh.mu.Lock()
 
-	sh.activePositions[p.PositionId] = p
+	sh.activePositions.Set(p.PositionId, p)
 	finalizedProfit := new(big.Float).Quo(p.FinalizedProfit, big.NewFloat(constants.LamportsConversion))
 	tokensRemaining := new(big.Float).Quo(p.TokenRemaining, big.NewFloat(constants.TokenAmountDecimals))
 
 	sh.mu.Unlock()
 
 	posMessage := position.PositionMessage{
-		MessageType:      position.Created,
-		BuyTaskId:        p.PositionId,
-		UnrealizedProfit: "0",
-		RealizedProfit:   finalizedProfit.Text('f', 9),
-		RemainingTokens:  tokensRemaining.Text('f', 9),
-		Message:          "Position Created",
+		MessageType:         position.Created,
+		BuyTaskId:           p.PositionId,
+		UnrealizedProfit:    big.NewFloat(0),
+		RealizedProfit:      finalizedProfit,
+		RemainingTokens:     tokensRemaining,
+		InitialSolanaAmount: p.InitialSolanaAmount,
+		Message:             "Position Created",
 	}
 
 	sh.publish(p.PositionId, &posMessage)
@@ -200,18 +202,20 @@ func (sh *SubscriptionHub) PublishPositionStop(pos *position.Position) error {
 	}
 
 	message := position.PositionMessage{
-		MessageType:      position.Stopped,
-		BuyTaskId:        pos.PositionId,
-		UnrealizedProfit: posMessage.UnrealizedProfit,
-		RealizedProfit:   posMessage.RealizedProfit,
-		TotalPnL:         posMessage.TotalPnL,
-		MarketCap:        posMessage.MarketCap,
-		RemainingTokens:  posMessage.RemainingTokens,
-		Message:          "Position Closed",
+		MessageType:         position.Stopped,
+		BuyTaskId:           pos.PositionId,
+		UnrealizedProfit:    posMessage.UnrealizedProfit,
+		RealizedProfit:      posMessage.RealizedProfit,
+		TotalPnL:            posMessage.TotalPnL,
+		MarketCap:           posMessage.MarketCap,
+		RemainingTokens:     posMessage.RemainingTokens,
+		InitialSolanaAmount: posMessage.InitialSolanaAmount,
+		Message:             "Position Closed",
 	}
 	//when the position is closed
 	sh.mu.Lock()
-	delete(sh.activePositions, pos.PositionId)
+	sh.activePositions.Delete(pos.PositionId)
+	// delete(sh.activePositions, pos.PositionId)
 	sh.mu.Unlock()
 
 	sh.publish(pos.PositionId, &message)
@@ -220,7 +224,7 @@ func (sh *SubscriptionHub) PublishPositionStop(pos *position.Position) error {
 
 func (sh *SubscriptionHub) generatePositionMessage(pos *position.Position, marketCap *big.Float) position.PositionMessage {
 	//we need unrealized profit -> remaning tokens (in sol)
-	totalPnl, unrealizedPnl := sh.getProfitValues(pos, marketCap)
+	totalPnl, unrealizedPnl, currentPrice := sh.getProfitValues(pos, marketCap)
 
 	totalPnl.Quo(totalPnl, big.NewFloat(constants.LamportsConversion))
 	unrealizedPnl.Quo(unrealizedPnl, big.NewFloat(constants.LamportsConversion))
@@ -228,38 +232,38 @@ func (sh *SubscriptionHub) generatePositionMessage(pos *position.Position, marke
 	tokensRemaining := new(big.Float).Quo(pos.TokenRemaining, big.NewFloat(constants.TokenAmountDecimals))
 
 	posMessage := position.PositionMessage{
-		BuyTaskId:        pos.PositionId,
-		UnrealizedProfit: unrealizedPnl.Text('f', 9),
-		RealizedProfit:   finalizedProfit.Text('f', 9),
-		TotalPnL:         totalPnl.Text('f', 9),
-		MarketCap:        marketCap.String(),
-		RemainingTokens:  tokensRemaining.String(),
+		BuyTaskId:           pos.PositionId,
+		UnrealizedProfit:    unrealizedPnl,
+		RealizedProfit:      finalizedProfit,
+		TotalPnL:            totalPnl,
+		MarketCap:           marketCap,
+		RemainingTokens:     tokensRemaining,
+		InitialSolanaAmount: pos.InitialSolanaAmount,
+		CurrentPrice:        currentPrice,
 	}
 
 	return posMessage
 }
 
-func (sh *SubscriptionHub) getProfitValues(pos *position.Position, marketCap *big.Float) (totalPnl *big.Float, unrealized *big.Float) {
+func (sh *SubscriptionHub) getProfitValues(pos *position.Position, marketCap *big.Float) (totalPnl *big.Float, unrealized *big.Float, currentPrice *big.Float) {
 	solPrice, err := solana_price.GetSolPrice()
 	if err != nil {
 		logger.Error(err)
 	}
 
-	tokenValue := sh.calculateTokenValueInSol(marketCap, pos.TokenRemaining, *solPrice)
+	tokenValue, currentPrice := sh.calculateTokenValueAndPrice(marketCap, pos.TokenRemaining, *solPrice)
 	unrealizedPnl := new(big.Float).Sub(tokenValue, pos.RemainingCostBasis)
-
 	totalPnL := new(big.Float).Add(pos.FinalizedProfit, unrealizedPnl)
 
-	return totalPnL, unrealizedPnl
+	return totalPnL, unrealizedPnl, currentPrice
 }
 
-func (sh *SubscriptionHub) calculateTokenValueInSol(marketCapUSD *big.Float, tokensRemaining *big.Float, solPrice float64) (totalValueSOL *big.Float) {
+func (sh *SubscriptionHub) calculateTokenValueAndPrice(marketCapUSD *big.Float, tokensRemaining *big.Float, solPrice float64) (totalValueSOL *big.Float, pricePerToken *big.Float) {
 	marketCapSol := new(big.Float).Quo(marketCapUSD, big.NewFloat(solPrice))
 	totalSupply := new(big.Float).SetInt64(1000000000)
 
 	pricePerTokenSOL := new(big.Float).Quo(marketCapSol, totalSupply)
-
 	totalValueSOL = new(big.Float).Mul(pricePerTokenSOL, tokensRemaining)
 
-	return totalValueSOL
+	return totalValueSOL, pricePerTokenSOL
 }
