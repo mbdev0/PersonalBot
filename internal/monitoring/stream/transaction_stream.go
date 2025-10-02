@@ -99,6 +99,11 @@ func geyserStreamTransactions(transactionChan chan<- response.TransactionNotific
 			return err
 		}
 
-		transactionChan <- out
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case transactionChan <- out:
+		}
+
 	}
 }

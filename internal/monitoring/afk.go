@@ -11,7 +11,6 @@ import (
 	"sync"
 )
 
-// temporary bool until gui is built
 var startMonitoring = true
 var transactionChanSize = 1000
 var coinChanSize = 1000
@@ -24,17 +23,28 @@ func StartAFKMonitor(filters filters.FilterPipeline, coins chan<- models.Coin, c
 			defer wg.Done()
 			transactionNotificationChan := make(chan response.TransactionNotification, transactionChanSize)
 			coinStructChan := make(chan models.Coin, coinChanSize)
-			defer close(transactionNotificationChan)
-			defer close(coinStructChan)
+
+			var handlerWg sync.WaitGroup
 
 			go streamTransactions(transactionNotificationChan, ctx)
 
-			go decryptAndFilterTransactions(filters, transactionNotificationChan, coinStructChan, ctx)
+			go decryptAndFilterTransactions(filters, transactionNotificationChan, coinStructChan, ctx, &handlerWg)
 
-			for coinStruct := range coinStructChan {
-				coins <- coinStruct
-				logger.Information("coin found: " + coinStruct.CoinData.Symbol)
+			for {
+				select {
+				case <-ctx.Done():
+					handlerWg.Wait()
+					close(transactionNotificationChan)
+					close(coinStructChan)
+					return
+				case coin, ok := <-coinStructChan:
+					if !ok {
+						return
+					}
+					coins <- coin
+				}
 			}
+
 		}()
 	}
 
@@ -42,27 +52,32 @@ func StartAFKMonitor(filters filters.FilterPipeline, coins chan<- models.Coin, c
 }
 
 func streamTransactions(transactionNotificationChan chan<- response.TransactionNotification, ctx context.Context) {
-	err := stream.StartGeyserTransactionStream(transactionNotificationChan, ctx) //pass in ctx here
+	err := stream.StartGeyserTransactionStream(transactionNotificationChan, ctx)
 	if err != nil {
 		logger.Error("Error in Geyser_Stream_Transactions ", err)
 		return
 	}
 }
 
-func decryptAndFilterTransactions(filters filters.FilterPipeline, transactionNotificationChan <-chan response.TransactionNotification, coinStructChan chan<- models.Coin, ctx context.Context) {
+func decryptAndFilterTransactions(filters filters.FilterPipeline, transactionNotificationChan <-chan response.TransactionNotification, coinStructChan chan<- models.Coin, ctx context.Context, wg *sync.WaitGroup) {
 	for {
 		select {
 		case <-ctx.Done():
 			return
-		case transaction := <-transactionNotificationChan:
+		case transaction, ok := <-transactionNotificationChan:
+			if !ok {
+				return
+			}
+			wg.Add(1)
 			go func(transaction response.TransactionNotification) {
-				handleTransactionNotification(filters, transaction, coinStructChan)
+				defer wg.Done()
+				handleTransactionNotification(filters, transaction, coinStructChan, ctx)
 			}(transaction)
 		}
 	}
 }
 
-func handleTransactionNotification(filters filters.FilterPipeline, transaction response.TransactionNotification, coinStructChan chan<- models.Coin) {
+func handleTransactionNotification(filters filters.FilterPipeline, transaction response.TransactionNotification, coinStructChan chan<- models.Coin, ctx context.Context) {
 	coin := decoder.DecryptTransactionNotificationForCoin(transaction)
 	if coin != nil {
 		coin = filters.ApplyFilters(coin)
