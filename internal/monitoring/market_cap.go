@@ -50,6 +50,10 @@ func marketCapMonitor(ctx context.Context, bondingCurveAddress string, marketCap
 		}
 	}
 
+	if marketCapInit == nil {
+		return
+	}
+
 	logger.Information("Initial market cap: ", marketCapInit.String())
 	marketCapChan <- marketCapInit
 
