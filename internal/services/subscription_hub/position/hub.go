@@ -8,6 +8,7 @@ import (
 	"pump_fun/internal/core/constants"
 	"pump_fun/internal/core/position"
 	"pump_fun/internal/monitoring"
+	bondingcurve "pump_fun/internal/solana/programs/pumpfun/bonding_curve"
 	"pump_fun/internal/solana/programs/pumpfun/pda"
 	datastructures "pump_fun/pkg/data_structures"
 	"pump_fun/pkg/logger"
@@ -171,23 +172,34 @@ func (sh *SubscriptionHub) PublishPositionUpdate(pos *position.Position) error {
 	return nil
 }
 
-func (sh *SubscriptionHub) PublishPositionCreate(p *position.Position) {
+func (sh *SubscriptionHub) PublishPositionCreate(p *position.Position, ctx context.Context) {
 
 	sh.mu.Lock()
 
 	sh.activePositions.Set(p.PositionId, p)
 	finalizedProfit := new(big.Float).Quo(p.FinalizedProfit, big.NewFloat(constants.LamportsConversion))
 	tokensRemaining := new(big.Float).Quo(p.TokenRemaining, big.NewFloat(constants.TokenAmountDecimals))
+	marketCap, err, hasCompleted := bondingcurve.GetMarketCapFromTokenAddress(p.TokenAddress, ctx)
+	if err != nil {
+		if hasCompleted {
+			logger.Information("coin is completed bonding curve")
+		}
+		logger.Error(err)
+	}
+	totalPnl, unrealizedPnl, currentPrice := sh.getProfitValues(p, marketCap)
 
 	sh.mu.Unlock()
 
 	posMessage := position.PositionMessage{
 		MessageType:         position.Created,
 		BuyTaskId:           p.PositionId,
-		UnrealizedProfit:    big.NewFloat(0),
+		UnrealizedProfit:    unrealizedPnl,
 		RealizedProfit:      finalizedProfit,
 		RemainingTokens:     tokensRemaining,
+		MarketCap:           marketCap,
 		InitialSolanaAmount: p.InitialSolanaAmount,
+		CurrentPrice:        currentPrice,
+		TotalPnL:            totalPnl,
 		Message:             "Position Created",
 	}
 
@@ -263,7 +275,10 @@ func (sh *SubscriptionHub) calculateTokenValueAndPrice(marketCapUSD *big.Float, 
 	totalSupply := new(big.Float).SetInt64(1000000000)
 
 	pricePerTokenSOL := new(big.Float).Quo(marketCapSol, totalSupply)
-	totalValueSOL = new(big.Float).Mul(pricePerTokenSOL, tokensRemaining)
+
+	tokensRemainingWhole := new(big.Float).Quo(tokensRemaining, big.NewFloat(constants.TokenAmountDecimals))
+
+	totalValueSOL = new(big.Float).Mul(pricePerTokenSOL, tokensRemainingWhole)
 
 	return totalValueSOL, pricePerTokenSOL
 }

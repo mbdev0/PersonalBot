@@ -42,8 +42,16 @@ func (s *Strategy) AfkSniping(afkTask *strategies.Afk, ctx context.Context) {
 	go monitoring.StartAFKMonitor(filterPipeline, coins, ctx)
 	logger.Information("started afk monitor")
 
-	for coin := range coins {
-		go s.handleNewCoin(afkTask, ctx, coin)
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case coin, ok := <-coins:
+			if !ok {
+				return
+			}
+			s.handleNewCoin(afkTask, ctx, coin)
+		}
 	}
 }
 
@@ -62,7 +70,7 @@ func (s *Strategy) handleNewCoin(afkTask *strategies.Afk, ctx context.Context, c
 		}
 
 		sellStrats := s.ResolveStrategyConfig(afkTask.SellStrategies, pos, ctx)
-		s.monitorPositionForSellStrategies(*pos, afkTask, sellStrats)
+		s.monitorPositionForSellStrategies(*pos, afkTask, sellStrats, ctx)
 	}
 
 }
@@ -127,25 +135,52 @@ func (s *Strategy) ResolveStrategyConfig(sellStratsConfig []strategies.StrategyC
 	return strats
 }
 
-func (s *Strategy) monitorPositionForSellStrategies(pos position.Position, afkTask *strategies.Afk, strats []sell.Strategy) error {
+func (s *Strategy) monitorPositionForSellStrategies(pos position.Position, afkTask *strategies.Afk, strats []sell.Strategy, ctx context.Context) error {
 	sub, err := s.positionHub.Subscribe(pos.PositionId, true)
 	if err != nil {
 		return err
 	}
 
-	for msg := range sub.SubChan {
-		s.handleSellStrategy(&msg, *afkTask, pos, strats)
-	}
-	return nil
-}
+	defer func() {
+		err := s.positionHub.Unsubscribe(pos.PositionId, true)
+		if err != nil {
+			logger.Error(err)
+		}
+	}()
 
-func (s *Strategy) handleSellStrategy(posMessage *position.PositionMessage, t strategies.Afk, pos position.Position, sellStrats []sell.Strategy) {
-	for _, strategy := range sellStrats {
-		hasHit := strategy.CheckIfPositionHasHit(posMessage)
+	for {
+		select {
+		case <-ctx.Done():
+			return nil
+		default:
+		}
+
+		msg, ok := <-sub.SubChan
+		if !ok {
+			return nil
+		}
+
+		if msg.MessageType == position.Stopped {
+			return nil
+		}
+
+		hasHit := s.handleSellStrategy(&msg, *afkTask, pos, strats, ctx)
 		if hasHit {
-			s.createAndRunSellTask(t, &pos, strategy.SellAmount())
+			return nil
 		}
 	}
+}
+
+func (s *Strategy) handleSellStrategy(posMessage *position.PositionMessage, t strategies.Afk, pos position.Position, sellStrats []sell.Strategy, ctx context.Context) bool {
+	for _, strategy := range sellStrats {
+		hasHit := strategy.CheckIfPositionHasHit(posMessage)
+		if hasHit && ctx.Err() == nil {
+			s.createAndRunSellTask(t, &pos, strategy.SellAmount())
+			return true
+		}
+	}
+
+	return false
 }
 
 func (s *Strategy) createAndRunSellTask(afkTask strategies.Afk, pos *position.Position, sellAmount float64) {

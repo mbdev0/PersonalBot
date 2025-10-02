@@ -7,14 +7,13 @@ import (
 	"fmt"
 	"math/big"
 	"pump_fun/infrastructure/solana_price"
+	"pump_fun/internal/core/constants"
 	"pump_fun/internal/core/models"
 	"pump_fun/internal/solana/client"
 	"pump_fun/internal/solana/programs/pumpfun/pda"
 
 	"github.com/gagliardetto/solana-go"
 )
-
-var marketCapMultiplier float64 = 1000000
 
 func GetMarketCapFrom(bondingCurveValue string) (marketCapVal *big.Float, err error, hasCompleted bool) {
 	bondingCurveData, err, hasCompleted := getBondingCurveData(bondingCurveValue)
@@ -40,7 +39,7 @@ func GetMarketCapFromTokenAddress(tokenAddrress solana.PublicKey, ctx context.Co
 		return nil, err, false
 	}
 
-	return GetMarketCapFrom(bondingCurveAddress)
+	return GetMarketCapInitial(bondingCurveAddress, ctx)
 }
 
 func GetMarketCapInitial(bondingCurveAddress string, ctx context.Context) (marketCapVal *big.Float, err error, hasCompleted bool) {
@@ -76,13 +75,21 @@ func getMarketCap(bondingCurve models.BondingCurve) (*big.Float, error) {
 		return nil, err
 	}
 
-	bigSolPrice := new(big.Float).SetFloat64(*solPrice)
-	floatSolRes := new(big.Float).SetInt(&bondingCurve.VirtualSolReserves)
-	floatTokenReserves := new(big.Float).SetInt(&bondingCurve.VirtualTokenReserves)
-	marketCapInSol := new(big.Float).Quo(floatSolRes, floatTokenReserves)
-	marketCap := new(big.Float).Mul(marketCapInSol, bigSolPrice)
+	virtualSol := new(big.Float).SetInt(&bondingCurve.VirtualSolReserves)
+	virtualSol.Quo(virtualSol, big.NewFloat(constants.LamportsConversion))
+	virtualTokens := new(big.Float).SetInt(&bondingCurve.VirtualTokenReserves)
+	virtualTokens.Quo(virtualTokens, big.NewFloat(constants.TokenAmountDecimals))
 
-	return new(big.Float).Mul(marketCap, big.NewFloat(marketCapMultiplier)), nil
+	pricePerTokenSol := new(big.Float).Quo(virtualSol, virtualTokens)
+
+	totalSupply := big.NewFloat(1_000_000_000)
+
+	marketCapSol := new(big.Float).Mul(pricePerTokenSol, totalSupply)
+
+	solPriceFloat := big.NewFloat(*solPrice)
+	marketCapUSD := new(big.Float).Mul(marketCapSol, solPriceFloat)
+
+	return marketCapUSD, nil
 }
 
 func GetSolanaTokenPrice(bondingCurve models.BondingCurve, tokenAmount uint64) *uint64 {
