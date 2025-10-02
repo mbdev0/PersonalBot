@@ -5,7 +5,7 @@ const (
 	WebSocketReadLimit      = 65536
 	LamportsConversion      = 1_000_000_000
 	MicrolamportsToLamports = 1_000_000
-	TokenAmountDecimals     = 1e6
+	TokenAmountDecimals     = 1_000_000
 )
 
 var (
