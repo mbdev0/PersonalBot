@@ -165,6 +165,9 @@ func (bt *Transaction) ExtractTokenAndSolFromTx(signature solana.Signature, ctx 
 	for _, instruction := range instructions {
 		instructionData, err := base58.Decode(instruction.Data.String())
 		if err != nil {
+			if len(instructionData) == 0 {
+				continue
+			}
 			return tokenAmount, solAmount, err
 		}
 		if len(instructionData) < 8 {
