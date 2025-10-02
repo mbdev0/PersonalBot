@@ -1,6 +1,7 @@
 package position
 
 import (
+	"context"
 	"fmt"
 	"math/big"
 	"pump_fun/internal/core/position"
@@ -34,7 +35,7 @@ func (s *Service) FindPositionIfExists(token solana.PublicKey, walletAddress sol
 	return nil, false
 }
 
-func (s *Service) ReportBuy(buytaskid string, tokenaddress solana.PublicKey, walletAddress solana.PublicKey, tokenAmount *big.Float, solSpent *big.Float) {
+func (s *Service) ReportBuy(ctx context.Context, buytaskid string, tokenaddress solana.PublicKey, walletAddress solana.PublicKey, tokenAmount *big.Float, solSpent *big.Float) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -55,7 +56,7 @@ func (s *Service) ReportBuy(buytaskid string, tokenaddress solana.PublicKey, wal
 	s.positions[newPosition.PositionId] = &newPosition
 
 	//publish buy to positionhub -> handle ctx in there
-	s.subhub.PublishPositionCreate(&newPosition)
+	s.subhub.PublishPositionCreate(&newPosition, ctx)
 }
 
 func (s *Service) ReportSell(buyTaskId string, tokensSold *big.Float, solRecieved *big.Float) error {

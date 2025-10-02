@@ -122,7 +122,7 @@ func (e *Executor) handlePositionOnSell(task tasks.Task, ctx context.Context) {
 		return
 	}
 
-	e.positionService.ReportBuy(st.Id(), st.Token, st.Wallet.PublicKey(), new(big.Float).SetUint64(*tokens), new(big.Float).SetFloat64(0))
+	e.positionService.ReportBuy(ctx, st.Id(), st.Token, st.Wallet.PublicKey(), new(big.Float).SetUint64(*tokens), new(big.Float).SetFloat64(0))
 
 }
 func (e *Executor) updatePositionOnCompleted(task tasks.Task, transaction Transaction, ctx context.Context) error {
@@ -135,7 +135,7 @@ func (e *Executor) updatePositionOnCompleted(task tasks.Task, transaction Transa
 
 	switch t := task.(type) {
 	case *tasks.BuyTask:
-		e.positionService.ReportBuy(t.Id(), t.Token, t.Wallet.PublicKey(), new(big.Float).SetFloat64(tokenAmount), new(big.Float).SetFloat64(solAmount))
+		e.positionService.ReportBuy(ctx, t.Id(), t.Token, t.Wallet.PublicKey(), new(big.Float).SetFloat64(tokenAmount), new(big.Float).SetFloat64(solAmount))
 	case *tasks.SellTask:
 		err := e.handleSellTaskReporting(t, tokenAmount, solAmount)
 		if err != nil {
