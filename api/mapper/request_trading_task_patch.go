@@ -49,6 +49,10 @@ func createAfkPatch(src dto.TradingTaskPatch) (resp *strategies.AfkPatch, err er
 		respPatch.Slippage = src.Slippage
 	}
 
+	if src.SellFee != nil {
+		respPatch.SellFee = src.SellFee
+	}
+
 	if src.Wallet != nil {
 		wallet, err := solana.PrivateKeyFromBase58(*src.Wallet)
 		if err != nil {

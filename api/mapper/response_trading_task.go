@@ -29,6 +29,8 @@ func mapAfkToAfkResponse(src *strategies.Afk) (dest *dto.TradingTaskResponse, er
 	dst.ComputeUnits = src.ComputeUnits
 	dst.Slippage = src.Slippage
 	dst.Filters = mapFiltersToResponseFilters(src.Filters)
+	dst.SellFee = src.SellFee
+	dst.SellStrategies = mapSellStratsToResponseStrats(src.SellStrategies)
 
 	return &dst, nil
 }
@@ -51,6 +53,20 @@ func mapFiltersToResponseFilters(src []strategies.StrategyFilter) dto.Filters {
 			if filter.Value != "" {
 				dest.DevWallet = &filter.Value
 			}
+		}
+	}
+
+	return dest
+}
+
+func mapSellStratsToResponseStrats(src []strategies.StrategyConfig) []dto.SellStrategyDTO {
+	dest := make([]dto.SellStrategyDTO, len(src))
+
+	for i, config := range src {
+		dest[i] = dto.SellStrategyDTO{
+			Type:       string(config.Type),
+			Value:      config.Value,
+			SellAmount: config.SellAmount,
 		}
 	}
 

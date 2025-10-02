@@ -15,6 +15,7 @@ type TradingTask struct {
 	Wallet         string            `json:"wallet"`
 	Filters        Filters           `json:"filters"`
 	SellStrategies []SellStrategyDTO `json:"sell_strategies"`
+	SellFee        float64           `json:"sell_fee"`
 }
 
 type TradingTaskResponse struct {
@@ -26,6 +27,7 @@ type TradingTaskResponse struct {
 	Slippage       float64           `json:"slippage"`
 	Filters        Filters           `json:"filters"`
 	SellStrategies []SellStrategyDTO `json:"sell_strategies"`
+	SellFee        float64           `json:"sell_fee"`
 }
 
 type TradingTaskPatch struct {
@@ -37,4 +39,5 @@ type TradingTaskPatch struct {
 	Wallet         *string            `json:"wallet"`
 	Filters        *Filters           `json:"filters"`
 	SellStrategies *[]SellStrategyDTO `json:"sell_strategies"`
+	SellFee        *float64           `json:"sell_fee"`
 }

@@ -15,6 +15,7 @@ type AfkPatch struct {
 	ComputeUnits   *float64
 	Wallet         *solana.PrivateKey
 	SellStrategies *[]StrategyConfig
+	SellFee        *float64
 }
 
 func (ap *AfkPatch) ApplyTo(task Task) error {
@@ -49,6 +50,10 @@ func (ap *AfkPatch) ApplyTo(task Task) error {
 
 	if ap.SellStrategies != nil {
 		afk.SellStrategies = *ap.SellStrategies
+	}
+
+	if ap.SellFee != nil {
+		afk.SellFee = *ap.SellFee
 	}
 
 	return nil

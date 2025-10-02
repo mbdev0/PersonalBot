@@ -38,6 +38,7 @@ func mapAfkDtoToAfk(src dto.TradingTask) (dst *strategies.Afk, err error) {
 
 	dest.Filters = mapFiltersToDestFilters(src.Filters)
 	dest.SellStrategies = mapDTOToStrategyConfigs(src.SellStrategies)
+	dest.SellFee = src.SellFee
 
 	return &dest, nil
 }
