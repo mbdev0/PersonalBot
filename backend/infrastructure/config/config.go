@@ -13,7 +13,7 @@ var (
 )
 
 func LoadConfig() error {
-	file, err := os.ReadFile("configuration/config.json")
+	file, err := os.ReadFile("../configuration/config.json")
 	if err != nil {
 		return err
 	}
