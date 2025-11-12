@@ -38,3 +38,6 @@ venv/
 
 # configuration file
 configuration/
+
+#ds_store
+*.DS_STORE
