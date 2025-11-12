@@ -6,10 +6,13 @@ import (
 	"pump_fun/api/controller"
 	"pump_fun/api/handler"
 	"pump_fun/app"
+	"pump_fun/infrastructure/persistence"
+	"pump_fun/infrastructure/persistence/repository"
 	"pump_fun/internal/services/position"
 	"pump_fun/internal/services/state"
 	subscriptionhub "pump_fun/internal/services/subscription_hub"
 	positionhub "pump_fun/internal/services/subscription_hub/position"
+	"pump_fun/internal/services/wallet"
 
 	taskservice "pump_fun/internal/services/task_service"
 	"pump_fun/internal/services/trading"
@@ -25,6 +28,11 @@ func main() {
 	taskSubhub := subscriptionhub.Hub{}
 	taskSubhub.New()
 
+	db, err := persistence.NewConnection()
+	if err != nil {
+		panic(err)
+	}
+
 	posSubhub := positionhub.NewSubscriptionHub()
 	positionService := position.NewPositionService(&posSubhub)
 
@@ -37,8 +45,14 @@ func main() {
 	taskService := taskservice.TaskService{StateMachine: &fsm, StateManager: &stateManger, Hub: &taskSubhub}
 	taskService.NewTaskService()
 
+	walletRepo := repository.NewWalletRepository(db)
+	walletService := wallet.NewWalletService(walletRepo)
+	walletController := controller.NewWalletController(walletService)
+	walletHandler := http.StripPrefix("/api/wallet", handler.NewWalletHandler(walletController))
+
 	tradingStrategy := trading.Strategy{}
 	tradingStrategy.NewTradingStrategy(&taskService, &posSubhub, &positionService)
+
 	tradingService := trading.Service{}
 	tradingService.NewTradingService(&tradingStrategy)
 
@@ -56,6 +70,7 @@ func main() {
 	mux.Handle("/api/tasks/", buyHandler)
 	mux.Handle("/api/trading/", tradingHandler)
 	mux.Handle("/api/position/", positionHandler)
+	mux.Handle("/api/wallet/", walletHandler)
 
 	server := &http.Server{
 		Addr:    ":9090",
