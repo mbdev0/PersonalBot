@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"pump_fun/api/controller"
 	"pump_fun/api/dto"
@@ -22,7 +23,8 @@ func NewWalletHandler(ctrl *controller.WalletsController) http.Handler {
 
 func (wh *WalletsHandler) registerRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /wallets/get", wh.getWallets)
-	mux.HandleFunc("GET /wallets/get/{id}", wh.getWalletById)
+	mux.HandleFunc("GET /wallets/getById/{id}", wh.getWalletById)
+	mux.HandleFunc("GET /wallets/getByName/{name}", wh.getWalletByName)
 	mux.HandleFunc("POST /wallets/add", wh.addWallet)
 	mux.HandleFunc("DELETE /wallets/delete", wh.deleteWallets)
 }
@@ -44,6 +46,48 @@ func (wh *WalletsHandler) getWallets(w http.ResponseWriter, r *http.Request) {
 }
 
 func (wh *WalletsHandler) getWalletById(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	if id == "" {
+		http.Error(w, fmt.Errorf("invalid id string passed").Error(), http.StatusBadRequest)
+		return
+	}
+
+	wallet, err := wh.controller.GetWalletById(r.Context(), id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+
+	err = json.NewEncoder(w).Encode(wallet)
+	if err != nil {
+		logger.Error("Error in get walletById", err)
+	}
+
+}
+
+func (wh *WalletsHandler) getWalletByName(w http.ResponseWriter, r *http.Request) {
+	walletName := r.PathValue("name")
+	if walletName == "" {
+		http.Error(w, fmt.Errorf("invalid id string passed").Error(), http.StatusBadRequest)
+		return
+	}
+
+	wallet, err := wh.controller.GetWalletByName(r.Context(), walletName)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+
+	err = json.NewEncoder(w).Encode(wallet)
+	if err != nil {
+		logger.Error("Error in get walletByName", err)
+	}
 }
 
 func (wh *WalletsHandler) addWallet(w http.ResponseWriter, r *http.Request) {
