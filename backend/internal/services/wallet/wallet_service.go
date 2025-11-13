@@ -59,3 +59,13 @@ func (s *Service) Delete(ctx context.Context, id string) (isDeleted bool, err er
 
 	return deleted, err
 }
+
+func (s *Service) Update(ctx context.Context, id string, wallet wallets.SolanaWallet) (wallets.SolanaWallet, error) {
+	mappedWallet := mapper.WalletToWalletRepo(wallet)
+	updatedWallet, err := s.walletRepo.UpdateWallet(ctx, id, mappedWallet)
+	if err != nil {
+		return wallets.SolanaWallet{}, err
+	}
+
+	return updatedWallet, nil
+}

@@ -120,7 +120,29 @@ func (wh *WalletsHandler) updateWallet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	wh.controller.UpdateWallet(r.Context(), id, dto.RequestPatchWalletDto{})
+	decoder := json.NewDecoder(r.Body)
+	decoder.DisallowUnknownFields()
+
+	var walletDto dto.RequestWalletDto
+
+	err := decoder.Decode(&walletDto)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
+		return
+	}
+
+	updatedWallet, err := wh.controller.UpdateWallet(r.Context(), id, walletDto)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(updatedWallet)
+	if err != nil {
+		logger.Error(err)
+	}
 }
 
 func (wh *WalletsHandler) addWallet(w http.ResponseWriter, r *http.Request) {
