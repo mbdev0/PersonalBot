@@ -68,3 +68,16 @@ func (wc *WalletsController) GetWalletByName(ctx context.Context, name string) (
 
 	return mappedWallet, nil
 }
+
+func (wc *WalletsController) UpdateWallet(ctx context.Context, id string, patchWallet dto.RequestPatchWalletDto) (dto.ResponseWalletDto, error) {
+	return dto.ResponseWalletDto{}, nil
+}
+
+func (wc *WalletsController) DeleteWallet(ctx context.Context, id string) (bool, error) {
+	deleted, err := wc.walletService.Delete(ctx, id)
+	if err != nil {
+		return false, err
+	}
+
+	return deleted, nil
+}

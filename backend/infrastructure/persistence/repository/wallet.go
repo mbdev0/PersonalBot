@@ -100,3 +100,24 @@ func (w *Wallet) InsertWallets(ctx context.Context, walletRepo models.WalletRepo
 
 	return rowsAmountUpdated > 0, nil
 }
+
+func (w *Wallet) DeleteWallet(ctx context.Context, id string) (bool, error) {
+	query := "DELETE FROM `crypto_wallets` where id = ?"
+	tx, err := w.db.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable, ReadOnly: false})
+	if err != nil {
+		return false, err
+	}
+
+	_, err = tx.ExecContext(ctx, query, id)
+	if err != nil {
+		tx.Rollback()
+		return false, err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
