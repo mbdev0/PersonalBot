@@ -50,3 +50,12 @@ func (s *Service) GetByName(ctx context.Context, name string) (wallets.SolanaWal
 
 	return wallet, nil
 }
+
+func (s *Service) Delete(ctx context.Context, id string) (isDeleted bool, err error) {
+	deleted, err := s.walletRepo.DeleteWallet(ctx, id)
+	if err != nil {
+		return deleted, err
+	}
+
+	return deleted, err
+}

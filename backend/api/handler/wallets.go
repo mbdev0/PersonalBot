@@ -22,11 +22,12 @@ func NewWalletHandler(ctrl *controller.WalletsController) http.Handler {
 }
 
 func (wh *WalletsHandler) registerRoutes(mux *http.ServeMux) {
-	mux.HandleFunc("GET /wallets/get", wh.getWallets)
+	mux.HandleFunc("GET /wallets", wh.getWallets)
 	mux.HandleFunc("GET /wallets/getById/{id}", wh.getWalletById)
 	mux.HandleFunc("GET /wallets/getByName/{name}", wh.getWalletByName)
-	mux.HandleFunc("POST /wallets/add", wh.addWallet)
-	mux.HandleFunc("DELETE /wallets/delete", wh.deleteWallets)
+	mux.HandleFunc("POST /wallets", wh.addWallet)
+	mux.HandleFunc("DELETE /wallets/{id}", wh.deleteWallets)
+	mux.HandleFunc("PUT /wallets/{id}", wh.updateWallet)
 }
 
 func (wh *WalletsHandler) getWallets(w http.ResponseWriter, r *http.Request) {
@@ -90,6 +91,38 @@ func (wh *WalletsHandler) getWalletByName(w http.ResponseWriter, r *http.Request
 	}
 }
 
+func (wh *WalletsHandler) deleteWallets(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	if id == "" {
+		http.Error(w, fmt.Errorf("invalid id string passed").Error(), http.StatusBadRequest)
+		return
+	}
+
+	deleted, err := wh.controller.DeleteWallet(r.Context(), id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+	w.Header().Set("Content-Type", "application/json")
+
+	err = json.NewEncoder(w).Encode(map[string]bool{"IsDeleted": deleted})
+	if err != nil {
+		logger.Error("Error in get walletByName", err)
+	}
+
+}
+
+func (wh *WalletsHandler) updateWallet(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	if id == "" {
+		http.Error(w, fmt.Errorf("invalid id string passed").Error(), http.StatusBadRequest)
+		return
+	}
+
+	wh.controller.UpdateWallet(r.Context(), id, dto.RequestPatchWalletDto{})
+}
+
 func (wh *WalletsHandler) addWallet(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	decoder.DisallowUnknownFields()
@@ -115,7 +148,4 @@ func (wh *WalletsHandler) addWallet(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Wallet insertion failed", http.StatusInternalServerError)
 	}
 
-}
-
-func (wh *WalletsHandler) deleteWallets(w http.ResponseWriter, r *http.Request) {
 }
