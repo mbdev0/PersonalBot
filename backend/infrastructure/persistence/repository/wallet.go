@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"pump_fun/infrastructure/persistence/mapper"
 	"pump_fun/infrastructure/persistence/models"
 	"pump_fun/internal/core/models/wallets"
@@ -42,12 +43,46 @@ func (w *Wallet) GetWallets(ctx context.Context) ([]wallets.SolanaWallet, error)
 	return wallets, nil
 }
 
-func (w *Wallet) GetWalletById(ctx context.Context, id string) (models.WalletRepository, error) {
-	return models.WalletRepository{}, nil
+func (w *Wallet) GetWalletById(ctx context.Context, id string) (wallets.SolanaWallet, error) {
+	query := "SELECT * FROM crypto_wallets where id = ?"
+	row := w.db.QueryRowContext(ctx, query, id)
+
+	var wallet models.WalletRepository
+	err := row.Scan(&wallet.Id, &wallet.WalletName, &wallet.Chain, &wallet.PrivateKey)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return wallets.SolanaWallet{}, fmt.Errorf("wallet not found: %s", id)
+		}
+		return wallets.SolanaWallet{}, err
+	}
+
+	mappedRow, err := mapper.WalletRepoToWallet(wallet)
+	if err != nil {
+		return wallets.SolanaWallet{}, err
+	}
+
+	return mappedRow, nil
 }
 
-func (w *Wallet) GetWalletByName(ctx context.Context, name string) (models.WalletRepository, error) {
-	return models.WalletRepository{}, nil
+func (w *Wallet) GetWalletByName(ctx context.Context, name string) (wallets.SolanaWallet, error) {
+	query := "SELECT * FROM crypto_wallets where wallet_name = ?"
+	row := w.db.QueryRowContext(ctx, query, name)
+
+	var wallet models.WalletRepository
+	err := row.Scan(&wallet.Id, &wallet.WalletName, &wallet.Chain, &wallet.PrivateKey)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return wallets.SolanaWallet{}, fmt.Errorf("wallet not found: %s", name)
+		}
+		return wallets.SolanaWallet{}, err
+	}
+
+	mappedRow, err := mapper.WalletRepoToWallet(wallet)
+	if err != nil {
+		return wallets.SolanaWallet{}, err
+	}
+
+	return mappedRow, nil
 }
 
 func (w *Wallet) InsertWallets(ctx context.Context, walletRepo models.WalletRepository) (bool, error) {

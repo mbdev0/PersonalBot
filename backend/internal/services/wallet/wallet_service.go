@@ -33,3 +33,20 @@ func (s *Service) InsertWallet(ctx context.Context, wallet wallets.SolanaWallet)
 
 	return isInserted, nil
 }
+
+func (s *Service) GetById(ctx context.Context, id string) (wallets.SolanaWallet, error) {
+	wallet, err := s.walletRepo.GetWalletById(ctx, id)
+	if err != nil {
+		return wallets.SolanaWallet{}, err
+	}
+
+	return wallet, nil
+}
+func (s *Service) GetByName(ctx context.Context, name string) (wallets.SolanaWallet, error) {
+	wallet, err := s.walletRepo.GetWalletByName(ctx, name)
+	if err != nil {
+		return wallets.SolanaWallet{}, err
+	}
+
+	return wallet, nil
+}

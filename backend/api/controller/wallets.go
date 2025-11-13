@@ -47,6 +47,24 @@ func (wc *WalletsController) InsertWallet(ctx context.Context, wallet dto.Reques
 
 }
 
-func (wc *WalletsController) GetWalletById() dto.ResponseWalletDto {
-	return dto.ResponseWalletDto{}
+func (wc *WalletsController) GetWalletById(ctx context.Context, id string) (dto.ResponseWalletDto, error) {
+	wallet, err := wc.walletService.GetById(ctx, id)
+	if err != nil {
+		return dto.ResponseWalletDto{}, err
+	}
+
+	mappedWallet := mapper.MapWalletToDto(wallet)
+
+	return mappedWallet, nil
+}
+
+func (wc *WalletsController) GetWalletByName(ctx context.Context, name string) (dto.ResponseWalletDto, error) {
+	wallet, err := wc.walletService.GetByName(ctx, name)
+	if err != nil {
+		return dto.ResponseWalletDto{}, err
+	}
+
+	mappedWallet := mapper.MapWalletToDto(wallet)
+
+	return mappedWallet, nil
 }
