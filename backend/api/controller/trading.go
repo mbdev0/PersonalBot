@@ -1,22 +1,32 @@
 package controller
 
 import (
+	"context"
 	"fmt"
 	"pump_fun/api/dto"
 	"pump_fun/api/mapper"
+	"pump_fun/internal/core/models/wallets"
 	"pump_fun/internal/services/trading"
+	"pump_fun/internal/services/wallet"
 )
 
 type StrategyController struct {
 	strategyService *trading.Service
+	walletService   *wallet.Service
 }
 
-func (sc *StrategyController) New(service *trading.Service) {
+func (sc *StrategyController) New(service *trading.Service, walletService *wallet.Service) {
 	sc.strategyService = service
+	sc.walletService = walletService
 }
 
-func (sc *StrategyController) Create(task dto.TradingTask) (*dto.TradingTaskResponse, error) {
-	t, err := mapper.MapTradingTaskDtoToTradingTask(task)
+func (sc *StrategyController) Create(ctx context.Context, task dto.TradingTask) (*dto.TradingTaskResponse, error) {
+	wallet, err := sc.walletService.GetByName(ctx, task.WalletName)
+	if err != nil {
+		return nil, err
+	}
+
+	t, err := mapper.MapTradingTaskDtoToTradingTask(task, wallet)
 	if err != nil {
 		return nil, err
 	}
@@ -69,13 +79,27 @@ func (sc *StrategyController) GetAll() ([]dto.TradingTaskResponse, error) {
 	return responseAllTasks, nil
 }
 
-func (sc *StrategyController) Update(id string, tsk dto.TradingTaskPatch) (*dto.TradingTaskResponse, error) {
+func (sc *StrategyController) Update(ctx context.Context, id string, tsk dto.TradingTaskPatch) (*dto.TradingTaskResponse, error) {
 	task, err := sc.strategyService.GetBy(id)
 	if err != nil {
 		return nil, fmt.Errorf("task not found with the id %s", id)
 	}
 
-	patch, err := mapper.MapTradingTaskPatchDtoToTradingTaskPatch(tsk, dto.TradingType(task.StrategyType()))
+	//if the user has passed in a wallet into the patch - we will get it
+	//this will then be passed into the mapper
+	//if the wallet is nil (which it will be if the user didn't pass in the wallet in the patch)
+	//we will not update the wallet inside the mapper
+	var wallet *wallets.SolanaWallet
+	if tsk.Wallet != nil {
+		walletResp, err := sc.walletService.GetByName(ctx, *tsk.Wallet)
+		if err != nil {
+			return nil, err
+		}
+
+		wallet = &walletResp
+	}
+
+	patch, err := mapper.MapTradingTaskPatchDtoToTradingTaskPatch(tsk, dto.TradingType(task.StrategyType()), wallet)
 	if err != nil {
 		return nil, fmt.Errorf("error whilst mapping %w", err)
 	}

@@ -5,21 +5,22 @@ import (
 	"math/big"
 	"pump_fun/api/dto"
 	"pump_fun/internal/core/constants"
+	"pump_fun/internal/core/models/wallets"
 	"pump_fun/internal/core/tasks"
 
 	"github.com/gagliardetto/solana-go"
 )
 
-func MapRequestTaskToTask(reqTask *dto.RequestTask) (tasks.Task, error) {
+func MapRequestTaskToTask(reqTask *dto.RequestTask, wallet wallets.SolanaWallet) (tasks.Task, error) {
 	switch reqTask.Type {
 	case dto.Buy:
-		buyTask, err := createBuyTask(reqTask)
+		buyTask, err := createBuyTask(reqTask, wallet)
 		if err != nil {
 			return nil, err
 		}
 		return buyTask, nil
 	case dto.Sell:
-		sellTask, err := createSellTask(reqTask)
+		sellTask, err := createSellTask(reqTask, wallet)
 		if err != nil {
 			return nil, err
 		}
@@ -29,7 +30,7 @@ func MapRequestTaskToTask(reqTask *dto.RequestTask) (tasks.Task, error) {
 	return nil, fmt.Errorf("type of transaction was wrong")
 }
 
-func createBuyTask(req *dto.RequestTask) (task *tasks.BuyTask, err error) {
+func createBuyTask(req *dto.RequestTask, wallet wallets.SolanaWallet) (task *tasks.BuyTask, err error) {
 	if req.BuyAmount == nil {
 		return nil, fmt.Errorf("buy amount not filled in")
 	}
@@ -39,11 +40,6 @@ func createBuyTask(req *dto.RequestTask) (task *tasks.BuyTask, err error) {
 	}
 
 	bigBuyAmount := big.NewInt(int64(*req.BuyAmount * constants.LamportsConversion))
-
-	wallet, err := solana.PrivateKeyFromBase58(req.WalletAddressPrivateKey)
-	if err != nil {
-		return nil, err
-	}
 
 	address, err := solana.PublicKeyFromBase58(req.TokenAddress)
 	if err != nil {
@@ -64,7 +60,7 @@ func createBuyTask(req *dto.RequestTask) (task *tasks.BuyTask, err error) {
 	return bt, nil
 }
 
-func createSellTask(reqTask *dto.RequestTask) (task *tasks.SellTask, err error) {
+func createSellTask(reqTask *dto.RequestTask, wallet wallets.SolanaWallet) (task *tasks.SellTask, err error) {
 	if reqTask.SellAmount == nil {
 		return nil, fmt.Errorf("sell amount is empty")
 	}
@@ -76,10 +72,6 @@ func createSellTask(reqTask *dto.RequestTask) (task *tasks.SellTask, err error) 
 	token, err := solana.PublicKeyFromBase58(reqTask.TokenAddress)
 	if err != nil {
 		return nil, fmt.Errorf("token address is invalid format")
-	}
-	wallet, err := solana.PrivateKeyFromBase58(reqTask.WalletAddressPrivateKey)
-	if err != nil {
-		return nil, fmt.Errorf("private key is not valid/not found")
 	}
 
 	sellOptions := []tasks.SellOption{

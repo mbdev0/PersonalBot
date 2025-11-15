@@ -2,12 +2,13 @@ package tasks
 
 import (
 	"fmt"
+	"pump_fun/internal/core/models/wallets"
 
 	"github.com/gagliardetto/solana-go"
 )
 
 type SellPatch struct {
-	Wallet      *solana.PrivateKey
+	Wallet      *wallets.SolanaWallet
 	Token       *solana.PublicKey
 	Amount      *float64
 	Fee         *float64
@@ -25,7 +26,8 @@ func (p *SellPatch) ApplyTo(t Task) error {
 	defer st.mu.Unlock()
 
 	if p.Wallet != nil {
-		st.Wallet = *p.Wallet
+		st.Wallet = p.Wallet.PrivateKey
+		st.WalletName = p.Wallet.WalletName
 	}
 	if p.Token != nil {
 		st.Token = *p.Token

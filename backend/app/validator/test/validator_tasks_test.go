@@ -3,6 +3,7 @@ package validator_test
 import (
 	"errors"
 	"pump_fun/app/validator"
+	"pump_fun/internal/core/models/wallets"
 	"pump_fun/internal/core/tasks"
 	"pump_fun/internal/solana/utils"
 	"reflect"
@@ -13,6 +14,7 @@ import (
 
 	"github.com/gagliardetto/solana-go"
 	v "github.com/go-playground/validator/v10"
+	"github.com/google/uuid"
 )
 
 func createTestWallet(t *testing.T) (*solana.PrivateKey, solana.PublicKey) {
@@ -24,8 +26,21 @@ func createTestWallet(t *testing.T) (*solana.PrivateKey, solana.PublicKey) {
 	return &privKey, privKey.PublicKey()
 }
 
-func createValidBuyTask(wallet *solana.PrivateKey, tokenAddress solana.PublicKey) *tasks.BuyTask {
-	return tasks.NewBuyTask(*wallet, tokenAddress,
+func createSolanaWallet(t *testing.T) wallets.SolanaWallet {
+	t.Helper()
+	privKey, publicKey := createTestWallet(t)
+	return wallets.SolanaWallet{
+		Id:         uuid.NewString(),
+		WalletName: "Main",
+		PrivateKey: *privKey,
+		PublicKey:  publicKey,
+	}
+
+}
+
+func createValidBuyTask(wallet wallets.SolanaWallet, tokenAddress solana.PublicKey) *tasks.BuyTask {
+
+	return tasks.NewBuyTask(wallet, tokenAddress,
 		[]tasks.Option{
 			tasks.WithComputeUnits(10000),
 			tasks.WithSlippage(0.4),
@@ -84,8 +99,8 @@ func getValidationErrorSlice(t *testing.T, errs error, tag string) []string {
 
 func TestValidatesBuyTaskCorrectly(t *testing.T) {
 	validate := validator.GetValidator()
-	wallet, tokenAddress := createTestWallet(t)
-	buyTask := createValidBuyTask(wallet, tokenAddress)
+	wallet := createSolanaWallet(t)
+	buyTask := createValidBuyTask(wallet, wallet.PublicKey)
 
 	err := validate.Struct(buyTask)
 
@@ -112,9 +127,9 @@ func TestNoFieldsReturnsRequiredError(t *testing.T) {
 
 func TestFieldsWithLessThanZeroReturnsError(t *testing.T) {
 	validate := validator.GetValidator()
-	wallet, tokenAddress := createTestWallet(t)
+	wallet := createSolanaWallet(t)
 
-	buyTask := tasks.NewBuyTask(*wallet, tokenAddress,
+	buyTask := tasks.NewBuyTask(wallet, wallet.PublicKey,
 		[]tasks.Option{
 			tasks.WithComputeUnits(1000),
 			tasks.WithSlippage(-1),
@@ -145,8 +160,8 @@ func TestFieldsWithLessThanZeroReturnsError(t *testing.T) {
 
 func TestFieldsWithZeroEntriesReturnRequiredError(t *testing.T) {
 	validate := validator.GetValidator()
-	wallet, tokenAddress := createTestWallet(t)
-	buyTask := tasks.NewBuyTask(*wallet, tokenAddress,
+	wallet := createSolanaWallet(t)
+	buyTask := tasks.NewBuyTask(wallet, wallet.PublicKey,
 		[]tasks.Option{
 			tasks.WithComputeUnits(0),
 			tasks.WithSlippage(0),
@@ -173,8 +188,8 @@ func TestFieldsWithZeroEntriesReturnRequiredError(t *testing.T) {
 
 func TestFieldsWithGreaterThanOneReturnsError(t *testing.T) {
 	validate := validator.GetValidator()
-	wallet, tokenAddress := createTestWallet(t)
-	buyTask := tasks.NewBuyTask(*wallet, tokenAddress,
+	wallet := createSolanaWallet(t)
+	buyTask := tasks.NewBuyTask(wallet, wallet.PublicKey,
 		[]tasks.Option{
 			tasks.WithComputeUnits(1000),
 			tasks.WithSlippage(1.2),

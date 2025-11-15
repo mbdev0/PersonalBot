@@ -2,9 +2,9 @@ package strategies
 
 import (
 	"math/big"
+	"pump_fun/internal/core/models/wallets"
 	"pump_fun/internal/monitoring/filters"
 
-	"github.com/gagliardetto/solana-go"
 	"github.com/google/uuid"
 )
 
@@ -18,7 +18,7 @@ type Afk struct {
 	BuyFee         float64
 	Slippage       float64
 	ComputeUnits   float64
-	Wallet         solana.PrivateKey
+	Wallet         wallets.SolanaWallet
 	SellStrategies []StrategyConfig
 	SellFee        float64
 }

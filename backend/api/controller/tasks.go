@@ -3,23 +3,35 @@ package controller
 import (
 	"pump_fun/api/dto"
 	"pump_fun/api/mapper"
+	"pump_fun/internal/core/models/wallets"
 	"pump_fun/internal/core/tasks"
 	subscriptionhub "pump_fun/internal/services/subscription_hub"
 	taskservice "pump_fun/internal/services/task_service"
+	"pump_fun/internal/services/wallet"
+
+	"golang.org/x/net/context"
 )
 
 type TaskController struct {
-	TaskService *taskservice.TaskService
+	TaskService   *taskservice.TaskService
+	WalletService *wallet.Service
 }
 
-func (tc *TaskController) CreateTask(requestTask dto.RequestTask) (*dto.ResponseTask, error) {
+func (tc *TaskController) CreateTask(ctx context.Context, requestTask dto.RequestTask) (*dto.ResponseTask, error) {
 	// get the req struct
 	// map to buy task or sell task depending
-	newTask, err := mapper.MapRequestTaskToTask(&requestTask)
+
+	wallet, err := tc.WalletService.GetByName(ctx, requestTask.WalletAddressName)
 	if err != nil {
 		return nil, err
 	}
-	// send to task service to create task
+
+	//we should check if the position exists if it occurs in the request task (selling)
+	newTask, err := mapper.MapRequestTaskToTask(&requestTask, wallet)
+	if err != nil {
+		return nil, err
+	}
+
 	createdTask, err := tc.TaskService.Create(newTask)
 	if err != nil {
 		return nil, err
@@ -62,7 +74,7 @@ func (tc *TaskController) GetAllTasks() ([]dto.ResponseTask, error) {
 	return response, nil
 }
 
-func (tc *TaskController) UpdateTask(id string, reqTask dto.PatchRequestTask) (tasks.Task, error) {
+func (tc *TaskController) UpdateTask(ctx context.Context, id string, reqTask dto.PatchRequestTask) (*dto.ResponseTask, error) {
 	// we call update with => id + newTask
 
 	task, err := tc.TaskService.GetTaskWith(id)
@@ -70,7 +82,16 @@ func (tc *TaskController) UpdateTask(id string, reqTask dto.PatchRequestTask) (t
 		return nil, err
 	}
 
-	mappedPatch, err := mapper.MapReqPatchToPatch(reqTask, task.Type())
+	var wallet *wallets.SolanaWallet
+	if reqTask.WalletAddressName != nil {
+		walletResp, err := tc.WalletService.GetByName(ctx, *reqTask.WalletAddressName)
+		if err != nil {
+			return nil, err
+		}
+		wallet = &walletResp
+	}
+
+	mappedPatch, err := mapper.MapReqPatchToPatch(reqTask, task.Type(), wallet)
 	if err != nil {
 		return nil, err
 	}
@@ -80,7 +101,11 @@ func (tc *TaskController) UpdateTask(id string, reqTask dto.PatchRequestTask) (t
 		return nil, err
 	}
 
-	return updated, nil
+	mappedUpdatedTask, err := mapper.MapTaskToReponseTask(updated)
+	if err != nil {
+		return nil, err
+	}
+	return mappedUpdatedTask, nil
 }
 
 func (tc *TaskController) DeleteTask(id string) (err error) {

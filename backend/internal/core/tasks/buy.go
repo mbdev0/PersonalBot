@@ -2,6 +2,7 @@ package tasks
 
 import (
 	"math/big"
+	"pump_fun/internal/core/models/wallets"
 	"sync"
 
 	"github.com/gagliardetto/solana-go"
@@ -11,6 +12,7 @@ import (
 type BuyTask struct {
 	taskType     string
 	id           string
+	WalletName   string
 	Wallet       solana.PrivateKey `validate:"required"`
 	Token        solana.PublicKey  `validate:"required"`
 	BuyAmount    *big.Int          `validate:"required,gtZero"`
@@ -21,15 +23,15 @@ type BuyTask struct {
 	mu           *sync.RWMutex
 }
 
-func NewBuyTask(pk solana.PrivateKey, token solana.PublicKey, common []Option, buyOpts []BuyOption) *BuyTask {
-	// ctx, cancel := context.WithCancel(context.Background())
+func NewBuyTask(wallet wallets.SolanaWallet, token solana.PublicKey, common []Option, buyOpts []BuyOption) *BuyTask {
 	bt := &BuyTask{
-		taskType: "Buy",
-		id:       uuid.NewString(),
-		Wallet:   pk,
-		Token:    token,
-		state:    State{TaskState: TaskCreate},
-		mu:       &sync.RWMutex{},
+		taskType:   "Buy",
+		id:         uuid.NewString(),
+		WalletName: wallet.WalletName,
+		Wallet:     wallet.PrivateKey,
+		Token:      token,
+		state:      State{TaskState: TaskCreate},
+		mu:         &sync.RWMutex{},
 	}
 
 	for _, opts := range common {

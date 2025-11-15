@@ -3,8 +3,7 @@ package strategies
 import (
 	"fmt"
 	"math/big"
-
-	"github.com/gagliardetto/solana-go"
+	"pump_fun/internal/core/models/wallets"
 )
 
 type AfkPatch struct {
@@ -13,7 +12,7 @@ type AfkPatch struct {
 	BuyFee         *float64
 	Slippage       *float64
 	ComputeUnits   *float64
-	Wallet         *solana.PrivateKey
+	Wallet         *wallets.SolanaWallet
 	SellStrategies *[]StrategyConfig
 	SellFee        *float64
 }

@@ -3,6 +3,7 @@ package mapper
 import (
 	"fmt"
 	"pump_fun/api/dto"
+	"pump_fun/internal/core/constants"
 	"pump_fun/internal/core/strategies"
 	"pump_fun/internal/solana/utils"
 )
@@ -31,6 +32,8 @@ func mapAfkToAfkResponse(src *strategies.Afk) (dest *dto.TradingTaskResponse, er
 	dst.Filters = mapFiltersToResponseFilters(src.Filters)
 	dst.SellFee = src.SellFee
 	dst.SellStrategies = mapSellStratsToResponseStrats(src.SellStrategies)
+	dst.WalletName = src.Wallet.WalletName
+	dst.WalletAddress = src.Wallet.PublicKey.Short(constants.ShortPublicAddressInt)
 
 	return &dst, nil
 }

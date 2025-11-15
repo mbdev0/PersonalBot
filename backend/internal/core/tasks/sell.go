@@ -1,7 +1,7 @@
 package tasks
 
 import (
-	"context"
+	"pump_fun/internal/core/models/wallets"
 	"sync"
 
 	"github.com/gagliardetto/solana-go"
@@ -12,6 +12,7 @@ type SellTask struct {
 	taskType       string
 	id             string
 	Position_id    string
+	WalletName     string
 	Wallet         solana.PrivateKey
 	Token          solana.PublicKey
 	SellPercentage float64
@@ -19,20 +20,19 @@ type SellTask struct {
 	Slippage       float64
 	ComputeUnits   uint32
 	state          State
-	ctx            context.Context
-	cancel         context.CancelFunc
 	mu             *sync.RWMutex
 }
 
-func NewSellTask(pk solana.PrivateKey, token solana.PublicKey, common []Option, sellOpt []SellOption) *SellTask {
+func NewSellTask(wallet wallets.SolanaWallet, token solana.PublicKey, common []Option, sellOpt []SellOption) *SellTask {
 
 	st := &SellTask{
-		id:       uuid.NewString(),
-		taskType: "Sell",
-		state:    State{TaskState: TaskCreate},
-		Wallet:   pk,
-		Token:    token,
-		mu:       &sync.RWMutex{},
+		id:         uuid.NewString(),
+		taskType:   "Sell",
+		state:      State{TaskState: TaskCreate},
+		WalletName: wallet.WalletName,
+		Wallet:     wallet.PrivateKey,
+		Token:      token,
+		mu:         &sync.RWMutex{},
 	}
 
 	for _, opt := range common {

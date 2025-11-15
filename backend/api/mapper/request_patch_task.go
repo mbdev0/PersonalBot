@@ -3,22 +3,23 @@ package mapper
 import (
 	"fmt"
 	"pump_fun/api/dto"
+	"pump_fun/internal/core/models/wallets"
 	"pump_fun/internal/core/tasks"
 	"pump_fun/internal/solana/utils"
 
 	"github.com/gagliardetto/solana-go"
 )
 
-func MapReqPatchToPatch(req dto.PatchRequestTask, typ string) (patch tasks.TaskPatch, err error) {
+func MapReqPatchToPatch(req dto.PatchRequestTask, typ string, wallet *wallets.SolanaWallet) (patch tasks.TaskPatch, err error) {
 	switch typ {
 	case string(dto.Buy):
-		bp, err := mapReqPatchToBuyPatch(req)
+		bp, err := mapReqPatchToBuyPatch(req, wallet)
 		if err != nil {
 			return nil, fmt.Errorf("error whilst mapping buy patch: %w", err)
 		}
 		return bp, nil
 	case string(dto.Sell):
-		sp, err := mapReqPatchToSellPatch(req)
+		sp, err := mapReqPatchToSellPatch(req, wallet)
 		if err != nil {
 			return nil, fmt.Errorf("error whilst mapping sell patch: %w", err)
 		}
@@ -28,7 +29,7 @@ func MapReqPatchToPatch(req dto.PatchRequestTask, typ string) (patch tasks.TaskP
 	}
 }
 
-func mapReqPatchToBuyPatch(req dto.PatchRequestTask) (patch *tasks.BuyPatch, err error) {
+func mapReqPatchToBuyPatch(req dto.PatchRequestTask, wallet *wallets.SolanaWallet) (patch *tasks.BuyPatch, err error) {
 	bp := &tasks.BuyPatch{}
 
 	bp.Fee = req.BuyFee
@@ -41,12 +42,8 @@ func mapReqPatchToBuyPatch(req dto.PatchRequestTask) (patch *tasks.BuyPatch, err
 		bp.Amount = buyAmount
 	}
 
-	if req.WalletAddressPrivateKey != nil {
-		wallet, err := solana.PrivateKeyFromBase58(*req.WalletAddressPrivateKey)
-		if err != nil {
-			return nil, err
-		}
-		bp.Wallet = &wallet
+	if wallet != nil {
+		bp.Wallet = wallet
 	}
 
 	if req.TokenAddress != nil {
@@ -60,7 +57,7 @@ func mapReqPatchToBuyPatch(req dto.PatchRequestTask) (patch *tasks.BuyPatch, err
 	return bp, nil
 }
 
-func mapReqPatchToSellPatch(req dto.PatchRequestTask) (patch *tasks.SellPatch, err error) {
+func mapReqPatchToSellPatch(req dto.PatchRequestTask, wallet *wallets.SolanaWallet) (patch *tasks.SellPatch, err error) {
 	sp := &tasks.SellPatch{}
 
 	sp.Fee = req.SellFee
@@ -73,12 +70,8 @@ func mapReqPatchToSellPatch(req dto.PatchRequestTask) (patch *tasks.SellPatch, e
 
 	}
 
-	if req.WalletAddressPrivateKey != nil {
-		wallet, err := solana.PrivateKeyFromBase58(*req.WalletAddressPrivateKey)
-		if err != nil {
-			return nil, err
-		}
-		sp.Wallet = &wallet
+	if wallet != nil {
+		sp.Wallet = wallet
 	}
 
 	if req.TokenAddress != nil {

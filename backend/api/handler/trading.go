@@ -45,7 +45,7 @@ func (th *TradingHandler) createTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	createdTask, err := th.strategyController.Create(reqTask)
+	createdTask, err := th.strategyController.Create(r.Context(), reqTask)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
 		return
@@ -117,7 +117,7 @@ func (th *TradingHandler) updateTask(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//we pass id into strategyController + new task -> we should be returned the updated task
-	updatedTask, err := th.strategyController.Update(id, reqTask)
+	updatedTask, err := th.strategyController.Update(r.Context(), id, reqTask)
 
 	if err != nil {
 		logger.Error("Error whilst updating task with id: " + id + " error: " + err.Error())

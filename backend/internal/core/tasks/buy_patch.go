@@ -3,12 +3,13 @@ package tasks
 import (
 	"fmt"
 	"math/big"
+	"pump_fun/internal/core/models/wallets"
 
 	"github.com/gagliardetto/solana-go"
 )
 
 type BuyPatch struct {
-	Wallet      *solana.PrivateKey
+	Wallet      *wallets.SolanaWallet
 	Token       *solana.PublicKey
 	Amount      *big.Int
 	Fee         *float64
@@ -26,8 +27,10 @@ func (p *BuyPatch) ApplyTo(t Task) error {
 	defer bt.mu.Unlock()
 
 	if p.Wallet != nil {
-		bt.Wallet = *p.Wallet
+		bt.Wallet = p.Wallet.PrivateKey
+		bt.WalletName = p.Wallet.WalletName
 	}
+
 	if p.Token != nil {
 		bt.Token = *p.Token
 	}
