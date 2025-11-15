@@ -12,7 +12,7 @@ type TradingTask struct {
 	BuyFee         float64           `json:"buy_fee"`
 	ComputeUnits   float64           `json:"compute_units"`
 	Slippage       float64           `json:"slippage"`
-	Wallet         string            `json:"wallet"`
+	WalletName     string            `json:"wallet_name"`
 	Filters        Filters           `json:"filters"`
 	SellStrategies []SellStrategyDTO `json:"sell_strategies"`
 	SellFee        float64           `json:"sell_fee"`
@@ -25,6 +25,8 @@ type TradingTaskResponse struct {
 	BuyFee         float64           `json:"buy_fee"`
 	ComputeUnits   float64           `json:"compute_units"`
 	Slippage       float64           `json:"slippage"`
+	WalletName     string            `json:"wallet_name"`
+	WalletAddress  string            `json:"wallet_address"`
 	Filters        Filters           `json:"filters"`
 	SellStrategies []SellStrategyDTO `json:"sell_strategies"`
 	SellFee        float64           `json:"sell_fee"`
@@ -36,7 +38,7 @@ type TradingTaskPatch struct {
 	BuyFee         *float64           `json:"buy_fee"`
 	ComputeUnits   *float64           `json:"compute_units"`
 	Slippage       *float64           `json:"slippage"`
-	Wallet         *string            `json:"wallet"`
+	Wallet         *string            `json:"wallet_name"`
 	Filters        *Filters           `json:"filters"`
 	SellStrategies *[]SellStrategyDTO `json:"sell_strategies"`
 	SellFee        *float64           `json:"sell_fee"`

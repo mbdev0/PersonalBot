@@ -5,6 +5,7 @@ const (
 	LamportsConversion      = 1_000_000_000
 	MicrolamportsToLamports = 1_000_000
 	TokenAmountDecimals     = 1_000_000
+	ShortPublicAddressInt   = 5
 )
 
 var (

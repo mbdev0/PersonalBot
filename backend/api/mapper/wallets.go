@@ -2,6 +2,7 @@ package mapper
 
 import (
 	"pump_fun/api/dto"
+	"pump_fun/internal/core/constants"
 	"pump_fun/internal/core/models/wallets"
 
 	"github.com/gagliardetto/solana-go"
@@ -28,7 +29,7 @@ func MapWalletToDto(src wallets.SolanaWallet) dto.ResponseWalletDto {
 	return dto.ResponseWalletDto{
 		Id:         src.Id,
 		WalletName: src.WalletName,
-		PublicKey:  src.PrivateKey.PublicKey().Short(5),
+		PublicKey:  src.PrivateKey.PublicKey().Short(constants.ShortPublicAddressInt),
 		Chain:      "Solana",
 	}
 }

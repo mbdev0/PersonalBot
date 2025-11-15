@@ -52,7 +52,7 @@ func (th *TaskHandler) createTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	createdTask, err := th.controller.CreateTask(reqTask)
+	createdTask, err := th.controller.CreateTask(r.Context(), reqTask)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
 		return
@@ -124,7 +124,7 @@ func (th *TaskHandler) updateTask(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//we pass id into controller + new task -> we should be returned the updated task
-	updatedTask, err := th.controller.UpdateTask(id, reqTask)
+	updatedTask, err := th.controller.UpdateTask(r.Context(), id, reqTask)
 
 	if err != nil {
 		logger.Error("Error whilst updating task with id: " + id + " error: " + err.Error())
@@ -236,7 +236,7 @@ func (th *TaskHandler) subscribe(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	//read loop
-	ctx, cancel := context.WithCancel(context.Background())	
+	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	for {
 		var msg *dto.TaskSubscribe

@@ -57,10 +57,10 @@ func main() {
 	tradingService.NewTradingService(&tradingStrategy)
 
 	tradingController := controller.StrategyController{}
-	tradingController.New(&tradingService)
+	tradingController.New(&tradingService, walletService)
 	tradingHandler := http.StripPrefix("/api/trading", handler.NewTradingHandler(&tradingController))
 
-	buyController := controller.TaskController{TaskService: &taskService}
+	buyController := controller.TaskController{TaskService: &taskService, WalletService: walletService}
 	buyHandler := http.StripPrefix("/api/tasks", handler.NewTaskHandler(&buyController))
 
 	positionController := controller.PositionController{PositionService: &positionService}

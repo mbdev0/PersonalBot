@@ -3,6 +3,7 @@ package mapper
 import (
 	"fmt"
 	"pump_fun/api/dto"
+	"pump_fun/internal/core/constants"
 	"pump_fun/internal/core/tasks"
 )
 
@@ -32,6 +33,8 @@ func mapBuyToResponseTask(t *tasks.BuyTask) *dto.ResponseTask {
 	buyAmount := t.BuyAmount
 	buyAmountFloat, _ := buyAmount.Float64()
 	responseTask.BuyAmount = &buyAmountFloat
+	responseTask.WalletAddressName = t.WalletName
+	responseTask.WalletPublicKey = t.Wallet.PublicKey().Short(constants.ShortPublicAddressInt)
 
 	return &responseTask
 }
@@ -51,6 +54,8 @@ func mapSellToResponseTask(t *tasks.SellTask) *dto.ResponseTask {
 	responseTask.SellAmount = &sellAmnt
 	responseTask.SellFee = &fee
 	responseTask.SellPositionId = &t.Position_id
+	responseTask.WalletAddressName = t.WalletName
+	responseTask.WalletPublicKey = t.Wallet.PublicKey().Short(constants.ShortPublicAddressInt)
 
 	return &responseTask
 }

@@ -3,17 +3,16 @@ package mapper
 import (
 	"fmt"
 	"pump_fun/api/dto"
+	"pump_fun/internal/core/models/wallets"
 	"pump_fun/internal/core/strategies"
 	"pump_fun/internal/monitoring/filters"
 	"pump_fun/internal/solana/utils"
-
-	"github.com/gagliardetto/solana-go"
 )
 
-func MapTradingTaskDtoToTradingTask(src dto.TradingTask) (strategies.Task, error) {
+func MapTradingTaskDtoToTradingTask(src dto.TradingTask, wallet wallets.SolanaWallet) (strategies.Task, error) {
 	switch src.Type {
 	case dto.AFK:
-		task, err := mapAfkDtoToAfk(src)
+		task, err := mapAfkDtoToAfk(src, wallet)
 		if err != nil {
 			return nil, err
 		}
@@ -23,7 +22,7 @@ func MapTradingTaskDtoToTradingTask(src dto.TradingTask) (strategies.Task, error
 	}
 }
 
-func mapAfkDtoToAfk(src dto.TradingTask) (dst *strategies.Afk, err error) {
+func mapAfkDtoToAfk(src dto.TradingTask, wallet wallets.SolanaWallet) (dst *strategies.Afk, err error) {
 	dest := strategies.Afk{}
 	dest.New()
 
@@ -31,11 +30,7 @@ func mapAfkDtoToAfk(src dto.TradingTask) (dst *strategies.Afk, err error) {
 	dest.ComputeUnits = float64(src.ComputeUnits)
 	dest.Slippage = src.Slippage
 	dest.BuyAmount = utils.ConvertSolToLamport(src.BuyAmount)
-	dest.Wallet, err = solana.PrivateKeyFromBase58(src.Wallet)
-	if err != nil {
-		return nil, fmt.Errorf("error whilst mapping wallet %w", err)
-	}
-
+	dest.Wallet = wallet
 	dest.Filters = mapFiltersToDestFilters(src.Filters)
 	dest.SellStrategies = mapDTOToStrategyConfigs(src.SellStrategies)
 	dest.SellFee = src.SellFee

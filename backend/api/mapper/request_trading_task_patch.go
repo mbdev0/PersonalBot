@@ -3,13 +3,12 @@ package mapper
 import (
 	"fmt"
 	"pump_fun/api/dto"
+	"pump_fun/internal/core/models/wallets"
 	"pump_fun/internal/core/strategies"
 	"pump_fun/internal/solana/utils"
-
-	"github.com/gagliardetto/solana-go"
 )
 
-func MapTradingTaskPatchDtoToTradingTaskPatch(src dto.TradingTaskPatch, tskType dto.TradingType) (strategies.Patch, error) {
+func MapTradingTaskPatchDtoToTradingTaskPatch(src dto.TradingTaskPatch, tskType dto.TradingType, wallet *wallets.SolanaWallet) (strategies.Patch, error) {
 
 	var taskType dto.TradingType
 	if src.Type != nil {
@@ -20,7 +19,7 @@ func MapTradingTaskPatchDtoToTradingTaskPatch(src dto.TradingTaskPatch, tskType 
 
 	switch taskType {
 	case dto.AFK:
-		afkPatch, err := createAfkPatch(src)
+		afkPatch, err := createAfkPatch(src, wallet)
 		if err != nil {
 			return nil, err
 		}
@@ -31,7 +30,7 @@ func MapTradingTaskPatchDtoToTradingTaskPatch(src dto.TradingTaskPatch, tskType 
 
 }
 
-func createAfkPatch(src dto.TradingTaskPatch) (resp *strategies.AfkPatch, err error) {
+func createAfkPatch(src dto.TradingTaskPatch, wallet *wallets.SolanaWallet) (resp *strategies.AfkPatch, err error) {
 	respPatch := strategies.AfkPatch{}
 	if src.BuyAmount != nil {
 		respPatch.BuyAmount = utils.ConvertSolToLamport(*src.BuyAmount)
@@ -53,12 +52,10 @@ func createAfkPatch(src dto.TradingTaskPatch) (resp *strategies.AfkPatch, err er
 		respPatch.SellFee = src.SellFee
 	}
 
-	if src.Wallet != nil {
-		wallet, err := solana.PrivateKeyFromBase58(*src.Wallet)
-		if err != nil {
-			return nil, err
-		}
-		respPatch.Wallet = &wallet
+	//if the wallet was set in the patch, we get it in the controller and pass it down
+	//this is to stop mixing of services and keep them as top level as possible
+	if wallet != nil {
+		respPatch.Wallet = wallet
 	}
 
 	if src.Filters != nil {
