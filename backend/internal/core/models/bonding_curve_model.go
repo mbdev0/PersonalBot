@@ -13,5 +13,5 @@ type BondingCurve struct {
 	RealSolReserves      big.Int
 	MaxTokens            big.Int
 	IsCompleted          bool
-	DevWallet               solana.PublicKey
+	DevWallet            solana.PublicKey
 }
