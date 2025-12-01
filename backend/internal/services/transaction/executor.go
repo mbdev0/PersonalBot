@@ -10,11 +10,10 @@ import (
 	"pump_fun/internal/services/state/transition"
 	subscriptionhub "pump_fun/internal/services/subscription_hub"
 	"pump_fun/internal/solana/client"
+	"pump_fun/internal/solana/programs/pumpfun/pda"
 	"pump_fun/internal/solana/programs/pumpfun/transaction/buy"
 	"pump_fun/internal/solana/programs/pumpfun/transaction/sell"
 	"pump_fun/pkg/logger"
-
-	"github.com/gagliardetto/solana-go"
 )
 
 type Executor struct {
@@ -110,7 +109,7 @@ func (e *Executor) handlePositionOnSell(task tasks.Task, ctx context.Context) {
 		return
 	}
 
-	ata, _, err := solana.FindAssociatedTokenAddress(st.Wallet.PublicKey(), st.Token)
+	ata, _, err := pda.FindToken2022AssociatedTokenAddress(st.Wallet.PublicKey(), st.Token)
 	if err != nil {
 		e.transitionAndPublishTask(task, err)
 		return

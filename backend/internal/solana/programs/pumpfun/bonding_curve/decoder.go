@@ -11,6 +11,7 @@ import (
 	"pump_fun/internal/core/models"
 	"pump_fun/internal/solana/client"
 	"pump_fun/internal/solana/programs/pumpfun/pda"
+	"strings"
 
 	"github.com/gagliardetto/solana-go"
 )
@@ -130,7 +131,8 @@ func GetBuyTokenAmountFrom(buyInSol big.Int, bondingCurveData *models.BondingCur
 
 func getBondingCurveData(bondingCurve string) (bondingCurveData *models.BondingCurve, err error, hasMigrated bool) {
 
-	bondingCurveDataBytes, err := base64.RawStdEncoding.DecodeString(bondingCurve)
+	unpadded := strings.TrimRight(bondingCurve, "=")
+	bondingCurveDataBytes, err := base64.RawStdEncoding.DecodeString(unpadded)
 	if err != nil {
 		return nil, err, false
 	}
@@ -161,7 +163,10 @@ func getTokenAmount(solBuy big.Int, bondingCurveInfo *models.BondingCurve) big.I
 }
 
 func decryptBondingCurveData(dataBinary []byte) (*models.BondingCurve, error) {
-	if len(dataBinary) > 150 {
+	// this stops backwards compatability - but for this project, not really needed
+	// solana buying and selling is to learn. If we ever need to add backwards compatability
+	// then we can add it in
+	if len(dataBinary) > 151 {
 		return nil, errors.New("base64 string for bonding curve is too long")
 	}
 

@@ -51,12 +51,12 @@ func getAccounts(sellTask *tasks.SellTask, ctx context.Context) ([]*solana.Accou
 		return nil, err
 	}
 
-	ATA, _, err := solana.FindAssociatedTokenAddress(sellTask.Wallet.PublicKey(), sellTask.Token)
+	ata, _, err := pda.FindToken2022AssociatedTokenAddress(sellTask.Wallet.PublicKey(), sellTask.Token)
 	if err != nil {
 		logger.Error("Error getting token address: ", err)
 		return nil, err
 	}
-	associatedTokenAddress = ATA
+	associatedTokenAddress = ata
 
 	creatorAddress, err := getCreatorVaultAddress(bondingCurveAddress, ctx)
 	if err != nil {
@@ -74,7 +74,7 @@ func getAccounts(sellTask *tasks.SellTask, ctx context.Context) ([]*solana.Accou
 		utils.GetAccountMeta(sellTask.Wallet.PublicKey().String(), true, true),
 		utils.GetAccountMeta(solana.SystemProgramID.String(), false, false),
 		utils.GetAccountMeta(creatorAddress, true, false),
-		utils.GetAccountMeta(constants.TokenProgram, false, false),
+		utils.GetAccountMeta(constants.Token2022Program, false, false),
 		utils.GetAccountMeta(constants.EventAuthority, false, false),
 		utils.GetAccountMeta(constants.Program, false, false),
 		utils.GetAccountMeta(constants.FeeConfig, false, false),
@@ -136,6 +136,7 @@ func getTokenAmountAndSolOutput(sellTask *tasks.SellTask, ctx context.Context, p
 		tokens, _ := position.TokenRemaining.Uint64()
 		tokenAmount = &tokens
 	} else {
+		logger.Information(associatedTokenAddress)
 		tokenAmount, err = client.GetTokenAccountBalance(associatedTokenAddress, ctx)
 		if err != nil {
 			return nil, nil, err

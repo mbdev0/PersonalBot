@@ -5,6 +5,7 @@ const (
 	FeeRecipient              = "CebN5WGQ4jvEPvsVU4EoHEpgzq1VV7AbicfhtW4xC9iM"
 	SystemProgram             = "11111111111111111111111111111111"
 	TokenProgram              = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+	Token2022Program          = "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
 	RentProgram               = "SysvarRent111111111111111111111111111111111"
 	EventAuthority            = "Ce6TQqeHC9p8KetsN6JsjHK7UTZk7nasjjnr7XxXp9F1"
 	Program                   = "6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P"

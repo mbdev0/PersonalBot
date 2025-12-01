@@ -101,7 +101,7 @@ func resolvePDAs(accountAddressesSet *AccountAddressesSet) (err error) {
 	walletAddress := solana.MustPublicKeyFromBase58(accountAddressesSet.WalletAddress)
 	tokenAddress := solana.MustPublicKeyFromBase58(accountAddressesSet.TokenAddress)
 
-	accountAddressesSet.AssociatedTokenAddressPubkey, _, err = solana.FindAssociatedTokenAddress(walletAddress, tokenAddress)
+	accountAddressesSet.AssociatedTokenAddressPubkey, _, err = pda.FindToken2022AssociatedTokenAddress(walletAddress, tokenAddress)
 	if err != nil {
 		return fmt.Errorf("error finding associated token address: %w", err)
 	}
@@ -126,7 +126,7 @@ func buildAccounts(accountAddressesSet AccountAddressesSet) (accounts []*solana.
 		utils.GetAccountMeta(accountAddressesSet.AssociatedTokenAddressPubkey.String(), true, false),
 		utils.GetAccountMeta(accountAddressesSet.WalletAddress, true, true),
 		utils.GetAccountMeta(solana.SystemProgramID.String(), false, false),
-		utils.GetAccountMeta(constants.TokenProgram, false, false),
+		utils.GetAccountMeta(constants.Token2022Program, false, false),
 		utils.GetAccountMeta(accountAddressesSet.CreatorAddress, true, false),
 		utils.GetAccountMeta(constants.EventAuthority, false, false),
 		utils.GetAccountMeta(constants.Program, false, false),
