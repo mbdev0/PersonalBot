@@ -5,7 +5,6 @@ import (
 	"pump_fun/api/dto"
 	"pump_fun/api/mapper"
 	"pump_fun/internal/services/wallet"
-	"pump_fun/pkg/logger"
 )
 
 type WalletsController struct {
@@ -21,7 +20,6 @@ func (wc *WalletsController) GetWallets(ctx context.Context) ([]dto.ResponseWall
 	if err != nil {
 		return nil, err
 	}
-	logger.Information(wallets)
 
 	res := []dto.ResponseWalletDto{}
 	for _, wallet := range wallets {
