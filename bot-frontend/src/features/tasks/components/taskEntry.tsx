@@ -22,6 +22,7 @@ function CreateTask() {
   const [sellAmount, setSellAmount] = useState('20');
   const [sellFee, setSellFee] = useState('0.1');
 
+  //TODO: should change to a struct? or interface? 
   const taskBody =
     taskType === 'Buy'
       ? {
