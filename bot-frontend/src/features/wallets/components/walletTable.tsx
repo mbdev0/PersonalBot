@@ -2,11 +2,12 @@ import { useState } from 'react';
 import { useWallets } from '../hooks/useWallets';
 import './walletTable.css';
 import Modal from '../../../components/modal';
-import WalletEntry from './walletEntry';
+import WalletUpdate from './walletUpdate';
+import { type Wallet } from '../types/wallet';
 
 function WalletTable() {
   const { isPending, isError, data, error } = useWallets();
-  const [isModalShowing, setModalShow] = useState(false);
+  const [editingWallet, setEditingWallet] = useState<Wallet | null>(null);
 
   if (isPending) {
     return <div className="loading">Loading...</div>;
@@ -17,16 +18,22 @@ function WalletTable() {
   }
 
   return (
-    <>
-      <Modal isOpen={isModalShowing} onClose={() => setModalShow(false)}>
-        <WalletEntry></WalletEntry>
+    <div className="wallet_table">
+      <Modal isOpen={!!editingWallet} onClose={() => setEditingWallet(null)}>
+        {editingWallet && (
+          <WalletUpdate
+            wallet={editingWallet}
+            onSuccess={() => setEditingWallet(null)}
+            onCancel={() => setEditingWallet(null)}
+          ></WalletUpdate>
+        )}
       </Modal>
       <table>
         <thead>
           <tr>
             <th scope="col">Wallet Name</th>
             <th scope="col">Chain</th>
-            <th scope="col">Private Key</th>
+            <th scope="col">Public Key</th>
             <th scope="col">Edit</th>
           </tr>
         </thead>
@@ -37,13 +44,13 @@ function WalletTable() {
               <td>{wallet.chain}</td>
               <td>{`${wallet.public_key.slice(0, 4)}...${wallet.public_key.slice(-4)}`}</td>
               <td>
-                <button onClick={() => setModalShow(true)}>✏️</button>
+                <button onClick={() => setEditingWallet(wallet)}>✏️</button>
               </td>
             </tr>
           ))}
         </tbody>
       </table>
-    </>
+    </div>
   );
 }
 
