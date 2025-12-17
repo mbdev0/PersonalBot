@@ -1,4 +1,11 @@
-import { type Wallet, type WalletDto, type WalletPut, type WalletPutDTO } from '../types/wallet';
+import {
+  type Wallet,
+  type WalletDto,
+  type WalletPost,
+  type WalletPostDTO,
+  type WalletPut,
+  type WalletPutDTO,
+} from '../types/wallet';
 
 export function walletToDto(wallet: Wallet): WalletDto {
   return {
@@ -19,6 +26,14 @@ export function dtoToWallet(dto: WalletDto): Wallet {
 }
 
 export function walletPutToDto(wallet: WalletPut): WalletPutDTO {
+  return {
+    wallet_name: wallet.wallet_name,
+    chain: wallet.chain,
+    private_key: wallet.private_key,
+  };
+}
+
+export function walletPostToDto(wallet: WalletPost): WalletPostDTO {
   return {
     wallet_name: wallet.wallet_name,
     chain: wallet.chain,

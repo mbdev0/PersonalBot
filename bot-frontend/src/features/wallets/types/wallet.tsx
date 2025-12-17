@@ -15,6 +15,14 @@ export interface Wallet {
 }
 
 // what we send for any post requests
+
+export interface WalletPost {
+  wallet_name: string;
+  chain: string;
+  public_key: string; //this will be displayed when you click check
+  private_key: string; // sent to the api
+}
+
 export interface WalletPostDTO {
   wallet_name: string;
   chain: string;
