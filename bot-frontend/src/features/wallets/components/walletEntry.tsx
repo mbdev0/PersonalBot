@@ -1,8 +1,9 @@
 // we make a wallet entry component here
 
 import { useState } from 'react';
+import getEnumKeys from '../../../utils/enum_helper';
+import { Chain } from '../types/wallet';
 
-// TODO: WILL BE A SHARED COMPONENTS BETWEEN UPDATE AND CREATING
 function WalletEntry() {
   const [walletName, setWalletName] = useState('');
   const [walletPrivateKey, setWalletPrivateKey] = useState('');
@@ -16,10 +17,18 @@ function WalletEntry() {
 
   return (
     <>
-      <div className="task_type">
-        <h3>Task Type</h3>
-        <select value={chain} onChange={(e) => setChain(e.target.value)}>
-          <option value="Solana">Solana</option>
+      <div className="wallet_type">
+        <h3>Wallet Type</h3>
+        {/* https://stackoverflow.com/a/72883012 */}
+        <select
+          value={chain}
+          onChange={(e) => setChain(Chain[e.target.value as keyof typeof Chain])}
+        >
+          {getEnumKeys(Chain).map((key, index) => (
+            <option key={index} value={Chain[key]}>
+              {key}
+            </option>
+          ))}
         </select>
       </div>
       <div className="wallet_name">

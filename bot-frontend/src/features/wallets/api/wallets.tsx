@@ -2,7 +2,8 @@
 // we will use fetch
 
 import { API_BASE } from '../../../config/urls';
-import type { WalletDto } from '../types/wallet';
+import type { WalletDto, WalletPut } from '../types/wallet';
+import { walletPutToDto } from '../mapper/walletMapper';
 
 //get wallets
 export async function getWallets(): Promise<WalletDto[]> {
@@ -14,7 +15,7 @@ export async function getWallets(): Promise<WalletDto[]> {
   return resp.json();
 }
 
-//get wallet by id -> maybe have the id as the query key?
+//get wallet by id -> maybe have the id as the query key? -> Do we need this though?
 export async function getWalletsById(id: string): Promise<WalletDto> {
   let resp = await fetch(API_BASE + `/wallet/wallets/${id}}`);
   if (!resp.ok) {
@@ -25,6 +26,25 @@ export async function getWalletsById(id: string): Promise<WalletDto> {
 }
 
 //put for update
+export async function updateWallet(wallet: WalletPut): Promise<WalletDto> {
+  const walletDto = walletPutToDto(wallet);
+  const url = API_BASE + `/wallet/wallets/${wallet.id}`;
+
+  const response = await fetch(url, {
+    method: 'PUT',
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(walletDto),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to update wallet: ${response.json()}`);
+  }
+
+  return response.json();
+}
 
 //delete
 
