@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useWallets } from '../hooks/useWallets';
+import { deleteWalletMutation, useWallets } from '../hooks/useWallets';
 import './walletTable.css';
 import Modal from '../../../components/modal';
 import WalletUpdate from './walletUpdate';
@@ -8,6 +8,7 @@ import { type Wallet } from '../types/wallet';
 function WalletTable() {
   const { isPending, isError, data, error } = useWallets();
   const [editingWallet, setEditingWallet] = useState<Wallet | null>(null);
+  const deleteMutation = deleteWalletMutation();
 
   if (isPending) {
     return <div className="loading">Loading...</div>;
@@ -34,7 +35,7 @@ function WalletTable() {
             <th scope="col">Wallet Name</th>
             <th scope="col">Chain</th>
             <th scope="col">Public Key</th>
-            <th scope="col">Edit</th>
+            <th scope="col">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -45,6 +46,7 @@ function WalletTable() {
               <td>{`${wallet.public_key.slice(0, 4)}...${wallet.public_key.slice(-4)}`}</td>
               <td>
                 <button onClick={() => setEditingWallet(wallet)}>✏️</button>
+                <button onClick={() => deleteMutation.mutate(wallet.id)}>🗑️</button>
               </td>
             </tr>
           ))}

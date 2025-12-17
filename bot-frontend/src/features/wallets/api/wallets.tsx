@@ -69,3 +69,20 @@ export async function postWallet(wallet: WalletPost) {
 }
 
 //delete
+export async function deleteWallet(id: string) {
+  const url = API_BASE + `/wallet/wallets/${id}`;
+
+  const response = await fetch(url, {
+    method: 'DELETE',
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to add new wallet: ${response.json()}`);
+  }
+
+  return response.status;
+}
