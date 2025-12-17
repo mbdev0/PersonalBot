@@ -1,15 +1,17 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { getWallets, postWallet, updateWallet } from '../api/wallets';
+import { deleteWallet, getWallets, postWallet, updateWallet } from '../api/wallets';
 import type { WalletPost, WalletPut } from '../types/wallet';
 
 export function useWallets() {
   return useQuery({
     queryKey: ['wallets'],
-    queryFn: getWallets,
+    queryFn: () => {
+      return getWallets();
+    },
   });
 }
 
-export function PutWalletMutation() {
+export function putWalletMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -20,11 +22,22 @@ export function PutWalletMutation() {
   });
 }
 
-export function PostWalletMutation() {
+export function postWalletMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (wallet: WalletPost) => postWallet(wallet),
+    onSuccess() {
+      queryClient.invalidateQueries({ queryKey: ['wallets'] });
+    },
+  });
+}
+
+export function deleteWalletMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => deleteWallet(id),
     onSuccess() {
       queryClient.invalidateQueries({ queryKey: ['wallets'] });
     },
