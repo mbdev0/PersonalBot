@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { deleteWalletMutation, useWallets } from '../hooks/useWallets';
-import './walletTable.css';
 import Modal from '../../../components/modal';
 import WalletUpdate from './walletUpdate';
 import { type Wallet } from '../types/wallet';
+import './walletTable.css';
 
 function WalletTable() {
   const { isPending, isError, data, error } = useWallets();
