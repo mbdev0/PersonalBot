@@ -12,27 +12,23 @@ type RequestTransitionTask struct {
 }
 
 type RequestTask struct {
-	Type         TransactionType `json:"type"`
-	Slippage     float64         `json:"slippage"`
-	ComputeUnits uint32          `json:"compute_units"`
-	//this is a security risk -> figure out a way to have these stored in a secure place and loaded from a secure place
-	// WalletAddressPrivateKey string   `json:"wallet_address_private_key"`
-	WalletAddressName string   `json:"wallet_name"`
-	TokenAddress      string   `json:"token_address"`
-	BuyAmount         *float64 `json:"buy_amount,omitempty"`
-	BuyFee            *float64 `json:"buy_fee,omitempty"`
-	SellAmount        *float64 `json:"sell_amount,omitempty"`
-	SellFee           *float64 `json:"sell_fee,omitempty"`
-	SellPositionId    *string  `json:"sell_position_id,omitempty"`
+	Type              TransactionType `json:"type"`
+	Slippage          float64         `json:"slippage"`
+	ComputeUnits      uint32          `json:"compute_units"`
+	WalletAddressName string          `json:"wallet_name"`
+	TokenAddress      string          `json:"token_address"`
+	BuyAmount         *float64        `json:"buy_amount,omitempty"`
+	BuyFee            *float64        `json:"buy_fee,omitempty"`
+	SellAmount        *float64        `json:"sell_amount,omitempty"`
+	SellFee           *float64        `json:"sell_fee,omitempty"`
+	SellPositionId    *string         `json:"sell_position_id,omitempty"`
 }
 
 type ResponseTask struct {
-	TaskId       string  `json:"task_id"`
-	Type         string  `json:"type"`
-	Slippage     float64 `json:"slippage"`
-	ComputeUnits uint32  `json:"compute_units"`
-	// //this is a security risk -> figure out a way to have these stored in a secure place and loaded from a secure place
-	// WalletAddressPrivateKey string   `json:"wallet_address_private_key"`
+	TaskId            string   `json:"task_id"`
+	Type              string   `json:"type"`
+	Slippage          float64  `json:"slippage"`
+	ComputeUnits      uint32   `json:"compute_units"`
 	WalletAddressName string   `json:"wallet_name"`
 	WalletPublicKey   string   `json:"wallet_address"`
 	TokenAddress      string   `json:"token_address"`
@@ -45,6 +41,6 @@ type ResponseTask struct {
 }
 
 type State struct {
-	TaskState string
-	Error     string
+	TaskState string `json:"task_state"`
+	Error     string `json:"error"`
 }
