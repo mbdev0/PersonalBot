@@ -4,6 +4,7 @@ interface TaskDto {
   slippage: number;
   compute_units: number;
   token_address: string;
+  wallet_name: string;
   buy_amount: number | undefined;
   buy_fee: number | undefined;
   sell_amount: number | undefined;
@@ -23,6 +24,7 @@ interface Task {
   slippage: number;
   compute_units: number;
   token_address: string;
+  wallet_name: string;
   buy_amount: number | undefined;
   buy_fee: number | undefined;
   sell_amount: number | undefined;
@@ -31,8 +33,32 @@ interface Task {
   state: State;
 }
 
+interface TaskPost{
+  type: string;
+  slippage: number;
+  compute_units: number;
+  token_address: string;
+  wallet_name: string;
+  buy_amount?: number;
+  buy_fee?: number;
+  sell_amount?: number;
+  sell_fee?: number;
+}
+
+interface TaskPostDto{
+  type: string;
+  slippage: number;
+  compute_units: number;
+  token_address: string;
+  wallet_name: string;
+  buy_amount: number | undefined;
+  buy_fee: number | undefined;
+  sell_amount: number | undefined;
+  sell_fee: number | undefined;
+}
+
 interface State {
-  task_state: TaskType;
+  task_state: string;
   error: string;
 }
 
@@ -52,4 +78,4 @@ enum TaskType {
   tx_failed = "TxFailed",
 }
 
-export { type TaskDto, type Task, TaskType };
+export { type TaskDto, type Task, TaskType, type TaskPostDto, type TaskPost };
