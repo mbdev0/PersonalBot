@@ -16,7 +16,7 @@ import (
 )
 
 type Subscription struct {
-	sub_id         string
+	sub_id         int64
 	SubChan        chan position.PositionMessage
 	cancel         func()
 	cancelCtx      context.CancelFunc
@@ -25,25 +25,25 @@ type Subscription struct {
 }
 
 type SubscriptionHub struct {
-	subscriptions    map[string]*Subscription
-	activePositions  datastructures.Map[string, *position.Position]
+	subscriptions    map[int64]*Subscription
+	activePositions  datastructures.Map[int64, *position.Position]
 	marketCapMonitor map[string]chan big.Float
-	last             map[string]*position.PositionMessage
+	last             map[int64]*position.PositionMessage
 	bufferSize       int
 	mu               *sync.Mutex
 }
 
 func NewSubscriptionHub() SubscriptionHub {
 	return SubscriptionHub{
-		subscriptions:   map[string]*Subscription{},
-		activePositions: datastructures.NewMap[string, *position.Position](),
-		last:            map[string]*position.PositionMessage{},
+		subscriptions:   map[int64]*Subscription{},
+		activePositions: datastructures.NewMap[int64, *position.Position](),
+		last:            map[int64]*position.PositionMessage{},
 		bufferSize:      1000,
 		mu:              &sync.Mutex{},
 	}
 }
 
-func (sh *SubscriptionHub) Subscribe(positionId string, isInternalSub bool) (*Subscription, error) {
+func (sh *SubscriptionHub) Subscribe(positionId int64, isInternalSub bool) (*Subscription, error) {
 	sh.mu.Lock()
 	defer sh.mu.Unlock()
 	if _, ok := sh.subscriptions[positionId]; ok {
@@ -102,7 +102,7 @@ func (sh *SubscriptionHub) Subscribe(positionId string, isInternalSub bool) (*Su
 	return sub, nil
 }
 
-func (sh *SubscriptionHub) cancel(positionId string) func() {
+func (sh *SubscriptionHub) cancel(positionId int64) func() {
 	return func() {
 		sub := sh.subscriptions[positionId]
 		close(sub.SubChan)
@@ -112,11 +112,11 @@ func (sh *SubscriptionHub) cancel(positionId string) func() {
 	}
 }
 
-func (sh *SubscriptionHub) Unsubscribe(positionId string, isInternalSub bool) error {
+func (sh *SubscriptionHub) Unsubscribe(positionId int64, isInternalSub bool) error {
 	//get the sub if exists
 	pos, ok := sh.subscriptions[positionId]
 	if !ok {
-		return fmt.Errorf("not able to find positon with id: %s", positionId)
+		return fmt.Errorf("not able to find positon with id: %d", positionId)
 	}
 
 	if isInternalSub {
@@ -134,14 +134,14 @@ func (sh *SubscriptionHub) Unsubscribe(positionId string, isInternalSub bool) er
 	return nil
 }
 
-func (sh *SubscriptionHub) WaitForCreate(id string) (*position.Position, bool) {
+func (sh *SubscriptionHub) WaitForCreate(id int64) (*position.Position, bool) {
 	pos, ok := sh.activePositions.WaitForEntry(id)
 	return pos, ok
 	//wait until position is created in activePositions
 
 }
 
-func (sh *SubscriptionHub) publish(id string, posMessage *position.PositionMessage) {
+func (sh *SubscriptionHub) publish(id int64, posMessage *position.PositionMessage) {
 	//if the sub exists push to chan
 	sh.mu.Lock()
 	defer sh.mu.Unlock()
@@ -210,7 +210,7 @@ func (sh *SubscriptionHub) PublishPositionStop(pos *position.Position) error {
 
 	posMessage, ok := sh.last[pos.PositionId]
 	if !ok {
-		return fmt.Errorf("could not find an open position: %s", pos.PositionId)
+		return fmt.Errorf("could not find an open position: %d", pos.PositionId)
 	}
 
 	message := position.PositionMessage{

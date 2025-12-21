@@ -7,7 +7,7 @@ import (
 
 type TaskSubscribe struct {
 	Type SubType `json:"type"`
-	Id   string  `json:"id"`
+	Id   int64   `json:"id"`
 }
 
 type TaskSubResponse struct {
@@ -17,7 +17,7 @@ type TaskSubResponse struct {
 
 type PositionSubscribe struct {
 	Type SubType `json:"type"`
-	Id   string  `json:"id"`
+	Id   int64   `json:"id"`
 }
 
 type PositionResponse struct {

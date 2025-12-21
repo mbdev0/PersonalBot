@@ -12,12 +12,12 @@ type TaskService struct {
 	StateMachine *state.Machine
 	StateManager *state.Manager
 	Hub          *subscriptionhub.Hub
-	tasks        map[string]tasks.Task
+	tasks        map[int64]tasks.Task
 	mu           sync.Mutex
 }
 
 func (ts *TaskService) NewTaskService() {
-	ts.tasks = map[string]tasks.Task{}
+	ts.tasks = map[int64]tasks.Task{}
 }
 
 func (ts *TaskService) Create(task tasks.Task) (tasks.Task, error) {
@@ -28,12 +28,12 @@ func (ts *TaskService) Create(task tasks.Task) (tasks.Task, error) {
 	return task, nil
 }
 
-func (ts *TaskService) GetTaskWith(id string) (tasks.Task, error) {
+func (ts *TaskService) GetTaskWith(id int64) (tasks.Task, error) {
 	ts.mu.Lock()
 	defer ts.mu.Unlock()
 	task, ok := ts.tasks[id]
 	if !ok {
-		return nil, fmt.Errorf("task not found with the id: %s", id)
+		return nil, fmt.Errorf("task not found with the id: %d", id)
 	}
 	return task, nil
 }
@@ -57,32 +57,32 @@ func (ts *TaskService) UpdateTask(task tasks.Task, patch tasks.TaskPatch) (tasks
 	return task, nil
 }
 
-func (ts *TaskService) DeleteTask(id string) (err error) {
+func (ts *TaskService) DeleteTask(id int64) (err error) {
 	ts.mu.Lock()
 	defer ts.mu.Unlock()
 	_, ok := ts.tasks[id]
 	if !ok {
-		return fmt.Errorf("task not found with id: %s", id)
+		return fmt.Errorf("task not found with id: %d", id)
 	}
 
 	delete(ts.tasks, id)
 	return nil
 }
 
-func (ts *TaskService) TransitionTask(id string, newState tasks.TaskState) (err error) {
+func (ts *TaskService) TransitionTask(id int64, newState tasks.TaskState) (err error) {
 	// in here we'll manage changing state
 	ts.mu.Lock()
 	defer ts.mu.Unlock()
 	task, ok := ts.tasks[id]
 	if !ok {
-		return fmt.Errorf("Task not found with the id: %s", id)
+		return fmt.Errorf("Task not found with the id: %d", id)
 	}
 
 	err = ts.StateMachine.Transition(task, newState)
 	ts.Hub.PublishStateChange(task)
 
 	if err != nil {
-		return fmt.Errorf("transition failed for task %s with error: %w", task.Id(), err)
+		return fmt.Errorf("transition failed for task %d with error: %w", task.Id(), err)
 	}
 
 	err = ts.StateManager.ExecuteAction(newState, task)

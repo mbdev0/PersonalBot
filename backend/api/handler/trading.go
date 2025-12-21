@@ -7,8 +7,7 @@ import (
 	"pump_fun/api/controller"
 	"pump_fun/api/dto"
 	"pump_fun/pkg/logger"
-
-	"github.com/google/uuid"
+	"strconv"
 )
 
 type TradingHandler struct {
@@ -64,13 +63,19 @@ func (th *TradingHandler) createTask(w http.ResponseWriter, r *http.Request) {
 func (th *TradingHandler) getTaskById(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
 	if id == "" {
-		http.Error(w, fmt.Errorf("invalid id string passed").Error(), http.StatusBadRequest)
+		http.Error(w, fmt.Errorf("invalid id passed").Error(), http.StatusBadRequest)
+		return
+	}
+
+	convertedId, err := strconv.Atoi(id)
+	if err != nil {
+		http.Error(w, fmt.Errorf("invalid id passed").Error(), http.StatusBadRequest)
 		return
 	}
 
 	//we have the id
 	//we want to talk to strategyController to get the task relating to the id
-	task, err := th.strategyController.GetBy(id)
+	task, err := th.strategyController.GetBy(int64(convertedId))
 
 	//if not found we will return not found
 	if err != nil {
@@ -105,19 +110,24 @@ func (th *TradingHandler) getTasks(w http.ResponseWriter, r *http.Request) {
 func (th *TradingHandler) updateTask(w http.ResponseWriter, r *http.Request) {
 	//we extract id from the path
 	id := r.PathValue("id")
+	convertedId, err := strconv.Atoi(id)
+	if err != nil {
+		http.Error(w, fmt.Errorf("invalid id passed").Error(), http.StatusBadRequest)
+		return
+	}
 
 	// we need to get the new task
 	decoder := json.NewDecoder(r.Body)
 	decoder.DisallowUnknownFields()
 	var reqTask dto.TradingTaskPatch
-	err := decoder.Decode(&reqTask)
+	err = decoder.Decode(&reqTask)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	//we pass id into strategyController + new task -> we should be returned the updated task
-	updatedTask, err := th.strategyController.Update(r.Context(), id, reqTask)
+	updatedTask, err := th.strategyController.Update(r.Context(), int64(convertedId), reqTask)
 
 	if err != nil {
 		logger.Error("Error whilst updating task with id: " + id + " error: " + err.Error())
@@ -136,7 +146,12 @@ func (th *TradingHandler) updateTask(w http.ResponseWriter, r *http.Request) {
 
 func (th *TradingHandler) deleteTask(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
-	err := th.strategyController.Delete(id)
+	convertedId, err := strconv.Atoi(id)
+	if err != nil {
+		http.Error(w, fmt.Errorf("invalid id passed").Error(), http.StatusBadRequest)
+		return
+	}
+	err = th.strategyController.Delete(int64(convertedId))
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
@@ -148,13 +163,13 @@ func (th *TradingHandler) deleteTask(w http.ResponseWriter, r *http.Request) {
 
 func (th *TradingHandler) startTask(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
-	err := uuid.Validate(id)
+	convertedId, err := strconv.Atoi(id)
 	if err != nil {
-		http.Error(w, "parameter value for id is not a valid uuid", http.StatusBadRequest)
+		http.Error(w, fmt.Errorf("invalid id passed").Error(), http.StatusBadRequest)
 		return
 	}
 
-	err = th.strategyController.Start(id)
+	err = th.strategyController.Start(int64(convertedId))
 	if err != nil {
 		http.Error(w, fmt.Sprintf("error whilst starting task: %v", err), http.StatusInternalServerError)
 		return
@@ -165,13 +180,13 @@ func (th *TradingHandler) startTask(w http.ResponseWriter, r *http.Request) {
 
 func (th *TradingHandler) stopTask(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
-	err := uuid.Validate(id)
+	convertedId, err := strconv.Atoi(id)
 	if err != nil {
-		http.Error(w, "parameter value for id is not a valid uuid", http.StatusBadRequest)
+		http.Error(w, fmt.Errorf("invalid id passed").Error(), http.StatusBadRequest)
 		return
 	}
 
-	err = th.strategyController.Stop(id)
+	err = th.strategyController.Stop(int64(convertedId))
 	if err != nil {
 		http.Error(w, fmt.Sprintf("error whilst stopping task: %v", err), http.StatusInternalServerError)
 		return

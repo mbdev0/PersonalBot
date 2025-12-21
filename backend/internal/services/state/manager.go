@@ -11,12 +11,12 @@ import (
 
 type Manager struct {
 	executor *transaction.Executor
-	running  map[string]context.CancelFunc
+	running  map[int64]context.CancelFunc
 	mu       *sync.Mutex
 }
 
 func (m *Manager) New(subhub *subscriptionhub.Hub, executor *transaction.Executor) {
-	m.running = map[string]context.CancelFunc{}
+	m.running = map[int64]context.CancelFunc{}
 	m.executor = executor
 	m.mu = &sync.Mutex{}
 }
@@ -32,7 +32,7 @@ func (m *Manager) ExecuteAction(state tasks.TaskState, task tasks.Task) error {
 			return err
 		}
 	default:
-		return fmt.Errorf("could not find action for task: %s with state: %s", task.Id(), task.State().TaskState.ToString())
+		return fmt.Errorf("could not find action for task: %d with state: %s", task.Id(), task.State().TaskState.ToString())
 	}
 	return nil
 }
@@ -77,7 +77,7 @@ func (m *Manager) cancel(task tasks.Task) error {
 	cancel, ok := m.running[task.Id()]
 
 	if !ok {
-		return fmt.Errorf("there is no task running with id: %s", task.Id())
+		return fmt.Errorf("there is no task running with id: %d", task.Id())
 	}
 
 	cancel()

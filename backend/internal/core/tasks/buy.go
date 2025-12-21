@@ -2,16 +2,16 @@ package tasks
 
 import (
 	"math/big"
+	"pump_fun/app/iterable"
 	"pump_fun/internal/core/models/wallets"
 	"sync"
 
 	"github.com/gagliardetto/solana-go"
-	"github.com/google/uuid"
 )
 
 type BuyTask struct {
 	taskType     string
-	id           string
+	id           int64
 	WalletName   string
 	Wallet       solana.PrivateKey `validate:"required"`
 	Token        solana.PublicKey  `validate:"required"`
@@ -26,7 +26,7 @@ type BuyTask struct {
 func NewBuyTask(wallet wallets.SolanaWallet, token solana.PublicKey, common []Option, buyOpts []BuyOption) *BuyTask {
 	bt := &BuyTask{
 		taskType:   "Buy",
-		id:         uuid.NewString(),
+		id:         iterable.Itr.ID(),
 		WalletName: wallet.WalletName,
 		Wallet:     wallet.PrivateKey,
 		Token:      token,
@@ -45,7 +45,7 @@ func NewBuyTask(wallet wallets.SolanaWallet, token solana.PublicKey, common []Op
 	return bt
 }
 
-func (bt *BuyTask) Id() string {
+func (bt *BuyTask) Id() int64 {
 	return bt.id
 }
 

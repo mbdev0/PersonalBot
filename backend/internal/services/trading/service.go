@@ -9,15 +9,15 @@ import (
 
 type Service struct {
 	strategy *Strategy
-	tasks    map[string]strategies.Task
-	running  map[string]context.CancelFunc
+	tasks    map[int64]strategies.Task
+	running  map[int64]context.CancelFunc
 	mu       *sync.Mutex
 }
 
 func (s *Service) NewTradingService(strat *Strategy) {
 	s.strategy = strat
-	s.tasks = map[string]strategies.Task{}
-	s.running = map[string]context.CancelFunc{}
+	s.tasks = map[int64]strategies.Task{}
+	s.running = map[int64]context.CancelFunc{}
 	s.mu = &sync.Mutex{}
 }
 
@@ -26,18 +26,18 @@ func (s *Service) Create(st strategies.Task) (task strategies.Task, err error) {
 	defer s.mu.Unlock()
 
 	if _, ok := s.tasks[st.StrategyTaskId()]; ok {
-		return nil, fmt.Errorf("task already exists with id: %s", st.StrategyTaskId())
+		return nil, fmt.Errorf("task already exists with id: %d", st.StrategyTaskId())
 	}
 
 	s.tasks[st.StrategyTaskId()] = st
 	return st, nil
 }
 
-func (s *Service) Delete(id string) error {
+func (s *Service) Delete(id int64) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if _, ok := s.tasks[id]; !ok {
-		return fmt.Errorf("task not found with id: %s", id)
+		return fmt.Errorf("task not found with id: %d", id)
 	}
 
 	taskCancel, ok := s.running[id]
@@ -50,13 +50,13 @@ func (s *Service) Delete(id string) error {
 
 }
 
-func (s *Service) GetBy(id string) (strategies.Task, error) {
+func (s *Service) GetBy(id int64) (strategies.Task, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
 	task, ok := s.tasks[id]
 	if !ok {
-		return nil, fmt.Errorf("task not found with id: %s", id)
+		return nil, fmt.Errorf("task not found with id: %d", id)
 	}
 
 	return task, nil
@@ -86,15 +86,15 @@ func (s *Service) Update(task strategies.Task, patch strategies.Patch) (strategi
 	return task, nil
 }
 
-func (s *Service) Start(id string) error {
+func (s *Service) Start(id int64) error {
 	task, ok := s.tasks[id]
 	if !ok {
-		return fmt.Errorf("task not found with id: %s", id)
+		return fmt.Errorf("task not found with id: %d", id)
 	}
 
 	_, isRunning := s.running[id]
 	if isRunning {
-		return fmt.Errorf("task is already running %s", id)
+		return fmt.Errorf("task is already running %d", id)
 	}
 
 	ctxCancel, cancel := context.WithCancel(context.Background())
@@ -112,19 +112,19 @@ func (s *Service) Start(id string) error {
 	return nil
 }
 
-func (s *Service) Stop(id string) error {
+func (s *Service) Stop(id int64) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
 	// this will call a tasks cancel
 	task, ok := s.tasks[id]
 	if !ok {
-		return fmt.Errorf("task not found with id: %s", id)
+		return fmt.Errorf("task not found with id: %d", id)
 	}
 
 	taskCancel, ok := s.running[id]
 	if !ok {
-		return fmt.Errorf("task not running with id: %s", id)
+		return fmt.Errorf("task not running with id: %d", id)
 	}
 
 	taskCancel()

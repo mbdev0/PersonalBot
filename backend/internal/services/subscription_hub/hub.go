@@ -10,16 +10,16 @@ import (
 
 type Hub struct {
 	//id -> {subscription chan, cancel func}
-	subscriptions map[string]Subscription
+	subscriptions map[int64]Subscription
 	// id -> {task event}
-	last       map[string]tasks.TaskEvent
+	last       map[int64]tasks.TaskEvent
 	mu         *sync.RWMutex
 	bufferSize int
 }
 
 func (h *Hub) New() {
-	h.subscriptions = map[string]Subscription{}
-	h.last = map[string]tasks.TaskEvent{}
+	h.subscriptions = map[int64]Subscription{}
+	h.last = map[int64]tasks.TaskEvent{}
 	h.mu = &sync.RWMutex{}
 	h.bufferSize = 1000
 }
@@ -30,7 +30,7 @@ func (h *Hub) Subscribe(task tasks.Task) (*Subscription, error) {
 
 	// if there is an existing subscription, return an error -> we don't want multiple subs per task
 	if _, ok := h.subscriptions[task.Id()]; ok {
-		return nil, fmt.Errorf("an existing subscription is attatched to task: %s", task.Id())
+		return nil, fmt.Errorf("an existing subscription is attatched to task: %d", task.Id())
 	}
 
 	subChan := make(chan tasks.TaskEvent, h.bufferSize)
@@ -47,7 +47,7 @@ func (h *Hub) Subscribe(task tasks.Task) (*Subscription, error) {
 	}
 
 	if !ok {
-		return nil, fmt.Errorf("error whilst making the subscription for task id: %s", task.Id())
+		return nil, fmt.Errorf("error whilst making the subscription for task id: %d", task.Id())
 	}
 
 	return &sub, nil

@@ -1,7 +1,7 @@
 package dto
 
 type PositionDto struct {
-	PositionId         string `json:"position_id"`
+	PositionId         int64  `json:"position_id"`
 	TokenAddress       string `json:"token_address"`
 	WalletAddress      string `json:"wallet_address"`
 	InitialTokenAmount string `json:"initial_token_amount"`
