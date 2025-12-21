@@ -1,7 +1,7 @@
 package tasks
 
 type TaskEvent struct {
-	TaskId    string
+	TaskId    int64
 	State     State
 	Time      string
 	Message   string

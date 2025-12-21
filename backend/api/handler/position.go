@@ -10,6 +10,7 @@ import (
 	"pump_fun/api/dto"
 	"pump_fun/internal/services/subscription_hub/position"
 	"pump_fun/pkg/logger"
+	"strconv"
 
 	"github.com/coder/websocket"
 	"github.com/coder/websocket/wsjson"
@@ -36,11 +37,18 @@ func (ph *PositionHandler) registerRoutes(mux *http.ServeMux) {
 func (ph *PositionHandler) getPositionById(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
 	if id == "" {
-		http.Error(w, fmt.Errorf("invalid id string passed").Error(), http.StatusBadRequest)
+		http.Error(w, fmt.Errorf("invalid id passed").Error(), http.StatusBadRequest)
 		return
 	}
 
-	position, err := ph.controller.GetBy(id)
+	convertedId, err := strconv.Atoi(id)
+	if err != nil {
+		http.Error(w, fmt.Errorf("invalid id passed").Error(), http.StatusBadRequest)
+		return
+
+	}
+
+	position, err := ph.controller.GetBy(int64(convertedId))
 
 	//if not found we will return not found
 	if err != nil {

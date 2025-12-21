@@ -7,7 +7,7 @@ import (
 )
 
 type Position struct {
-	PositionId          string
+	PositionId          int64
 	TokenAddress        solana.PublicKey
 	WalletAddress       solana.PublicKey
 	InitialTokenAmount  *big.Float
@@ -21,7 +21,7 @@ type Position struct {
 // we keep floats as strings to preserve some sort of accuracy
 type PositionMessage struct {
 	MessageType         MessageType `json:"message_type"`
-	BuyTaskId           string      `json:"buy_task_id"`
+	BuyTaskId           int64       `json:"buy_task_id"`
 	UnrealizedProfit    *big.Float  `json:"unrealized_profit"`
 	RealizedProfit      *big.Float  `json:"realized_profit"`
 	TotalPnL            *big.Float  `json:"total_pnl"`

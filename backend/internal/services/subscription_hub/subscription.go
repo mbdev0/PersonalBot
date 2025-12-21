@@ -3,12 +3,12 @@ package subscriptionhub
 import "pump_fun/internal/core/tasks"
 
 type Subscription struct {
-	taskId        string
+	taskId        int64
 	taskEventChan chan tasks.TaskEvent
 	cancel        func()
 }
 
-func (s *Subscription) Id() string {
+func (s *Subscription) Id() int64 {
 	return s.taskId
 }
 

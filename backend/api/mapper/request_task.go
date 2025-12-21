@@ -80,7 +80,7 @@ func createSellTask(reqTask *dto.RequestTask, wallet wallets.SolanaWallet) (task
 	}
 
 	if reqTask.SellPositionId != nil {
-		positionOpt := tasks.WithSellPositionId(*reqTask.SellPositionId)
+		positionOpt := tasks.WithSellPositionId(reqTask.SellPositionId)
 		sellOptions = append(sellOptions, positionOpt)
 	}
 

@@ -29,6 +29,6 @@ func WithSellFee(fee float64) SellOption {
 	return func(t *SellTask) { t.mu.Lock(); defer t.mu.Unlock(); t.Fee = fee }
 }
 
-func WithSellPositionId(id string) SellOption {
+func WithSellPositionId(id *int64) SellOption {
 	return func(t *SellTask) { t.mu.Lock(); defer t.mu.Unlock(); t.Position_id = id }
 }

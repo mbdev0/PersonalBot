@@ -218,8 +218,8 @@ func getAllInstructionsForSell(sellTask *tasks.SellTask, ctx context.Context, ps
 	// else we retrieve the positonId
 
 	var pos *positionmodel.Position
-	if sellTask.Position_id != "" {
-		position, err := ps.GetById(sellTask.Position_id)
+	if sellTask.Position_id != nil {
+		position, err := ps.GetById(*sellTask.Position_id)
 		if err != nil {
 			return nil, err
 		}

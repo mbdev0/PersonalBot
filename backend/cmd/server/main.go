@@ -21,17 +21,17 @@ import (
 )
 
 func main() {
+	db, err := persistence.NewConnection()
+	if err != nil {
+		panic(err)
+	}
+
 	app.Launch()
 
 	//TODO: move the init of api's into launch and return one mux back
 	fsm := state.Machine{}
 	taskSubhub := subscriptionhub.Hub{}
 	taskSubhub.New()
-
-	db, err := persistence.NewConnection()
-	if err != nil {
-		panic(err)
-	}
 
 	posSubhub := positionhub.NewSubscriptionHub()
 	positionService := position.NewPositionService(&posSubhub)

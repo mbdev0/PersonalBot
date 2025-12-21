@@ -100,7 +100,7 @@ func (e *Executor) transitionAndPublishTask(t tasks.Task, err error) {
 
 func (e *Executor) handlePositionOnSell(task tasks.Task, ctx context.Context) {
 	st, ok := task.(*tasks.SellTask)
-	if !ok || st.Position_id != "" {
+	if !ok || st.Position_id != nil {
 		return
 	}
 
@@ -149,14 +149,14 @@ func (e *Executor) handleSellTaskReporting(t *tasks.SellTask, tokenAmount float6
 	tokensSold := new(big.Float).SetFloat64(tokenAmount)
 	solReceived := new(big.Float).SetFloat64(solAmount)
 
-	if t.Position_id == "" {
+	if t.Position_id == nil {
 		pos, _ := e.positionService.FindPositionIfExists(t.Token, t.Wallet.PublicKey())
 		err := e.positionService.ReportSell(pos.PositionId, tokensSold, solReceived)
 		if err != nil {
 			return err
 		}
 	} else {
-		err := e.positionService.ReportSell(t.Position_id, tokensSold, solReceived)
+		err := e.positionService.ReportSell(*t.Position_id, tokensSold, solReceived)
 		if err != nil {
 			return err
 		}

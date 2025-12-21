@@ -12,14 +12,14 @@ import (
 )
 
 type Service struct {
-	positions map[string]*position.Position
+	positions map[int64]*position.Position
 	mu        *sync.Mutex
 	subhub    *position_hub.SubscriptionHub
 }
 
 func NewPositionService(subhub *position_hub.SubscriptionHub) Service {
 	return Service{
-		positions: map[string]*position.Position{},
+		positions: map[int64]*position.Position{},
 		mu:        &sync.Mutex{},
 		subhub:    subhub,
 	}
@@ -35,7 +35,7 @@ func (s *Service) FindPositionIfExists(token solana.PublicKey, walletAddress sol
 	return nil, false
 }
 
-func (s *Service) ReportBuy(ctx context.Context, buytaskid string, tokenaddress solana.PublicKey, walletAddress solana.PublicKey, tokenAmount *big.Float, solSpent *big.Float) {
+func (s *Service) ReportBuy(ctx context.Context, buytaskid int64, tokenaddress solana.PublicKey, walletAddress solana.PublicKey, tokenAmount *big.Float, solSpent *big.Float) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -59,13 +59,13 @@ func (s *Service) ReportBuy(ctx context.Context, buytaskid string, tokenaddress 
 	s.subhub.PublishPositionCreate(&newPosition, ctx)
 }
 
-func (s *Service) ReportSell(buyTaskId string, tokensSold *big.Float, solRecieved *big.Float) error {
+func (s *Service) ReportSell(buyTaskId int64, tokensSold *big.Float, solRecieved *big.Float) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
 	pos, ok := s.positions[buyTaskId]
 	if !ok {
-		return fmt.Errorf("position not found with id: %s", buyTaskId)
+		return fmt.Errorf("position not found with id: %d", buyTaskId)
 	}
 
 	if pos.TokenRemaining.Cmp(tokensSold) == -1 {
@@ -102,10 +102,10 @@ func (s *Service) ReportSell(buyTaskId string, tokensSold *big.Float, solRecieve
 	return nil
 }
 
-func (s *Service) GetById(id string) (*position.Position, error) {
+func (s *Service) GetById(id int64) (*position.Position, error) {
 	pos, ok := s.positions[id]
 	if !ok {
-		return nil, fmt.Errorf("position not found with id %s", id)
+		return nil, fmt.Errorf("position not found with id %d", id)
 	}
 
 	return pos, nil
@@ -123,7 +123,7 @@ func (s *Service) GetAll() []position.Position {
 	return allPos
 }
 
-func (s *Service) Subscribe(id string, isInternalSub bool) (*position_hub.Subscription, error) {
+func (s *Service) Subscribe(id int64, isInternalSub bool) (*position_hub.Subscription, error) {
 	sub, err := s.subhub.Subscribe(id, isInternalSub)
 	if err != nil {
 		return nil, err
@@ -132,7 +132,7 @@ func (s *Service) Subscribe(id string, isInternalSub bool) (*position_hub.Subscr
 	return sub, nil
 }
 
-func (s *Service) Unsubscribe(id string, isInternalSub bool) error {
+func (s *Service) Unsubscribe(id int64, isInternalSub bool) error {
 	err := s.subhub.Unsubscribe(id, isInternalSub)
 	if err != nil {
 		return err

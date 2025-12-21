@@ -1,7 +1,7 @@
 package tasks
 
 type Task interface {
-	Id() string
+	Id() int64
 	SetState(State)
 	Type() string
 	State() State

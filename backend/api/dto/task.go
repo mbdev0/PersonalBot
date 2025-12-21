@@ -21,11 +21,11 @@ type RequestTask struct {
 	BuyFee            *float64        `json:"buy_fee,omitempty"`
 	SellAmount        *float64        `json:"sell_amount,omitempty"`
 	SellFee           *float64        `json:"sell_fee,omitempty"`
-	SellPositionId    *string         `json:"sell_position_id,omitempty"`
+	SellPositionId    *int64          `json:"sell_position_id,omitempty"`
 }
 
 type ResponseTask struct {
-	TaskId            string   `json:"task_id"`
+	TaskId            int64    `json:"task_id"`
 	Type              string   `json:"type"`
 	Slippage          float64  `json:"slippage"`
 	ComputeUnits      uint32   `json:"compute_units"`
@@ -36,7 +36,7 @@ type ResponseTask struct {
 	BuyFee            *float64 `json:"buy_fee,omitempty"`    //TODO: make these a string and convert to sol rather lamport
 	SellAmount        *float64 `json:"sell_amount,omitempty"`
 	SellFee           *float64 `json:"sell_fee,omitempty"`
-	SellPositionId    *string  `json:"sell_position_id,omitempty"`
+	SellPositionId    *int64   `json:"sell_position_id,omitempty"`
 	State             State    `json:"state"`
 }
 

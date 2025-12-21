@@ -10,6 +10,7 @@ import (
 	"pump_fun/internal/core/tasks"
 	subscriptionhub "pump_fun/internal/services/subscription_hub"
 	"pump_fun/pkg/logger"
+	"strconv"
 
 	"github.com/coder/websocket"
 	"github.com/coder/websocket/wsjson"
@@ -75,9 +76,16 @@ func (th *TaskHandler) getTaskById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	convertedId, err := strconv.Atoi(id)
+	if err != nil {
+		http.Error(w, fmt.Errorf("invalid id passed").Error(), http.StatusBadRequest)
+		return
+
+	}
+
 	//we have the id
 	//we want to talk to controller to get the task relating to the id
-	task, err := th.controller.GetTask(id)
+	task, err := th.controller.GetTask(int64(convertedId))
 
 	//if not found we will return not found
 	if err != nil {
@@ -113,18 +121,24 @@ func (th *TaskHandler) updateTask(w http.ResponseWriter, r *http.Request) {
 	//we extract id from the path
 	id := r.PathValue("id")
 
+	convertedId, err := strconv.Atoi(id)
+	if err != nil {
+		http.Error(w, fmt.Errorf("invalid id passed").Error(), http.StatusBadRequest)
+		return
+	}
+
 	// we need to get the new task
 	decoder := json.NewDecoder(r.Body)
 	decoder.DisallowUnknownFields()
 	var reqTask dto.PatchRequestTask
-	err := decoder.Decode(&reqTask)
+	err = decoder.Decode(&reqTask)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	//we pass id into controller + new task -> we should be returned the updated task
-	updatedTask, err := th.controller.UpdateTask(r.Context(), id, reqTask)
+	updatedTask, err := th.controller.UpdateTask(r.Context(), int64(convertedId), reqTask)
 
 	if err != nil {
 		logger.Error("Error whilst updating task with id: " + id + " error: " + err.Error())
@@ -143,7 +157,14 @@ func (th *TaskHandler) updateTask(w http.ResponseWriter, r *http.Request) {
 
 func (th *TaskHandler) deleteTask(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
-	err := th.controller.DeleteTask(id)
+
+	convertedId, err := strconv.Atoi(id)
+	if err != nil {
+		http.Error(w, fmt.Errorf("invalid id passed").Error(), http.StatusBadRequest)
+		return
+	}
+
+	err = th.controller.DeleteTask(int64(convertedId))
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
@@ -159,14 +180,18 @@ func (th *TaskHandler) transitionTask(w http.ResponseWriter, r *http.Request) {
 
 	var transition dto.RequestTransitionTask
 	err := decoder.Decode(&transition)
-
-	id := r.PathValue("id")
-
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
 	}
 
-	err = th.controller.TransitionTask(id, transition.State)
+	id := r.PathValue("id")
+	convertedId, err := strconv.Atoi(id)
+	if err != nil {
+		http.Error(w, fmt.Errorf("invalid id passed").Error(), http.StatusBadRequest)
+		return
+	}
+
+	err = th.controller.TransitionTask(int64(convertedId), transition.State)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}

@@ -194,7 +194,7 @@ func (s *Strategy) createAndRunSellTask(afkTask strategies.Afk, pos *position.Po
 		[]tasks.SellOption{
 			tasks.WithSellAmount(sellAmount),
 			tasks.WithSellFee(afkTask.SellFee),
-			tasks.WithSellPositionId(pos.PositionId),
+			tasks.WithSellPositionId(&pos.PositionId),
 		},
 	))
 

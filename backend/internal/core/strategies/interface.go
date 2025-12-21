@@ -1,6 +1,6 @@
 package strategies
 
 type Task interface {
-	StrategyTaskId() string
+	StrategyTaskId() int64
 	StrategyType() TradingType
 }

@@ -24,7 +24,7 @@ func (pc *PositionController) GetAll() []dto.PositionDto {
 }
 
 // no need to return a pointer since we're not copying/editing the values
-func (pc *PositionController) GetBy(id string) (dto.PositionDto, error) {
+func (pc *PositionController) GetBy(id int64) (dto.PositionDto, error) {
 	position, err := pc.PositionService.GetById(id)
 	if err != nil {
 		return dto.PositionDto{}, err
@@ -34,7 +34,7 @@ func (pc *PositionController) GetBy(id string) (dto.PositionDto, error) {
 	return mappedPosition, nil
 }
 
-func (pc *PositionController) Subscribe(id string, isInternalSub bool) (*positionHub.Subscription, error) {
+func (pc *PositionController) Subscribe(id int64, isInternalSub bool) (*positionHub.Subscription, error) {
 	sub, err := pc.PositionService.Subscribe(id, isInternalSub)
 	if err != nil {
 		return nil, err
@@ -43,7 +43,7 @@ func (pc *PositionController) Subscribe(id string, isInternalSub bool) (*positio
 	return sub, nil
 }
 
-func (pc *PositionController) Unsubscribe(id string, isInternalSub bool) error {
+func (pc *PositionController) Unsubscribe(id int64, isInternalSub bool) error {
 	err := pc.PositionService.Unsubscribe(id, isInternalSub)
 	if err != nil {
 		return err

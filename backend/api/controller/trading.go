@@ -43,7 +43,7 @@ func (sc *StrategyController) Create(ctx context.Context, task dto.TradingTask) 
 	return resp, nil
 }
 
-func (sc *StrategyController) Delete(id string) error {
+func (sc *StrategyController) Delete(id int64) error {
 	err := sc.strategyService.Delete(id)
 	if err != nil {
 		return err
@@ -51,7 +51,7 @@ func (sc *StrategyController) Delete(id string) error {
 	return nil
 }
 
-func (sc *StrategyController) GetBy(id string) (*dto.TradingTaskResponse, error) {
+func (sc *StrategyController) GetBy(id int64) (*dto.TradingTaskResponse, error) {
 	task, err := sc.strategyService.GetBy(id)
 	if err != nil {
 		return nil, err
@@ -79,10 +79,10 @@ func (sc *StrategyController) GetAll() ([]dto.TradingTaskResponse, error) {
 	return responseAllTasks, nil
 }
 
-func (sc *StrategyController) Update(ctx context.Context, id string, tsk dto.TradingTaskPatch) (*dto.TradingTaskResponse, error) {
+func (sc *StrategyController) Update(ctx context.Context, id int64, tsk dto.TradingTaskPatch) (*dto.TradingTaskResponse, error) {
 	task, err := sc.strategyService.GetBy(id)
 	if err != nil {
-		return nil, fmt.Errorf("task not found with the id %s", id)
+		return nil, fmt.Errorf("task not found with the id %d", id)
 	}
 
 	//if the user has passed in a wallet into the patch - we will get it
@@ -117,7 +117,7 @@ func (sc *StrategyController) Update(ctx context.Context, id string, tsk dto.Tra
 	return mappedResp, nil
 }
 
-func (sc *StrategyController) Start(id string) error {
+func (sc *StrategyController) Start(id int64) error {
 	err := sc.strategyService.Start(id)
 	if err != nil {
 		return err
@@ -125,7 +125,7 @@ func (sc *StrategyController) Start(id string) error {
 	return nil
 }
 
-func (sc *StrategyController) Stop(id string) error {
+func (sc *StrategyController) Stop(id int64) error {
 	err := sc.strategyService.Stop(id)
 	if err != nil {
 		return err

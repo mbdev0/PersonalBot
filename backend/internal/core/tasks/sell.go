@@ -1,17 +1,17 @@
 package tasks
 
 import (
+	"pump_fun/app/iterable"
 	"pump_fun/internal/core/models/wallets"
 	"sync"
 
 	"github.com/gagliardetto/solana-go"
-	"github.com/google/uuid"
 )
 
 type SellTask struct {
 	taskType       string
-	id             string
-	Position_id    string
+	id             int64
+	Position_id    *int64
 	WalletName     string
 	Wallet         solana.PrivateKey
 	Token          solana.PublicKey
@@ -26,7 +26,7 @@ type SellTask struct {
 func NewSellTask(wallet wallets.SolanaWallet, token solana.PublicKey, common []Option, sellOpt []SellOption) *SellTask {
 
 	st := &SellTask{
-		id:         uuid.NewString(),
+		id:         iterable.Itr.ID(),
 		taskType:   "Sell",
 		state:      State{TaskState: TaskCreate},
 		WalletName: wallet.WalletName,
@@ -47,7 +47,7 @@ func NewSellTask(wallet wallets.SolanaWallet, token solana.PublicKey, common []O
 }
 
 func (st *SellTask) State() State { st.mu.RLock(); defer st.mu.RUnlock(); return st.state }
-func (st *SellTask) Id() string   { return st.id }
+func (st *SellTask) Id() int64    { return st.id }
 func (st *SellTask) Type() string { return st.taskType }
 
 func (st *SellTask) SetComputeUnit(cu uint32)     { st.ComputeUnits = cu }

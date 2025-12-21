@@ -45,7 +45,7 @@ func (tc *TaskController) CreateTask(ctx context.Context, requestTask dto.Reques
 	return response, nil
 }
 
-func (tc *TaskController) GetTask(id string) (*dto.ResponseTask, error) {
+func (tc *TaskController) GetTask(id int64) (*dto.ResponseTask, error) {
 	task, err := tc.TaskService.GetTaskWith(id)
 	if err != nil {
 		return nil, err
@@ -74,7 +74,7 @@ func (tc *TaskController) GetAllTasks() ([]dto.ResponseTask, error) {
 	return response, nil
 }
 
-func (tc *TaskController) UpdateTask(ctx context.Context, id string, reqTask dto.PatchRequestTask) (*dto.ResponseTask, error) {
+func (tc *TaskController) UpdateTask(ctx context.Context, id int64, reqTask dto.PatchRequestTask) (*dto.ResponseTask, error) {
 	// we call update with => id + newTask
 
 	task, err := tc.TaskService.GetTaskWith(id)
@@ -108,7 +108,7 @@ func (tc *TaskController) UpdateTask(ctx context.Context, id string, reqTask dto
 	return mappedUpdatedTask, nil
 }
 
-func (tc *TaskController) DeleteTask(id string) (err error) {
+func (tc *TaskController) DeleteTask(id int64) (err error) {
 	err = tc.TaskService.DeleteTask(id)
 	if err != nil {
 		return err
@@ -117,7 +117,7 @@ func (tc *TaskController) DeleteTask(id string) (err error) {
 	return nil
 }
 
-func (tc *TaskController) TransitionTask(id string, newState string) (err error) {
+func (tc *TaskController) TransitionTask(id int64, newState string) (err error) {
 	state, err := tasks.ParseStateString(newState)
 	if err != nil {
 		return err
@@ -131,7 +131,7 @@ func (tc *TaskController) TransitionTask(id string, newState string) (err error)
 	return nil
 }
 
-func (tc *TaskController) Subscribe(id string) (*subscriptionhub.Subscription, error) {
+func (tc *TaskController) Subscribe(id int64) (*subscriptionhub.Subscription, error) {
 	task, err := tc.TaskService.GetTaskWith(id)
 	if err != nil {
 		return nil, err
@@ -144,7 +144,7 @@ func (tc *TaskController) Subscribe(id string) (*subscriptionhub.Subscription, e
 	return c, nil
 }
 
-func (tc *TaskController) Unsubcribe(id string) error {
+func (tc *TaskController) Unsubcribe(id int64) error {
 	task, err := tc.TaskService.GetTaskWith(id)
 	if err != nil {
 		return err

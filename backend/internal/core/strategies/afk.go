@@ -2,16 +2,15 @@ package strategies
 
 import (
 	"math/big"
+	"pump_fun/app/iterable"
 	"pump_fun/internal/core/models/wallets"
 	"pump_fun/internal/monitoring/filters"
-
-	"github.com/google/uuid"
 )
 
 type StrategyFilter func() filters.FilterInfo
 
 type Afk struct {
-	id             string
+	id             int64
 	strategyType   TradingType
 	Filters        []StrategyFilter
 	BuyAmount      *big.Int
@@ -24,11 +23,11 @@ type Afk struct {
 }
 
 func (a *Afk) New() {
-	a.id = uuid.NewString()
+	a.id = iterable.Itr.ID()
 	a.strategyType = AFK
 }
 
-func (a *Afk) StrategyTaskId() string {
+func (a *Afk) StrategyTaskId() int64 {
 	return a.id
 }
 
