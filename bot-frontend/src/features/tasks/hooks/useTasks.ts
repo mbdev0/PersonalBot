@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getTasks, postTask } from "../api/tasks";
-import type { Task, TaskPost } from "../types/task";
+import { deleteTask, getTasks, postTask, putTask, transitionTask } from "../api/tasks";
+import type { Task, TaskAction, TaskPost, TaskPut } from "../types/task";
 
 export function useTasks(){
   return useQuery(
@@ -11,7 +11,7 @@ export function useTasks(){
   )
 }
 
-export function postTasksMutation(){
+export function useAddTask(){
   const client = useQueryClient();
 
   return useMutation({
@@ -19,5 +19,34 @@ export function postTasksMutation(){
     onSuccess() {
       client.invalidateQueries({queryKey: ['tasks']})
     }
+  })
+}
+
+export function useUpdateTask(){
+  const client = useQueryClient();
+
+  return useMutation({
+    mutationFn: (task: TaskPut) => putTask(task),
+    onSuccess() {
+      client.invalidateQueries({queryKey: ['tasks']})
+    }
+  }
+  )
+}
+
+export function useDeleteTask(){
+  const client = useQueryClient()
+
+  return useMutation({
+    mutationFn: (id: number) => deleteTask(id),
+    onSuccess() {
+      client.invalidateQueries({queryKey:['tasks']})
+    }
+  })
+}
+
+export function useTransitionTask(){
+  return useMutation({
+    mutationFn: ({id, taskAction} : {id: number, taskAction: TaskAction}) => transitionTask(id, taskAction)
   })
 }
