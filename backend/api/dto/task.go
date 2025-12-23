@@ -32,8 +32,8 @@ type ResponseTask struct {
 	WalletAddressName string   `json:"wallet_name"`
 	WalletPublicKey   string   `json:"wallet_address"`
 	TokenAddress      string   `json:"token_address"`
-	BuyAmount         *float64 `json:"buy_amount,omitempty"` //TODO: make these a string and convert to sol rather lamport
-	BuyFee            *float64 `json:"buy_fee,omitempty"`    //TODO: make these a string and convert to sol rather lamport
+	BuyAmount         *float64 `json:"buy_amount,omitempty"`
+	BuyFee            *float64 `json:"buy_fee,omitempty"`
 	SellAmount        *float64 `json:"sell_amount,omitempty"`
 	SellFee           *float64 `json:"sell_fee,omitempty"`
 	SellPositionId    *int64   `json:"sell_position_id,omitempty"`

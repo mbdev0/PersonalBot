@@ -31,7 +31,7 @@ func NewTaskHandler(controller *controller.TaskController) http.Handler {
 }
 
 func (th *TaskHandler) registerRoutes(mux *http.ServeMux) {
-	mux.HandleFunc("POST /create", th.createTask)
+	mux.HandleFunc("POST /task", th.createTask)
 	mux.HandleFunc("GET /test", th.Test)
 	mux.HandleFunc("GET /task/{id}", th.getTaskById)
 	mux.HandleFunc("GET /task", th.getTasks)
