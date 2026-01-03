@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"pump_fun/api/controller"
 	"pump_fun/api/dto"
+	"pump_fun/api/mapper"
 	"pump_fun/internal/services/subscription_hub/strategy"
 	"pump_fun/pkg/logger"
 	"strconv"
@@ -278,8 +279,18 @@ func (th *TradingHandler) fanIn(subscribers <-chan strategy.Subscription, wsWrit
 
 func (th *TradingHandler) readFromSub(sub strategy.Subscription, wsWriteChan chan<- dto.StrategyResponse) {
 	for msg := range sub.SubChan {
+
+		mappedTask, err := mapper.MapTaskToReponseTask(msg.Task)
+		if err != nil {
+			logger.Error("failed to map task: ", err)
+		}
+
 		strategyResponse := dto.StrategyResponse{
-			StrategyMessage: &msg,
+			StrategyMessage: dto.StrategyMessageResponse{
+				Id:    msg.Id,
+				Event: msg.Event,
+				Task:  *mappedTask,
+			},
 		}
 		select {
 		case wsWriteChan <- strategyResponse:

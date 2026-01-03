@@ -2,7 +2,6 @@ package dto
 
 import (
 	"pump_fun/internal/core/position"
-	"pump_fun/internal/core/strategies"
 	"pump_fun/internal/core/tasks"
 )
 
@@ -32,8 +31,14 @@ type StrategySubscribe struct {
 }
 
 type StrategyResponse struct {
-	StrategyMessage *strategies.StrategyMessage `json:"strategy_msg,omitempty"`
-	Error           string                      `json:"error,omitempty"`
+	StrategyMessage StrategyMessageResponse `json:"strategy_msg,omitempty"`
+	Error           string                  `json:"error,omitempty"`
+}
+
+type StrategyMessageResponse struct {
+	Id    int64        `json:"id"`
+	Event string       `json:"event"`
+	Task  ResponseTask `json:"task"`
 }
 
 type SubType string
