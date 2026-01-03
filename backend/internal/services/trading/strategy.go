@@ -92,7 +92,7 @@ func (s *Strategy) createAndRunBuyTask(coin models.Coin, afkTask *strategies.Afk
 		return nil, err
 	}
 
-	s.strategyHub.PublishTakeCreation(bt.Id(), bt)
+	s.strategyHub.PublishTakeCreation(afkTask.StrategyTaskId(), bt)
 
 	err = s.taskService.TransitionTask(bt.Id(), tasks.TaskRun)
 	if err != nil {

@@ -53,6 +53,8 @@ func (sh *SubscriptionHub) Subscribe(taskId int64) (*Subscription, error) {
 }
 
 func (sh *SubscriptionHub) Unsubscribe(taskId int64) error {
+	sh.mu.Lock()
+	defer sh.mu.Unlock()
 	if _, ok := sh.subscriptions[taskId]; !ok {
 		return fmt.Errorf("task not found for deletion: %d", taskId)
 	}
@@ -71,6 +73,9 @@ func (sh *SubscriptionHub) cancel(id int64) func() {
 }
 
 func (sh *SubscriptionHub) PublishTakeCreation(id int64, task tasks.Task) error {
+	sh.mu.Lock()
+	defer sh.mu.Unlock()
+
 	msg := strategies.StrategyMessage{
 		Id:    id,
 		Event: "TASK_CREATION",
