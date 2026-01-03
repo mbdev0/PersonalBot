@@ -2,6 +2,7 @@ package instructions
 
 import (
 	"context"
+	"fmt"
 	"pump_fun/internal/core/constants"
 	"pump_fun/internal/solana/client"
 	"pump_fun/internal/solana/programs/pumpfun/pda"
@@ -22,17 +23,25 @@ func GetIdempotentInstruction(wallet solana.PublicKey, mintAddress solana.Public
 }
 
 func getIdempotentInstructionIfExists(wallet solana.PublicKey, mintAddress solana.PublicKey, ctx context.Context) (*solana.GenericInstruction, error) {
-	associatedTokenAddressPubkey, _, err := pda.FindToken2022AssociatedTokenAddress(wallet, mintAddress)
+	var associatedTokenAddressPubkey solana.PublicKey
+	var err error
 
+	isNewTokenProgram, err := IsTokenAccountNew(mintAddress, ctx)
 	if err != nil {
 		return nil, err
+	}
+
+	if isNewTokenProgram {
+		associatedTokenAddressPubkey, _, err = pda.FindToken2022AssociatedTokenAddress(wallet, mintAddress)
+	} else {
+		associatedTokenAddressPubkey, _, err = pda.FindTokenAssociatedTokenAddress(wallet, mintAddress)
 	}
 
 	_, err = client.GetAccountInfo(associatedTokenAddressPubkey.String(), ctx)
 
 	if err != nil {
 		if err.Error() == "not found" {
-			ataInstruction, err := makeAssociatedTokenAccountInstruction(wallet, wallet, mintAddress, true)
+			ataInstruction, err := makeAssociatedTokenAccountInstruction(wallet, wallet, mintAddress, associatedTokenAddressPubkey, isNewTokenProgram)
 			if err != nil {
 				return nil, err
 			}
@@ -45,13 +54,8 @@ func getIdempotentInstructionIfExists(wallet solana.PublicKey, mintAddress solan
 	return nil, nil
 }
 
-func makeAssociatedTokenAccountInstruction(payer solana.PublicKey, walletAddress solana.PublicKey, splTokenAddress solana.PublicKey, isNewTokenProgram bool) (*solana.GenericInstruction, error) {
+func makeAssociatedTokenAccountInstruction(payer solana.PublicKey, walletAddress solana.PublicKey, splTokenAddress solana.PublicKey, associatedTokenAddressPubkey solana.PublicKey, isNewTokenProgram bool) (*solana.GenericInstruction, error) {
 	associatedTokenAccountProgram := solana.MustPublicKeyFromBase58(constants.AssociatedTokenProgram)
-
-	associatedTokenAddressPubkey, _, err := pda.FindToken2022AssociatedTokenAddress(walletAddress, splTokenAddress)
-	if err != nil {
-		return nil, err
-	}
 
 	var tokenAccount solana.PublicKey
 	if isNewTokenProgram {
@@ -78,4 +82,27 @@ func makeAssociatedTokenAccountInstruction(payer solana.PublicKey, walletAddress
 	)
 
 	return inst, nil
+}
+
+func IsTokenAccountNew(mintAddress solana.PublicKey, ctx context.Context) (bool, error) {
+	accountInfo, err := client.GetAccountInfo(mintAddress.String(), ctx)
+	if err != nil {
+		return false, err
+	}
+
+	if accountInfo.Value == nil {
+		return false, fmt.Errorf("error whilst get account info on mint address")
+	}
+
+	ownerAccount := accountInfo.Value.Owner
+
+	switch ownerAccount {
+	case solana.TokenProgramID:
+		return false, nil
+	case solana.Token2022ProgramID:
+		return true, nil
+	}
+
+	return false, fmt.Errorf("error whilst finding if token account is new")
+
 }

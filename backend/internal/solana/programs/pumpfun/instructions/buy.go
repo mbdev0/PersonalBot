@@ -9,6 +9,7 @@ import (
 	"pump_fun/internal/core/constants"
 	"pump_fun/internal/core/models"
 	"pump_fun/internal/core/tasks"
+	"pump_fun/internal/solana/instructions"
 	bondingcurve "pump_fun/internal/solana/programs/pumpfun/bonding_curve"
 	"pump_fun/internal/solana/programs/pumpfun/pda"
 	"pump_fun/internal/solana/utils"
@@ -23,6 +24,7 @@ type AccountAddressesSet struct {
 	AssociatedBondingCurveAddress string
 	AssociatedTokenAddressPubkey  solana.PublicKey
 	TokenAddress                  string
+	TokenProgram                  string
 	WalletAddress                 string
 	UserVolumeAccumulator         string
 }
@@ -60,8 +62,19 @@ func setupAccountAddressSet(buyTask *tasks.BuyTask, ctx context.Context) (Accoun
 		return *accountAddressesSet, err
 	}
 
+	isNewTokenProgram, err := instructions.IsTokenAccountNew(buyTask.Token, ctx)
+	if err != nil {
+		return *accountAddressesSet, err
+	}
+
+	if isNewTokenProgram {
+		accountAddressesSet.TokenProgram = constants.Token2022Program
+	} else {
+		accountAddressesSet.TokenProgram = constants.TokenProgram
+	}
+
 	// Get and Set PDA account addresses
-	err = resolvePDAs(accountAddressesSet)
+	err = resolvePDAs(accountAddressesSet, isNewTokenProgram)
 	if err != nil {
 		return *accountAddressesSet, err
 	}
@@ -86,14 +99,14 @@ func setBondingCurveInformation(accountAddressesSet *AccountAddressesSet, ctx co
 	return nil
 }
 
-func resolvePDAs(accountAddressesSet *AccountAddressesSet) (err error) {
+func resolvePDAs(accountAddressesSet *AccountAddressesSet, isNewTokenAddress bool) (err error) {
 
 	accountAddressesSet.CreatorAddress, err = pda.GetCreatorVaultAddress(accountAddressesSet.BondingCurveData.DevWallet.String())
 	if err != nil {
 		return fmt.Errorf("error getting creator vault address: %w", err)
 	}
 
-	accountAddressesSet.AssociatedBondingCurveAddress, err = pda.GetAssociatedBondingCurveAddress(accountAddressesSet.BondingCurveAddress, accountAddressesSet.TokenAddress)
+	accountAddressesSet.AssociatedBondingCurveAddress, err = pda.GetAssociatedBondingCurveAddress(accountAddressesSet.BondingCurveAddress, accountAddressesSet.TokenAddress, isNewTokenAddress)
 	if err != nil {
 		return fmt.Errorf("error getting associated bonding curve address: %w", err)
 	}
@@ -101,7 +114,11 @@ func resolvePDAs(accountAddressesSet *AccountAddressesSet) (err error) {
 	walletAddress := solana.MustPublicKeyFromBase58(accountAddressesSet.WalletAddress)
 	tokenAddress := solana.MustPublicKeyFromBase58(accountAddressesSet.TokenAddress)
 
-	accountAddressesSet.AssociatedTokenAddressPubkey, _, err = pda.FindToken2022AssociatedTokenAddress(walletAddress, tokenAddress)
+	if isNewTokenAddress {
+		accountAddressesSet.AssociatedTokenAddressPubkey, _, err = pda.FindToken2022AssociatedTokenAddress(walletAddress, tokenAddress)
+	} else {
+		accountAddressesSet.AssociatedTokenAddressPubkey, _, err = pda.FindTokenAssociatedTokenAddress(walletAddress, tokenAddress)
+	}
 	if err != nil {
 		return fmt.Errorf("error finding associated token address: %w", err)
 	}
@@ -126,7 +143,7 @@ func buildAccounts(accountAddressesSet AccountAddressesSet) (accounts []*solana.
 		utils.GetAccountMeta(accountAddressesSet.AssociatedTokenAddressPubkey.String(), true, false),
 		utils.GetAccountMeta(accountAddressesSet.WalletAddress, true, true),
 		utils.GetAccountMeta(solana.SystemProgramID.String(), false, false),
-		utils.GetAccountMeta(constants.Token2022Program, false, false),
+		utils.GetAccountMeta(accountAddressesSet.TokenProgram, false, false),
 		utils.GetAccountMeta(accountAddressesSet.CreatorAddress, true, false),
 		utils.GetAccountMeta(constants.EventAuthority, false, false),
 		utils.GetAccountMeta(constants.Program, false, false),
@@ -139,7 +156,6 @@ func buildAccounts(accountAddressesSet AccountAddressesSet) (accounts []*solana.
 }
 
 func createBuyData(solLamportBuyAmount big.Int, bondingCurveData *models.BondingCurve, slippage float64) (data []byte, err error) {
-	// Get the token amount
 	tokenAmount, err, hasCompleted := bondingcurve.GetBuyTokenAmountFrom(solLamportBuyAmount, bondingCurveData)
 	if err != nil || hasCompleted {
 		if hasCompleted {
@@ -149,8 +165,6 @@ func createBuyData(solLamportBuyAmount big.Int, bondingCurveData *models.Bonding
 		}
 	}
 
-	// Create a buffer with capacity for:
-	// 8 bytes discriminator + 8 bytes tokenAmount + 8 bytes sol_lamport_buy_amount
 	buf := new(bytes.Buffer)
 
 	discriminator := constants.BuyInstructionDiscriminator
