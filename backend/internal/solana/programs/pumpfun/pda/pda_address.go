@@ -17,9 +17,17 @@ func GetBondingCurveAddress(tokenAddress string) (bondingCurveAddress string, er
 	return address, err
 }
 
-func GetAssociatedBondingCurveAddress(bondingCurveAddr string, tokenAddress string) (associatedBondingCurveAddress string, err error) {
+func GetAssociatedBondingCurveAddress(bondingCurveAddr string, tokenAddress string, isNewTokenAddress bool) (associatedBondingCurveAddress string, err error) {
 	caBytes, _ := base58.Decode(tokenAddress)
-	tokenProgram, _ := base58.Decode(constants.Token2022Program)
+
+	var tokenProgramAddress string
+	if isNewTokenAddress {
+		tokenProgramAddress = constants.Token2022Program
+	} else {
+		tokenProgramAddress = constants.TokenProgram
+	}
+
+	tokenProgram, _ := base58.Decode(tokenProgramAddress)
 	bondingCurve, _ := base58.Decode(bondingCurveAddr)
 	associatedTokenProgram, _ := base58.Decode(constants.AssociatedTokenProgram)
 
@@ -57,6 +65,20 @@ func FindToken2022AssociatedTokenAddress(
 		[][]byte{
 			walletAddress[:],
 			solana.Token2022ProgramID[:],
+			mintAddress[:],
+		},
+		solana.SPLAssociatedTokenAccountProgramID,
+	)
+}
+
+func FindTokenAssociatedTokenAddress(
+	walletAddress solana.PublicKey,
+	mintAddress solana.PublicKey,
+) (solana.PublicKey, uint8, error) {
+	return solana.FindProgramAddress(
+		[][]byte{
+			walletAddress[:],
+			solana.TokenProgramID[:],
 			mintAddress[:],
 		},
 		solana.SPLAssociatedTokenAccountProgramID,

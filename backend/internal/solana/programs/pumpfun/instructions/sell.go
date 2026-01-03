@@ -9,6 +9,7 @@ import (
 	"pump_fun/internal/core/position"
 	"pump_fun/internal/core/tasks"
 	"pump_fun/internal/solana/client"
+	"pump_fun/internal/solana/instructions"
 	bondingcurve "pump_fun/internal/solana/programs/pumpfun/bonding_curve"
 	"pump_fun/internal/solana/programs/pumpfun/pda"
 	"pump_fun/internal/solana/utils"
@@ -45,13 +46,32 @@ func getAccounts(sellTask *tasks.SellTask, ctx context.Context) ([]*solana.Accou
 		return nil, err
 	}
 
-	associatedBondingCurveAddress, err := pda.GetAssociatedBondingCurveAddress(bondingCurveAddress, sellTask.Token.String())
+	isNewTokenAddress, err := instructions.IsTokenAccountNew(sellTask.Token, ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var tokenProgram string
+	if isNewTokenAddress {
+		tokenProgram = constants.Token2022Program
+	} else {
+		tokenProgram = constants.TokenProgram
+	}
+
+	associatedBondingCurveAddress, err := pda.GetAssociatedBondingCurveAddress(bondingCurveAddress, sellTask.Token.String(), isNewTokenAddress)
 	if err != nil {
 		logger.Error("Error getting associated bonding curve address:", err)
 		return nil, err
 	}
 
-	ata, _, err := pda.FindToken2022AssociatedTokenAddress(sellTask.Wallet.PublicKey(), sellTask.Token)
+	var ata solana.PublicKey
+	if isNewTokenAddress {
+		ata, _, err = pda.FindToken2022AssociatedTokenAddress(sellTask.Wallet.PublicKey(), sellTask.Token)
+	} else {
+		ata, _, err = pda.FindToken2022AssociatedTokenAddress(sellTask.Wallet.PublicKey(), sellTask.Token)
+
+	}
+
 	if err != nil {
 		logger.Error("Error getting token address: ", err)
 		return nil, err
@@ -74,7 +94,7 @@ func getAccounts(sellTask *tasks.SellTask, ctx context.Context) ([]*solana.Accou
 		utils.GetAccountMeta(sellTask.Wallet.PublicKey().String(), true, true),
 		utils.GetAccountMeta(solana.SystemProgramID.String(), false, false),
 		utils.GetAccountMeta(creatorAddress, true, false),
-		utils.GetAccountMeta(constants.Token2022Program, false, false),
+		utils.GetAccountMeta(tokenProgram, false, false),
 		utils.GetAccountMeta(constants.EventAuthority, false, false),
 		utils.GetAccountMeta(constants.Program, false, false),
 		utils.GetAccountMeta(constants.FeeConfig, false, false),
