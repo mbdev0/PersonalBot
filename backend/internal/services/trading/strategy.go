@@ -11,6 +11,7 @@ import (
 	"pump_fun/internal/monitoring/models"
 	positionservice "pump_fun/internal/services/position"
 	positionhub "pump_fun/internal/services/subscription_hub/position"
+	"pump_fun/internal/services/subscription_hub/strategy"
 	taskservice "pump_fun/internal/services/task_service"
 	"pump_fun/internal/services/trading/sell"
 	"pump_fun/pkg/logger"
@@ -21,13 +22,15 @@ import (
 type Strategy struct {
 	taskService     *taskservice.TaskService
 	positionHub     *positionhub.SubscriptionHub
+	strategyHub     *strategy.SubscriptionHub
 	positionService *positionservice.Service
 }
 
-func (s *Strategy) NewTradingStrategy(ts *taskservice.TaskService, ph *positionhub.SubscriptionHub, ps *positionservice.Service) {
+func (s *Strategy) NewTradingStrategy(ts *taskservice.TaskService, ph *positionhub.SubscriptionHub, ps *positionservice.Service, sh *strategy.SubscriptionHub) {
 	s.taskService = ts
 	s.positionHub = ph
 	s.positionService = ps
+	s.strategyHub = sh
 }
 
 func (s *Strategy) AfkSniping(afkTask *strategies.Afk, ctx context.Context) {
@@ -50,6 +53,7 @@ func (s *Strategy) AfkSniping(afkTask *strategies.Afk, ctx context.Context) {
 			if !ok {
 				return
 			}
+			logger.Information("found new coin: ", coin.CoinData.Name)
 			s.handleNewCoin(afkTask, ctx, coin)
 		}
 	}
@@ -74,6 +78,7 @@ func (s *Strategy) handleNewCoin(afkTask *strategies.Afk, ctx context.Context, c
 	}
 
 }
+
 func (s *Strategy) createAndRunBuyTask(coin models.Coin, afkTask *strategies.Afk) (bt tasks.Task, err error) {
 	coinAddr, err := solana.PublicKeyFromBase58(coin.CoinData.TokenAddr)
 	if err != nil {
@@ -87,6 +92,8 @@ func (s *Strategy) createAndRunBuyTask(coin models.Coin, afkTask *strategies.Afk
 		return nil, err
 	}
 
+	s.strategyHub.PublishTakeCreation(bt.Id(), bt)
+
 	err = s.taskService.TransitionTask(bt.Id(), tasks.TaskRun)
 	if err != nil {
 		return nil, err
@@ -98,7 +105,7 @@ func (s *Strategy) createAndRunBuyTask(coin models.Coin, afkTask *strategies.Afk
 func (s *Strategy) createBuyTask(afkTask *strategies.Afk, tokenAddr solana.PublicKey) *tasks.BuyTask {
 	bt := tasks.NewBuyTask(afkTask.Wallet, tokenAddr,
 		[]tasks.Option{tasks.WithSlippage(afkTask.Slippage), tasks.WithComputeUnits(uint32(afkTask.ComputeUnits))},
-		[]tasks.BuyOption{tasks.WithBuyAmount(afkTask.BuyAmount), tasks.WithBuyFee(afkTask.BuyFee)},
+		[]tasks.BuyOption{tasks.WithBuyAmount(afkTask.BuyAmount), tasks.WithBuyFee(afkTask.BuyFee), tasks.WithStrategyId(afkTask.StrategyTaskId())},
 	)
 	return bt
 }

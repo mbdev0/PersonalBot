@@ -1,22 +1,29 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"pump_fun/api/controller"
 	"pump_fun/api/dto"
+	"pump_fun/internal/services/subscription_hub/strategy"
 	"pump_fun/pkg/logger"
 	"strconv"
+
+	"github.com/coder/websocket"
+	"github.com/coder/websocket/wsjson"
 )
 
 type TradingHandler struct {
 	strategyController *controller.StrategyController
+	bufferSize         int
 }
 
 func NewTradingHandler(controller *controller.StrategyController) http.Handler {
 	mux := http.NewServeMux()
 	handler := &TradingHandler{strategyController: controller}
+	handler.bufferSize = 1000
 	handler.registerRoutes(mux)
 	return mux
 }
@@ -29,6 +36,7 @@ func (th *TradingHandler) registerRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("DELETE /task/{id}", th.deleteTask)
 	mux.HandleFunc("GET /task/start/{id}", th.startTask)
 	mux.HandleFunc("GET /task/stop/{id}", th.stopTask)
+	mux.HandleFunc("GET /subscribe", th.subscribe)
 
 }
 
@@ -193,4 +201,108 @@ func (th *TradingHandler) stopTask(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+}
+
+func (th *TradingHandler) subscribe(w http.ResponseWriter, r *http.Request) {
+	subscribers := make(chan strategy.Subscription, 1000)
+	defer close(subscribers)
+
+	//upgrade to ws
+	c, err := websocket.Accept(w, r, nil)
+
+	if err != nil {
+		fmt.Println(err)
+		http.Error(w, "error whilst trying to transition to WS", http.StatusInternalServerError)
+		return
+	}
+
+	defer func(c *websocket.Conn) {
+		err := c.CloseNow()
+		if err != nil {
+			logger.Error(err.Error())
+		}
+	}(c)
+
+	wsWriteChan := make(chan dto.StrategyResponse, 1000)
+	defer close(wsWriteChan)
+
+	//fan in loop
+	go th.fanIn(subscribers, wsWriteChan)
+
+	ctx, cancel := context.WithCancel(r.Context())
+	defer cancel()
+
+	//ws write loop
+	go th.writeToWs(wsWriteChan, c, ctx)
+
+	for {
+		var msg dto.StrategySubscribe
+		resp := dto.StrategyResponse{}
+
+		err := wsjson.Read(ctx, c, &msg)
+		if err != nil {
+			if websocket.CloseStatus(err) != -1 || ctx.Err() != nil {
+				logger.Information("WebSocket connection closed or context cancelled")
+				return
+			}
+			th.handleError(err, resp, c, ctx)
+			return
+		}
+		fmt.Println(msg)
+
+		switch msg.Type {
+		case dto.Subscribe:
+			sub, err := th.strategyController.Subscribe(msg.Id)
+			if err != nil {
+				th.handleError(err, resp, c, ctx)
+				continue
+			}
+			subscribers <- *sub
+
+		case dto.Unsubscribe:
+			err := th.strategyController.Unsubscribe(msg.Id)
+			if err != nil {
+				th.handleError(err, resp, c, ctx)
+				continue
+			}
+		}
+	}
+
+}
+
+func (th *TradingHandler) fanIn(subscribers <-chan strategy.Subscription, wsWriteChan chan<- dto.StrategyResponse) {
+	for sub := range subscribers {
+		go th.readFromSub(sub, wsWriteChan)
+	}
+}
+
+func (th *TradingHandler) readFromSub(sub strategy.Subscription, wsWriteChan chan<- dto.StrategyResponse) {
+	for msg := range sub.SubChan {
+		strategyResponse := dto.StrategyResponse{
+			StrategyMessage: &msg,
+		}
+		select {
+		case wsWriteChan <- strategyResponse:
+		default:
+			logger.Error("Not able to push position response message to WS Write")
+		}
+	}
+}
+
+func (th *TradingHandler) writeToWs(ws <-chan dto.StrategyResponse, c *websocket.Conn, ctx context.Context) {
+	for msg := range ws {
+		err := wsjson.Write(ctx, c, msg)
+		if err != nil {
+			logger.Error(err)
+		}
+	}
+}
+
+func (th *TradingHandler) handleError(err error, resp dto.StrategyResponse, c *websocket.Conn, ctx context.Context) {
+	logger.Error(err.Error())
+	resp.Error = err.Error()
+	wsErr := wsjson.Write(ctx, c, resp)
+	if wsErr != nil {
+		logger.Error("error whilst writing: ", wsErr)
+	}
 }

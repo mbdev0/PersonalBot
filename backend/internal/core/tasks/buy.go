@@ -19,6 +19,7 @@ type BuyTask struct {
 	Fee          float64           `validate:"required,gt=0"`
 	Slippage     float64           `validate:"required,gt=0,lt=1"` // Slippage percentage (0.0 to 1.0)
 	ComputeUnits uint32            `validate:"required,min=1"`
+	StrategyId   *int64
 	state        State
 	mu           *sync.RWMutex
 }

@@ -272,6 +272,8 @@ func (sh *SubscriptionHub) getProfitValues(pos *position.Position, marketCap *bi
 
 func (sh *SubscriptionHub) calculateTokenValueAndPrice(marketCapUSD *big.Float, tokensRemaining *big.Float, solPrice float64) (totalValueSOL *big.Float, pricePerToken *big.Float) {
 	marketCapSol := new(big.Float).Quo(marketCapUSD, big.NewFloat(solPrice))
+
+	//total supply -> get data from 
 	totalSupply := new(big.Float).SetInt64(1000000000)
 
 	pricePerTokenSOL := new(big.Float).Quo(marketCapSol, totalSupply)

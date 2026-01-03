@@ -1,0 +1,9 @@
+package strategies
+
+import "pump_fun/internal/core/tasks"
+
+type StrategyMessage struct {
+	Id    int64      `json:"id"`
+	Event string     `json:"event"`
+	Task  tasks.Task `json:"task"`
+}
