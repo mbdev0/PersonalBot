@@ -12,6 +12,7 @@ import (
 	"pump_fun/internal/services/state"
 	subscriptionhub "pump_fun/internal/services/subscription_hub"
 	positionhub "pump_fun/internal/services/subscription_hub/position"
+	"pump_fun/internal/services/subscription_hub/strategy"
 	"pump_fun/internal/services/wallet"
 
 	taskservice "pump_fun/internal/services/task_service"
@@ -36,6 +37,8 @@ func main() {
 	posSubhub := positionhub.NewSubscriptionHub()
 	positionService := position.NewPositionService(&posSubhub)
 
+	strategySubHub := strategy.NewSubscriptionHub()
+
 	executor := transaction.Executor{}
 	executor.New(&taskSubhub, &positionService)
 
@@ -51,10 +54,10 @@ func main() {
 	walletHandler := http.StripPrefix("/api/wallet", handler.NewWalletHandler(walletController))
 
 	tradingStrategy := trading.Strategy{}
-	tradingStrategy.NewTradingStrategy(&taskService, &posSubhub, &positionService)
+	tradingStrategy.NewTradingStrategy(&taskService, &posSubhub, &positionService, &strategySubHub)
 
 	tradingService := trading.Service{}
-	tradingService.NewTradingService(&tradingStrategy)
+	tradingService.NewTradingService(&tradingStrategy, &strategySubHub)
 
 	tradingController := controller.StrategyController{}
 	tradingController.New(&tradingService, walletService)
@@ -66,11 +69,14 @@ func main() {
 	positionController := controller.PositionController{PositionService: &positionService}
 	positionHandler := http.StripPrefix("/api/position", handler.NewPositionHandler(&positionController))
 
+	dashboardHandler := http.StripPrefix("/api/dashboard", handler.NewDashboardHandler(&tradingController, &buyController))
+
 	mux := http.NewServeMux()
 	mux.Handle("/api/tasks/", buyHandler)
 	mux.Handle("/api/trading/", tradingHandler)
 	mux.Handle("/api/position/", positionHandler)
 	mux.Handle("/api/wallet/", walletHandler)
+	mux.Handle("/api/dashboard/", dashboardHandler)
 
 	server := &http.Server{
 		Addr:    ":9090",

@@ -19,6 +19,9 @@ func WithBuyAmount(amnt *big.Int) BuyOption {
 func WithBuyFee(fee float64) BuyOption {
 	return func(t *BuyTask) { t.mu.Lock(); defer t.mu.Unlock(); t.Fee = fee }
 }
+func WithStrategyId(id int64) BuyOption {
+	return func(t *BuyTask) { t.mu.Lock(); defer t.mu.Unlock(); t.StrategyId = &id }
+}
 
 type SellOption func(*SellTask)
 

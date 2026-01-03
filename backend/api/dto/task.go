@@ -37,6 +37,7 @@ type ResponseTask struct {
 	SellAmount        *float64 `json:"sell_amount,omitempty"`
 	SellFee           *float64 `json:"sell_fee,omitempty"`
 	SellPositionId    *int64   `json:"sell_position_id,omitempty"`
+	StrategyId        *int64   `json:"strategy_id,omitempty"`
 	State             State    `json:"state"`
 }
 

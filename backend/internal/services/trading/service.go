@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"pump_fun/internal/core/strategies"
+	"pump_fun/internal/services/subscription_hub/strategy"
 	"sync"
 )
 
@@ -12,13 +13,15 @@ type Service struct {
 	tasks    map[int64]strategies.Task
 	running  map[int64]context.CancelFunc
 	mu       *sync.Mutex
+	subhub   *strategy.SubscriptionHub
 }
 
-func (s *Service) NewTradingService(strat *Strategy) {
+func (s *Service) NewTradingService(strat *Strategy, sh *strategy.SubscriptionHub) {
 	s.strategy = strat
 	s.tasks = map[int64]strategies.Task{}
 	s.running = map[int64]context.CancelFunc{}
 	s.mu = &sync.Mutex{}
+	s.subhub = sh
 }
 
 func (s *Service) Create(st strategies.Task) (task strategies.Task, err error) {
@@ -130,4 +133,18 @@ func (s *Service) Stop(id int64) error {
 	taskCancel()
 	delete(s.running, task.StrategyTaskId())
 	return nil
+}
+
+func (s *Service) Subscribe(taskId int64) (*strategy.Subscription, error) {
+	sub, err := s.subhub.Subscribe(taskId)
+	if err != nil {
+		return nil, err
+	}
+
+	return sub, nil
+}
+
+func (s *Service) Unsubscribe(taskId int64) error {
+	err := s.subhub.Unsubscribe(taskId)
+	return err
 }

@@ -6,6 +6,7 @@ import (
 	"pump_fun/api/dto"
 	"pump_fun/api/mapper"
 	"pump_fun/internal/core/models/wallets"
+	"pump_fun/internal/services/subscription_hub/strategy"
 	"pump_fun/internal/services/trading"
 	"pump_fun/internal/services/wallet"
 )
@@ -131,4 +132,33 @@ func (sc *StrategyController) Stop(id int64) error {
 		return err
 	}
 	return nil
+}
+
+func (sc *StrategyController) Subscribe(id int64) (*strategy.Subscription, error) {
+	tsk, err := sc.strategyService.GetBy(id)
+	if err != nil {
+		return nil, err
+	}
+
+	sub, err := sc.strategyService.Subscribe(tsk.StrategyTaskId())
+	if err != nil {
+		return nil, err
+	}
+
+	return sub, nil
+}
+
+func (sc *StrategyController) Unsubscribe(id int64) error {
+	tsk, err := sc.strategyService.GetBy(id)
+	if err != nil {
+		return err
+	}
+
+	err = sc.strategyService.Unsubscribe(tsk.StrategyTaskId())
+	if err != nil {
+		return err
+	}
+
+	return nil
+
 }

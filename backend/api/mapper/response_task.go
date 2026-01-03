@@ -36,6 +36,7 @@ func mapBuyToResponseTask(t *tasks.BuyTask) *dto.ResponseTask {
 	responseTask.BuyAmount = &convertedFloat
 	responseTask.WalletAddressName = t.WalletName
 	responseTask.WalletPublicKey = t.Wallet.PublicKey().Short(constants.ShortPublicAddressInt)
+	responseTask.StrategyId = t.StrategyId
 
 	return &responseTask
 }

@@ -145,24 +145,16 @@ func (ph *PositionHandler) subscribe(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	//go func() -> for every sub in ph.subs -> go func() -> write to wsWriteChan
-	//ws write loop (in go func)
-	//	for every msg -> write to ws
-	//ws read loop (blocking)
-	//	if sub -> call ph.posservice.sub, add to ph.subs => chan of subs
-	//	if unsub ->  call ph.posservice.unsub, remove from ph.subs + call cancelCtx to kill go routine
 }
 
 func (ph *PositionHandler) fanIn(subscribers <-chan position.Subscription, wsWriteChan chan<- dto.PositionResponse) {
 	for sub := range subscribers {
-		fmt.Println("subscribers!")
 		go ph.readFromSub(sub, wsWriteChan)
 	}
 }
 
 func (ph *PositionHandler) readFromSub(sub position.Subscription, wsWriteChan chan<- dto.PositionResponse) {
 	for msg := range sub.SubChan {
-		fmt.Println("message from sub!")
 		posResp := dto.PositionResponse{
 			PositionMessage: &msg,
 		}
