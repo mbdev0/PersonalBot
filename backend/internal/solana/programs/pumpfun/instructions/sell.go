@@ -1,9 +1,7 @@
 package instructions
 
 import (
-	"bytes"
 	"context"
-	"encoding/binary"
 	"pump_fun/internal/core/constants"
 	"pump_fun/internal/core/models"
 	"pump_fun/internal/core/position"
@@ -16,7 +14,13 @@ import (
 	"pump_fun/pkg/logger"
 
 	"github.com/gagliardetto/solana-go"
+	"github.com/near/borsh-go"
 )
+
+type SellArgs struct {
+	amount         uint64
+	min_sol_output uint64
+}
 
 var bondingCurveData *models.BondingCurve
 var associatedTokenAddress solana.PublicKey
@@ -68,7 +72,7 @@ func getAccounts(sellTask *tasks.SellTask, ctx context.Context) ([]*solana.Accou
 	if isNewTokenAddress {
 		ata, _, err = pda.FindToken2022AssociatedTokenAddress(sellTask.Wallet.PublicKey(), sellTask.Token)
 	} else {
-		ata, _, err = pda.FindToken2022AssociatedTokenAddress(sellTask.Wallet.PublicKey(), sellTask.Token)
+		ata, _, err = pda.FindTokenAssociatedTokenAddress(sellTask.Wallet.PublicKey(), sellTask.Token)
 
 	}
 
@@ -112,7 +116,7 @@ func getCreatorVaultAddress(bondingCurveAddress string, ctx context.Context) (st
 	}
 	bondingCurveData = data
 
-	creatorAddress, err := pda.GetCreatorVaultAddress(bondingCurveData.DevWallet.String())
+	creatorAddress, err := pda.GetCreatorVaultAddress(bondingCurveData.Creator.String())
 
 	if err != nil {
 		logger.Error("Error getting creator address:", err)
@@ -125,30 +129,21 @@ func getCreatorVaultAddress(bondingCurveAddress string, ctx context.Context) (st
 func getInstructionData(sellTask *tasks.SellTask, ctx context.Context, position *position.Position) ([]byte, error) {
 
 	tokenAmount, solOutput, err := getTokenAmountAndSolOutput(sellTask, ctx, position)
-
 	if err != nil {
 		return nil, err
 	}
 
-	buf := new(bytes.Buffer)
+	sellArgs := SellArgs{
+		amount:         *tokenAmount,
+		min_sol_output: *solOutput,
+	}
 
-	discriminator := constants.SellInstructionDiscriminator
-	if _, err := buf.Write(discriminator[:]); err != nil {
-		logger.Error("Error writing discriminator to buffer", err)
+	data, err := borsh.Serialize(sellArgs)
+	if err != nil {
 		return nil, err
 	}
 
-	if err := binary.Write(buf, binary.LittleEndian, tokenAmount); err != nil {
-		logger.Error("Error writing token amount", err)
-		return nil, err
-	}
-
-	if err := binary.Write(buf, binary.LittleEndian, solOutput); err != nil {
-		logger.Error("Error writing min_sol_output", err)
-		return nil, err
-	}
-
-	return buf.Bytes(), nil
+	return append(constants.SellInstructionDiscriminator[:], data...), nil
 }
 
 func getTokenAmountAndSolOutput(sellTask *tasks.SellTask, ctx context.Context, position *position.Position) (tokenAmount *uint64, solOutput *uint64, err error) {
@@ -156,7 +151,6 @@ func getTokenAmountAndSolOutput(sellTask *tasks.SellTask, ctx context.Context, p
 		tokens, _ := position.TokenRemaining.Uint64()
 		tokenAmount = &tokens
 	} else {
-		logger.Information(associatedTokenAddress)
 		tokenAmount, err = client.GetTokenAccountBalance(associatedTokenAddress, ctx)
 		if err != nil {
 			return nil, nil, err

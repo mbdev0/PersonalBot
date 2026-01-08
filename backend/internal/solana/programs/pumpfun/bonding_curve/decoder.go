@@ -1,9 +1,9 @@
 package bondingcurve
 
 import (
+	"bytes"
 	"context"
 	"encoding/base64"
-	"errors"
 	"fmt"
 	"math/big"
 	"pump_fun/infrastructure/solana_price"
@@ -11,13 +11,19 @@ import (
 	"pump_fun/internal/core/models"
 	"pump_fun/internal/solana/client"
 	"pump_fun/internal/solana/programs/pumpfun/pda"
-	"strings"
+	"pump_fun/pkg/logger"
 
 	"github.com/gagliardetto/solana-go"
+	"github.com/near/borsh-go"
 )
 
 func GetMarketCapFrom(bondingCurveValue string) (marketCapVal *big.Float, err error, hasCompleted bool) {
-	bondingCurveData, err, hasCompleted := getBondingCurveData(bondingCurveValue)
+	//check if base64 here, if so convert to bytes then pass in
+	bondingCurveBytes, err := base64.StdEncoding.DecodeString(bondingCurveValue)
+	if err != nil {
+		return nil, err, false
+	}
+	bondingCurveData, err, hasCompleted := getBondingCurveData(bondingCurveBytes)
 	if err != nil {
 		return nil, err, false
 	}
@@ -50,9 +56,8 @@ func GetMarketCapInitial(bondingCurveAddress string, ctx context.Context) (marke
 	}
 
 	decodedBondingCurve := bondingCurveResponse.Value.Data.GetBinary()
-	value := base64.StdEncoding.EncodeToString(decodedBondingCurve)
 
-	bondingCurveData, err, hasCompleted := getBondingCurveData(value)
+	bondingCurveData, err, hasCompleted := getBondingCurveData(decodedBondingCurve)
 	if err != nil {
 		return nil, err, false
 	}
@@ -76,9 +81,9 @@ func getMarketCap(bondingCurve models.BondingCurve) (*big.Float, error) {
 		return nil, err
 	}
 
-	virtualSol := new(big.Float).SetInt(&bondingCurve.VirtualSolReserves)
+	virtualSol := new(big.Float).SetUint64(bondingCurve.VirtualSolReserves)
 	virtualSol.Quo(virtualSol, big.NewFloat(constants.LamportsConversion))
-	virtualTokens := new(big.Float).SetInt(&bondingCurve.VirtualTokenReserves)
+	virtualTokens := new(big.Float).SetUint64(bondingCurve.VirtualTokenReserves)
 	virtualTokens.Quo(virtualTokens, big.NewFloat(constants.TokenAmountDecimals))
 
 	pricePerTokenSol := new(big.Float).Quo(virtualSol, virtualTokens)
@@ -94,8 +99,8 @@ func getMarketCap(bondingCurve models.BondingCurve) (*big.Float, error) {
 }
 
 func GetSolanaTokenPrice(bondingCurve models.BondingCurve, tokenAmount uint64) *uint64 {
-	floatSolRes := new(big.Float).SetInt(&bondingCurve.VirtualSolReserves)
-	floatTokenReserves := new(big.Float).SetInt(&bondingCurve.VirtualTokenReserves)
+	floatSolRes := new(big.Float).SetUint64(bondingCurve.VirtualSolReserves)
+	floatTokenReserves := new(big.Float).SetUint64(bondingCurve.VirtualTokenReserves)
 	marketCapInSol := new(big.Float).Quo(floatSolRes, floatTokenReserves)
 	tokenPrice, _ := new(big.Float).Mul(marketCapInSol, big.NewFloat(float64(tokenAmount))).Uint64()
 
@@ -110,14 +115,13 @@ func GetBondingCurveDataFromAddress(bondingCurveAddress string, ctx context.Cont
 	}
 
 	decodedBondingCurve := bondingCurveResponse.Value.Data.GetBinary()
-	value := base64.StdEncoding.EncodeToString(decodedBondingCurve)
 
-	bondingCurveModel, err, hasCompleted := getBondingCurveData(value)
+	bondingCurveModel, err, hasCompleted := getBondingCurveData(decodedBondingCurve)
 	if err != nil {
 		return nil, err, false
 	}
 
-	if hasCompleted {
+	if bondingCurveModel.Complete {
 		return nil, fmt.Errorf("coin has already migrated"), true
 	}
 
@@ -129,20 +133,14 @@ func GetBuyTokenAmountFrom(buyInSol big.Int, bondingCurveData *models.BondingCur
 	return &tokenAmount, nil, false
 }
 
-func getBondingCurveData(bondingCurve string) (bondingCurveData *models.BondingCurve, err error, hasMigrated bool) {
+func getBondingCurveData(bondingCurveBytes []byte) (bondingCurveData *models.BondingCurve, err error, hasMigrated bool) {
 
-	unpadded := strings.TrimRight(bondingCurve, "=")
-	bondingCurveDataBytes, err := base64.RawStdEncoding.DecodeString(unpadded)
+	bondingCurveInfo, err := decryptBondingCurveData(bondingCurveBytes)
 	if err != nil {
 		return nil, err, false
 	}
 
-	bondingCurveInfo, err := decryptBondingCurveData(bondingCurveDataBytes)
-	if err != nil {
-		return nil, err, false
-	}
-
-	if bondingCurveInfo.IsCompleted {
+	if bondingCurveInfo.Complete {
 		return nil, nil, true
 	}
 
@@ -150,42 +148,100 @@ func getBondingCurveData(bondingCurve string) (bondingCurveData *models.BondingC
 }
 
 func getTokenAmount(solBuy big.Int, bondingCurveInfo *models.BondingCurve) big.Int {
-	i := new(big.Int).Add(&bondingCurveInfo.VirtualSolReserves, &solBuy)
-	n := new(big.Int).Mul(&bondingCurveInfo.VirtualSolReserves, &bondingCurveInfo.VirtualTokenReserves)
-	r := new(big.Int).Div(n, i)
-	s := new(big.Int).Sub(&bondingCurveInfo.VirtualTokenReserves, r)
+	virtualTokenReserves := new(big.Int).SetUint64(bondingCurveInfo.VirtualTokenReserves)
+	virtualSolReserves := new(big.Int).SetUint64(bondingCurveInfo.VirtualSolReserves)
+	realTokenReserves := new(big.Int).SetUint64(bondingCurveInfo.RealTokenReserves)
 
-	if s.Cmp(&bondingCurveInfo.RealTokenReserves) == -1 {
+	i := new(big.Int).Add(virtualSolReserves, &solBuy)
+	n := new(big.Int).Mul(virtualSolReserves, virtualTokenReserves)
+	r := new(big.Int).Div(n, i)
+	s := new(big.Int).Sub(virtualTokenReserves, r)
+
+	if s.Cmp(realTokenReserves) == -1 {
 		return *s
 	}
 
-	return bondingCurveInfo.RealTokenReserves
+	return *realTokenReserves
 }
 
 func decryptBondingCurveData(dataBinary []byte) (*models.BondingCurve, error) {
-	// this stops backwards compatability - but for this project, not really needed
-	// solana buying and selling is to learn. If we ever need to add backwards compatability
-	// then we can add it in
-	if len(dataBinary) > 151 {
-		return nil, errors.New("base64 string for bonding curve is too long")
+
+	if len(dataBinary) < 8 {
+		return nil, nil
 	}
 
-	bondingCurve := models.BondingCurve{}
-	bondingCurve.VirtualTokenReserves = *new(big.Int).SetBytes(reverseBytes(dataBinary[8:16]))
-	bondingCurve.VirtualSolReserves = *new(big.Int).SetBytes(reverseBytes(dataBinary[16:24]))
-	bondingCurve.RealTokenReserves = *new(big.Int).SetBytes(reverseBytes(dataBinary[24:32]))
-	bondingCurve.RealSolReserves = *new(big.Int).SetBytes(reverseBytes(dataBinary[32:40]))
-	bondingCurve.MaxTokens = *new(big.Int).SetBytes(reverseBytes(dataBinary[40:48]))
-	bondingCurve.IsCompleted = dataBinary[48] != 0
-	bondingCurve.DevWallet = solana.PublicKeyFromBytes(dataBinary[49:81])
+	if !bytes.Equal(dataBinary[:8], constants.BondingCurveDiscriminator[:]) {
+		return nil, fmt.Errorf("incorrect discriminator")
+	}
 
-	return &bondingCurve, nil
+	bondingCurve := new(models.BondingCurve)
+	var err error
+	switch len(dataBinary) {
+	case 82:
+		bondingCurve, err = parseV1(dataBinary)
+		if err != nil {
+			return nil, err
+		}
+	case 151:
+		bondingCurve, err = parseV2(dataBinary)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return bondingCurve, nil
 }
 
-func reverseBytes(b []byte) []byte {
-	reversed := make([]byte, len(b))
-	for i := range b {
-		reversed[len(b)-1-i] = b[i]
+func parseV0(data []byte) (*models.BondingCurve, error) {
+	v0 := new(models.BondingCurveV0)
+	err := borsh.Deserialize(v0, data[8:])
+	if err != nil {
+		logger.Error("err whilst doing new way: ", err)
+		return nil, err
 	}
-	return reversed
+
+	return &models.BondingCurve{
+		VirtualTokenReserves: v0.VirtualTokenReserves,
+		VirtualSolReserves:   v0.VirtualSolReserves,
+		RealTokenReserves:    v0.RealTokenReserves,
+		RealSolReserves:      v0.RealSolReserves,
+		TokenTotalSupply:     v0.TokenTotalSupply,
+	}, nil
+}
+
+func parseV1(data []byte) (*models.BondingCurve, error) {
+	v1 := new(models.BondingCurveV1)
+	err := borsh.Deserialize(v1, data[8:])
+	if err != nil {
+		logger.Error("err whilst doing new way: ", err)
+		return nil, err
+	}
+
+	return &models.BondingCurve{
+		VirtualTokenReserves: v1.VirtualTokenReserves,
+		VirtualSolReserves:   v1.VirtualSolReserves,
+		RealTokenReserves:    v1.RealTokenReserves,
+		RealSolReserves:      v1.RealSolReserves,
+		TokenTotalSupply:     v1.TokenTotalSupply,
+		Creator:              v1.Creator.ToPointer(),
+	}, nil
+}
+
+func parseV2(data []byte) (*models.BondingCurve, error) {
+	v2 := new(models.BondingCurveV2)
+	err := borsh.Deserialize(v2, data[8:])
+	if err != nil {
+		logger.Error("err whilst doing new way: ", err)
+		return nil, err
+	}
+
+	return &models.BondingCurve{
+		VirtualTokenReserves: v2.VirtualTokenReserves,
+		VirtualSolReserves:   v2.VirtualSolReserves,
+		RealTokenReserves:    v2.RealTokenReserves,
+		RealSolReserves:      v2.RealSolReserves,
+		TokenTotalSupply:     v2.TokenTotalSupply,
+		Creator:              v2.Creator.ToPointer(),
+		IsMayhemMode:         v2.IsMayhemMode,
+	}, nil
 }

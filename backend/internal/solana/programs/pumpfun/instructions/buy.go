@@ -1,9 +1,7 @@
 package instructions
 
 import (
-	"bytes"
 	"context"
-	"encoding/binary"
 	"fmt"
 	"math/big"
 	"pump_fun/internal/core/constants"
@@ -15,6 +13,7 @@ import (
 	"pump_fun/internal/solana/utils"
 
 	"github.com/gagliardetto/solana-go"
+	"github.com/near/borsh-go"
 )
 
 type AccountAddressesSet struct {
@@ -27,6 +26,12 @@ type AccountAddressesSet struct {
 	TokenProgram                  string
 	WalletAddress                 string
 	UserVolumeAccumulator         string
+}
+
+type BuyArgs struct {
+	amount       uint64
+	max_sol_cost uint64
+	track_volume *bool
 }
 
 func GetBuyInstruction(buyTask *tasks.BuyTask, ctx context.Context) (instruction *solana.GenericInstruction, err error) {
@@ -101,7 +106,7 @@ func setBondingCurveInformation(accountAddressesSet *AccountAddressesSet, ctx co
 
 func resolvePDAs(accountAddressesSet *AccountAddressesSet, isNewTokenAddress bool) (err error) {
 
-	accountAddressesSet.CreatorAddress, err = pda.GetCreatorVaultAddress(accountAddressesSet.BondingCurveData.DevWallet.String())
+	accountAddressesSet.CreatorAddress, err = pda.GetCreatorVaultAddress(accountAddressesSet.BondingCurveData.Creator.String())
 	if err != nil {
 		return fmt.Errorf("error getting creator vault address: %w", err)
 	}
@@ -165,32 +170,22 @@ func createBuyData(solLamportBuyAmount big.Int, bondingCurveData *models.Bonding
 		}
 	}
 
-	buf := new(bytes.Buffer)
-
-	discriminator := constants.BuyInstructionDiscriminator
-	if _, err := buf.Write(discriminator[:]); err != nil {
-		return nil, fmt.Errorf("error writing discriminator to buffer: %w", err)
-	}
-
-	if tokenAmount.BitLen() > 64 {
-		return nil, fmt.Errorf("token amount %d overflows 64 bits", tokenAmount)
-	}
-	tokenUint64 := tokenAmount.Uint64()
-	if err := binary.Write(buf, binary.LittleEndian, tokenUint64); err != nil {
-		return nil, fmt.Errorf("error writing token amount to buffer: %w", err)
-	}
-
-	if solLamportBuyAmount.BitLen() > 64 {
-		return nil, fmt.Errorf("sol lamport buy amount exceeds 64 bits: %s", solLamportBuyAmount.String())
-	}
-
 	solLamportBuyAmount = addSlippageToBuy(solLamportBuyAmount, slippage)
-	solUint64 := solLamportBuyAmount.Uint64()
-	if err := binary.Write(buf, binary.LittleEndian, solUint64); err != nil {
-		return nil, fmt.Errorf("error writing sol lamport buy amount to buffer: %w", err)
+
+	buyArgs := BuyArgs{
+		amount:       tokenAmount.Uint64(),
+		max_sol_cost: solLamportBuyAmount.Uint64(),
 	}
 
-	return buf.Bytes(), nil
+	data, err = borsh.Serialize(buyArgs)
+	if err != nil {
+		return nil, err
+	}
+
+	data = append(constants.BuyInstructionDiscriminator[:], data...)
+
+	return data, nil
+
 }
 
 func addSlippageToBuy(lamportAmount big.Int, slippagePercentage float64) (newBuyAmount big.Int) {
