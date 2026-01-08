@@ -58,7 +58,7 @@ func getCreatedCoinWithBuyData(transaction response.TransactionNotification) (mo
 		}
 
 		discriminator := instructionData[:8]
-		isCreateInstruction := bytes.Equal(discriminator, constants.CreateInstructionDiscriminator[:])
+		isCreateInstruction := bytes.Equal(discriminator, constants.CreateInstructionDiscriminator[:]) || bytes.Equal(discriminator, constants.CreateV2InstructionDiscriminator[:])
 		isBuyInstruction := bytes.Equal(discriminator, constants.BuyInstructionDiscriminator[:])
 
 		if isCreateInstruction {
@@ -90,7 +90,7 @@ func createCoinFromInstruction(instruction response.Instruction, instructionData
 
 	decodedInstruction, err := decodeCreateInstruction(instructionData)
 	if err != nil {
-		logger.Error("Error decoding create instruction", err)
+		logger.Error("Error decoding create instruction ", err)
 		return coin, err
 	}
 	updateCoinFromDecodedInstruction(&coin, decodedInstruction)

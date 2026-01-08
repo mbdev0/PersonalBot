@@ -1,9 +1,32 @@
 package models
 
-type DecodedCreateInstruction struct {
+import "github.com/gagliardetto/solana-go"
+
+type DecodedCreateInstructionV1 struct {
 	Name    string
 	Symbol  string
 	IpfsUrl string
+}
+
+type DecodedCreateInstructionV2 struct {
+	Name         string
+	Symbol       string
+	IpfsUrl      string
+	Creator      solana.PublicKey
+	IsMayhemMode bool
+}
+
+type DecodedCreateInstruction struct {
+	Name         string
+	Symbol       string
+	IpfsUrl      string
+	Creator      solana.PublicKey
+	IsMayhemMode bool
+}
+
+type Coin struct {
+	CoinData MintData
+	IPFSData IPFS
 }
 
 type MintData struct {
@@ -22,10 +45,4 @@ type IPFS struct {
 	TwitterURL  string `json:"twitter"`
 	TelegramURL string `json:"telegram"`
 	WebsiteURL  string `json:"website"`
-}
-
-// Coin Compositions of the two structs above
-type Coin struct {
-	CoinData MintData
-	IPFSData IPFS
 }
