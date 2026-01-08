@@ -118,7 +118,6 @@ func ConfirmTransactionWithStream(sig solana.Signature, ctx context.Context, str
 
 		switch status.ConfirmationStatus {
 		case rpc.ConfirmationStatusFinalized:
-			logger.Information(sig.String())
 			logger.Information(ConfirmMessage{
 				Message: fmt.Sprintf("successfully confirmed transaction: %s", sig.String()),
 			})
