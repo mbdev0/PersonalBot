@@ -37,7 +37,31 @@ venv/
 .vscode/
 
 # configuration file
-configuration/
+configuration/config.json
+logs.log
+server
+bot.db
+bot.db-journal
+bot queries.sqbpro
+
+
+### react ###
+.DS_*
+*.log
+logs
+**/*.backup.*
+**/*.back.*
+
+node_modules
+bower_components
+
+*.sublime*
+
+psd
+thumb
+sketch
+
+
 
 #ds_store
 *.DS_STORE
