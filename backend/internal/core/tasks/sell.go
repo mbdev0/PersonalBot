@@ -14,6 +14,7 @@ type SellTask struct {
 	Position_id    *int64
 	WalletName     string
 	Wallet         solana.PrivateKey
+	WalletID       string
 	Token          solana.PublicKey
 	SellPercentage float64
 	Fee            float64
@@ -31,6 +32,7 @@ func NewSellTask(wallet wallets.SolanaWallet, token solana.PublicKey, common []O
 		state:      State{TaskState: TaskCreate},
 		WalletName: wallet.WalletName,
 		Wallet:     wallet.PrivateKey,
+		WalletID:   wallet.Id,
 		Token:      token,
 		mu:         &sync.RWMutex{},
 	}
