@@ -39,7 +39,7 @@ venv/
 # configuration file
 configuration/config.json
 logs.log
-server
+backend/server
 bot.db
 bot.db-journal
 bot queries.sqbpro
