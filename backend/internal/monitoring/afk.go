@@ -71,13 +71,13 @@ func decryptAndFilterTransactions(filters filters.FilterPipeline, transactionNot
 			wg.Add(1)
 			go func(transaction response.TransactionNotification) {
 				defer wg.Done()
-				handleTransactionNotification(filters, transaction, coinStructChan, ctx)
+				handleTransactionNotification(filters, transaction, coinStructChan)
 			}(transaction)
 		}
 	}
 }
 
-func handleTransactionNotification(filters filters.FilterPipeline, transaction response.TransactionNotification, coinStructChan chan<- models.Coin, ctx context.Context) {
+func handleTransactionNotification(filters filters.FilterPipeline, transaction response.TransactionNotification, coinStructChan chan<- models.Coin) {
 	coin := decoder.DecryptTransactionNotificationForCoin(transaction)
 	if coin != nil {
 		coin = filters.ApplyFilters(coin)

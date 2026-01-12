@@ -216,7 +216,6 @@ func (st *Transaction) GetTask() tasks.Task {
 func getAllInstructionsForSell(sellTask *tasks.SellTask, ctx context.Context, ps *position.Service) ([]solana.Instruction, error) {
 	// we need to check if the user passed a positionId -> if so position == nil
 	// else we retrieve the positonId
-
 	var pos *positionmodel.Position
 	if sellTask.Position_id != nil {
 		position, err := ps.GetById(*sellTask.Position_id)
