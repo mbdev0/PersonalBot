@@ -50,15 +50,19 @@ func createBuyTask(src models.TaskRow, wallet models.WalletRepository) (*tasks.B
 	logger.Information(buyFeeLamport)
 	logger.Information(buyFee)
 
+	buyOpts := []tasks.BuyOption{
+		tasks.WithBuyAmount(buyAmnt),
+		tasks.WithBuyFee(buyFee),
+	}
+
+	if src.StrategyId != nil {
+		buyOpts = append(buyOpts, tasks.WithStrategyId(int64(*src.StrategyId)))
+	}
+
 	buyTask := tasks.NewBuyTask(mappedWallet, token, []tasks.Option{
 		tasks.WithSlippage(float64(src.Slippage) / 100.0),
 		tasks.WithComputeUnits(uint32(src.ComputeUnits)),
-		// tasks.WithStrategyId()
-		// TODO: add in strategy id into table
-	}, []tasks.BuyOption{
-		tasks.WithBuyAmount(buyAmnt),
-		tasks.WithBuyFee(buyFee),
-	})
+	}, buyOpts)
 
 	return buyTask, nil
 }
@@ -127,6 +131,7 @@ func MapTaskToRepo(src tasks.Task) (*models.TaskRow, error) {
 		taskRow.Slippage = int(task.Slippage * 100)
 		taskRow.ComputeUnits = int(task.ComputeUnits)
 		taskRow.Config = string(configJSON)
+		taskRow.StrategyId = task.StrategyId
 
 	case *tasks.SellTask:
 
