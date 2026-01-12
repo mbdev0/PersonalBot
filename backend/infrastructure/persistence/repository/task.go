@@ -19,7 +19,7 @@ func NewTaskRepository(db *sql.DB) *TaskRepository {
 
 func (tr *TaskRepository) GetAll(ctx context.Context) ([]tasks.Task, error) {
 	query := `
-	SELECT t.id, t.task_type, t.slippage_percentage, t.compute_units, t.config, t.state, t.token, cw.id, cw.wallet_name, cw.chain, cw.private_key
+	SELECT t.id, t.task_type, t.slippage_percentage, t.compute_units, t.config, t.state, t.token, t.strategy_id, cw.id, cw.wallet_name, cw.chain, cw.private_key
 		FROM tasks t
 		INNER JOIN crypto_wallets cw WHERE cw.id = t.wallet_id
 	`
@@ -32,7 +32,7 @@ func (tr *TaskRepository) GetAll(ctx context.Context) ([]tasks.Task, error) {
 	for rows.Next() {
 		task := models.TaskRow{}
 		wallet := models.WalletRepository{}
-		err := rows.Scan(&task.Id, &task.TaskType, &task.Slippage, &task.ComputeUnits, &task.Config, &task.State, &task.Token, &wallet.Id, &wallet.WalletName, &wallet.Chain, &wallet.PrivateKey)
+		err := rows.Scan(&task.Id, &task.TaskType, &task.Slippage, &task.ComputeUnits, &task.Config, &task.State, &task.Token, &task.StrategyId, &wallet.Id, &wallet.WalletName, &wallet.Chain, &wallet.PrivateKey)
 		if err != nil {
 			return nil, err
 		}
@@ -57,7 +57,7 @@ func (tr *TaskRepository) GetById(ctx context.Context, id string) (tasks.Task, e
 
 	task := models.TaskRow{}
 	wallet := models.WalletRepository{}
-	err = rows.Scan(&task.Id, &task.TaskType, &task.Slippage, &task.ComputeUnits, &task.Config, &task.State, &task.Token, &wallet.Id, &wallet.WalletName, &wallet.Chain, &wallet.PrivateKey)
+	err = rows.Scan(&task.Id, &task.TaskType, &task.Slippage, &task.ComputeUnits, &task.Config, &task.State, &task.Token, &task.StrategyId, &wallet.Id, &wallet.WalletName, &wallet.Chain, &wallet.PrivateKey)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, fmt.Errorf("wallet not found: %s", id)
@@ -80,14 +80,14 @@ func (tr *TaskRepository) AddTask(ctx context.Context, task tasks.Task) (bool, e
 		return false, err
 	}
 
-	query := "INSERT into tasks values (?,?,?,?,?,?,?,?)"
+	query := "INSERT into tasks values (?,?,?,?,?,?,?,?,?)"
 	tx, err := tr.db.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable, ReadOnly: false})
 	if err != nil {
 		tx.Rollback()
 		return false, err
 	}
 
-	_, err = tx.ExecContext(ctx, query, mappedTask.Id, mappedTask.TaskType, mappedTask.WalletId, mappedTask.Slippage, mappedTask.ComputeUnits, mappedTask.Config, mappedTask.State, mappedTask.Token)
+	_, err = tx.ExecContext(ctx, query, mappedTask.Id, mappedTask.TaskType, mappedTask.WalletId, mappedTask.Slippage, mappedTask.ComputeUnits, mappedTask.Config, mappedTask.StrategyId, mappedTask.State, mappedTask.Token)
 	if err != nil {
 		tx.Rollback()
 		return false, err
@@ -108,7 +108,7 @@ func (tr *TaskRepository) AddAllTasks(tasks []tasks.Task, ctx context.Context) (
 	}
 
 	baseQuery := `
-		INSERT into tasks values (?,?,?,?,?,?,?,?)
+		INSERT into tasks values (?,?,?,?,?,?,?,?,?)
 		ON CONFLICT(id) DO UPDATE SET
             task_type = excluded.task_type,
             wallet_id = excluded.wallet_id,
@@ -116,7 +116,8 @@ func (tr *TaskRepository) AddAllTasks(tasks []tasks.Task, ctx context.Context) (
             compute_units = excluded.compute_units,
             config = excluded.config,
             state = excluded.state,
-            token = excluded.token
+            token = excluded.token,
+			strategy_id = excluded.strategy_id
 	`
 
 	tx, err := tr.db.BeginTx(ctx, nil)
@@ -132,12 +133,12 @@ func (tr *TaskRepository) AddAllTasks(tasks []tasks.Task, ctx context.Context) (
 	defer stmt.Close()
 
 	for _, t := range tasks {
-		taskRow, err := mapper.MapTaskToRepo(t)
+		mappedTask, err := mapper.MapTaskToRepo(t)
 		if err != nil {
 			return false, fmt.Errorf("failed to map task: %d", t.Id())
 		}
 
-		_, err = stmt.ExecContext(ctx, taskRow.Id, taskRow.TaskType, taskRow.WalletId, taskRow.Slippage, taskRow.ComputeUnits, taskRow.Config, taskRow.State, taskRow.Token)
+		_, err = stmt.ExecContext(ctx, mappedTask.Id, mappedTask.TaskType, mappedTask.WalletId, mappedTask.Slippage, mappedTask.ComputeUnits, mappedTask.Config, mappedTask.StrategyId, mappedTask.State, mappedTask.Token)
 		if err != nil {
 			return false, fmt.Errorf("error whilst executing data for task id: %d, error: %w", t.Id(), err)
 		}

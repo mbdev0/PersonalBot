@@ -9,6 +9,7 @@ type TaskRow struct {
 	Config       string `db:"config"`
 	State        string `db:"state"`
 	Token        string `db:"token"`
+	StrategyId   *int64 `db:"strategy_id"`
 }
 
 // Stored as lamports
