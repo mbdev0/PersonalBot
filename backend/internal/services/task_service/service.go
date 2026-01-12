@@ -3,13 +3,11 @@ package taskservice
 import (
 	"context"
 	"fmt"
-	"maps"
 	"pump_fun/infrastructure/persistence/repository"
 	"pump_fun/internal/core/tasks"
 	"pump_fun/internal/services/state"
 	subscriptionhub "pump_fun/internal/services/subscription_hub"
 	"pump_fun/pkg/logger"
-	"slices"
 	"sync"
 )
 
@@ -150,9 +148,14 @@ func (ts *TaskService) Shutdown(ctx context.Context) error {
 		return fmt.Errorf("failed to wipe table for insertion")
 	}
 
-	tasksSlice := slices.Collect(maps.Values(ts.tasks))
+	tasksToSave := make([]tasks.Task, 0, len(ts.tasks))
+	for _, v := range ts.tasks {
+		if ts.shouldPresistTask(v) {
+			tasksToSave = append(tasksToSave, v)
+		}
+	}
 
-	success, err := ts.repo.AddAllTasks(tasksSlice, ctx)
+	success, err := ts.repo.AddAllTasks(tasksToSave, ctx)
 	if err != nil {
 		return fmt.Errorf("error whilst shutting down: %w", err)
 	}
@@ -162,4 +165,14 @@ func (ts *TaskService) Shutdown(ctx context.Context) error {
 	}
 
 	return nil
+}
+
+func (ts *TaskService) shouldPresistTask(t tasks.Task) bool {
+	if sellT, ok := t.(*tasks.SellTask); ok {
+		if sellT.Position_id != nil {
+			return false
+		}
+	}
+
+	return true
 }
