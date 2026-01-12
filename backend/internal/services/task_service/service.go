@@ -1,29 +1,40 @@
 package taskservice
 
 import (
+	"context"
 	"fmt"
+	"maps"
+	"pump_fun/infrastructure/persistence/repository"
 	"pump_fun/internal/core/tasks"
 	"pump_fun/internal/services/state"
 	subscriptionhub "pump_fun/internal/services/subscription_hub"
+	"pump_fun/pkg/logger"
+	"slices"
 	"sync"
 )
 
 type TaskService struct {
-	StateMachine *state.Machine
-	StateManager *state.Manager
-	Hub          *subscriptionhub.Hub
+	stateMachine *state.Machine
+	stateManager *state.Manager
+	repo         *repository.TaskRepository
+	hub          *subscriptionhub.Hub
 	tasks        map[int64]tasks.Task
 	mu           sync.Mutex
 }
 
-func (ts *TaskService) NewTaskService() {
-	ts.tasks = map[int64]tasks.Task{}
+func NewTaskService(sm *state.Machine, stateManager *state.Manager, repo *repository.TaskRepository, hub *subscriptionhub.Hub) *TaskService {
+	return &TaskService{
+		hub:          hub,
+		stateMachine: sm,
+		stateManager: stateManager,
+		repo:         repo,
+		tasks:        map[int64]tasks.Task{},
+	}
 }
 
 func (ts *TaskService) Create(task tasks.Task) (tasks.Task, error) {
 	ts.mu.Lock()
 	defer ts.mu.Unlock()
-
 	ts.tasks[task.Id()] = task
 	return task, nil
 }
@@ -78,14 +89,14 @@ func (ts *TaskService) TransitionTask(id int64, newState tasks.TaskState) (err e
 		return fmt.Errorf("Task not found with the id: %d", id)
 	}
 
-	err = ts.StateMachine.Transition(task, newState)
-	ts.Hub.PublishStateChange(task)
+	err = ts.stateMachine.Transition(task, newState)
+	ts.hub.PublishStateChange(task)
 
 	if err != nil {
 		return fmt.Errorf("transition failed for task %d with error: %w", task.Id(), err)
 	}
 
-	err = ts.StateManager.ExecuteAction(newState, task)
+	err = ts.stateManager.ExecuteAction(newState, task)
 	if err != nil {
 		return err
 	}
@@ -94,7 +105,7 @@ func (ts *TaskService) TransitionTask(id int64, newState tasks.TaskState) (err e
 }
 
 func (ts *TaskService) Subscribe(task tasks.Task) (*subscriptionhub.Subscription, error) {
-	c, err := ts.Hub.Subscribe(task)
+	c, err := ts.hub.Subscribe(task)
 	if err != nil {
 		return nil, err
 	}
@@ -102,9 +113,53 @@ func (ts *TaskService) Subscribe(task tasks.Task) (*subscriptionhub.Subscription
 }
 
 func (ts *TaskService) Unsubscribe(task tasks.Task) error {
-	err := ts.Hub.Unsubcribe(task)
+	err := ts.hub.Unsubcribe(task)
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+// this will be called once on application load
+func (ts *TaskService) LoadFromDB(ctx context.Context) error {
+	tasksFromDb, err := ts.repo.GetAll(ctx)
+	if err != nil {
+		return err
+	}
+
+	logger.Information(tasksFromDb)
+
+	for _, tdb := range tasksFromDb {
+		ts.tasks[tdb.Id()] = tdb
+	}
+
+	return nil
+}
+
+// This will send all the tasks to the database before shutdown
+func (ts *TaskService) Shutdown(ctx context.Context) error {
+	ts.mu.Lock()
+	defer ts.mu.Unlock()
+
+	deleteSuccess, err := ts.repo.DeleteAll(ctx)
+	if err != nil {
+		return err
+	}
+
+	if !deleteSuccess {
+		return fmt.Errorf("failed to wipe table for insertion")
+	}
+
+	tasksSlice := slices.Collect(maps.Values(ts.tasks))
+
+	success, err := ts.repo.AddAllTasks(tasksSlice, ctx)
+	if err != nil {
+		return fmt.Errorf("error whilst shutting down: %w", err)
+	}
+
+	if !success {
+		return fmt.Errorf("unsuccesful graceful shutdown in tasks service")
+	}
+
 	return nil
 }
