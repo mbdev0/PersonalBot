@@ -2,7 +2,9 @@
 package main
 
 import (
+	"context"
 	"net/http"
+	"os/signal"
 	"pump_fun/api/controller"
 	"pump_fun/api/handler"
 	"pump_fun/app"
@@ -14,6 +16,8 @@ import (
 	positionhub "pump_fun/internal/services/subscription_hub/position"
 	"pump_fun/internal/services/subscription_hub/strategy"
 	"pump_fun/internal/services/wallet"
+	"syscall"
+	"time"
 
 	taskservice "pump_fun/internal/services/task_service"
 	"pump_fun/internal/services/trading"
@@ -45,8 +49,12 @@ func main() {
 	stateManger := state.Manager{}
 	stateManger.New(&taskSubhub, &executor)
 
-	taskService := taskservice.TaskService{StateMachine: &fsm, StateManager: &stateManger, Hub: &taskSubhub}
-	taskService.NewTaskService()
+	taskRepo := repository.NewTaskRepository(db)
+	taskService := taskservice.NewTaskService(&fsm, &stateManger, taskRepo, &taskSubhub)
+	err = taskService.LoadFromDB(context.Background())
+	if err != nil {
+		logger.Error("error whilst loading from db: ", err)
+	}
 
 	walletRepo := repository.NewWalletRepository(db)
 	walletService := wallet.NewWalletService(walletRepo)
@@ -54,7 +62,7 @@ func main() {
 	walletHandler := http.StripPrefix("/api/wallet", handler.NewWalletHandler(walletController))
 
 	tradingStrategy := trading.Strategy{}
-	tradingStrategy.NewTradingStrategy(&taskService, &posSubhub, &positionService, &strategySubHub)
+	tradingStrategy.NewTradingStrategy(taskService, &posSubhub, &positionService, &strategySubHub)
 
 	tradingService := trading.Service{}
 	tradingService.NewTradingService(&tradingStrategy, &strategySubHub)
@@ -63,7 +71,7 @@ func main() {
 	tradingController.New(&tradingService, walletService)
 	tradingHandler := http.StripPrefix("/api/trading", handler.NewTradingHandler(&tradingController))
 
-	buyController := controller.TaskController{TaskService: &taskService, WalletService: walletService}
+	buyController := controller.TaskController{TaskService: taskService, WalletService: walletService}
 	buyHandler := http.StripPrefix("/api/tasks", handler.NewTaskHandler(&buyController))
 
 	positionController := controller.PositionController{PositionService: &positionService}
@@ -83,15 +91,43 @@ func main() {
 		Handler: CORS(mux.ServeHTTP),
 	}
 
-	logger.Information("Starting server on port 9090:")
-	logger.Information("http://localhost:9090")
-
 	// checkGoRoutines()
 	// test()
 
-	if err := server.ListenAndServe(); err != nil {
-		panic(err)
+	go func() {
+		logger.Information("Starting server on port 9090:")
+		logger.Information("http://localhost:9090")
+		if err := server.ListenAndServe(); err != nil {
+			logger.Information("stopped listening to localhost:9090")
+		}
+	}()
+
+	shutdown, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
+	<-shutdown.Done()
+
+	logger.Information("shutting down application")
+
+	logger.Information("pushing tasks to db")
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
+	defer cancel()
+
+	// do the tasks here
+	err = taskService.Shutdown(ctx)
+	if err != nil {
+		logger.Error(err)
 	}
+
+	if err := server.Shutdown(ctx); err != nil {
+		logger.Error("error whilst shutting down: ", err)
+	}
+
+	err = db.Close()
+	if err != nil {
+		logger.Error(err)
+	}
+
+	logger.Information("shutdown complete")
 
 }
 
