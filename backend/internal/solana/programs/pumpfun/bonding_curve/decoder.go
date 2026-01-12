@@ -128,11 +128,6 @@ func GetBondingCurveDataFromAddress(bondingCurveAddress string, ctx context.Cont
 	return bondingCurveModel, nil, false
 }
 
-func GetBuyTokenAmountFrom(buyInSol big.Int, bondingCurveData *models.BondingCurve) (tokenAmnt *big.Int, err error, hasCompleted bool) {
-	tokenAmount := getTokenAmount(buyInSol, bondingCurveData)
-	return &tokenAmount, nil, false
-}
-
 func getBondingCurveData(bondingCurveBytes []byte) (bondingCurveData *models.BondingCurve, err error, hasMigrated bool) {
 
 	bondingCurveInfo, err := decryptBondingCurveData(bondingCurveBytes)
@@ -145,6 +140,11 @@ func getBondingCurveData(bondingCurveBytes []byte) (bondingCurveData *models.Bon
 	}
 
 	return bondingCurveInfo, nil, false
+}
+
+func GetBuyTokenAmountFrom(buyInSol big.Int, bondingCurveData *models.BondingCurve) (tokenAmnt *big.Int, err error, hasCompleted bool) {
+	tokenAmount := getTokenAmount(buyInSol, bondingCurveData)
+	return &tokenAmount, nil, false
 }
 
 func getTokenAmount(solBuy big.Int, bondingCurveInfo *models.BondingCurve) big.Int {
