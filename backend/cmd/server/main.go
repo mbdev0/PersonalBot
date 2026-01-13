@@ -66,6 +66,10 @@ func main() {
 
 	tradingService := trading.Service{}
 	tradingService.NewTradingService(&tradingStrategy, &strategySubHub)
+	err = tradingService.LoadFromDB()
+	if err != nil {
+		logger.Error(err)
+	}
 
 	tradingController := controller.StrategyController{}
 	tradingController.New(&tradingService, walletService)
@@ -114,6 +118,11 @@ func main() {
 
 	// do the tasks here
 	err = taskService.Shutdown(ctx)
+	if err != nil {
+		logger.Error(err)
+	}
+
+	err = tradingService.Shutdown()
 	if err != nil {
 		logger.Error(err)
 	}
