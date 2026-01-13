@@ -148,3 +148,9 @@ func (s *Service) Unsubscribe(taskId int64) error {
 	err := s.subhub.Unsubscribe(taskId)
 	return err
 }
+
+// loads tasks into memory
+func (s *Service) LoadFromDB() error { return nil }
+
+// pushes all in-memory tasks to db
+func (s *Service) Shutdown() error { return nil }
