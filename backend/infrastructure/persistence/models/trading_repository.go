@@ -1,3 +1,5 @@
+package models
+
 type TradingRow struct {
 	Id           int    `db:"id"`
 	TradingType  string `db:"trading_type"`
@@ -8,8 +10,23 @@ type TradingRow struct {
 }
 
 type AfkConfig struct {
-	Filters        string `json:"filters"` // TODO - Change this to a struct of filters
-	BuyAmount      int    `json:"buy_amount"`
-	BuyFee         int    `json:"buy_fee"`
-	SellStrategies string `json:"sell_strategies"` //TODO - change this to a struct of sell strats
+	Filters filters `json:"filters"`
+	//Stored as Lamports
+	BuyFee         int              `json:"buy_fee"`
+	BuyAmount      int              `json:"buy_amount"`
+	SellFee        int              `json:"sell_fee"`
+	SellStrategies []SellStrategies `json:"sell_strategies"`
+}
+
+type filters struct {
+	HasWebsite  *bool   `json:"has_website"`
+	HasTwitter  *bool   `json:"has_twitter"`
+	HasTelegram *bool   `json:"has_telegram"`
+	DevWallet   *string `json:"dev_wallet"`
+}
+
+type SellStrategies struct {
+	Type       string  `json:"type"`
+	Value      float64 `json:"value"`
+	SellAmount float64 `json:"sell_amount"`
 }

@@ -23,6 +23,3 @@ type SellConfig struct {
 	SellFee    int `json:"sell_fee"`
 	SellAmount int `json:"sell_percentage"`
 }
-
-type AfkConfig struct {
-}
