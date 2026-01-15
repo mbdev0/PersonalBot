@@ -2,7 +2,7 @@ package decoder
 
 import (
 	"bytes"
-	"pump_fun/pkg/logger"
+	"personal_bot/pkg/logger"
 )
 
 func convertToUint64(buf *bytes.Buffer) (uint64, error) {

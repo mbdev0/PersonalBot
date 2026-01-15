@@ -2,12 +2,12 @@ package monitoring
 
 import (
 	"context"
-	"pump_fun/internal/monitoring/decoder"
-	"pump_fun/internal/monitoring/filters"
-	"pump_fun/internal/monitoring/models"
-	"pump_fun/internal/monitoring/stream"
-	"pump_fun/internal/monitoring/stream/response"
-	"pump_fun/pkg/logger"
+	"personal_bot/internal/monitoring/decoder"
+	"personal_bot/internal/monitoring/filters"
+	"personal_bot/internal/monitoring/models"
+	"personal_bot/internal/monitoring/stream"
+	"personal_bot/internal/monitoring/stream/response"
+	"personal_bot/pkg/logger"
 	"sync"
 )
 

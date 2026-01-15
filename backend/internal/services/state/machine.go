@@ -2,8 +2,8 @@ package state
 
 import (
 	"fmt"
-	"pump_fun/internal/core/tasks"
-	"pump_fun/internal/services/state/transition"
+	"personal_bot/internal/core/tasks"
+	"personal_bot/internal/services/state/transition"
 )
 
 type Machine struct {

@@ -2,9 +2,9 @@ package solana_price
 
 import (
 	"encoding/json"
-	"pump_fun/infrastructure/http"
-	"pump_fun/internal/core/constants"
-	"pump_fun/pkg/logger"
+	"personal_bot/infrastructure/http"
+	"personal_bot/internal/core/constants"
+	"personal_bot/pkg/logger"
 	"sync"
 	"time"
 )

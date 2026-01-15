@@ -3,10 +3,10 @@ package instructions
 import (
 	"context"
 	"fmt"
-	"pump_fun/internal/core/constants"
-	"pump_fun/internal/solana/client"
-	"pump_fun/internal/solana/programs/pumpfun/pda"
-	"pump_fun/pkg/logger"
+	"personal_bot/internal/core/constants"
+	"personal_bot/internal/solana/client"
+	"personal_bot/internal/solana/programs/pumpfun/pda"
+	"personal_bot/pkg/logger"
 
 	"github.com/gagliardetto/solana-go"
 )

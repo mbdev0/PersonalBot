@@ -2,10 +2,10 @@ package validator_test
 
 import (
 	"errors"
-	"pump_fun/app/validator"
-	"pump_fun/internal/core/models/wallets"
-	"pump_fun/internal/core/tasks"
-	"pump_fun/internal/solana/utils"
+	"personal_bot/app/validator"
+	"personal_bot/internal/core/models/wallets"
+	"personal_bot/internal/core/tasks"
+	"personal_bot/internal/solana/utils"
 	"reflect"
 	"strings"
 	"testing"

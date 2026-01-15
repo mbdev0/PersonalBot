@@ -1,6 +1,6 @@
 package strategies
 
-import "pump_fun/internal/core/tasks"
+import "personal_bot/internal/core/tasks"
 
 type StrategyMessage struct {
 	Id    int64      `json:"id"`

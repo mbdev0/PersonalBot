@@ -10,10 +10,10 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"pump_fun/infrastructure/config"
-	"pump_fun/internal/monitoring/models"
+	"personal_bot/infrastructure/config"
+	"personal_bot/internal/monitoring/models"
 
-	"pump_fun/pkg/logger"
+	"personal_bot/pkg/logger"
 )
 
 var (

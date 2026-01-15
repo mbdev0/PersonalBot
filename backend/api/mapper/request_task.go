@@ -3,10 +3,10 @@ package mapper
 import (
 	"fmt"
 	"math/big"
-	"pump_fun/api/dto"
-	"pump_fun/internal/core/constants"
-	"pump_fun/internal/core/models/wallets"
-	"pump_fun/internal/core/tasks"
+	"personal_bot/api/dto"
+	"personal_bot/internal/core/constants"
+	"personal_bot/internal/core/models/wallets"
+	"personal_bot/internal/core/tasks"
 
 	"github.com/gagliardetto/solana-go"
 )

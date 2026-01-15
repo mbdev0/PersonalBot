@@ -3,9 +3,9 @@ package state
 import (
 	"context"
 	"fmt"
-	"pump_fun/internal/core/tasks"
-	subscriptionhub "pump_fun/internal/services/subscription_hub"
-	"pump_fun/internal/services/transaction"
+	"personal_bot/internal/core/tasks"
+	subscriptionhub "personal_bot/internal/services/subscription_hub"
+	"personal_bot/internal/services/transaction"
 	"sync"
 )
 

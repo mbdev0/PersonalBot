@@ -3,9 +3,9 @@ package decoder
 import (
 	"bytes"
 	"fmt"
-	"pump_fun/internal/core/constants"
-	"pump_fun/internal/monitoring/models"
-	"pump_fun/pkg/logger"
+	"personal_bot/internal/core/constants"
+	"personal_bot/internal/monitoring/models"
+	"personal_bot/pkg/logger"
 
 	"github.com/near/borsh-go"
 )

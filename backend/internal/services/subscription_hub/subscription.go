@@ -1,6 +1,6 @@
 package subscriptionhub
 
-import "pump_fun/internal/core/tasks"
+import "personal_bot/internal/core/tasks"
 
 type Subscription struct {
 	taskId        int64

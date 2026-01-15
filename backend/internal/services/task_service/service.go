@@ -3,11 +3,11 @@ package taskservice
 import (
 	"context"
 	"fmt"
-	"pump_fun/infrastructure/persistence/repository"
-	"pump_fun/internal/core/tasks"
-	"pump_fun/internal/services/state"
-	subscriptionhub "pump_fun/internal/services/subscription_hub"
-	"pump_fun/pkg/logger"
+	"personal_bot/infrastructure/persistence/repository"
+	"personal_bot/internal/core/tasks"
+	"personal_bot/internal/services/state"
+	subscriptionhub "personal_bot/internal/services/subscription_hub"
+	"personal_bot/pkg/logger"
 	"sync"
 )
 

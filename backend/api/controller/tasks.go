@@ -1,13 +1,13 @@
 package controller
 
 import (
-	"pump_fun/api/dto"
-	"pump_fun/api/mapper"
-	"pump_fun/internal/core/models/wallets"
-	"pump_fun/internal/core/tasks"
-	subscriptionhub "pump_fun/internal/services/subscription_hub"
-	taskservice "pump_fun/internal/services/task_service"
-	"pump_fun/internal/services/wallet"
+	"personal_bot/api/dto"
+	"personal_bot/api/mapper"
+	"personal_bot/internal/core/models/wallets"
+	"personal_bot/internal/core/tasks"
+	subscriptionhub "personal_bot/internal/services/subscription_hub"
+	taskservice "personal_bot/internal/services/task_service"
+	"personal_bot/internal/services/wallet"
 
 	"golang.org/x/net/context"
 )

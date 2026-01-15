@@ -2,9 +2,9 @@ package wallet
 
 import (
 	"context"
-	"pump_fun/infrastructure/persistence/mapper"
-	"pump_fun/infrastructure/persistence/repository"
-	"pump_fun/internal/core/models/wallets"
+	"personal_bot/infrastructure/persistence/mapper"
+	"personal_bot/infrastructure/persistence/repository"
+	"personal_bot/internal/core/models/wallets"
 )
 
 type Service struct {

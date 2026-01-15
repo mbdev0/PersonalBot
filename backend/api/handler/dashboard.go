@@ -3,8 +3,8 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
-	"pump_fun/api/controller"
-	"pump_fun/api/dto"
+	"personal_bot/api/controller"
+	"personal_bot/api/dto"
 )
 
 type DashboardHandler struct {

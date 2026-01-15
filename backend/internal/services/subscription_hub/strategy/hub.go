@@ -2,9 +2,9 @@ package strategy
 
 import (
 	"fmt"
-	"pump_fun/internal/core/strategies"
-	"pump_fun/internal/core/tasks"
-	"pump_fun/pkg/logger"
+	"personal_bot/internal/core/strategies"
+	"personal_bot/internal/core/tasks"
+	"personal_bot/pkg/logger"
 	"sync"
 )
 

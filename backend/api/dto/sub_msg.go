@@ -1,8 +1,8 @@
 package dto
 
 import (
-	"pump_fun/internal/core/position"
-	"pump_fun/internal/core/tasks"
+	"personal_bot/internal/core/position"
+	"personal_bot/internal/core/tasks"
 )
 
 type TaskSubscribe struct {

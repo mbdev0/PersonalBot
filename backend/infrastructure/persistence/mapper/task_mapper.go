@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/big"
-	"pump_fun/infrastructure/persistence/models"
-	"pump_fun/internal/core/tasks"
-	"pump_fun/internal/solana/utils"
-	"pump_fun/pkg/logger"
+	"personal_bot/infrastructure/persistence/models"
+	"personal_bot/internal/core/tasks"
+	"personal_bot/internal/solana/utils"
+	"personal_bot/pkg/logger"
 
 	"github.com/gagliardetto/solana-go"
 )

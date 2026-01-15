@@ -2,7 +2,7 @@ package tasks
 
 import (
 	"fmt"
-	"pump_fun/internal/core/models/wallets"
+	"personal_bot/internal/core/models/wallets"
 
 	"github.com/gagliardetto/solana-go"
 )

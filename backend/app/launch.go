@@ -2,12 +2,12 @@ package app
 
 import (
 	"fmt"
-	lookuptable "pump_fun/app/lookup_table"
-	"pump_fun/app/pumpfun_idl"
-	"pump_fun/app/validator"
-	"pump_fun/infrastructure/config"
-	"pump_fun/infrastructure/solana_price"
-	"pump_fun/pkg/logger"
+	lookuptable "personal_bot/app/lookup_table"
+	"personal_bot/app/pumpfun_idl"
+	"personal_bot/app/validator"
+	"personal_bot/infrastructure/config"
+	"personal_bot/infrastructure/solana_price"
+	"personal_bot/pkg/logger"
 )
 
 func Launch() {

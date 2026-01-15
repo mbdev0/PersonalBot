@@ -1,8 +1,8 @@
 package tasks
 
 import (
-	"pump_fun/app/iterable"
-	"pump_fun/internal/core/models/wallets"
+	"personal_bot/app/iterable"
+	"personal_bot/internal/core/models/wallets"
 	"sync"
 
 	"github.com/gagliardetto/solana-go"

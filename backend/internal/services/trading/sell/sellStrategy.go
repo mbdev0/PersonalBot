@@ -1,7 +1,7 @@
 package sell
 
 import (
-	"pump_fun/internal/core/position"
+	"personal_bot/internal/core/position"
 )
 
 type Strategy interface {

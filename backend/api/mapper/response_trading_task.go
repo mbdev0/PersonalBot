@@ -2,10 +2,10 @@ package mapper
 
 import (
 	"fmt"
-	"pump_fun/api/dto"
-	"pump_fun/internal/core/constants"
-	"pump_fun/internal/core/strategies"
-	"pump_fun/internal/solana/utils"
+	"personal_bot/api/dto"
+	"personal_bot/internal/core/constants"
+	"personal_bot/internal/core/strategies"
+	"personal_bot/internal/solana/utils"
 )
 
 func MapTradingTaskToDto(src strategies.Task) (dest *dto.TradingTaskResponse, err error) {

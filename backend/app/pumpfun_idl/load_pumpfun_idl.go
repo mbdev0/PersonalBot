@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"io"
 	"os"
-	"pump_fun/pkg/logger"
+	"personal_bot/pkg/logger"
 	"sync"
 )
 

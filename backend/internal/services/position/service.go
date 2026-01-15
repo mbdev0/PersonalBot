@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 	"math/big"
-	"pump_fun/internal/core/position"
-	position_hub "pump_fun/internal/services/subscription_hub/position"
+	"personal_bot/internal/core/position"
+	position_hub "personal_bot/internal/services/subscription_hub/position"
 	"sync"
 
 	"github.com/gagliardetto/solana-go"

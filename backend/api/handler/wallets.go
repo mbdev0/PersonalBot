@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"pump_fun/api/controller"
-	"pump_fun/api/dto"
-	"pump_fun/pkg/logger"
+	"personal_bot/api/controller"
+	"personal_bot/api/dto"
+	"personal_bot/pkg/logger"
 )
 
 type WalletsHandler struct {
