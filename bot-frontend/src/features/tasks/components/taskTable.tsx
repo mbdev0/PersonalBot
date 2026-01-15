@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { useAddTask, useDeleteTask, useTasks, useTransitionTask } from '../hooks/useTasks';
-import './taskTable.css';
 import Modal from '../../../components/modal';
 import { TaskUpdate } from './taskUpdate';
 import { TaskType, type Task } from '../types/task';
 import { TaskRow } from './taskRow';
+import './taskTable.css';
 
 export function TaskTable() {
   const { isPending, isError, data, error } = useTasks();
