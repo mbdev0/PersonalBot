@@ -1,7 +1,7 @@
 package subscriptionhub
 
 import (
-	"pump_fun/internal/core/tasks"
+	"personal_bot/internal/core/tasks"
 )
 
 type TaskReporter struct {

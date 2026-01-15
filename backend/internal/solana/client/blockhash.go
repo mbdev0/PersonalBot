@@ -2,7 +2,7 @@ package client
 
 import (
 	"context"
-	"pump_fun/pkg/logger"
+	"personal_bot/pkg/logger"
 
 	"github.com/gagliardetto/solana-go/rpc"
 )

@@ -2,10 +2,10 @@ package mapper
 
 import (
 	"fmt"
-	"pump_fun/api/dto"
-	"pump_fun/internal/core/models/wallets"
-	"pump_fun/internal/core/strategies"
-	"pump_fun/internal/solana/utils"
+	"personal_bot/api/dto"
+	"personal_bot/internal/core/models/wallets"
+	"personal_bot/internal/core/strategies"
+	"personal_bot/internal/solana/utils"
 )
 
 func MapTradingTaskPatchDtoToTradingTaskPatch(src dto.TradingTaskPatch, tskType dto.TradingType, wallet *wallets.SolanaWallet) (strategies.Patch, error) {

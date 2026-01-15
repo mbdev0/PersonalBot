@@ -2,7 +2,7 @@ package utils
 
 import (
 	"math/big"
-	"pump_fun/internal/core/constants"
+	"personal_bot/internal/core/constants"
 )
 
 func ConvertSolToLamport(solAmount float64) (lamportAmount *big.Int) {

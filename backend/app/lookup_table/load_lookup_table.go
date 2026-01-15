@@ -4,9 +4,9 @@ import (
 	"context"
 	"sync"
 
-	"pump_fun/internal/core/constants"
-	"pump_fun/internal/solana/client"
-	"pump_fun/pkg/logger"
+	"personal_bot/internal/core/constants"
+	"personal_bot/internal/solana/client"
+	"personal_bot/pkg/logger"
 
 	"github.com/gagliardetto/solana-go"
 	lookup "github.com/gagliardetto/solana-go/programs/address-lookup-table"

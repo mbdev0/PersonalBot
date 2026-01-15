@@ -2,7 +2,7 @@ package validator_test
 
 import (
 	"math/big"
-	"pump_fun/app/validator"
+	"personal_bot/app/validator"
 	"testing"
 )
 

@@ -2,9 +2,9 @@ package mapper
 
 import (
 	"math/big"
-	"pump_fun/api/dto"
-	"pump_fun/internal/core/constants"
-	"pump_fun/internal/core/position"
+	"personal_bot/api/dto"
+	"personal_bot/internal/core/constants"
+	"personal_bot/internal/core/position"
 )
 
 func MapPositionToPositionDto(src position.Position) (dest dto.PositionDto) {

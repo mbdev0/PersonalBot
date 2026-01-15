@@ -3,7 +3,7 @@ package client
 import (
 	"context"
 	"fmt"
-	"pump_fun/pkg/logger"
+	"personal_bot/pkg/logger"
 	"time"
 
 	"github.com/gagliardetto/solana-go"

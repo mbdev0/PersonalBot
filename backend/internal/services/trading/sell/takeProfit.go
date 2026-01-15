@@ -2,7 +2,7 @@ package sell
 
 import (
 	"math/big"
-	"pump_fun/internal/core/position"
+	"personal_bot/internal/core/position"
 )
 
 type TakeProfitPrice struct {

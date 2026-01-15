@@ -1,7 +1,7 @@
 package filters
 
 import (
-	"pump_fun/internal/monitoring/models"
+	"personal_bot/internal/monitoring/models"
 )
 
 type FilterInfo struct {

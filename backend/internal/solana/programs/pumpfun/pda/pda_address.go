@@ -1,8 +1,8 @@
 package pda
 
 import (
-	"pump_fun/internal/core/constants"
-	"pump_fun/internal/solana/utils"
+	"personal_bot/internal/core/constants"
+	"personal_bot/internal/solana/utils"
 
 	"github.com/gagliardetto/solana-go"
 	"github.com/mr-tron/base58"

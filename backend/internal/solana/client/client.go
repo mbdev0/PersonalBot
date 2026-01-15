@@ -1,7 +1,7 @@
 package client
 
 import (
-	"pump_fun/infrastructure/config"
+	"personal_bot/infrastructure/config"
 	"sync"
 	"time"
 

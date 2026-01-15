@@ -2,8 +2,8 @@ package subscriptionhub
 
 import (
 	"fmt"
-	"pump_fun/internal/core/tasks"
-	"pump_fun/pkg/logger"
+	"personal_bot/internal/core/tasks"
+	"personal_bot/pkg/logger"
 	"sync"
 	"time"
 )

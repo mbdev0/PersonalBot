@@ -1,10 +1,10 @@
 package controller
 
 import (
-	"pump_fun/api/dto"
-	"pump_fun/api/mapper"
-	"pump_fun/internal/services/position"
-	positionHub "pump_fun/internal/services/subscription_hub/position"
+	"personal_bot/api/dto"
+	"personal_bot/api/mapper"
+	"personal_bot/internal/services/position"
+	positionHub "personal_bot/internal/services/subscription_hub/position"
 )
 
 type PositionController struct {

@@ -3,7 +3,7 @@ package validator
 import (
 	"fmt"
 	"math/big"
-	"pump_fun/pkg/logger"
+	"personal_bot/pkg/logger"
 	"sync"
 
 	"github.com/go-playground/validator/v10"

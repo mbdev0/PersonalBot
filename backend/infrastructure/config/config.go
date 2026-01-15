@@ -3,7 +3,7 @@ package config
 import (
 	"encoding/json"
 	"os"
-	"pump_fun/internal/core/models"
+	"personal_bot/internal/core/models"
 	"sync"
 )
 

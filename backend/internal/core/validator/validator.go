@@ -1,6 +1,6 @@
 package validator
 
-import "pump_fun/app/validator"
+import "personal_bot/app/validator"
 
 func ValidateStruct(structToValidate interface{}) error {
 	validate := validator.GetValidator()

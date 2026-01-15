@@ -1,8 +1,8 @@
 package instructions
 
 import (
-	"pump_fun/internal/core/constants"
-	"pump_fun/internal/solana/utils"
+	"personal_bot/internal/core/constants"
+	"personal_bot/internal/solana/utils"
 
 	computebudget "github.com/gagliardetto/solana-go/programs/compute-budget"
 )

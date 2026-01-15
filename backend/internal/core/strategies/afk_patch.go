@@ -3,7 +3,7 @@ package strategies
 import (
 	"fmt"
 	"math/big"
-	"pump_fun/internal/core/models/wallets"
+	"personal_bot/internal/core/models/wallets"
 )
 
 type AfkPatch struct {

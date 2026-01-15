@@ -3,10 +3,10 @@ package stream
 import (
 	"context"
 	"fmt"
-	"pump_fun/infrastructure/config"
-	"pump_fun/internal/core/constants"
-	"pump_fun/internal/monitoring/stream/response"
-	"pump_fun/pkg/logger"
+	"personal_bot/infrastructure/config"
+	"personal_bot/internal/core/constants"
+	"personal_bot/internal/monitoring/stream/response"
+	"personal_bot/pkg/logger"
 
 	"github.com/avast/retry-go/v4"
 	"github.com/coder/websocket"

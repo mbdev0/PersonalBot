@@ -3,10 +3,10 @@ package monitoring
 import (
 	"context"
 	"math/big"
-	"pump_fun/internal/monitoring/stream"
-	"pump_fun/internal/monitoring/stream/response"
-	bondingcurve "pump_fun/internal/solana/programs/pumpfun/bonding_curve"
-	"pump_fun/pkg/logger"
+	"personal_bot/internal/monitoring/stream"
+	"personal_bot/internal/monitoring/stream/response"
+	bondingcurve "personal_bot/internal/solana/programs/pumpfun/bonding_curve"
+	"personal_bot/pkg/logger"
 )
 
 /*

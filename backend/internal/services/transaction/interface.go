@@ -2,9 +2,9 @@ package transaction
 
 import (
 	"context"
-	"pump_fun/internal/core/tasks"
-	"pump_fun/internal/services/position"
-	subscriptionhub "pump_fun/internal/services/subscription_hub"
+	"personal_bot/internal/core/tasks"
+	"personal_bot/internal/services/position"
+	subscriptionhub "personal_bot/internal/services/subscription_hub"
 
 	"github.com/gagliardetto/solana-go"
 )

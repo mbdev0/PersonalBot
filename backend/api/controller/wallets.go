@@ -2,9 +2,9 @@ package controller
 
 import (
 	"context"
-	"pump_fun/api/dto"
-	"pump_fun/api/mapper"
-	"pump_fun/internal/services/wallet"
+	"personal_bot/api/dto"
+	"personal_bot/api/mapper"
+	"personal_bot/internal/services/wallet"
 )
 
 type WalletsController struct {

@@ -2,9 +2,9 @@ package strategies
 
 import (
 	"math/big"
-	"pump_fun/app/iterable"
-	"pump_fun/internal/core/models/wallets"
-	"pump_fun/internal/monitoring/filters"
+	"personal_bot/app/iterable"
+	"personal_bot/internal/core/models/wallets"
+	"personal_bot/internal/monitoring/filters"
 )
 
 type StrategyFilter func() filters.FilterInfo

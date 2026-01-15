@@ -4,9 +4,9 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"pump_fun/infrastructure/persistence/mapper"
-	"pump_fun/infrastructure/persistence/models"
-	"pump_fun/internal/core/models/wallets"
+	"personal_bot/infrastructure/persistence/mapper"
+	"personal_bot/infrastructure/persistence/models"
+	"personal_bot/internal/core/models/wallets"
 )
 
 type Wallet struct {

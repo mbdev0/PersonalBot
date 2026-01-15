@@ -1,8 +1,8 @@
 package mapper
 
 import (
-	"pump_fun/api/dto"
-	"pump_fun/internal/core/models/wallets"
+	"personal_bot/api/dto"
+	"personal_bot/internal/core/models/wallets"
 
 	"github.com/gagliardetto/solana-go"
 	"github.com/google/uuid"

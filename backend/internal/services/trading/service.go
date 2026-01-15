@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 	"maps"
-	"pump_fun/infrastructure/persistence/repository"
-	"pump_fun/internal/core/strategies"
-	"pump_fun/internal/services/subscription_hub/strategy"
+	"personal_bot/infrastructure/persistence/repository"
+	"personal_bot/internal/core/strategies"
+	"personal_bot/internal/services/subscription_hub/strategy"
 	"slices"
 	"sync"
 )

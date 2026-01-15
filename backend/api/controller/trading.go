@@ -3,12 +3,12 @@ package controller
 import (
 	"context"
 	"fmt"
-	"pump_fun/api/dto"
-	"pump_fun/api/mapper"
-	"pump_fun/internal/core/models/wallets"
-	"pump_fun/internal/services/subscription_hub/strategy"
-	"pump_fun/internal/services/trading"
-	"pump_fun/internal/services/wallet"
+	"personal_bot/api/dto"
+	"personal_bot/api/mapper"
+	"personal_bot/internal/core/models/wallets"
+	"personal_bot/internal/services/subscription_hub/strategy"
+	"personal_bot/internal/services/trading"
+	"personal_bot/internal/services/wallet"
 )
 
 type StrategyController struct {

@@ -1,4 +1,4 @@
-module pump_fun
+module personal_bot
 
 go 1.25
 

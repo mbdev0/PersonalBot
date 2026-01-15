@@ -2,7 +2,7 @@ package persistence
 
 import (
 	"database/sql"
-	"pump_fun/internal/core/constants"
+	"personal_bot/internal/core/constants"
 
 	_ "modernc.org/sqlite"
 )

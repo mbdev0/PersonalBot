@@ -4,11 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/big"
-	"pump_fun/infrastructure/persistence/models"
-	"pump_fun/internal/core/models/wallets"
-	"pump_fun/internal/core/strategies"
-	"pump_fun/internal/monitoring/filters"
-	"pump_fun/internal/solana/utils"
+	"personal_bot/infrastructure/persistence/models"
+	"personal_bot/internal/core/models/wallets"
+	"personal_bot/internal/core/strategies"
+	"personal_bot/internal/monitoring/filters"
+	"personal_bot/internal/solana/utils"
 
 	"github.com/gagliardetto/solana-go"
 )
