@@ -1,24 +1,26 @@
-# Solana Bot
-
-Solana bot to buy and sell memecoins
+# AIO Bot
+Currently only able to do Solana Pump Fun coins.
+Planning to expand to EVM, and then into Web2. Personal Bot for now.
 
 ## Running Tests
-
-To run tests, run the following command
+To run tests for backend, run the following command
 
 ```bash
+  cd backend/
   go test ./...
 ```
 
 To view tests coverage
 
 ```bash
+  cd backend
   go test -cover ./...        
 ```
 
 To run the program:
 ```bash
+  cd backend
   go build ./cmd/server
   ./server
 ```
-in the root directory
+in the backend directory
