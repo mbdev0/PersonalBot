@@ -13,7 +13,7 @@ export function TaskEntry({ onClose }: TaskEntryProps) {
   const [taskType, setTaskType] = useState('Buy');
   const [slippage, setSlippage] = useState('20');
   const [computeUnits, setComputeUnits] = useState('100000');
-  const [tokenAddress, setTokenAddress] = useState('2gvhTGcWJFUmPcXyUWM1KxbaqQKryMPKjiZHNNg7pump');
+  const [tokenAddress, setTokenAddress] = useState('');
   const [buyAmount, setBuyAmount] = useState('1.0');
   const [buyFee, setBuyFee] = useState('0.1');
   const [sellAmount, setSellAmount] = useState('20');
