@@ -3,14 +3,14 @@ package models
 type TradingRow struct {
 	Id           int    `db:"id"`
 	TradingType  string `db:"trading_type"`
-	WalletId     int    `db:"wallet_id"`
+	WalletId     string `db:"wallet_id"`
 	Slippage     int    `db:"slippage"`
 	ComputeUnits int    `db:"compute_units"`
 	Config       string `db:"config"`
 }
 
 type AfkConfig struct {
-	Filters filters `json:"filters"`
+	Filters Filters `json:"filters"`
 	//Stored as Lamports
 	BuyFee         int              `json:"buy_fee"`
 	BuyAmount      int              `json:"buy_amount"`
@@ -18,7 +18,7 @@ type AfkConfig struct {
 	SellStrategies []SellStrategies `json:"sell_strategies"`
 }
 
-type filters struct {
+type Filters struct {
 	HasWebsite  *bool   `json:"has_website"`
 	HasTwitter  *bool   `json:"has_twitter"`
 	HasTelegram *bool   `json:"has_telegram"`

@@ -3,6 +3,9 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"fmt"
+	"pump_fun/infrastructure/persistence/mapper"
+	"pump_fun/infrastructure/persistence/models"
 	"pump_fun/internal/core/strategies"
 )
 
@@ -14,8 +17,77 @@ func NewTradingRepository(db *sql.DB) *TradingRepository {
 	return &TradingRepository{db: db}
 }
 
+func (tr *TradingRepository) GetAllTasks(ctx context.Context) ([]strategies.Task, error) {
+	query := `
+	SELECT tt.id, tt.trading_type, tt.slippage, tt.compute_units, tt.config, cw.id, cw.wallet_name, cw.chain, cw.private_key
+		FROM trading_tasks tt
+		INNER JOIN crypto_wallets cw WHERE cw.id = tt.wallet_id
+	`
+	rows, err := tr.db.QueryContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+
+	dbTasks := []strategies.Task{}
+	for rows.Next() {
+		task := models.TradingRow{}
+		wallet := models.WalletRepository{}
+		err := rows.Scan(&task.Id, &task.TradingType, &task.Slippage, &task.ComputeUnits, &task.Config, &wallet.Id, &wallet.WalletName, &wallet.Chain, &wallet.PrivateKey)
+		if err != nil {
+			return nil, err
+		}
+
+		mappedTask, err := mapper.MapRepoToTradingTask(task, wallet)
+		dbTasks = append(dbTasks, mappedTask)
+	}
+
+	return dbTasks, nil
+}
+
 func (tr *TradingRepository) AddAllTasks(tasks []strategies.Task, ctx context.Context) (bool, error) {
-	return false, nil
+	if len(tasks) == 0 {
+		return true, nil
+	}
+
+	baseQuery := `
+		INSERT into trading_tasks values (?,?,?,?,?,?)
+		ON CONFLICT(id) DO UPDATE SET
+            trading_type = excluded.trading_type,
+            wallet_id = excluded.wallet_id,
+            slippage = excluded.slippage,
+            compute_units = excluded.compute_units,
+            config = excluded.config
+	`
+
+	tx, err := tr.db.BeginTx(ctx, nil)
+	if err != nil {
+		return false, err
+	}
+	defer tx.Rollback()
+
+	stmt, err := tx.PrepareContext(ctx, baseQuery)
+	if err != nil {
+		return false, err
+	}
+	defer stmt.Close()
+
+	for _, t := range tasks {
+		mappedTask, err := mapper.MapTradingTaskToRepo(t)
+		if err != nil {
+			return false, fmt.Errorf("failed to map task: %d", t.StrategyTaskId())
+		}
+
+		_, err = stmt.ExecContext(ctx, mappedTask.Id, mappedTask.TradingType, mappedTask.WalletId, mappedTask.Slippage, mappedTask.ComputeUnits, mappedTask.Config)
+		if err != nil {
+			return false, fmt.Errorf("error whilst executing data for task id: %d, error: %w", t.StrategyTaskId(), err)
+		}
+	}
+
+	if err := tx.Commit(); err != nil {
+		return false, fmt.Errorf("error whilst commiting: %w", err)
+	}
+
+	return true, nil
 }
 
 func (tr *TradingRepository) DeleteAll(ctx context.Context) (bool, error) {

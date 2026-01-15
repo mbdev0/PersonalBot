@@ -3,8 +3,11 @@ package trading
 import (
 	"context"
 	"fmt"
+	"maps"
+	"pump_fun/infrastructure/persistence/repository"
 	"pump_fun/internal/core/strategies"
 	"pump_fun/internal/services/subscription_hub/strategy"
+	"slices"
 	"sync"
 )
 
@@ -14,14 +17,16 @@ type Service struct {
 	running  map[int64]context.CancelFunc
 	mu       *sync.Mutex
 	subhub   *strategy.SubscriptionHub
+	repo     *repository.TradingRepository
 }
 
-func (s *Service) NewTradingService(strat *Strategy, sh *strategy.SubscriptionHub) {
+func (s *Service) NewTradingService(strat *Strategy, sh *strategy.SubscriptionHub, tr *repository.TradingRepository) {
 	s.strategy = strat
 	s.tasks = map[int64]strategies.Task{}
 	s.running = map[int64]context.CancelFunc{}
 	s.mu = &sync.Mutex{}
 	s.subhub = sh
+	s.repo = tr
 }
 
 func (s *Service) Create(st strategies.Task) (task strategies.Task, err error) {
@@ -150,7 +155,43 @@ func (s *Service) Unsubscribe(taskId int64) error {
 }
 
 // loads tasks into memory
-func (s *Service) LoadFromDB() error { return nil }
+func (s *Service) LoadFromDB(ctx context.Context) error {
+	ttFromDb, err := s.repo.GetAllTasks(ctx)
+	if err != nil {
+		return err
+	}
+
+	for _, tt := range ttFromDb {
+		s.tasks[tt.StrategyTaskId()] = tt
+	}
+
+	return nil
+}
 
 // pushes all in-memory tasks to db
-func (s *Service) Shutdown() error { return nil }
+func (s *Service) Shutdown(ctx context.Context) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	deleteSuccess, err := s.repo.DeleteAll(ctx)
+	if err != nil {
+		return err
+	}
+
+	if !deleteSuccess {
+		return fmt.Errorf("failed to wipe table for insertion")
+	}
+
+	tasksToSave := slices.Collect(maps.Values(s.tasks))
+
+	success, err := s.repo.AddAllTasks(tasksToSave, ctx)
+	if err != nil {
+		return fmt.Errorf("error whilst shutting down: %w", err)
+	}
+
+	if !success {
+		return fmt.Errorf("unsuccesful graceful shutdown in tasks service")
+	}
+
+	return nil
+}
