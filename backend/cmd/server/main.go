@@ -64,9 +64,10 @@ func main() {
 	tradingStrategy := trading.Strategy{}
 	tradingStrategy.NewTradingStrategy(taskService, &posSubhub, &positionService, &strategySubHub)
 
+	tradingTaskRepo := repository.NewTradingRepository(db)
 	tradingService := trading.Service{}
-	tradingService.NewTradingService(&tradingStrategy, &strategySubHub)
-	err = tradingService.LoadFromDB()
+	tradingService.NewTradingService(&tradingStrategy, &strategySubHub, tradingTaskRepo)
+	err = tradingService.LoadFromDB(context.Background())
 	if err != nil {
 		logger.Error(err)
 	}
@@ -122,7 +123,7 @@ func main() {
 		logger.Error(err)
 	}
 
-	err = tradingService.Shutdown()
+	err = tradingService.Shutdown(ctx)
 	if err != nil {
 		logger.Error(err)
 	}
