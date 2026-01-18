@@ -3,6 +3,7 @@ package taskservice
 import (
 	"context"
 	"fmt"
+	"personal_bot/app/iterable"
 	"personal_bot/infrastructure/persistence/repository"
 	"personal_bot/internal/core/tasks"
 	"personal_bot/internal/services/state"
@@ -18,6 +19,7 @@ type TaskService struct {
 	hub          *subscriptionhub.Hub
 	tasks        map[int64]tasks.Task
 	mu           sync.Mutex
+	iter         *iterable.Iterable
 }
 
 func NewTaskService(sm *state.Machine, stateManager *state.Manager, repo *repository.TaskRepository, hub *subscriptionhub.Hub) *TaskService {
@@ -27,12 +29,15 @@ func NewTaskService(sm *state.Machine, stateManager *state.Manager, repo *reposi
 		stateManager: stateManager,
 		repo:         repo,
 		tasks:        map[int64]tasks.Task{},
+		iter:         iterable.NewIterable(),
 	}
 }
 
 func (ts *TaskService) Create(task tasks.Task) (tasks.Task, error) {
 	ts.mu.Lock()
 	defer ts.mu.Unlock()
+	task.SetId(ts.iter.ID())
+
 	ts.tasks[task.Id()] = task
 	return task, nil
 }
@@ -124,6 +129,9 @@ func (ts *TaskService) LoadFromDB(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+
+	maxId := ts.repo.GetMaxId(ctx)
+	ts.iter.SetIterable(maxId)
 
 	logger.Information(tasksFromDb)
 
