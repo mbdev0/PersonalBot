@@ -2,7 +2,6 @@ package tasks
 
 import (
 	"math/big"
-	"personal_bot/app/iterable"
 	"personal_bot/internal/core/models/wallets"
 	"sync"
 
@@ -28,7 +27,6 @@ type BuyTask struct {
 func NewBuyTask(wallet wallets.SolanaWallet, token solana.PublicKey, common []Option, buyOpts []BuyOption) *BuyTask {
 	bt := &BuyTask{
 		taskType:   "Buy",
-		id:         iterable.Itr.ID(),
 		WalletId:   wallet.Id,
 		WalletName: wallet.WalletName,
 		Wallet:     wallet.PrivateKey,
@@ -50,6 +48,9 @@ func NewBuyTask(wallet wallets.SolanaWallet, token solana.PublicKey, common []Op
 
 func (bt *BuyTask) Id() int64 {
 	return bt.id
+}
+func (bt *BuyTask) SetId(id int64) {
+	bt.id = id
 }
 
 func (bt *BuyTask) Type() string { return bt.taskType }

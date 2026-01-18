@@ -64,6 +64,8 @@ func createBuyTask(src models.TaskRow, wallet models.WalletRepository) (*tasks.B
 		tasks.WithComputeUnits(uint32(src.ComputeUnits)),
 	}, buyOpts)
 
+	buyTask.SetId(int64(src.Id))
+
 	return buyTask, nil
 }
 
@@ -97,6 +99,8 @@ func createSellTask(src models.TaskRow, wallet models.WalletRepository) (*tasks.
 		tasks.WithSellAmount(float64(sellConfig.SellAmount) / 100.0),
 		tasks.WithSellFee(sellFee),
 	})
+
+	sellTask.SetId(int64(src.Id))
 
 	return sellTask, nil
 }
