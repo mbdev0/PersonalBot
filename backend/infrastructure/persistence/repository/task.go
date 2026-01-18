@@ -44,6 +44,16 @@ func (tr *TaskRepository) GetAll(ctx context.Context) ([]tasks.Task, error) {
 	return dbTasks, nil
 }
 
+func (tr *TaskRepository) GetMaxId(ctx context.Context) int64 {
+	query := `SELECT MAX(id) FROM tasks`
+	row := tr.db.QueryRowContext(ctx, query)
+
+	var id int64
+	row.Scan(&id)
+
+	return id
+}
+
 func (tr *TaskRepository) GetById(ctx context.Context, id string) (tasks.Task, error) {
 	query := `
 	SELECT t.id, t.task_type, t.slippage_percentage, t.compute_units, t.config, t.state, t.token, cw.id, cw.wallet_name, cw.chain, cw.private_key
