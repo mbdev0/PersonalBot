@@ -112,6 +112,7 @@ func MapRepoToTradingTask(src models.TradingRow, wallet models.WalletRepository)
 func mapAfkRepoToTradingTask(src models.TradingRow, wallet models.WalletRepository) (*strategies.Afk, error) {
 	afkTask := strategies.Afk{}
 	afkTask.New()
+	afkTask.SetId(int64(src.Id))
 
 	config := models.AfkConfig{}
 	err := json.Unmarshal([]byte(src.Config), &config)

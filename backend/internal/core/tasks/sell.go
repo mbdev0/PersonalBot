@@ -1,7 +1,6 @@
 package tasks
 
 import (
-	"personal_bot/app/iterable"
 	"personal_bot/internal/core/models/wallets"
 	"sync"
 
@@ -27,7 +26,6 @@ type SellTask struct {
 func NewSellTask(wallet wallets.SolanaWallet, token solana.PublicKey, common []Option, sellOpt []SellOption) *SellTask {
 
 	st := &SellTask{
-		id:         iterable.Itr.ID(),
 		taskType:   "Sell",
 		state:      State{TaskState: TaskCreate},
 		WalletName: wallet.WalletName,
@@ -48,9 +46,10 @@ func NewSellTask(wallet wallets.SolanaWallet, token solana.PublicKey, common []O
 	return st
 }
 
-func (st *SellTask) State() State { st.mu.RLock(); defer st.mu.RUnlock(); return st.state }
-func (st *SellTask) Id() int64    { return st.id }
-func (st *SellTask) Type() string { return st.taskType }
+func (st *SellTask) State() State   { st.mu.RLock(); defer st.mu.RUnlock(); return st.state }
+func (st *SellTask) Id() int64      { return st.id }
+func (st *SellTask) SetId(id int64) { st.id = id }
+func (st *SellTask) Type() string   { return st.taskType }
 
 func (st *SellTask) SetComputeUnit(cu uint32)     { st.ComputeUnits = cu }
 func (st *SellTask) SetSlippage(slippage float64) { st.Slippage = slippage }
