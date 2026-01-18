@@ -44,6 +44,16 @@ func (tr *TradingRepository) GetAllTasks(ctx context.Context) ([]strategies.Task
 	return dbTasks, nil
 }
 
+func (tr *TradingRepository) GetMaxId(ctx context.Context) int64 {
+	query := `SELECT MAX(id) FROM trading_tasks`
+	row := tr.db.QueryRowContext(ctx, query)
+
+	var id int64
+	row.Scan(&id)
+
+	return id
+}
+
 func (tr *TradingRepository) AddAllTasks(tasks []strategies.Task, ctx context.Context) (bool, error) {
 	if len(tasks) == 0 {
 		return true, nil
