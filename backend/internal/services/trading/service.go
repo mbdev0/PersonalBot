@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"maps"
+	"personal_bot/app/iterable"
 	"personal_bot/infrastructure/persistence/repository"
 	"personal_bot/internal/core/strategies"
 	"personal_bot/internal/services/subscription_hub/strategy"
@@ -18,6 +19,7 @@ type Service struct {
 	mu       *sync.Mutex
 	subhub   *strategy.SubscriptionHub
 	repo     *repository.TradingRepository
+	iterable *iterable.Iterable
 }
 
 func (s *Service) NewTradingService(strat *Strategy, sh *strategy.SubscriptionHub, tr *repository.TradingRepository) {
@@ -27,11 +29,16 @@ func (s *Service) NewTradingService(strat *Strategy, sh *strategy.SubscriptionHu
 	s.mu = &sync.Mutex{}
 	s.subhub = sh
 	s.repo = tr
+	s.iterable = iterable.NewIterable()
 }
 
 func (s *Service) Create(st strategies.Task) (task strategies.Task, err error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+
+	if st.StrategyTaskId() == 0 {
+		st.SetId(s.iterable.ID())
+	}
 
 	if _, ok := s.tasks[st.StrategyTaskId()]; ok {
 		return nil, fmt.Errorf("task already exists with id: %d", st.StrategyTaskId())
@@ -160,6 +167,9 @@ func (s *Service) LoadFromDB(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+
+	maxId := s.repo.GetMaxId(ctx)
+	s.iterable.SetIterable(maxId)
 
 	for _, tt := range ttFromDb {
 		s.tasks[tt.StrategyTaskId()] = tt
