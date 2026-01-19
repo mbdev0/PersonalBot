@@ -10,6 +10,7 @@ interface TaskDto {
   sell_amount: number | undefined;
   sell_fee: number | undefined;
   sell_posiiton_id: string | undefined;
+  strategy_id: number | undefined;
   state: StateDto;
 }
 
@@ -30,10 +31,11 @@ interface Task {
   sell_amount: number | undefined;
   sell_fee: number | undefined;
   sell_posiiton_id: string | undefined;
+  strategy_id: number | undefined;
   state: State;
 }
 
-interface TaskPost{
+interface TaskPost {
   type: string;
   slippage: number;
   compute_units: number;
@@ -45,7 +47,7 @@ interface TaskPost{
   sell_fee?: number;
 }
 
-interface TaskPostDto{
+interface TaskPostDto {
   type: string;
   slippage: number;
   compute_units: number;
@@ -57,7 +59,7 @@ interface TaskPostDto{
   sell_fee: number | undefined;
 }
 
-interface TaskPut{
+interface TaskPut {
   id: number;
   type: string;
   slippage: number;
@@ -68,10 +70,9 @@ interface TaskPut{
   buy_fee?: number;
   sell_amount?: number;
   sell_fee?: number;
-
 }
 
-interface TaskPutDto{
+interface TaskPutDto {
   type: string;
   slippage: number;
   compute_units: number;
@@ -81,7 +82,6 @@ interface TaskPutDto{
   buy_fee?: number;
   sell_amount?: number;
   sell_fee?: number;
-
 }
 
 interface State {
@@ -90,22 +90,29 @@ interface State {
 }
 
 enum TaskType {
-  task_create = "TaskCreate",
-  task_run = "TaskRun",
-  tx_instruction_build = "TxInstructionBuild",
-  tx_build = "TxBuild",
-  tx_send = "TxSend",
-  tx_confirm = "TxConfirm",
-  task_done = "Done",
-  task_cancel = "TaskCancel",
-  task_validation_failed = "TaskValidationFailed",
-  tx_instruction_build_failed = "TxInstructionBuildFailed",
-  tx_build_failed = "TxBuildFailed",
-  tx_send_failed = "TxSendFailed",
-  tx_failed = "TxFailed",
-  
+  task_create = 'TaskCreate',
+  task_run = 'TaskRun',
+  tx_instruction_build = 'TxInstructionBuild',
+  tx_build = 'TxBuild',
+  tx_send = 'TxSend',
+  tx_confirm = 'TxConfirm',
+  task_done = 'Done',
+  task_cancel = 'TaskCancel',
+  task_validation_failed = 'TaskValidationFailed',
+  tx_instruction_build_failed = 'TxInstructionBuildFailed',
+  tx_build_failed = 'TxBuildFailed',
+  tx_send_failed = 'TxSendFailed',
+  tx_failed = 'TxFailed',
 }
 
-export type TaskAction = TaskType.task_run | TaskType.task_cancel
+export type TaskAction = TaskType.task_run | TaskType.task_cancel;
 
-export { type TaskDto, type Task, TaskType, type TaskPostDto, type TaskPost, type TaskPut,type TaskPutDto};
+export {
+  type TaskDto,
+  type Task,
+  TaskType,
+  type TaskPostDto,
+  type TaskPost,
+  type TaskPut,
+  type TaskPutDto,
+};
