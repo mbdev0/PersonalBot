@@ -69,7 +69,7 @@ func createBuyTask(src models.TaskRow, wallet models.WalletRepository) (*tasks.B
 	return buyTask, nil
 }
 
-// TODO: THIS SHOULD NOT BE CONNECTED TO ANY POSITION
+// THIS SHOULD NOT BE CONNECTED TO ANY POSITION
 func createSellTask(src models.TaskRow, wallet models.WalletRepository) (*tasks.SellTask, error) {
 	sellConfig := new(models.SellConfig)
 	if err := json.Unmarshal([]byte(src.Config), sellConfig); err != nil {
