@@ -19,7 +19,7 @@ type TradingTask struct {
 }
 
 type TradingTaskResponse struct {
-	Type           TradingType       `json:"trading_type"`
+	Type           TradingType       `json:"tradingType"`
 	Id             int64             `json:"id"`
 	BuyAmount      float64           `json:"buy_amount"`
 	BuyFee         float64           `json:"buy_fee"`
