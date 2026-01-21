@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useWallets } from '../../wallets/hooks/useWallets';
-import type { WalletDto } from '../../wallets/types/wallet';
+import type { Wallet } from '../../wallets/types/wallet';
 import { useAddTask } from '../hooks/useTasks';
 
 interface TaskEntryProps {
@@ -18,7 +18,7 @@ export function TaskEntry({ onClose }: TaskEntryProps) {
   const [buyFee, setBuyFee] = useState('0.1');
   const [sellAmount, setSellAmount] = useState('20');
   const [sellFee, setSellFee] = useState('0.1');
-  const [wallet, setWallet] = useState<WalletDto | null>(null);
+  const [wallet, setWallet] = useState<Wallet | null>(null);
   const postMutation = useAddTask();
 
   useEffect(() => {
