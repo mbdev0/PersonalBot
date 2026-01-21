@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { deleteTask, getTasks, postTask, putTask, transitionTask } from '../api/tasks';
-import type { Task, TaskAction, TaskPost, TaskPut } from '../types/task';
+import type { TaskAction, TaskPost, TaskPut } from '../types/task';
 
 export function useTasks() {
   return useQuery({
@@ -15,7 +15,7 @@ export function useAddTask() {
   return useMutation({
     mutationFn: (task: TaskPost) => postTask(task),
     onSuccess() {
-      client.invalidateQueries({ queryKey: ['tasks'] });
+      client.invalidateQueries({ queryKey: ['dashboad'] });
     },
     onError(e) {
       console.error('error: ', e);
@@ -29,7 +29,7 @@ export function useUpdateTask() {
   return useMutation({
     mutationFn: (task: TaskPut) => putTask(task),
     onSuccess() {
-      client.invalidateQueries({ queryKey: ['tasks'] });
+      client.invalidateQueries({ queryKey: ['dashboard'] });
     },
   });
 }
@@ -40,7 +40,7 @@ export function useDeleteTask() {
   return useMutation({
     mutationFn: (id: number) => deleteTask(id),
     onSuccess() {
-      client.invalidateQueries({ queryKey: ['tasks'] });
+      client.invalidateQueries({ queryKey: ['dashboard'] });
     },
   });
 }
