@@ -7,7 +7,7 @@ const (
 )
 
 type TradingTask struct {
-	Type           TradingType       `json:"trading_type"`
+	Type           TradingType       `json:"tradingType"`
 	BuyAmount      float64           `json:"buy_amount"`
 	BuyFee         float64           `json:"buy_fee"`
 	ComputeUnits   float64           `json:"compute_units"`
