@@ -2,29 +2,45 @@ import { useState } from 'react';
 import { TaskRowType, type Row } from '../types/tableRows';
 import { ActionButtons } from './actionButtons';
 import type { RowActions } from '../types/rowActions';
+import { TableCell, TableRow } from '@/components/ui/table';
 
 interface TableRowProps {
   tableRow: Row;
   rowActions: RowActions;
 }
 
-export function TableRow({ tableRow, rowActions }: TableRowProps) {
+export function UnifiedTaskRow({ tableRow, rowActions }: TableRowProps) {
   const [isRunning, setIsRunning] = useState(false);
   return (
-    <tr>
-      <td>{generateTableName(tableRow)}</td>
-      <td>{generateRowType(tableRow)}</td>
-      <td>cool w.s. message goes here</td>
-      <td>{generateState(tableRow, isRunning)}</td>
-      <td>
+    <TableRow>
+      <TableCell>{generateTableName(tableRow)}</TableCell>
+      <TableCell>{generateRowType(tableRow)}</TableCell>
+      <TableCell>cool w.s. message goes here</TableCell>
+      <TableCell>{generateState(tableRow, isRunning)}</TableCell>
+      <TableCell>
         <ActionButtons
           row={tableRow}
           isRunning={isRunning}
           setIsRunning={setIsRunning}
           rowActions={rowActions}
-        />
-      </td>
-    </tr>
+        ></ActionButtons>
+      </TableCell>
+    </TableRow>
+
+    // <tr>
+    //   <td>{generateTableName(tableRow)}</td>
+    //   <td>{generateRowType(tableRow)}</td>
+    //   <td>cool w.s. message goes here</td>
+    //   <td>{generateState(tableRow, isRunning)}</td>
+    //   <td>
+    //     <ActionButtons
+    //       row={tableRow}
+    //       isRunning={isRunning}
+    //       setIsRunning={setIsRunning}
+    //       rowActions={rowActions}
+    //     />
+    //   </td>
+    // </tr>
   );
 }
 

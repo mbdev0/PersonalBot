@@ -6,8 +6,9 @@ import './taskTable.css';
 import { useTaskDashboard } from '../hooks/useTaskDashboard';
 import type { Dashboard } from '../types/dashboard';
 import { TaskRowType, type Row } from '../types/tableRows';
-import { TableRow } from './tableRow';
+import { UnifiedTaskRow } from './tableRow';
 import { useRowActions } from '../hooks/useRowActions';
+import { Table, TableBody, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 export function TaskTable() {
   const { isPending, isError, data, error } = useTaskDashboard();
@@ -26,8 +27,24 @@ export function TaskTable() {
   const rows = buildRows(data, expandedIds);
 
   return (
-    <div className="task_table">
-      <table>
+    <div className="bg-slate-950 rounded-lg border shadow-sm p-6">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="text-slate-50">Task Name</TableHead>
+            <TableHead className="text-slate-50">Task Type</TableHead>
+            <TableHead className="text-slate-50">Message</TableHead>
+            <TableHead className="text-slate-50">Status</TableHead>
+            <TableHead className="text-slate-50">Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {rows.map((task) => (
+            <UnifiedTaskRow key={task.id} tableRow={task} rowActions={actions} />
+          ))}
+        </TableBody>
+      </Table>
+      {/* <table>
         <thead>
           <tr>
             <th scope="column">Task Name</th>
@@ -48,7 +65,7 @@ export function TaskTable() {
         <Modal isOpen={!!editingTask} onClose={() => setEditingTask(null)}>
           <TaskUpdate task={editingTask} onClose={() => setEditingTask(null)} />
         </Modal>
-      )}
+      )} */}
     </div>
   );
 }
