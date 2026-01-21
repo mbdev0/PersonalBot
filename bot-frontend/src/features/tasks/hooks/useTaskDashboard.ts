@@ -3,7 +3,7 @@ import { getDashboard } from '../api/taskDashboard';
 
 export function useTaskDashboard() {
   return useQuery({
-    queryKey: ['tasks'],
+    queryKey: ['dashboard'],
     queryFn: getDashboard,
   });
 }
