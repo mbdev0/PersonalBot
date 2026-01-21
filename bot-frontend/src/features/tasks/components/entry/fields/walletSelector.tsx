@@ -30,7 +30,9 @@ export function WalletSelector({
         onChange={(e) => onChange(data?.find((w) => w.wallet_name === e.target.value) ?? null)}
       >
         {data?.map((wallet) => (
-          <option value={wallet.wallet_name}>{wallet.wallet_name}</option>
+          <option key={wallet.id} value={wallet.wallet_name}>
+            {wallet.wallet_name}
+          </option>
         ))}
       </select>
     </div>
