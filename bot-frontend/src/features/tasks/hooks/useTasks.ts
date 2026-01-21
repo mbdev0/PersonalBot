@@ -15,7 +15,7 @@ export function useAddTask() {
   return useMutation({
     mutationFn: (task: TaskPost) => postTask(task),
     onSuccess() {
-      client.invalidateQueries({ queryKey: ['dashboad'] });
+      client.invalidateQueries({ queryKey: ['dashboard'] });
     },
     onError(e) {
       console.error('error: ', e);

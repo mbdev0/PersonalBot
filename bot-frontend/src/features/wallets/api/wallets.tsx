@@ -2,18 +2,21 @@
 // we will use fetch
 
 import { API_BASE } from '../../../config/urls';
-import type { WalletDto, WalletPost, WalletPut } from '../types/wallet';
-import { walletPostToDto, walletPutToDto } from '../mapper/walletMapper';
+import type { Wallet, WalletDto, WalletPost, WalletPut } from '../types/wallet';
+import { dtoToWallet, walletPostToDto, walletPutToDto } from '../mapper/walletMapper';
 
 //get wallets
 //TODO: map each wallet into Wallet instead of Dto
-export async function getWallets(): Promise<WalletDto[]> {
+export async function getWallets(): Promise<Wallet[]> {
   let resp = await fetch(API_BASE + '/wallet/wallets');
   if (!resp.ok) {
     throw new Error('Failed to fetch wallets: ' + resp.json());
   }
 
-  return resp.json();
+  const walletDtos: WalletDto[] = await resp.json();
+  const wallets = walletDtos.map(dtoToWallet);
+
+  return wallets;
 }
 
 //get wallet by id -> maybe have the id as the query key? -> Do we need this though?

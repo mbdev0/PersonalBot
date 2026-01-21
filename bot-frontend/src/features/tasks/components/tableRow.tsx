@@ -30,7 +30,7 @@ export function TableRow({ tableRow, rowActions }: TableRowProps) {
 
 function generateTableName(row: Row): string {
   if (row.type == TaskRowType.Strategy) {
-    return `TASK - ${row.id}`;
+    return `Task - ${row.id}`;
   }
 
   const task = row.data;
