@@ -2,6 +2,11 @@ import { useEffect, useState } from 'react';
 import { useWallets } from '../../wallets/hooks/useWallets';
 import type { Wallet } from '../../wallets/types/wallet';
 import { useAddTask } from '../hooks/useTasks';
+import { WalletSelector } from './entry/fields/walletSelector';
+import { SlippageEntry } from './entry/fields/slippage';
+import { TokenAddressEntry } from './entry/fields/tokenAddress';
+import { ComputeUnitsEntry } from './entry/fields/computeUnits';
+import { BuyEntry } from './entry/fields/buy';
 
 interface TaskEntryProps {
   onClose: () => void;
@@ -18,14 +23,10 @@ export function TaskEntry({ onClose }: TaskEntryProps) {
   const [buyFee, setBuyFee] = useState('0.1');
   const [sellAmount, setSellAmount] = useState('20');
   const [sellFee, setSellFee] = useState('0.1');
-  const [wallet, setWallet] = useState<Wallet | null>(null);
+  const [selectedWallet, setSelectedWallet] = useState<Wallet | null>(null);
   const postMutation = useAddTask();
 
-  useEffect(() => {
-    if (data && data.length > 0 && !wallet) {
-      setWallet(data[0]);
-    }
-  }, [data, wallet]);
+  const wallet = selectedWallet ?? data?.[0] ?? null;
 
   const handleSubmit = () => {
     if (!wallet) {
@@ -63,10 +64,6 @@ export function TaskEntry({ onClose }: TaskEntryProps) {
 
   return (
     <>
-      {isPending && <div>Loading wallets...</div>}
-      {isError && <div>Error loading wallets: {error.message}</div>}
-      {!isPending && data?.length === 0 && <div>No wallets available. Create a wallet first!</div>}
-
       <div className="task_entry_form">
         <div className="task_type">
           <h3>Task Type</h3>
@@ -76,53 +73,23 @@ export function TaskEntry({ onClose }: TaskEntryProps) {
           </select>
         </div>
 
-        <div className="slippage">
-          <h3>Slippage</h3>
-          <input
-            type="text"
-            name="slippage"
-            id="slippage"
-            placeholder="Slippage"
-            value={slippage}
-            onChange={(e) => setSlippage(e.target.value)}
-          />
-        </div>
+        <SlippageEntry onChange={setSlippage} slippage={slippage}></SlippageEntry>
 
-        <div className="compute_units">
-          <h3>Compute Units</h3>
-          <input
-            type="text"
-            name="compute_units"
-            id="compute_units"
-            placeholder="Compute Units"
-            value={computeUnits}
-            onChange={(e) => setComputeUnits(e.target.value)}
-          />
-        </div>
+        <ComputeUnitsEntry
+          onChange={setComputeUnits}
+          computeUnits={computeUnits}
+        ></ComputeUnitsEntry>
 
-        <div className="wallet">
-          <h3>Wallet</h3>
-          <select
-            value={wallet?.wallet_name}
-            disabled={isPending || isError}
-            onChange={(e) => setWallet(data?.find((w) => w.wallet_name === e.target.value) ?? null)}
-          >
-            {data?.map((key, _) => (
-              <option value={key.wallet_name}>{key.wallet_name}</option>
-            ))}
-          </select>
-        </div>
+        <WalletSelector
+          selectedWallet={wallet}
+          onChange={setSelectedWallet}
+          isError={isError}
+          isPending={isPending}
+          error={error}
+          data={data}
+        ></WalletSelector>
 
-        <div className="token_address">
-          <h3>Token Address</h3>
-          <input
-            type="text"
-            name="token_address"
-            id="token_address"
-            placeholder="Token Address"
-            onChange={(e) => setTokenAddress(e.target.value)}
-          />
-        </div>
+        <TokenAddressEntry onChange={setTokenAddress}></TokenAddressEntry>
 
         {taskType === 'Sell' && (
           <div className="sell_settings">
@@ -153,38 +120,19 @@ export function TaskEntry({ onClose }: TaskEntryProps) {
         )}
 
         {taskType === 'Buy' && (
-          <div className="buy_settings">
-            <div className="buy_amount">
-              <h3>Buy Amount</h3>
-              <input
-                type="text"
-                name="buy_amount"
-                id="buy_amount"
-                placeholder="Buy Amount"
-                value={buyAmount}
-                onChange={(e) => setBuyAmount(e.target.value)}
-              />
-            </div>
-
-            <div className="buy_fee">
-              <h3>Buy Fee</h3>
-              <input
-                type="text"
-                name="buy_fee"
-                id="buy_fee"
-                placeholder="Buy Fee"
-                value={buyFee}
-                onChange={(e) => setBuyFee(e.target.value)}
-              />
-            </div>
-          </div>
+          <BuyEntry
+            onBuyAmountChange={setBuyAmount}
+            buyAmount={buyAmount}
+            onBuyFeeChange={setBuyFee}
+            buyFee={buyFee}
+          ></BuyEntry>
         )}
 
         <button
           onClick={() => {
             handleSubmit();
           }}
-          disabled={!wallet || isPending}
+          disabled={!wallet || !tokenAddress}
         >
           Create Task
         </button>

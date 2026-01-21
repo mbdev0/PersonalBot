@@ -1,12 +1,8 @@
-// this will hold the API calls.. or in otherwords the query functions
-// we will use fetch
-
 import { API_BASE } from '../../../config/urls';
 import type { Wallet, WalletDto, WalletPost, WalletPut } from '../types/wallet';
 import { dtoToWallet, walletPostToDto, walletPutToDto } from '../mapper/walletMapper';
 
 //get wallets
-//TODO: map each wallet into Wallet instead of Dto
 export async function getWallets(): Promise<Wallet[]> {
   let resp = await fetch(API_BASE + '/wallet/wallets');
   if (!resp.ok) {
