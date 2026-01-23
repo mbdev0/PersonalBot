@@ -1,14 +1,14 @@
 import { useState } from 'react';
-import Modal from '../../../components/modal';
-import { TaskUpdate } from './taskUpdate';
 import { type Task } from '../types/task';
-import './taskTable.css';
 import { useTaskDashboard } from '../hooks/useTaskDashboard';
 import type { Dashboard } from '../types/dashboard';
 import { TaskRowType, type Row } from '../types/tableRows';
 import { UnifiedTaskRow } from './tableRow';
 import { useRowActions } from '../hooks/useRowActions';
 import { Table, TableBody, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { BotDialog } from './taskEditDialog';
+import { TaskUpdate } from './taskUpdate';
+import { DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 export function TaskTable() {
   const { isPending, isError, data, error } = useTaskDashboard();
@@ -27,15 +27,15 @@ export function TaskTable() {
   const rows = buildRows(data, expandedIds);
 
   return (
-    <div className="bg-slate-950 rounded-lg border shadow-sm p-6">
+    <div className="bg-background text-foreground rounded-lg shadow-sm p-6">
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="text-slate-50">Task Name</TableHead>
-            <TableHead className="text-slate-50">Task Type</TableHead>
-            <TableHead className="text-slate-50">Message</TableHead>
-            <TableHead className="text-slate-50">Status</TableHead>
-            <TableHead className="text-slate-50">Actions</TableHead>
+            <TableHead className="font-extrabold">Task Name</TableHead>
+            <TableHead className="font-extrabold">Task Type</TableHead>
+            <TableHead className="font-extrabold">Message</TableHead>
+            <TableHead className="font-extrabold">Status</TableHead>
+            <TableHead className="font-extrabold">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -44,28 +44,15 @@ export function TaskTable() {
           ))}
         </TableBody>
       </Table>
-      {/* <table>
-        <thead>
-          <tr>
-            <th scope="column">Task Name</th>
-            <th scope="column">Task Type</th>
-            <th scope="column">Message</th>
-            <th scope="column">Status</th>
-            <th scope="column">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((task) => (
-            <TableRow key={task.id} tableRow={task} rowActions={actions} />
-          ))}
-        </tbody>
-      </table>
 
-      {editingTask && (
-        <Modal isOpen={!!editingTask} onClose={() => setEditingTask(null)}>
-          <TaskUpdate task={editingTask} onClose={() => setEditingTask(null)} />
-        </Modal>
-      )} */}
+      <BotDialog isOpen={!!editingTask} onClose={() => setEditingTask(null)}>
+        <DialogHeader>
+          <DialogTitle>Edit Task</DialogTitle>
+        </DialogHeader>
+        {editingTask && (
+          <TaskUpdate task={editingTask} onClose={() => setEditingTask(null)}></TaskUpdate>
+        )}
+      </BotDialog>
     </div>
   );
 }
