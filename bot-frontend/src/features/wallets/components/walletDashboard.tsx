@@ -1,20 +1,9 @@
-// this will be the dashboard component - the main view
-// we should expect to see all the wallets that exist on the api here
-// what do we need to create?
-// a table to see the existing wallets
-// an add button
-// a button to update a wallet (next to each row)
-
 import WalletTable from './walletTable';
 import './walletDashboard.css';
 import WalletEntry from './walletEntry';
-import Modal from '../../../components/modal';
 import { useState } from 'react';
-//this should be a composition of the following components:
-// - a wallet entry menu
-// - an update menu X
-// - a wallet card menu - view 1 wallet X
-// - a table to see the wallets X
+import { BotDialog } from '@/components/botDialog';
+import { DialogHeader } from '@/components/ui/dialog';
 
 function WalletDashboard() {
   // we will start with creating a table
@@ -24,9 +13,10 @@ function WalletDashboard() {
     <div className="wallet_dashboard">
       <h2>Wallet Dashboard</h2>
       <WalletTable />
-      <Modal isOpen={isAddModalShowing} onClose={() => setAddModal(false)}>
+      <BotDialog isOpen={isAddModalShowing} onClose={() => setAddModal(false)}>
+        <DialogHeader className="font-bold text-foreground">Add Wallet</DialogHeader>
         <WalletEntry onCompletion={() => setAddModal(false)}></WalletEntry>
-      </Modal>
+      </BotDialog>
       <button className="add_wallet" onClick={() => setAddModal(true)}>
         Add Wallet
       </button>

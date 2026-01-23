@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { deleteWalletMutation, useWallets } from '../hooks/useWallets';
-import Modal from '../../../components/modal';
 import WalletUpdate from './walletUpdate';
 import { type Wallet } from '../types/wallet';
 import './walletTable.css';
+import { BotDialog } from '@/components/botDialog';
+import { DialogHeader } from '@/components/ui/dialog';
 
 function WalletTable() {
   const { isPending, isError, data, error } = useWallets();
@@ -20,7 +21,9 @@ function WalletTable() {
 
   return (
     <div className="wallet_table">
-      <Modal isOpen={!!editingWallet} onClose={() => setEditingWallet(null)}>
+      <BotDialog isOpen={!!editingWallet} onClose={() => setEditingWallet(null)}>
+        <DialogHeader className="font-bold text-foreground">Edit Wallet</DialogHeader>
+
         {editingWallet && (
           <WalletUpdate
             wallet={editingWallet}
@@ -28,7 +31,7 @@ function WalletTable() {
             onCancel={() => setEditingWallet(null)}
           ></WalletUpdate>
         )}
-      </Modal>
+      </BotDialog>
       <table>
         <thead>
           <tr>

@@ -48,7 +48,7 @@ export function BuyTaskEdit({ task, onClose }: BuyTaskEntryProps) {
       type: 'Buy',
       slippage: slippage / 100,
       compute_units: computeUnits,
-      wallet_name: wallet.wallet_name ?? selectedWallet,
+      wallet_name: wallet.wallet_name,
       token_address: tokenAddress,
       buy_amount: buyAmount,
       buy_fee: buyFee,
