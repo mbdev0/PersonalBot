@@ -6,7 +6,7 @@ import { TaskRowType, type Row } from '../types/tableRows';
 import { UnifiedTaskRow } from './tableRow';
 import { useRowActions } from '../hooks/useRowActions';
 import { Table, TableBody, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { BotDialog } from './taskEditDialog';
+import { BotDialog } from '../../../components/botDialog';
 import { TaskUpdate } from './taskUpdate';
 import { DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
