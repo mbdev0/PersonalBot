@@ -1,15 +1,16 @@
+// taskEntry.tsx
 import { useState } from 'react';
-import { useWallets } from '../../wallets/hooks/useWallets';
-import type { Wallet } from '../../wallets/types/wallet';
-import { useAddTask } from '../hooks/useTasks';
-import { WalletSelector } from './entry/fields/walletSelector';
-import { SlippageEntry } from './entry/fields/slippage';
-import { TokenAddressEntry } from './entry/fields/tokenAddress';
-import { ComputeUnitsEntry } from './entry/fields/computeUnits';
-import { BuyEntry } from './entry/fields/buy';
-import { BuyTaskEntry } from './entry/buyTaskEntry';
-import { SellTaskEntry } from './entry/sellTaskEntry';
-import { AFKTaskEntry } from './entry/afkTaskEntry';
+import { BuyTaskEntry } from './forms/buyTaskEntry';
+import { SellTaskEntry } from './forms/sellTaskEntry';
+import { AFKTaskEntry } from './forms/afkTaskEntry';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface TaskEntryProps {
   onClose: () => void;
@@ -17,22 +18,26 @@ interface TaskEntryProps {
 
 export function TaskEntry({ onClose }: TaskEntryProps) {
   const [taskType, setTaskType] = useState('Buy');
-  return (
-    <>
-      <div className="task_entry_form">
-        <div className="task_type">
-          <h3>Task Type</h3>
-          <select value={taskType} onChange={(e) => setTaskType(e.target.value)}>
-            <option value="Buy">Buy</option>
-            <option value="Sell">Sell</option>
-            <option value="AFK">AFK</option>
-          </select>
-        </div>
 
-        {taskType === 'Buy' && <BuyTaskEntry onClose={onClose}></BuyTaskEntry>}
-        {taskType === 'Sell' && <SellTaskEntry onClose={onClose}></SellTaskEntry>}
-        {taskType === 'AFK' && <AFKTaskEntry onClose={onClose}></AFKTaskEntry>}
+  return (
+    <div className="space-y-6">
+      <div className="space-y-2">
+        <Label htmlFor="taskType">Task Type</Label>
+        <Select value={taskType} onValueChange={setTaskType}>
+          <SelectTrigger id="taskType">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="Buy">Buy</SelectItem>
+            <SelectItem value="Sell">Sell</SelectItem>
+            <SelectItem value="AFK">AFK</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
-    </>
+
+      {taskType === 'Buy' && <BuyTaskEntry onClose={onClose} />}
+      {taskType === 'Sell' && <SellTaskEntry onClose={onClose} />}
+      {taskType === 'AFK' && <AFKTaskEntry onClose={onClose} />}
+    </div>
   );
 }
