@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/select';
 
 interface WalletSelectorProps {
-  selectedWallet: WalletDto | null;
+  selectedWallet: Wallet | null;
   onChange: (wallet: Wallet | null) => void;
   isPending: boolean;
   isError: boolean;
