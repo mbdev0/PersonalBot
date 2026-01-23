@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { type Task } from '../types/task';
 import { useTaskDashboard } from '../hooks/useTaskDashboard';
 import type { Dashboard } from '../types/dashboard';
 import { TaskRowType, type Row } from '../types/tableRows';
@@ -12,9 +11,10 @@ import { DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 export function TaskTable() {
   const { isPending, isError, data, error } = useTaskDashboard();
+  //TODO: this will probably require a data table to allow expanding of children from tanstack see https://ui.shadcn.com/docs/components/radix/data-table
   const [expandedIds, setExpandedIds] = useState<Set<number>>(new Set());
-  const [editingTask, setEditingTask] = useState<Task | null>(null);
-  const actions = useRowActions(setEditingTask);
+  const [editingRow, setEditingRow] = useState<Row | null>(null);
+  const actions = useRowActions(setEditingRow);
 
   if (isPending) {
     return <div className="loading_tasks">Loading Tasks...</div>;
@@ -45,12 +45,12 @@ export function TaskTable() {
         </TableBody>
       </Table>
 
-      <BotDialog isOpen={!!editingTask} onClose={() => setEditingTask(null)}>
+      <BotDialog isOpen={!!editingRow} onClose={() => setEditingRow(null)}>
         <DialogHeader>
           <DialogTitle>Edit Task</DialogTitle>
         </DialogHeader>
-        {editingTask && (
-          <TaskUpdate task={editingTask} onClose={() => setEditingTask(null)}></TaskUpdate>
+        {editingRow && (
+          <TaskUpdate row={editingRow} onClose={() => setEditingRow(null)}></TaskUpdate>
         )}
       </BotDialog>
     </div>

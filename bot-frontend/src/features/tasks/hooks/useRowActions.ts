@@ -10,7 +10,7 @@ import {
   useStopStrategy,
 } from './useStrategy';
 
-export function useRowActions(setEditingWallet: (task: Task | null) => void): RowActions {
+export function useRowActions(setEditingRow: (row: Row | null) => void): RowActions {
   const deleteMutation = useDeleteTask();
   const duplicateMutation = useAddTask();
   const transitionMutation = useTransitionTask();
@@ -44,9 +44,9 @@ export function useRowActions(setEditingWallet: (task: Task | null) => void): Ro
       },
       onEdit: (row: Row) => {
         if (row.type === TaskRowType.Task) {
-          setEditingWallet(row.data);
+          setEditingRow(row);
         } else {
-          console.log('strategy task edit not implemented');
+          setEditingRow(row);
         }
       },
       onDelete: (row: Row) => {
