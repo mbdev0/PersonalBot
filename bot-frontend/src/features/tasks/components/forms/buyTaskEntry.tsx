@@ -8,6 +8,12 @@ import { WalletSelector } from './fields/walletSelector';
 import { TokenAddressEntry } from './fields/tokenAddress';
 import { BuyEntry } from './fields/buy';
 import { Button } from '@/components/ui/button';
+import {
+  BUY_AMOUNT_DEFAULT,
+  BUY_FEE_DEFAULT,
+  COMPUTE_UNITS_DEFAULT,
+  SLIPPAGE_DEFAULT,
+} from '../../utils/constants';
 
 interface BuyTaskEntryProps {
   onClose: () => void;
@@ -17,11 +23,11 @@ export function BuyTaskEntry({ onClose }: BuyTaskEntryProps) {
   const { isPending, isError, data, error } = useWallets();
   const postMutation = useAddTask();
 
-  const [slippage, setSlippage] = useState(20);
-  const [computeUnits, setComputeUnits] = useState(100000);
+  const [slippage, setSlippage] = useState(SLIPPAGE_DEFAULT);
+  const [computeUnits, setComputeUnits] = useState(COMPUTE_UNITS_DEFAULT);
   const [tokenAddress, setTokenAddress] = useState('');
-  const [buyAmount, setBuyAmount] = useState(1.5);
-  const [buyFee, setBuyFee] = useState(0.1);
+  const [buyAmount, setBuyAmount] = useState(BUY_AMOUNT_DEFAULT);
+  const [buyFee, setBuyFee] = useState(BUY_FEE_DEFAULT);
   const [selectedWallet, setSelectedWallet] = useState<Wallet | null>(null);
 
   const wallet = selectedWallet ?? data?.[0] ?? null;
