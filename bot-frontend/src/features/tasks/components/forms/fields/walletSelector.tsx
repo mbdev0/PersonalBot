@@ -1,5 +1,5 @@
 import { Label } from '@/components/ui/label';
-import type { Wallet, WalletDto } from '../../../../wallets/types/wallet';
+import type { Wallet } from '../../../../wallets/types/wallet';
 import {
   Select,
   SelectContent,
