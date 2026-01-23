@@ -32,7 +32,7 @@ export function TaskUpdate({ task, onClose }: TaskUpdateProps) {
       </div>
 
       {task.type === 'Buy' && <BuyTaskEdit task={task} onClose={onClose}></BuyTaskEdit>}
-      {task.type === 'Sell' && <SellTaskEdit></SellTaskEdit>}
+      {task.type === 'Sell' && <SellTaskEdit task={task} onClose={onClose}></SellTaskEdit>}
     </div>
   );
 }
