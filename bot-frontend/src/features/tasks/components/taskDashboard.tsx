@@ -1,25 +1,30 @@
 import { useState } from 'react';
 import { TaskTable } from './taskTable';
-import Modal from '../../../components/modal';
 import { TaskEntry } from './taskEntry';
+import { Button } from '@/components/ui/button';
+import { BotDialog } from '../../../components/botDialog';
+import { DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 export function TaskDashboard() {
   const [isModalShowing, setModalShowing] = useState(false);
   return (
     <div className="task_dashboard">
       <div className="flex justify-end px-4 p-1">
-        <button
-          className="add_task border-slate-600 bg-slate-500 p-2 rounded-xl "
+        <Button
+          className=" p-2 rounded-xl border border-accent-foreground "
           onClick={() => setModalShowing(true)}
         >
           Add Task
-        </button>
+        </Button>
       </div>
 
       <TaskTable />
-      <Modal isOpen={isModalShowing} onClose={() => setModalShowing(false)}>
+      <BotDialog isOpen={isModalShowing} onClose={() => setModalShowing(false)}>
+        <DialogHeader>
+          <DialogTitle className="font-bold text-foreground">Add Task</DialogTitle>
+        </DialogHeader>
         <TaskEntry onClose={() => setModalShowing(false)}></TaskEntry>
-      </Modal>
+      </BotDialog>
     </div>
   );
 }
