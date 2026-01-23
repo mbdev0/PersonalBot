@@ -8,7 +8,12 @@ import { TokenAddressEntry } from './fields/tokenAddress';
 import { WalletSelector } from './fields/walletSelector';
 import { SellEntry } from './fields/sell';
 import { Button } from '@/components/ui/button';
-import { ButtonGroup } from '@/components/ui/button-group';
+import {
+  COMPUTE_UNITS_DEFAULT,
+  SELL_AMOUNT_DEFAULT,
+  SELL_FEE_DEFAULT,
+  SLIPPAGE_DEFAULT,
+} from '../../utils/constants';
 
 interface SellTaskEntryProps {
   onClose: () => void;
@@ -17,11 +22,11 @@ interface SellTaskEntryProps {
 export function SellTaskEntry({ onClose }: SellTaskEntryProps) {
   const { isPending, isError, data, error } = useWallets();
 
-  const [slippage, setSlippage] = useState(20);
-  const [computeUnits, setComputeUnits] = useState(100000);
+  const [slippage, setSlippage] = useState(SLIPPAGE_DEFAULT);
+  const [computeUnits, setComputeUnits] = useState(COMPUTE_UNITS_DEFAULT);
   const [tokenAddress, setTokenAddress] = useState('');
-  const [sellAmount, setSellAmount] = useState(20);
-  const [sellFee, setSellFee] = useState(0.1);
+  const [sellAmount, setSellAmount] = useState(SELL_AMOUNT_DEFAULT);
+  const [sellFee, setSellFee] = useState(SELL_FEE_DEFAULT);
   const [selectedWallet, setSelectedWallet] = useState<Wallet | null>(null);
   const postMutation = useAddTask();
 

@@ -10,6 +10,13 @@ import type { StrategyTaskPost } from '../../types/strategyTask';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import {
+  BUY_AMOUNT_DEFAULT,
+  BUY_FEE_DEFAULT,
+  COMPUTE_UNITS_DEFAULT,
+  SELL_FEE_DEFAULT,
+  SLIPPAGE_DEFAULT,
+} from '../../utils/constants';
 
 interface AFKTaskEntryProps {
   onClose: () => void;
@@ -19,11 +26,11 @@ export function AFKTaskEntry({ onClose }: AFKTaskEntryProps) {
   const { isPending, isError, data, error } = useWallets();
   const postMutation = useAddStrategy();
 
-  const [slippage, setSlippage] = useState(20);
-  const [computeUnits, setComputeUnits] = useState(100000);
-  const [buyAmount, setBuyAmount] = useState(1.0);
-  const [buyFee, setBuyFee] = useState(0.1);
-  const [sellFee, setSellFee] = useState(0.1);
+  const [slippage, setSlippage] = useState(SLIPPAGE_DEFAULT);
+  const [computeUnits, setComputeUnits] = useState(COMPUTE_UNITS_DEFAULT);
+  const [buyAmount, setBuyAmount] = useState(BUY_AMOUNT_DEFAULT);
+  const [buyFee, setBuyFee] = useState(BUY_FEE_DEFAULT);
+  const [sellFee, setSellFee] = useState(SELL_FEE_DEFAULT);
   const [selectedWallet, setSelectedWallet] = useState<Wallet | null>(null);
 
   const wallet = selectedWallet ?? data?.[0] ?? null;
