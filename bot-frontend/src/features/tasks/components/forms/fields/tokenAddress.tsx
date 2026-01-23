@@ -1,3 +1,6 @@
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+
 interface TokenAddressEntryProps {
   value: string;
   onChange: (val: string) => void;
@@ -5,14 +8,13 @@ interface TokenAddressEntryProps {
 
 export function TokenAddressEntry({ value, onChange }: TokenAddressEntryProps) {
   return (
-    <div className="token_address">
-      <h3>Token Address</h3>
-      <input
+    <div className="space-y-2">
+      <Label htmlFor="tokenAddress">Token Address</Label>
+      <Input
+        id="tokenAddress"
         type="text"
-        name="token_address"
-        id="token_address"
-        placeholder="Token Address"
         value={value}
+        placeholder="Token Address"
         onChange={(e) => onChange(e.target.value)}
       />
     </div>

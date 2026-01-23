@@ -1,4 +1,12 @@
+import { Label } from '@/components/ui/label';
 import type { Wallet, WalletDto } from '../../../../wallets/types/wallet';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface WalletSelectorProps {
   selectedWallet: WalletDto | null;
@@ -22,19 +30,23 @@ export function WalletSelector({
   if (data?.length === 0) return <div>No wallets. Create one first!</div>;
 
   return (
-    <div className="wallet">
-      <h3>Wallet</h3>
-      <select
+    <div className="space-y-2">
+      <Label htmlFor="wallet">Wallet</Label>
+      <Select
         value={selectedWallet?.wallet_name}
-        disabled={isPending || isError}
-        onChange={(e) => onChange(data?.find((w) => w.wallet_name === e.target.value) ?? null)}
+        onValueChange={(e) => onChange(data?.find((w) => w.wallet_name === e) ?? null)}
       >
-        {data?.map((wallet) => (
-          <option key={wallet.id} value={wallet.wallet_name}>
-            {wallet.wallet_name}
-          </option>
-        ))}
-      </select>
+        <SelectTrigger id="wallet">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {data?.map((w) => (
+            <SelectItem key={w.wallet_name} value={w.wallet_name}>
+              {w.wallet_name}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
     </div>
   );
 }
