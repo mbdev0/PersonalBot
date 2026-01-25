@@ -22,7 +22,7 @@ export function AFKTaskEdit({ task, onClose }: AFKTaskEditProps) {
   const { isPending, isError, data, error } = useWallets();
   const putMutation = useUpdateStrategy();
 
-  const [slippage, setSlippage] = useState(task.slippage);
+  const [slippage, setSlippage] = useState(task.slippage * 100);
   const [computeUnits, setComputeUnits] = useState(task.compute_units);
   const [buyAmount, setBuyAmount] = useState(task.buy_amount);
   const [buyFee, setBuyFee] = useState(task.buy_fee);
