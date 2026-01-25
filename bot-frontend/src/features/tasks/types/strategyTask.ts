@@ -1,5 +1,5 @@
 interface StrategyTaskDto {
-  tradingType: string;
+  trading_type: string;
   id: number;
   buy_amount: number;
   buy_fee: number;
@@ -13,7 +13,7 @@ interface StrategyTaskDto {
 }
 
 interface StrategyTask {
-  tradingType: string;
+  trading_type: string;
   id: number;
   buy_amount: number;
   buy_fee: number;
@@ -41,7 +41,7 @@ interface sellStrategies {
 
 //Sent to the API
 interface StrategyTaskPostDto {
-  tradingType: string;
+  trading_type: string;
   buy_amount: number;
   buy_fee: number;
   compute_units: number;
@@ -54,7 +54,7 @@ interface StrategyTaskPostDto {
 
 //This will be what is used inside the React App
 interface StrategyTaskPost {
-  tradingType: string;
+  trading_type: string;
   buy_amount: number;
   buy_fee: number;
   compute_units: number;
@@ -67,7 +67,7 @@ interface StrategyTaskPost {
 
 interface StrategyTaskPut {
   id: number;
-  tradingType: string;
+  trading_type: string;
   buy_amount: number;
   buy_fee: number;
   compute_units: number;
@@ -79,7 +79,7 @@ interface StrategyTaskPut {
 }
 
 interface StrategyTaskPutDto {
-  tradingType: string;
+  trading_type: string;
   buy_amount: number;
   buy_fee: number;
   compute_units: number;
