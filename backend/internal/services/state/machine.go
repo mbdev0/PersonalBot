@@ -12,7 +12,6 @@ type Machine struct {
 func (m *Machine) Transition(task tasks.Task, newState tasks.TaskState) error {
 	if transition.IsRetryableState(task.State().TaskState) {
 		task.SetState(tasks.State{TaskState: tasks.TaskCreate, Error: ""})
-		return nil
 	}
 
 	if !transition.IsAbleToTransitionTo(newState, task) {
