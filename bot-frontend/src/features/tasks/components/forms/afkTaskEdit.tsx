@@ -1,7 +1,7 @@
 import { useWallets } from '@/features/wallets/hooks/useWallets';
 import { useUpdateStrategy } from '../../hooks/useStrategy';
 import type { StrategyTask, StrategyTaskPut } from '../../types/strategyTask';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import type { Wallet } from '@/features/wallets/types/wallet';
 import { BuyEntry } from './fields/buy';
@@ -11,6 +11,7 @@ import { WalletSelector } from './fields/walletSelector';
 import { Label } from '@radix-ui/react-label';
 import { Input } from '@/components/ui/input';
 import { FiltersEntry } from './fields/filters';
+import { Card } from '@/components/ui/card';
 
 interface AFKTaskEditProps {
   task: StrategyTask;
@@ -46,14 +47,14 @@ export function AFKTaskEdit({ task, onClose }: AFKTaskEditProps) {
     }
 
     const taskBody: StrategyTaskPut = {
-      tradingType: 'AFK',
+      trading_type: 'AFK',
       buy_amount: buyAmount,
       buy_fee: buyFee,
-      sell_fee: 0, //TODO:
+      sell_fee: sellFee,
       slippage: slippage / 100,
       compute_units: computeUnits,
       wallet_name: wallet.wallet_name,
-      filters: task.filters, //TODO
+      filters: filters,
       sell_strategies: [], //TODO
       id: task.id,
     };
@@ -103,13 +104,18 @@ export function AFKTaskEdit({ task, onClose }: AFKTaskEditProps) {
         />
       </div>
 
-      <FiltersEntry filters={filters} onFiltersChange={setFilters}></FiltersEntry>
+      <div>
+        <Label htmlFor="filters">Filters</Label>
+        <Card>
+          <FiltersEntry filters={filters} onFiltersChange={setFilters}></FiltersEntry>
+        </Card>
+      </div>
 
       <div className="flex justify-end gap-3 pt-4">
         <Button type="button" variant="outline" onClick={onClose}>
           Cancel
         </Button>
-        <Button type="submit" disabled={!selectedWallet}>
+        <Button type="submit" disabled={!wallet}>
           Update Task
         </Button>
       </div>

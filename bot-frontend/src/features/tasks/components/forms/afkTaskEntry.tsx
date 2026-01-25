@@ -18,6 +18,7 @@ import {
   SLIPPAGE_DEFAULT,
 } from '../../utils/constants';
 import { FiltersEntry } from './fields/filters';
+import { Card } from '@/components/ui/card';
 
 interface AFKTaskEntryProps {
   onClose: () => void;
@@ -46,7 +47,7 @@ export function AFKTaskEntry({ onClose }: AFKTaskEntryProps) {
     }
 
     const strategyBody: StrategyTaskPost = {
-      tradingType: 'AFK',
+      trading_type: 'AFK',
       slippage: slippage / 100,
       compute_units: computeUnits,
       wallet_name: wallet.wallet_name,
@@ -108,7 +109,12 @@ export function AFKTaskEntry({ onClose }: AFKTaskEntryProps) {
         />
       </div>
 
-      <FiltersEntry filters={filters} onFiltersChange={setFilters}></FiltersEntry>
+      <div>
+        <Label htmlFor="filters">Filters</Label>
+        <Card>
+          <FiltersEntry filters={filters} onFiltersChange={setFilters}></FiltersEntry>
+        </Card>
+      </div>
 
       <div className="flex justify-end gap-3 pt-4">
         <Button type="button" variant="outline" onClick={onClose}>
