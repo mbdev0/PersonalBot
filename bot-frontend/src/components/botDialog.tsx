@@ -11,7 +11,7 @@ interface BotDialogProps {
 export function BotDialog({ onClose, isOpen, className, children }: BotDialogProps) {
   return (
     <Dialog open={!!isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className={cn('max-w-2xl', className)}>{children}</DialogContent>
+      <DialogContent className={cn('min-w-7xl', className)}>{children}</DialogContent>
     </Dialog>
   );
 }

@@ -6,7 +6,7 @@ import { SlippageEntry } from './fields/slippage';
 import { ComputeUnitsEntry } from './fields/computeUnits';
 import { WalletSelector } from './fields/walletSelector';
 import { BuyEntry } from './fields/buy';
-import type { StrategyTaskPost } from '../../types/strategyTask';
+import { type Filters, type StrategyTaskPost } from '../../types/strategyTask';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -17,6 +17,7 @@ import {
   SELL_FEE_DEFAULT,
   SLIPPAGE_DEFAULT,
 } from '../../utils/constants';
+import { FiltersEntry } from './fields/filters';
 
 interface AFKTaskEntryProps {
   onClose: () => void;
@@ -31,6 +32,7 @@ export function AFKTaskEntry({ onClose }: AFKTaskEntryProps) {
   const [buyAmount, setBuyAmount] = useState(BUY_AMOUNT_DEFAULT);
   const [buyFee, setBuyFee] = useState(BUY_FEE_DEFAULT);
   const [sellFee, setSellFee] = useState(SELL_FEE_DEFAULT);
+  const [filters, setFilters] = useState<Filters>({});
   const [selectedWallet, setSelectedWallet] = useState<Wallet | null>(null);
 
   const wallet = selectedWallet ?? data?.[0] ?? null;
@@ -58,9 +60,7 @@ export function AFKTaskEntry({ onClose }: AFKTaskEntryProps) {
           sell_amount: 1,
         },
       ],
-      filters: {
-        has_twitter: true,
-      },
+      filters: filters,
     };
 
     postMutation.mutate(strategyBody);
@@ -107,6 +107,8 @@ export function AFKTaskEntry({ onClose }: AFKTaskEntryProps) {
           onChange={(e) => setSellFee(e.target.valueAsNumber)}
         />
       </div>
+
+      <FiltersEntry filters={filters} onFiltersChange={setFilters}></FiltersEntry>
 
       <div className="flex justify-end gap-3 pt-4">
         <Button type="button" variant="outline" onClick={onClose}>
