@@ -10,6 +10,7 @@ import { SlippageEntry } from './fields/slippage';
 import { WalletSelector } from './fields/walletSelector';
 import { Label } from '@radix-ui/react-label';
 import { Input } from '@/components/ui/input';
+import { FiltersEntry } from './fields/filters';
 
 interface AFKTaskEditProps {
   task: StrategyTask;
@@ -25,6 +26,7 @@ export function AFKTaskEdit({ task, onClose }: AFKTaskEditProps) {
   const [buyAmount, setBuyAmount] = useState(task.buy_amount);
   const [buyFee, setBuyFee] = useState(task.buy_fee);
   const [sellFee, setSellFee] = useState(task.sell_fee);
+  const [filters, setFilters] = useState(task.filters);
   const [selectedWallet, setSelectedWallet] = useState<Wallet | null>(null);
 
   const wallet = data?.find((w) => w.wallet_name === task.wallet_name) ?? null;
@@ -100,6 +102,8 @@ export function AFKTaskEdit({ task, onClose }: AFKTaskEditProps) {
           onChange={(e) => setSellFee(e.target.valueAsNumber)}
         />
       </div>
+
+      <FiltersEntry filters={filters} onFiltersChange={setFilters}></FiltersEntry>
 
       <div className="flex justify-end gap-3 pt-4">
         <Button type="button" variant="outline" onClick={onClose}>
