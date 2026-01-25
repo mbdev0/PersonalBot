@@ -17,7 +17,7 @@ interface TaskUpdateProps {
 }
 
 export function TaskUpdate({ row, onClose }: TaskUpdateProps) {
-  const taskType = row.type === TaskRowType.Task ? row.data.type : row.data.tradingType;
+  const taskType = row.type === TaskRowType.Task ? row.data.type : row.data.trading_type;
 
   return (
     <div className="space-y-6">
@@ -42,7 +42,7 @@ export function TaskUpdate({ row, onClose }: TaskUpdateProps) {
         <SellTaskEdit task={row.data} onClose={onClose}></SellTaskEdit>
       )}
 
-      {row.type === TaskRowType.Strategy && row.data.tradingType === 'AFK' && (
+      {row.type === TaskRowType.Strategy && row.data.trading_type === 'AFK' && (
         <AFKTaskEdit task={row.data} onClose={onClose}></AFKTaskEdit>
       )}
     </div>

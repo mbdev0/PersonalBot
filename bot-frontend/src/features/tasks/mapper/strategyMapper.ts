@@ -7,7 +7,7 @@ import type {
 
 export function MapStrategyToPostDto(src: StrategyTaskPost): StrategyTaskPostDto {
   return {
-    tradingType: src.tradingType,
+    trading_type: src.trading_type,
     buy_amount: src.buy_amount,
     buy_fee: src.buy_fee,
     sell_fee: src.sell_fee,
@@ -20,7 +20,7 @@ export function MapStrategyToPostDto(src: StrategyTaskPost): StrategyTaskPostDto
 }
 export function MapStrategyToPutDto(src: StrategyTaskPut): StrategyTaskPutDto {
   return {
-    tradingType: src.tradingType,
+    trading_type: src.trading_type,
     buy_amount: src.buy_amount,
     buy_fee: src.buy_fee,
     sell_fee: src.sell_fee,

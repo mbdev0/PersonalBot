@@ -75,5 +75,5 @@ function generateRowType(row: Row): string {
   if (row.type == TaskRowType.Task) {
     return row.data.type;
   }
-  return row.data.tradingType;
+  return row.data.trading_type;
 }
