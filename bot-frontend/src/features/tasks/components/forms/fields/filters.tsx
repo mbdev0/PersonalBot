@@ -61,6 +61,7 @@ export function FiltersEntry({ filters, onFiltersChange }: FiltersEntryProps) {
             <Label htmlFor="devWallet">Dev Wallet</Label>
             <Input
               id="devWallet"
+              value={filters.dev_wallet ?? ''}
               placeholder="Developer Wallet"
               onChange={(e) => updateInputFilter('dev_wallet', e.target.value)}
             ></Input>
