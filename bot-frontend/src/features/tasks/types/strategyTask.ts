@@ -7,7 +7,7 @@ interface StrategyTaskDto {
   slippage: number;
   wallet_name: string;
   wallet_address: string;
-  filters: filters;
+  filters: Filters;
   sell_strategies: sellStrategies[];
   sell_fee: number;
 }
@@ -21,12 +21,12 @@ interface StrategyTask {
   slippage: number;
   wallet_name: string;
   wallet_address: string;
-  filters: filters;
+  filters: Filters;
   sell_strategies: sellStrategies[];
   sell_fee: number;
 }
 
-interface filters {
+export interface Filters {
   has_website?: boolean;
   has_twitter?: boolean;
   has_telegram?: boolean;
@@ -47,7 +47,7 @@ interface StrategyTaskPostDto {
   compute_units: number;
   slippage: number;
   wallet_name: string;
-  filters: filters;
+  filters?: Filters;
   sell_strategies: sellStrategies[];
   sell_fee: number;
 }
@@ -60,7 +60,7 @@ interface StrategyTaskPost {
   compute_units: number;
   slippage: number;
   wallet_name: string;
-  filters: filters;
+  filters?: Filters;
   sell_strategies: sellStrategies[];
   sell_fee: number;
 }
@@ -73,7 +73,7 @@ interface StrategyTaskPut {
   compute_units: number;
   slippage: number;
   wallet_name: string;
-  filters: filters;
+  filters: Filters;
   sell_strategies: sellStrategies[];
   sell_fee: number;
 }
@@ -85,7 +85,7 @@ interface StrategyTaskPutDto {
   compute_units: number;
   slippage: number;
   wallet_name: string;
-  filters: filters;
+  filters: Filters;
   sell_strategies: sellStrategies[];
   sell_fee: number;
 }
