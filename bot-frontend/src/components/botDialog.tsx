@@ -11,7 +11,11 @@ interface BotDialogProps {
 export function BotDialog({ onClose, isOpen, className, children }: BotDialogProps) {
   return (
     <Dialog open={!!isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className={cn('min-w-7xl', className)}>{children}</DialogContent>
+      <DialogContent
+        className={cn('no-scrollbar -mx-4 min-w-4/5 max-h-3/4 overflow-y-auto px-4', className)}
+      >
+        {children}
+      </DialogContent>
     </Dialog>
   );
 }
