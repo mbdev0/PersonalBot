@@ -6,7 +6,13 @@ import { SlippageEntry } from './fields/slippage';
 import { ComputeUnitsEntry } from './fields/computeUnits';
 import { WalletSelector } from './fields/walletSelector';
 import { BuyEntry } from './fields/buy';
-import { type Filters, type StrategyTaskPost } from '../../types/strategyTask';
+import {
+  StopLossType,
+  TakeProfitType,
+  type Filters,
+  type SellStrategy,
+  type StrategyTaskPost,
+} from '../../types/strategyTask';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -19,6 +25,8 @@ import {
 } from '../../utils/constants';
 import { FiltersEntry } from './fields/filters';
 import { Card } from '@/components/ui/card';
+import { TakeProfitEntry } from './fields/sellStrategies/takeProfit';
+import { StopLossEntry } from './fields/sellStrategies/stopLoss';
 
 interface AFKTaskEntryProps {
   onClose: () => void;
@@ -35,6 +43,7 @@ export function AFKTaskEntry({ onClose }: AFKTaskEntryProps) {
   const [sellFee, setSellFee] = useState(SELL_FEE_DEFAULT);
   const [filters, setFilters] = useState<Filters>({});
   const [selectedWallet, setSelectedWallet] = useState<Wallet | null>(null);
+  const [sellStrategies, setSellStrategies] = useState<SellStrategy[]>([]);
 
   const wallet = selectedWallet ?? data?.[0] ?? null;
 
@@ -54,18 +63,16 @@ export function AFKTaskEntry({ onClose }: AFKTaskEntryProps) {
       buy_amount: buyAmount,
       buy_fee: buyFee,
       sell_fee: sellFee,
-      sell_strategies: [
-        {
-          type: 'take_profit_percentage',
-          value: 0.2,
-          sell_amount: 1,
-        },
-      ],
+      sell_strategies: sellStrategies,
       filters: filters,
     };
 
     postMutation.mutate(strategyBody);
     onClose();
+  };
+
+  const onAddSellStrategy = (strat: SellStrategy) => {
+    setSellStrategies([strat, ...sellStrategies]);
   };
 
   if (isPending) return <div className="text-center py-8">Loading wallets...</div>;
@@ -113,6 +120,26 @@ export function AFKTaskEntry({ onClose }: AFKTaskEntryProps) {
         <Label htmlFor="filters">Filters</Label>
         <Card>
           <FiltersEntry filters={filters} onFiltersChange={setFilters}></FiltersEntry>
+        </Card>
+      </div>
+
+      <div>
+        <Label htmlFor="sell strategies">Sell Strategies</Label>
+        <Card>
+          <Card>
+            <Label>Take Profit</Label>
+            <TakeProfitEntry
+              sellStrategyTypes={Object.values(TakeProfitType)}
+              onAddStrategy={onAddSellStrategy}
+            ></TakeProfitEntry>
+          </Card>
+          <Card>
+            <Label>Stop Loss</Label>
+            <StopLossEntry
+              sellStrategyTypes={Object.values(StopLossType)}
+              onAddStrategy={onAddSellStrategy}
+            ></StopLossEntry>
+          </Card>
         </Card>
       </div>
 

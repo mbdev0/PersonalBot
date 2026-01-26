@@ -8,7 +8,7 @@ interface StrategyTaskDto {
   wallet_name: string;
   wallet_address: string;
   filters: Filters;
-  sell_strategies: sellStrategies[];
+  sell_strategies: SellStrategy[];
   sell_fee: number;
 }
 
@@ -22,7 +22,7 @@ interface StrategyTask {
   wallet_name: string;
   wallet_address: string;
   filters: Filters;
-  sell_strategies: sellStrategies[];
+  sell_strategies: SellStrategy[];
   sell_fee: number;
 }
 
@@ -33,11 +33,27 @@ export interface Filters {
   dev_wallet?: string;
 }
 
-interface sellStrategies {
-  type: string;
+export interface SellStrategy {
+  type: SellStrategyType;
   value: number;
   sell_amount: number;
 }
+
+export type SellStrategyType = TakeProfitType | StopLossType;
+
+export enum TakeProfitType {
+  Price = 'take_profit_price',
+  Percentage = 'take_profit_percentage',
+  Marketcap = 'take_profit_marketcap',
+}
+
+export enum StopLossType {
+  Price = 'stop_loss_price',
+  Percentage = 'stop_loss_percentage',
+  Marketcap = 'stop_loss_marketcap',
+}
+
+export enum SellStrategyTypeLabel {}
 
 //Sent to the API
 interface StrategyTaskPostDto {
@@ -48,7 +64,7 @@ interface StrategyTaskPostDto {
   slippage: number;
   wallet_name: string;
   filters?: Filters;
-  sell_strategies: sellStrategies[];
+  sell_strategies: SellStrategy[];
   sell_fee: number;
 }
 
@@ -61,7 +77,7 @@ interface StrategyTaskPost {
   slippage: number;
   wallet_name: string;
   filters?: Filters;
-  sell_strategies: sellStrategies[];
+  sell_strategies: SellStrategy[];
   sell_fee: number;
 }
 
@@ -74,7 +90,7 @@ interface StrategyTaskPut {
   slippage: number;
   wallet_name: string;
   filters: Filters;
-  sell_strategies: sellStrategies[];
+  sell_strategies: SellStrategy[];
   sell_fee: number;
 }
 
@@ -86,7 +102,7 @@ interface StrategyTaskPutDto {
   slippage: number;
   wallet_name: string;
   filters: Filters;
-  sell_strategies: sellStrategies[];
+  sell_strategies: SellStrategy[];
   sell_fee: number;
 }
 
