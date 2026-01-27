@@ -15,7 +15,10 @@ export function MapStrategyToPostDto(src: StrategyTaskPost): StrategyTaskPostDto
     slippage: src.slippage,
     wallet_name: src.wallet_name,
     filters: src.filters,
-    sell_strategies: src.sell_strategies,
+    sell_strategies: src.sell_strategies.map((ss) => ({
+      id: crypto.randomUUID(),
+      ...ss,
+    })),
   };
 }
 export function MapStrategyToPutDto(src: StrategyTaskPut): StrategyTaskPutDto {

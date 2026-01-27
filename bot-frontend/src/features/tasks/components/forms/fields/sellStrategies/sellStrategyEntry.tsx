@@ -1,6 +1,10 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { StopLossType, type SellStrategy } from '@/features/tasks/types/strategyTask';
+import {
+  type SellStrategyCreate,
+  type SellStrategyType,
+  type SellStrategyTypeOptions,
+} from '@/features/tasks/types/strategyTask';
 import {
   Select,
   SelectTrigger,
@@ -14,20 +18,31 @@ import { Plus } from 'lucide-react';
 import { useState } from 'react';
 import { Label } from '@/components/ui/label';
 
-interface StopLossEntryProps {
-  sellStrategyTypes: StopLossType[];
-  onAddStrategy: (sellStrat: SellStrategy) => void;
+interface SellStrategyEntryProps {
+  name: 'Take Profit' | 'Stop Loss';
+  sellStrategyTypes: SellStrategyTypeOptions[];
+  onAddStrategy: (sellStrat: SellStrategyCreate) => void;
 }
 
-export function StopLossEntry({ sellStrategyTypes, onAddStrategy }: StopLossEntryProps) {
-  const [type, setType] = useState<StopLossType>(StopLossType.Marketcap);
+export function SellStrategyEntry({
+  name,
+  sellStrategyTypes,
+  onAddStrategy,
+}: SellStrategyEntryProps) {
+  const [type, setType] = useState<string>(sellStrategyTypes[0].value);
   const [value, setValue] = useState(20);
   const [sellAmount, setSellAmount] = useState(50);
 
+  const isPercentageType = type.includes('percentage');
+
   const onButtonClick = () => {
-    const entryValue = type === StopLossType.Percentage ? value / 100 : value;
-    onAddStrategy({ type: type, value: entryValue, sell_amount: sellAmount });
-    setType(StopLossType.Marketcap);
+    const entryValue = isPercentageType ? value / 100 : value;
+    onAddStrategy({
+      type: type as SellStrategyType,
+      value: entryValue,
+      sell_amount: sellAmount,
+    });
+    setType(sellStrategyTypes[0].value);
     setValue(20);
     setSellAmount(50);
   };
@@ -35,17 +50,17 @@ export function StopLossEntry({ sellStrategyTypes, onAddStrategy }: StopLossEntr
   return (
     <div className="flex flex-row justify-evenly items-end">
       <div className="flex flex-col items-center">
-        <Label htmlFor="sell_strategy_type">Stop Loss Type</Label>
-        <Select value={type} onValueChange={(val) => setType(val as StopLossType)}>
+        <Label htmlFor="sell_strategy_type">{name} Type</Label>
+        <Select value={type} onValueChange={setType}>
           <SelectTrigger className="w-full max-w-48">
             <SelectValue placeholder="Select a strategy" />
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
-              <SelectLabel>Stop Loss Strategies</SelectLabel>
+              <SelectLabel>{name} Strategies</SelectLabel>
               {sellStrategyTypes.map((strategyType) => (
-                <SelectItem key={strategyType} value={strategyType}>
-                  {generateStopLossLabel(strategyType)}
+                <SelectItem key={strategyType.value} value={strategyType.value}>
+                  {strategyType.label}
                 </SelectItem>
               ))}
             </SelectGroup>
@@ -54,7 +69,7 @@ export function StopLossEntry({ sellStrategyTypes, onAddStrategy }: StopLossEntr
       </div>
 
       <div className="flex flex-col items-center">
-        <Label htmlFor="value">{generateValueLabel(type)}</Label>
+        <Label htmlFor="value">{isPercentageType ? 'Value (%)' : 'Value'}</Label>
         <Input
           type="number"
           placeholder="Value"
@@ -76,26 +91,10 @@ export function StopLossEntry({ sellStrategyTypes, onAddStrategy }: StopLossEntr
       </div>
 
       <div className="flex flex-row gap-4">
-        <Button type="button" onClick={onButtonClick}>
+        <Button type="button" size="sm" onClick={onButtonClick}>
           <Plus />
         </Button>
       </div>
     </div>
   );
-}
-
-function generateStopLossLabel(label: string) {
-  return label
-    .replaceAll('stop_loss_', '')
-    .toLowerCase()
-    .split(' ')
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
-}
-
-function generateValueLabel(type: StopLossType) {
-  if (type === StopLossType.Percentage) {
-    return 'Value (%)';
-  }
-  return 'Value';
 }
