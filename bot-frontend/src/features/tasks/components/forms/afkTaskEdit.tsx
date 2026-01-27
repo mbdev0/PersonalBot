@@ -1,7 +1,11 @@
 import { useWallets } from '@/features/wallets/hooks/useWallets';
 import { useUpdateStrategy } from '../../hooks/useStrategy';
-import type { StrategyTask, StrategyTaskPut } from '../../types/strategyTask';
-import { useEffect, useState } from 'react';
+import {
+  type SellStrategy,
+  type StrategyTask,
+  type StrategyTaskPut,
+} from '../../types/strategyTask';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import type { Wallet } from '@/features/wallets/types/wallet';
 import { BuyEntry } from './fields/buy';
@@ -12,6 +16,7 @@ import { Label } from '@radix-ui/react-label';
 import { Input } from '@/components/ui/input';
 import { FiltersEntry } from './fields/filters';
 import { Card } from '@/components/ui/card';
+import { SellStrategies } from './fields/sellStrategies/sellStrategies';
 
 interface AFKTaskEditProps {
   task: StrategyTask;
@@ -29,6 +34,7 @@ export function AFKTaskEdit({ task, onClose }: AFKTaskEditProps) {
   const [sellFee, setSellFee] = useState(task.sell_fee);
   const [filters, setFilters] = useState(task.filters);
   const [selectedWallet, setSelectedWallet] = useState<Wallet | null>(null);
+  const [sellStrategies, setSellStrategies] = useState<SellStrategy[]>(task.sell_strategies);
 
   const wallet = data?.find((w) => w.wallet_name === task.wallet_name) ?? null;
 
@@ -53,9 +59,9 @@ export function AFKTaskEdit({ task, onClose }: AFKTaskEditProps) {
       sell_fee: sellFee,
       slippage: slippage / 100,
       compute_units: computeUnits,
-      wallet_name: wallet.wallet_name,
+      wallet_name: selectedWallet?.wallet_name ?? wallet.wallet_name,
       filters: filters,
-      sell_strategies: [], //TODO
+      sell_strategies: sellStrategies,
       id: task.id,
     };
 
@@ -76,7 +82,7 @@ export function AFKTaskEdit({ task, onClose }: AFKTaskEditProps) {
       </div>
 
       <WalletSelector
-        selectedWallet={wallet}
+        selectedWallet={selectedWallet ?? wallet}
         onChange={handleWalletChange}
         isError={isError}
         isPending={isPending}
@@ -93,7 +99,6 @@ export function AFKTaskEdit({ task, onClose }: AFKTaskEditProps) {
         />
       </div>
 
-      {/* IS class name needed? */}
       <div className="space-y-2">
         <Label htmlFor="sellFee">Sell Fee</Label>
         <Input
@@ -107,8 +112,15 @@ export function AFKTaskEdit({ task, onClose }: AFKTaskEditProps) {
       <div>
         <Label htmlFor="filters">Filters</Label>
         <Card>
-          <FiltersEntry filters={filters} onFiltersChange={setFilters}></FiltersEntry>
+          <FiltersEntry filters={filters} onFiltersChange={setFilters} />
         </Card>
+      </div>
+
+      <div>
+        <SellStrategies
+          sellStrategies={sellStrategies}
+          setSellStrategies={setSellStrategies}
+        ></SellStrategies>
       </div>
 
       <div className="flex justify-end gap-3 pt-4">

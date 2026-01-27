@@ -7,10 +7,9 @@ import { ComputeUnitsEntry } from './fields/computeUnits';
 import { WalletSelector } from './fields/walletSelector';
 import { BuyEntry } from './fields/buy';
 import {
-  StopLossType,
-  TakeProfitType,
   type Filters,
   type SellStrategy,
+  type SellStrategyCreate,
   type StrategyTaskPost,
 } from '../../types/strategyTask';
 import { Button } from '@/components/ui/button';
@@ -25,8 +24,7 @@ import {
 } from '../../utils/constants';
 import { FiltersEntry } from './fields/filters';
 import { Card } from '@/components/ui/card';
-import { TakeProfitEntry } from './fields/sellStrategies/takeProfit';
-import { StopLossEntry } from './fields/sellStrategies/stopLoss';
+import { SellStrategies } from './fields/sellStrategies/sellStrategies';
 
 interface AFKTaskEntryProps {
   onClose: () => void;
@@ -69,10 +67,6 @@ export function AFKTaskEntry({ onClose }: AFKTaskEntryProps) {
 
     postMutation.mutate(strategyBody);
     onClose();
-  };
-
-  const onAddSellStrategy = (strat: SellStrategy) => {
-    setSellStrategies([strat, ...sellStrategies]);
   };
 
   if (isPending) return <div className="text-center py-8">Loading wallets...</div>;
@@ -124,23 +118,10 @@ export function AFKTaskEntry({ onClose }: AFKTaskEntryProps) {
       </div>
 
       <div>
-        <Label htmlFor="sell strategies">Sell Strategies</Label>
-        <Card>
-          <Card>
-            <Label>Take Profit</Label>
-            <TakeProfitEntry
-              sellStrategyTypes={Object.values(TakeProfitType)}
-              onAddStrategy={onAddSellStrategy}
-            ></TakeProfitEntry>
-          </Card>
-          <Card>
-            <Label>Stop Loss</Label>
-            <StopLossEntry
-              sellStrategyTypes={Object.values(StopLossType)}
-              onAddStrategy={onAddSellStrategy}
-            ></StopLossEntry>
-          </Card>
-        </Card>
+        <SellStrategies
+          sellStrategies={sellStrategies}
+          setSellStrategies={setSellStrategies}
+        ></SellStrategies>
       </div>
 
       <div className="flex justify-end gap-3 pt-4">
