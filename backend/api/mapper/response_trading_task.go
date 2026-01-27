@@ -6,6 +6,8 @@ import (
 	"personal_bot/internal/core/constants"
 	"personal_bot/internal/core/strategies"
 	"personal_bot/internal/solana/utils"
+
+	"github.com/google/uuid"
 )
 
 func MapTradingTaskToDto(src strategies.Task) (dest *dto.TradingTaskResponse, err error) {
@@ -67,6 +69,7 @@ func mapSellStratsToResponseStrats(src []strategies.StrategyConfig) []dto.SellSt
 
 	for i, config := range src {
 		dest[i] = dto.SellStrategyDTO{
+			Id:         uuid.NewString(),
 			Type:       string(config.Type),
 			Value:      config.Value,
 			SellAmount: config.SellAmount,
