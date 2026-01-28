@@ -65,7 +65,6 @@ export function BuyTaskEdit({ task, onClose }: BuyTaskEditProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Top row - Buy Settings and Task Options */}
       <div className="grid grid-cols-2 gap-4">
         <Card className="p-3">
           <h2>Buy Settings</h2>
