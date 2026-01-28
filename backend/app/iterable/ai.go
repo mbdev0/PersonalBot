@@ -19,5 +19,5 @@ func (i *Iterable) ID() int64 {
 }
 
 func (i *Iterable) SetIterable(start int64) {
-	i.id.Store(start - 1)
+	i.id.Store(start)
 }
