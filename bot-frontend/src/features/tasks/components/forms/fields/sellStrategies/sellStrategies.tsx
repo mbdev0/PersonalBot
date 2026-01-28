@@ -36,58 +36,49 @@ export function SellStrategies({ sellStrategies, setSellStrategies }: SellStrate
   const stopLossStrategies = sellStrategies.filter((s) => s.type.startsWith('stop_loss_'));
 
   return (
-    <>
-      <Label htmlFor="sell strategies">Sell Strategies</Label>
-      <Card>
-        <Card>
-          <Label>Take Profit</Label>
+    <div>
+      <Card className="p-2">
+        <h2>Sell Strategies</h2>
+        <div className="space-y-0">
+          <Label htmlFor="take_profit">Take Profit</Label>
+          <SellStrategyEntry
+            name="Take Profit"
+            sellStrategyTypes={TAKE_PROFIT_OPTIONS}
+            onAddStrategy={onAddSellStrategy}
+          ></SellStrategyEntry>
 
-          <div className="flex flex-col justify-evenly space-y-4">
-            <SellStrategyEntry
+          {takeProfitStrategies.map((strategy) => (
+            <SellStrategyEdit
+              key={strategy.id}
               name="Take Profit"
+              sellStrategy={strategy}
               sellStrategyTypes={TAKE_PROFIT_OPTIONS}
-              onAddStrategy={onAddSellStrategy}
-            ></SellStrategyEntry>
+              onSave={handleSaveStrategy}
+              onDelete={handleDeleteStrategy}
+            />
+          ))}
+        </div>
 
-            <div className="">
-              {takeProfitStrategies.map((strategy) => (
-                <SellStrategyEdit
-                  key={strategy.id}
-                  name="Take Profit"
-                  sellStrategy={strategy}
-                  sellStrategyTypes={TAKE_PROFIT_OPTIONS}
-                  onSave={handleSaveStrategy}
-                  onDelete={handleDeleteStrategy}
-                />
-              ))}
-            </div>
-          </div>
-        </Card>
+        <div className="space-y-0">
+          <Label htmlFor="stop_loss">Stop Loss</Label>
+          <SellStrategyEntry
+            name="Stop Loss"
+            sellStrategyTypes={STOP_LOSS_OPTIONS}
+            onAddStrategy={onAddSellStrategy}
+          ></SellStrategyEntry>
 
-        <Card>
-          <Label>Stop Loss</Label>
-          <div className="flex flex-col justify-evenly space-y-4">
-            <SellStrategyEntry
+          {stopLossStrategies.map((strategy) => (
+            <SellStrategyEdit
+              key={strategy.id}
               name="Stop Loss"
+              sellStrategy={strategy}
               sellStrategyTypes={STOP_LOSS_OPTIONS}
-              onAddStrategy={onAddSellStrategy}
-            ></SellStrategyEntry>
-
-            <div className="space-y-2">
-              {stopLossStrategies.map((strategy) => (
-                <SellStrategyEdit
-                  key={strategy.id}
-                  name="Stop Loss"
-                  sellStrategy={strategy}
-                  sellStrategyTypes={STOP_LOSS_OPTIONS}
-                  onSave={handleSaveStrategy}
-                  onDelete={handleDeleteStrategy}
-                />
-              ))}
-            </div>
-          </div>
-        </Card>
+              onSave={handleSaveStrategy}
+              onDelete={handleDeleteStrategy}
+            />
+          ))}
+        </div>
       </Card>
-    </>
+    </div>
   );
 }

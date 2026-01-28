@@ -14,7 +14,7 @@ import {
   SelectLabel,
   SelectItem,
 } from '@/components/ui/select';
-import { Plus } from 'lucide-react';
+import { Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { Label } from '@/components/ui/label';
 
@@ -47,52 +47,58 @@ export function SellStrategyEntry({
     setSellAmount(50);
   };
 
+  const onClear = () => {
+    setType(sellStrategyTypes[0].value);
+    setValue(20);
+    setSellAmount(50);
+  };
+
   return (
-    <div className="flex flex-row justify-evenly items-end">
-      <div className="flex flex-col items-center">
-        <Label htmlFor="sell_strategy_type">{name} Type</Label>
-        <Select value={type} onValueChange={setType}>
-          <SelectTrigger className="w-full max-w-48">
-            <SelectValue placeholder="Select a strategy" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              <SelectLabel>{name} Strategies</SelectLabel>
-              {sellStrategyTypes.map((strategyType) => (
-                <SelectItem key={strategyType.value} value={strategyType.value}>
-                  {strategyType.label}
-                </SelectItem>
-              ))}
-            </SelectGroup>
-          </SelectContent>
-        </Select>
-      </div>
+    <div className="grid grid-cols-[140px_120px_120px_auto] grid-rows-2 gap-x-4 gap-y-2 p-4">
+      <Label htmlFor="sell_strategy_type">{name} Type</Label>
+      <Label htmlFor="value">{isPercentageType ? 'Value (%)' : 'Value'}</Label>
+      <Label htmlFor="sell_amount">Sell Amount (%)</Label>
+      <div></div>
 
-      <div className="flex flex-col items-center">
-        <Label htmlFor="value">{isPercentageType ? 'Value (%)' : 'Value'}</Label>
-        <Input
-          type="number"
-          placeholder="Value"
-          value={value}
-          onChange={(e) => setValue(e.target.valueAsNumber)}
-        ></Input>
-      </div>
+      <Select value={type} onValueChange={setType}>
+        <SelectTrigger className="w-full max-w-48">
+          <SelectValue placeholder="Select a strategy" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectGroup>
+            <SelectLabel>{name} Strategies</SelectLabel>
+            {sellStrategyTypes.map((strategyType) => (
+              <SelectItem key={strategyType.value} value={strategyType.value}>
+                {strategyType.label}
+              </SelectItem>
+            ))}
+          </SelectGroup>
+        </SelectContent>
+      </Select>
 
-      <div className="flex flex-col items-center">
-        <Label htmlFor="sell_amount">Sell Amount (%)</Label>
-        <Input
-          type="number"
-          placeholder="Sell Amount"
-          value={sellAmount}
-          max={100}
-          min={0}
-          onChange={(e) => setSellAmount(e.target.valueAsNumber)}
-        ></Input>
-      </div>
+      <Input
+        type="number"
+        placeholder="Value"
+        value={value}
+        min={0}
+        onChange={(e) => setValue(e.target.valueAsNumber)}
+      ></Input>
+      <Input
+        type="number"
+        placeholder="Sell Amount"
+        value={sellAmount}
+        max={100}
+        min={0}
+        onChange={(e) => setSellAmount(e.target.valueAsNumber)}
+      ></Input>
 
-      <div className="flex flex-row gap-4">
+      <div className="flex pr-5 items-center gap-2">
         <Button type="button" size="sm" onClick={onButtonClick}>
           <Plus />
+        </Button>
+
+        <Button type="button" size="sm" onClick={onClear}>
+          <Trash2 />
         </Button>
       </div>
     </div>

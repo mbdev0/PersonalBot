@@ -6,12 +6,7 @@ import { SlippageEntry } from './fields/slippage';
 import { ComputeUnitsEntry } from './fields/computeUnits';
 import { WalletSelector } from './fields/walletSelector';
 import { BuyEntry } from './fields/buy';
-import {
-  type Filters,
-  type SellStrategy,
-  type SellStrategyCreate,
-  type StrategyTaskPost,
-} from '../../types/strategyTask';
+import { type Filters, type SellStrategy, type StrategyTaskPost } from '../../types/strategyTask';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -77,51 +72,56 @@ export function AFKTaskEntry({ onClose }: AFKTaskEntryProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid grid-cols-2 gap-4">
-        <SlippageEntry slippage={slippage} onChange={setSlippage} />
-        <ComputeUnitsEntry computeUnits={computeUnits} onChange={setComputeUnits} />
-      </div>
+        <Card className="p-3">
+          <h2>Buy/Sell Settings</h2>
+          <div className="grid grid-cols-[120px_120px_120px] gap-4">
+            <BuyEntry
+              buyAmount={buyAmount}
+              onBuyAmountChange={setBuyAmount}
+              buyFee={buyFee}
+              onBuyFeeChange={setBuyFee}
+            />
+            <div className="space-y-2">
+              <Label htmlFor="sell_fee">Sell Fee</Label>
+              <Input
+                id="sell_fee"
+                type="number"
+                placeholder="0.00"
+                value={sellFee}
+                onChange={(e) => setSellFee(e.target.valueAsNumber)}
+              />
+            </div>
+          </div>
+        </Card>
 
-      <WalletSelector
-        selectedWallet={wallet}
-        onChange={setSelectedWallet}
-        isError={isError}
-        isPending={isPending}
-        error={error}
-        data={data}
-      />
+        <Card className="p-3">
+          <h2>Task Options</h2>
 
-      <div className="grid grid-cols-2 gap-4">
-        <BuyEntry
-          buyAmount={buyAmount}
-          onBuyAmountChange={setBuyAmount}
-          buyFee={buyFee}
-          onBuyFeeChange={setBuyFee}
-        />
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="sell_fee">Sell Fee</Label>
-        <Input
-          id="sell_fee"
-          type="number"
-          placeholder="0.00"
-          value={sellFee}
-          onChange={(e) => setSellFee(e.target.valueAsNumber)}
-        />
-      </div>
-
-      <div>
-        <Label htmlFor="filters">Filters</Label>
-        <Card>
-          <FiltersEntry filters={filters} onFiltersChange={setFilters}></FiltersEntry>
+          <div className="grid grid-cols-[120px_120px_130px] gap-4">
+            <SlippageEntry slippage={slippage} onChange={setSlippage} />
+            <ComputeUnitsEntry computeUnits={computeUnits} onChange={setComputeUnits} />
+            <WalletSelector
+              selectedWallet={wallet}
+              onChange={setSelectedWallet}
+              isError={isError}
+              isPending={isPending}
+              error={error}
+              data={data}
+            />
+          </div>
         </Card>
       </div>
 
-      <div>
+      <div className="grid grid-cols-2 gap-4">
         <SellStrategies
           sellStrategies={sellStrategies}
           setSellStrategies={setSellStrategies}
         ></SellStrategies>
+
+        <Card className="p-2">
+          <h2>Filters</h2>
+          <FiltersEntry filters={filters} onFiltersChange={setFilters}></FiltersEntry>
+        </Card>
       </div>
 
       <div className="flex justify-end gap-3 pt-4">

@@ -2,7 +2,6 @@ import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import type { Filters } from '@/features/tasks/types/strategyTask';
 import { Label } from '@radix-ui/react-label';
-import { useEffect } from 'react';
 
 interface FiltersEntryProps {
   filters: Filters;
@@ -24,8 +23,8 @@ export function FiltersEntry({ filters, onFiltersChange }: FiltersEntryProps) {
     });
   };
   return (
-    <div className="flex flex-row justify-evenly flex-wrap">
-      <div className="flex flex-col items-center">
+    <div className="flex flex-row justify-evenly gap-5 p-5">
+      <div className="flex flex-col items-center space-y-2">
         <Label htmlFor="hasWebsite">Has Website</Label>
         <Switch
           id="has-website"
@@ -34,7 +33,7 @@ export function FiltersEntry({ filters, onFiltersChange }: FiltersEntryProps) {
         ></Switch>
       </div>
 
-      <div className="flex flex-col items-center">
+      <div className="flex flex-col items-center space-y-2">
         <Label htmlFor="hasTelegram">Has Telegram</Label>
         <Switch
           id="has-telegram"
@@ -43,7 +42,7 @@ export function FiltersEntry({ filters, onFiltersChange }: FiltersEntryProps) {
         ></Switch>
       </div>
 
-      <div className="flex flex-col items-center">
+      <div className="flex flex-col items-center space-y-2">
         <Label htmlFor="hasTwitter">Has Twitter</Label>
         <Switch
           id="has-twitter"
@@ -53,7 +52,7 @@ export function FiltersEntry({ filters, onFiltersChange }: FiltersEntryProps) {
       </div>
 
       <div className="flex flex-col items-center">
-        <Label htmlFor="devWallet">Dev Wallet</Label>
+        <Label htmlFor="devWallet">Developer Wallet</Label>
         <Input
           id="devWallet"
           value={filters.dev_wallet ?? ''}
