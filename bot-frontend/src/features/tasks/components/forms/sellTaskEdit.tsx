@@ -9,20 +9,22 @@ import type { Wallet } from '@/features/wallets/types/wallet';
 import { TokenAddressEntry } from './fields/tokenAddress';
 import { SELL_AMOUNT_DEFAULT, SELL_FEE_DEFAULT } from '../../utils/constants';
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import { SellEntry } from './fields/sell';
 
-interface SellTaskEntryProps {
+interface SellTaskEditProps {
   task: Task;
   onClose: () => void;
 }
 
-export function SellTaskEdit({ task, onClose }: SellTaskEntryProps) {
+export function SellTaskEdit({ task, onClose }: SellTaskEditProps) {
   const { isPending, isError, data, error } = useWallets();
+  const putMutation = useUpdateTask();
 
   const [slippage, setSlippage] = useState(task.slippage * 100);
   const [computeUnits, setComputeUnits] = useState(task.compute_units);
   const [tokenAddress, setTokenAddress] = useState(task.token_address);
-  const [sellAmount, setSellAmount] = useState(task.sell_amount);
+  const [sellAmount, setSellAmount] = useState((task.sell_amount ?? 0.2) * 100);
   const [sellFee, setSellFee] = useState(task.sell_fee);
   const [selectedWallet, setWallet] = useState(task.wallet_name);
 
@@ -33,8 +35,6 @@ export function SellTaskEdit({ task, onClose }: SellTaskEntryProps) {
       setWallet(wallet.wallet_name);
     }
   };
-
-  const putMutation = useUpdateTask();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,10 +48,10 @@ export function SellTaskEdit({ task, onClose }: SellTaskEntryProps) {
       type: 'Sell',
       slippage: slippage / 100,
       compute_units: computeUnits,
-      wallet_name: wallet.wallet_name ?? selectedWallet,
+      wallet_name: wallet.wallet_name,
       token_address: tokenAddress,
-      sell_amount: (sellAmount ?? SELL_AMOUNT_DEFAULT) / 100,
-      sell_fee: sellFee,
+      sell_amount: (sellAmount ?? SELL_AMOUNT_DEFAULT) / 100, // Convert back to decimal
+      sell_fee: sellFee ?? SELL_FEE_DEFAULT,
     };
 
     putMutation.mutate({ ...taskBody, id: task.task_id });
@@ -66,39 +66,45 @@ export function SellTaskEdit({ task, onClose }: SellTaskEntryProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid grid-cols-2 gap-4">
-        <SlippageEntry slippage={slippage} onChange={setSlippage}></SlippageEntry>
-        <ComputeUnitsEntry
-          computeUnits={computeUnits}
-          onChange={setComputeUnits}
-        ></ComputeUnitsEntry>
+        <Card className="p-3">
+          <h2>Sell Settings</h2>
+          <div className="space-y-4">
+            <div className="grid grid-cols-[120px_120px] gap-4">
+              <SellEntry
+                sellAmount={sellAmount ?? SELL_AMOUNT_DEFAULT}
+                onSellAmountChange={setSellAmount}
+                sellFee={sellFee ?? SELL_FEE_DEFAULT}
+                onSellFeeChange={setSellFee}
+              />
+            </div>
+            <TokenAddressEntry value={tokenAddress} onChange={setTokenAddress} />
+          </div>
+        </Card>
+
+        <Card className="p-3">
+          <h2>Task Options</h2>
+          <div className="grid grid-cols-[120px_120px_130px] gap-4">
+            <SlippageEntry slippage={slippage} onChange={setSlippage} />
+            <ComputeUnitsEntry computeUnits={computeUnits} onChange={setComputeUnits} />
+            <WalletSelector
+              selectedWallet={wallet}
+              onChange={handleWalletChange}
+              isPending={isPending}
+              isError={isError}
+              data={data}
+              error={error}
+            />
+          </div>
+        </Card>
       </div>
 
-      <WalletSelector
-        selectedWallet={wallet}
-        onChange={handleWalletChange}
-        isPending={isPending}
-        isError={isError}
-        data={data}
-        error={error}
-      ></WalletSelector>
-
-      <TokenAddressEntry value={tokenAddress} onChange={setTokenAddress}></TokenAddressEntry>
-
-      <div className="grid grid-cols-2 gap-4">
-        <SellEntry
-          sellAmount={(sellAmount ?? SELL_AMOUNT_DEFAULT / 100) * 100}
-          onSellAmountChange={setSellAmount}
-          sellFee={sellFee ?? SELL_FEE_DEFAULT}
-          onSellFeeChange={setSellFee}
-        ></SellEntry>
-      </div>
-
-      <div className="flex justify-end gap-4 pt-4">
-        <Button variant="outline" onClick={onClose}>
-          Close
+      <div className="flex justify-end gap-3 pt-4">
+        <Button type="button" variant="outline" onClick={onClose}>
+          Cancel
         </Button>
-
-        <Button type="submit">Edit</Button>
+        <Button type="submit" disabled={!wallet || !tokenAddress}>
+          Update Task
+        </Button>
       </div>
     </form>
   );
