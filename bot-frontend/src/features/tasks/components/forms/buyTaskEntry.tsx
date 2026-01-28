@@ -8,6 +8,7 @@ import { WalletSelector } from './fields/walletSelector';
 import { TokenAddressEntry } from './fields/tokenAddress';
 import { BuyEntry } from './fields/buy';
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import {
   BUY_AMOUNT_DEFAULT,
   BUY_FEE_DEFAULT,
@@ -62,28 +63,36 @@ export function BuyTaskEntry({ onClose }: BuyTaskEntryProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid grid-cols-2 gap-4">
-        <SlippageEntry slippage={slippage} onChange={setSlippage} />
-        <ComputeUnitsEntry computeUnits={computeUnits} onChange={setComputeUnits} />
-      </div>
+        <Card className="p-3">
+          <h2>Buy Settings</h2>
+          <div className="space-y-4">
+            <div className="grid grid-cols-[120px_120px] gap-4">
+              <BuyEntry
+                buyAmount={buyAmount}
+                onBuyAmountChange={setBuyAmount}
+                buyFee={buyFee}
+                onBuyFeeChange={setBuyFee}
+              />
+            </div>
+            <TokenAddressEntry value={tokenAddress} onChange={setTokenAddress} />
+          </div>
+        </Card>
 
-      <WalletSelector
-        selectedWallet={wallet}
-        onChange={setSelectedWallet}
-        isError={isError}
-        isPending={isPending}
-        error={error}
-        data={data}
-      />
-
-      <TokenAddressEntry value={tokenAddress} onChange={setTokenAddress} />
-
-      <div className="grid grid-cols-2 gap-4">
-        <BuyEntry
-          buyAmount={buyAmount}
-          onBuyAmountChange={setBuyAmount}
-          buyFee={buyFee}
-          onBuyFeeChange={setBuyFee}
-        />
+        <Card className="p-3">
+          <h2>Task Options</h2>
+          <div className="grid grid-cols-[120px_120px_130px] gap-4">
+            <SlippageEntry slippage={slippage} onChange={setSlippage} />
+            <ComputeUnitsEntry computeUnits={computeUnits} onChange={setComputeUnits} />
+            <WalletSelector
+              selectedWallet={wallet}
+              onChange={setSelectedWallet}
+              isError={isError}
+              isPending={isPending}
+              error={error}
+              data={data}
+            />
+          </div>
+        </Card>
       </div>
 
       <div className="flex justify-end gap-3 pt-4">
