@@ -63,51 +63,48 @@ export function SellStrategyEdit({
   };
 
   return (
-    <div className="flex flex-row justify-evenly items-end">
-      <div className="flex flex-col items-center">
-        <Label htmlFor="sell_strategy_type">{name} Type</Label>
-        <Select disabled={!isEditable} value={type} onValueChange={setType}>
-          <SelectTrigger className="w-full max-w-48">
-            <SelectValue placeholder="Select a strategy" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              <SelectLabel>{name} Strategies</SelectLabel>
-              {sellStrategyTypes.map((strategyType) => (
-                <SelectItem key={strategyType.value} value={strategyType.value}>
-                  {strategyType.label}
-                </SelectItem>
-              ))}
-            </SelectGroup>
-          </SelectContent>
-        </Select>
-      </div>
+    <div className="grid grid-cols-[140px_120px_120px_auto] grid-rows-2 gap-x-4 gap-y-2 p-4">
+      <Label htmlFor="sell_strategy_type">{name} Type</Label>
+      <Label htmlFor="value">{isPercentageType ? 'Value (%)' : 'Value'}</Label>
+      <Label htmlFor="sell_amount">Sell Amount (%)</Label>
+      <div></div>
 
-      <div className="flex flex-col items-center">
-        <Label htmlFor="value">{isPercentageType ? 'Value (%)' : 'Value'}</Label>
-        <Input
-          type="number"
-          placeholder="Value"
-          value={value}
-          onChange={(e) => setValue(e.target.valueAsNumber)}
-          disabled={!isEditable}
-        ></Input>
-      </div>
+      <Select disabled={!isEditable} value={type} onValueChange={setType}>
+        <SelectTrigger className="w-full max-w-48">
+          <SelectValue placeholder="Select a strategy" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectGroup>
+            <SelectLabel>{name} Strategies</SelectLabel>
+            {sellStrategyTypes.map((strategyType) => (
+              <SelectItem key={strategyType.value} value={strategyType.value}>
+                {strategyType.label}
+              </SelectItem>
+            ))}
+          </SelectGroup>
+        </SelectContent>
+      </Select>
 
-      <div className="flex flex-col items-center">
-        <Label htmlFor="sell_amount">Sell Amount (%)</Label>
-        <Input
-          type="number"
-          placeholder="Sell Amount"
-          value={sellAmount}
-          max={100}
-          min={0}
-          onChange={(e) => setSellAmount(e.target.valueAsNumber)}
-          disabled={!isEditable}
-        ></Input>
-      </div>
+      <Input
+        type="number"
+        placeholder="Value"
+        value={isPercentageType ? value * 100 : value}
+        onChange={(e) => setValue(e.target.valueAsNumber)}
+        disabled={!isEditable}
+        min={0}
+      ></Input>
 
-      <div className="flex gap-2">
+      <Input
+        type="number"
+        placeholder="Sell Amount"
+        value={sellAmount}
+        max={100}
+        min={0}
+        onChange={(e) => setSellAmount(e.target.valueAsNumber)}
+        disabled={!isEditable}
+      ></Input>
+
+      <div className="flex pr-5 items-center gap-2">
         {!isEditable ? (
           <>
             <Button type="button" size="sm" onClick={handleEdit}>
