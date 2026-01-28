@@ -10,14 +10,16 @@ import { TokenAddressEntry } from './fields/tokenAddress';
 import { BuyEntry } from './fields/buy';
 import { BUY_AMOUNT_DEFAULT, BUY_FEE_DEFAULT } from '../../utils/constants';
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 
-interface BuyTaskEntryProps {
+interface BuyTaskEditProps {
   task: Task;
   onClose: () => void;
 }
 
-export function BuyTaskEdit({ task, onClose }: BuyTaskEntryProps) {
+export function BuyTaskEdit({ task, onClose }: BuyTaskEditProps) {
   const { isPending, isError, data, error } = useWallets();
+  const putMutation = useUpdateTask();
 
   const [slippage, setSlippage] = useState(task.slippage * 100);
   const [computeUnits, setComputeUnits] = useState(task.compute_units);
@@ -33,8 +35,6 @@ export function BuyTaskEdit({ task, onClose }: BuyTaskEntryProps) {
       setWallet(wallet.wallet_name);
     }
   };
-
-  const putMutation = useUpdateTask();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,40 +65,47 @@ export function BuyTaskEdit({ task, onClose }: BuyTaskEntryProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Top row - Buy Settings and Task Options */}
       <div className="grid grid-cols-2 gap-4">
-        <SlippageEntry slippage={slippage} onChange={setSlippage}></SlippageEntry>
-        <ComputeUnitsEntry
-          computeUnits={computeUnits}
-          onChange={setComputeUnits}
-        ></ComputeUnitsEntry>
+        <Card className="p-3">
+          <h2>Buy Settings</h2>
+          <div className="space-y-4">
+            <div className="grid grid-cols-[120px_120px] gap-4">
+              <BuyEntry
+                buyAmount={buyAmount ?? BUY_AMOUNT_DEFAULT}
+                onBuyAmountChange={setBuyAmount}
+                buyFee={buyFee ?? BUY_FEE_DEFAULT}
+                onBuyFeeChange={setBuyFee}
+              />
+            </div>
+            <TokenAddressEntry value={tokenAddress} onChange={setTokenAddress} />
+          </div>
+        </Card>
+
+        <Card className="p-3">
+          <h2>Task Options</h2>
+          <div className="grid grid-cols-[120px_120px_130px] gap-4">
+            <SlippageEntry slippage={slippage} onChange={setSlippage} />
+            <ComputeUnitsEntry computeUnits={computeUnits} onChange={setComputeUnits} />
+            <WalletSelector
+              selectedWallet={wallet}
+              onChange={handleWalletChange}
+              isPending={isPending}
+              isError={isError}
+              data={data}
+              error={error}
+            />
+          </div>
+        </Card>
       </div>
 
-      <WalletSelector
-        selectedWallet={wallet}
-        onChange={handleWalletChange}
-        isPending={isPending}
-        isError={isError}
-        data={data}
-        error={error}
-      ></WalletSelector>
-
-      <TokenAddressEntry value={tokenAddress} onChange={setTokenAddress}></TokenAddressEntry>
-
-      <div className="grid grid-cols-2 gap-4">
-        <BuyEntry
-          buyAmount={buyAmount ?? BUY_AMOUNT_DEFAULT}
-          onBuyAmountChange={setBuyAmount}
-          buyFee={buyFee ?? BUY_FEE_DEFAULT}
-          onBuyFeeChange={setBuyFee}
-        ></BuyEntry>
-      </div>
-
-      <div className="flex justify-end gap-4 pt-4">
-        <Button variant="outline" onClick={onClose}>
-          Close
+      <div className="flex justify-end gap-3 pt-4">
+        <Button type="button" variant="outline" onClick={onClose}>
+          Cancel
         </Button>
-
-        <Button type="submit">Edit</Button>
+        <Button type="submit" disabled={!wallet || !tokenAddress}>
+          Update Task
+        </Button>
       </div>
     </form>
   );
