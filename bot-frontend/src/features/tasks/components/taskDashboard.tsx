@@ -6,24 +6,24 @@ import { BotDialog } from '../../../components/botDialog';
 import { DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 export function TaskDashboard() {
-  const [isModalShowing, setModalShowing] = useState(false);
+  const [isBotDialogShowing, setBotDialogShowing] = useState(false);
   return (
     <div className="task_dashboard">
       <div className="flex justify-end px-4 p-1">
         <Button
           className=" p-2 rounded-xl border border-accent-foreground "
-          onClick={() => setModalShowing(true)}
+          onClick={() => setBotDialogShowing(true)}
         >
           Add Task
         </Button>
       </div>
 
       <TaskTable />
-      <BotDialog isOpen={isModalShowing} onClose={() => setModalShowing(false)}>
+      <BotDialog isOpen={isBotDialogShowing} onClose={() => setBotDialogShowing(false)}>
         <DialogHeader>
           <DialogTitle className="font-bold text-foreground">Add Task</DialogTitle>
         </DialogHeader>
-        <TaskEntry onClose={() => setModalShowing(false)}></TaskEntry>
+        <TaskEntry onClose={() => setBotDialogShowing(false)}></TaskEntry>
       </BotDialog>
     </div>
   );

@@ -26,21 +26,6 @@ export function UnifiedTaskRow({ tableRow, rowActions }: TableRowProps) {
         ></ActionButtons>
       </TableCell>
     </TableRow>
-
-    // <tr>
-    //   <td>{generateTableName(tableRow)}</td>
-    //   <td>{generateRowType(tableRow)}</td>
-    //   <td>cool w.s. message goes here</td>
-    //   <td>{generateState(tableRow, isRunning)}</td>
-    //   <td>
-    //     <ActionButtons
-    //       row={tableRow}
-    //       isRunning={isRunning}
-    //       setIsRunning={setIsRunning}
-    //       rowActions={rowActions}
-    //     />
-    //   </td>
-    // </tr>
   );
 }
 
@@ -50,7 +35,7 @@ function generateTableName(row: Row): string {
   }
 
   const task = row.data;
-  //if there's no strategy id then we can say the task is a quick buy (straight to the task api)
+  //if there's no strategy id then. we can say the task is a quick buy (straight to the task api)
   if (task.strategy_id == undefined) {
     const tokenAddress = `${row.data.token_address.slice(0, 5)}...${row.data.token_address.slice(-5)}`;
     return `Quick ${row.data.type} - ${tokenAddress}`;
