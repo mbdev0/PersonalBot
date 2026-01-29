@@ -21,10 +21,18 @@ export function SellTaskEdit({ task, onClose }: SellTaskEditProps) {
   const { isPending, isError, data, error } = useWallets();
   const putMutation = useUpdateTask();
 
+  if (!task.sell_amount) {
+    return (
+      <div className="text-center py-8 text-red-600">
+        Error: task.sell_amount was undefined - double check the logic
+      </div>
+    );
+  }
+
   const [slippage, setSlippage] = useState(task.slippage * 100);
   const [computeUnits, setComputeUnits] = useState(task.compute_units);
   const [tokenAddress, setTokenAddress] = useState(task.token_address);
-  const [sellAmount, setSellAmount] = useState((task.sell_amount ?? 0.2) * 100);
+  const [sellAmount, setSellAmount] = useState(task.sell_amount * 100);
   const [sellFee, setSellFee] = useState(task.sell_fee);
   const [selectedWallet, setWallet] = useState(task.wallet_name);
 
