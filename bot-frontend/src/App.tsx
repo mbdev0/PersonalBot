@@ -1,4 +1,3 @@
-import './App.css';
 import { ThemeProvider } from './components/themeProvider';
 import { TaskDashboard } from './features/tasks/components/taskDashboard';
 
