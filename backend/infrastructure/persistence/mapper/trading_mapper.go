@@ -17,6 +17,8 @@ func MapTradingTaskToRepo(task strategies.Task) (*models.TradingRow, error) {
 	switch t := task.(type) {
 	case *strategies.Afk:
 		return mapAfkToRepo(t)
+	case *strategies.Buy:
+		return mapBuyToRepo(t)
 	default:
 		return nil, fmt.Errorf("unknown task type")
 	}
@@ -63,6 +65,52 @@ func mapToAfkConfig(afk *strategies.Afk) (models.AfkConfig, error) {
 	return afkConfig, nil
 }
 
+func mapBuyToRepo(buy *strategies.Buy) (*models.TradingRow, error) {
+	taskRow := models.TradingRow{}
+	taskRow.ComputeUnits = int(buy.ComputeUnits)
+	taskRow.Slippage = int(buy.Slippage * 100)
+	taskRow.TradingType = "BUY"
+	taskRow.WalletId = buy.Wallet.Id
+	taskRow.Id = int(buy.StrategyTaskId())
+
+	buyConfig, err := mapToBuyConfig(buy)
+	if err != nil {
+		return nil, err
+	}
+
+	json, err := json.Marshal(buyConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	taskRow.Config = string(json)
+
+	return &taskRow, nil
+
+}
+
+func mapToBuyConfig(buy *strategies.Buy) (models.BuyStrategyConfig, error) {
+	buyConfig := models.BuyStrategyConfig{}
+
+	buyConfig.BuyAmount = int(buy.BuyAmount.Int64())
+
+	buyFee := utils.ConvertSolToLamport(buy.BuyFee)
+	buyConfig.BuyFee = int(buyFee.Int64())
+
+	buyConfig.Token = buy.Token.String()
+
+	sellFee := utils.ConvertSolToLamport(buy.SellFee)
+	buyConfig.SellFee = int(sellFee.Int64())
+
+	buyConfig.SellStrategies = mapSellStratsToRepo(buy.SellStrategies)
+
+	buyConfig.BuyTaskId = int(buy.BuyTaskId)
+	buyConfig.PositionId = int(buy.PositionId)
+
+	return buyConfig, nil
+
+}
+
 func mapFiltersToRepo(filters []strategies.StrategyFilter) models.Filters {
 	dest := models.Filters{}
 	for _, filterFunc := range filters {
@@ -104,6 +152,8 @@ func MapRepoToTradingTask(src models.TradingRow, wallet models.WalletRepository)
 	switch src.TradingType {
 	case "AFK":
 		return mapAfkRepoToTradingTask(src, wallet)
+	case "BUY":
+		return mapBuyRepoToTradingTask(src, wallet)
 	default:
 		return nil, fmt.Errorf("unknown trading type: %s", src.TradingType)
 	}
@@ -120,6 +170,7 @@ func mapAfkRepoToTradingTask(src models.TradingRow, wallet models.WalletReposito
 		return nil, err
 	}
 
+	afkTask.State = string(strategies.CREATED)
 	afkTask.BuyAmount = big.NewInt(int64(config.BuyAmount))
 	afkTask.BuyFee = utils.ConvertLamportToSol(big.NewInt(int64(config.BuyFee)))
 	afkTask.ComputeUnits = float64(src.ComputeUnits)
@@ -142,6 +193,49 @@ func mapAfkRepoToTradingTask(src models.TradingRow, wallet models.WalletReposito
 	afkTask.SellStrategies = mapRepoToStrategyConfigs(config.SellStrategies)
 
 	return &afkTask, nil
+}
+
+func mapBuyRepoToTradingTask(src models.TradingRow, wallet models.WalletRepository) (*strategies.Buy, error) {
+	buyTask := strategies.Buy{}
+	buyTask.New()
+	buyTask.SetId(int64(src.Id))
+
+	config := models.BuyStrategyConfig{}
+	err := json.Unmarshal([]byte(src.Config), &config)
+	if err != nil {
+		return nil, err
+	}
+
+	buyTask.State = string(strategies.CREATED)
+	buyTask.BuyAmount = big.NewInt(int64(config.BuyAmount))
+	buyTask.BuyFee = utils.ConvertLamportToSol(big.NewInt(int64(config.BuyFee)))
+	buyTask.ComputeUnits = float64(src.ComputeUnits)
+	buyTask.Slippage = float64(src.Slippage) / 100
+
+	privateKey, err := solana.PrivateKeyFromBase58(wallet.PrivateKey)
+	if err != nil {
+		return nil, err
+	}
+
+	buyTask.Wallet = wallets.SolanaWallet{
+		Id:         wallet.Id,
+		WalletName: wallet.WalletName,
+		PrivateKey: privateKey,
+		PublicKey:  privateKey.PublicKey(),
+	}
+
+	buyTask.SellFee = utils.ConvertLamportToSol(big.NewInt(int64(config.SellFee)))
+	buyTask.SellStrategies = mapRepoToStrategyConfigs(config.SellStrategies)
+	token, err := solana.PublicKeyFromBase58(config.Token)
+	if err != nil {
+		return nil, err
+	}
+
+	buyTask.Token = token
+	buyTask.PositionId = int64(config.PositionId)
+	buyTask.BuyTaskId = int64(config.BuyTaskId)
+
+	return &buyTask, nil
 }
 
 func mapRepoFiltersToFilters(config models.AfkConfig) []strategies.StrategyFilter {
