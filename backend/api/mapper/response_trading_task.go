@@ -13,29 +13,58 @@ import (
 func MapTradingTaskToDto(src strategies.Task) (dest *dto.TradingTaskResponse, err error) {
 	switch t := src.(type) {
 	case *strategies.Afk:
-		task, err := mapAfkToAfkResponse(t)
-		if err != nil {
-			return nil, err
-		}
-		return task, nil
+		return mapAfkToAfkResponse(t)
+	case *strategies.Buy:
+		return mapBuyToBuyResponse(t)
 	default:
-		return nil, fmt.Errorf("task not found with type - make sure the type is created")
+		return nil, fmt.Errorf("task not found with type - make sure the type is created/mapping is created")
 	}
+}
+
+func mapBuyToBuyResponse(src *strategies.Buy) (dest *dto.TradingTaskResponse, err error) {
+	dst := dto.TradingTaskResponse{}
+	dst.Type = dto.TradingType(src.StrategyType())
+	dst.Id = src.StrategyTaskId()
+	buyAmount := utils.ConvertLamportToSol(src.BuyAmount)
+	dst.BuyAmount = &buyAmount
+	dst.BuyFee = &src.BuyFee
+	dst.ComputeUnits = src.ComputeUnits
+	dst.Slippage = src.Slippage
+	dst.SellFee = &src.SellFee
+	sellStrategies := mapSellStratsToResponseStrats(src.SellStrategies)
+	dst.SellStrategies = &sellStrategies
+	dst.WalletName = src.Wallet.WalletName
+	dst.WalletAddress = src.Wallet.PublicKey.Short(constants.ShortPublicAddressInt)
+	dst.State = string(src.State)
+	dst.BuyTaskId = &src.BuyTaskId
+	dst.PositionId = &src.PositionId
+	tokenAddress := src.Token.String()
+	dst.TokenAddress = &tokenAddress
+
+	return &dst, nil
 }
 
 func mapAfkToAfkResponse(src *strategies.Afk) (dest *dto.TradingTaskResponse, err error) {
 	dst := dto.TradingTaskResponse{}
 	dst.Type = dto.TradingType(src.StrategyType())
 	dst.Id = src.StrategyTaskId()
-	dst.BuyAmount = utils.ConvertLamportToSol(src.BuyAmount)
-	dst.BuyFee = src.BuyFee
+	buyAmount := utils.ConvertLamportToSol(src.BuyAmount)
+	dst.BuyAmount = &buyAmount
+
+	dst.BuyFee = &src.BuyFee
 	dst.ComputeUnits = src.ComputeUnits
 	dst.Slippage = src.Slippage
-	dst.Filters = mapFiltersToResponseFilters(src.Filters)
-	dst.SellFee = src.SellFee
-	dst.SellStrategies = mapSellStratsToResponseStrats(src.SellStrategies)
+
+	filters := mapFiltersToResponseFilters(src.Filters)
+	dst.Filters = &filters
+	dst.SellFee = &src.SellFee
+
+	sellStrategies := mapSellStratsToResponseStrats(src.SellStrategies)
+	dst.SellStrategies = &sellStrategies
+
 	dst.WalletName = src.Wallet.WalletName
 	dst.WalletAddress = src.Wallet.PublicKey.Short(constants.ShortPublicAddressInt)
+	dst.State = string(src.State)
 
 	return &dst, nil
 }

@@ -22,6 +22,11 @@ func (sc *StrategyController) New(service *trading.Service, walletService *walle
 }
 
 func (sc *StrategyController) Create(ctx context.Context, task dto.TradingTask) (*dto.TradingTaskResponse, error) {
+	err := task.Validate()
+	if err != nil {
+		return nil, err
+	}
+
 	wallet, err := sc.walletService.GetByName(ctx, task.WalletName)
 	if err != nil {
 		return nil, err
@@ -44,8 +49,8 @@ func (sc *StrategyController) Create(ctx context.Context, task dto.TradingTask) 
 	return resp, nil
 }
 
-func (sc *StrategyController) Delete(id int64) error {
-	err := sc.strategyService.Delete(id)
+func (sc *StrategyController) Delete(id int64, ctx context.Context) error {
+	err := sc.strategyService.Delete(id, ctx)
 	if err != nil {
 		return err
 	}
