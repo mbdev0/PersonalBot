@@ -122,3 +122,24 @@ func (tr *TradingRepository) DeleteAll(ctx context.Context) (bool, error) {
 
 	return true, nil
 }
+
+func (tr *TradingRepository) Delete(ctx context.Context, id int64) (bool, error) {
+	query := "delete from trading_tasks where id = ?"
+	tx, err := tr.db.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable, ReadOnly: false})
+	if err != nil {
+		return false, err
+	}
+
+	_, err = tx.ExecContext(ctx, query, id)
+	if err != nil {
+		tx.Rollback()
+		return false, err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
+}

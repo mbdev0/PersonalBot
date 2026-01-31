@@ -160,7 +160,7 @@ func (th *TradingHandler) deleteTask(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Errorf("invalid id passed").Error(), http.StatusBadRequest)
 		return
 	}
-	err = th.strategyController.Delete(int64(convertedId))
+	err = th.strategyController.Delete(int64(convertedId), r.Context())
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
