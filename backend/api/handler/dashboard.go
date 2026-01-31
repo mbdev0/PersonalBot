@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"personal_bot/api/controller"
 	"personal_bot/api/dto"
+	"personal_bot/pkg/logger"
 )
 
 type DashboardHandler struct {
@@ -28,22 +29,49 @@ func (dh *DashboardHandler) GetDashboard(w http.ResponseWriter, r *http.Request)
 	strategies, _ := dh.strategyController.GetAll()
 	allTasks, _ := dh.taskController.GetAllTasks()
 
-	tasksByStrategy := make(map[int64][]dto.ResponseTask)
-	manualTasks := []dto.ResponseTask{}
+	// tasksByStrategy := make(map[int64][]dto.ResponseTask)
+	// manualTasks := []dto.ResponseTask{}
 
-	for _, task := range allTasks {
-		if task.StrategyId != nil {
-			tasksByStrategy[*task.StrategyId] = append(tasksByStrategy[*task.StrategyId], task)
-		} else {
-			manualTasks = append(manualTasks, task)
+	dashboardResponse := dto.DashboardResponseDto{}
+	for _, st := range strategies {
+
+		childrenRows := []dto.ChildRow{}
+
+		//TODO: terrible when we have 1000s of tasks -> maybe future improvement? - dont improve performance prematurely
+		if st.Type == dto.AFK {
+			for _, t := range allTasks {
+				logger.Information(*t.StrategyId)
+				if t.Type == string(dto.Sell) {
+					continue
+				}
+
+				if t.StrategyId == nil || *t.StrategyId != st.Id {
+					continue
+				}
+
+				childRow := dto.ChildRow{
+					Type:      t.Type,
+					Id:        int(t.TaskId),
+					WsMessage: "",
+					State:     t.State.TaskState,
+					Data:      t,
+				}
+
+				childrenRows = append(childrenRows, childRow)
+			}
 		}
+
+		tbr := dto.TableRow{
+			Type:      string(st.Type),
+			Id:        st.Id,
+			WsMessage: "",
+			State:     "", //TODO -> add state to strategies
+			Data:      st,
+			Children:  childrenRows,
+		}
+
+		dashboardResponse.Rows = append(dashboardResponse.Rows, tbr)
 	}
 
-	response := dto.DashboardResponse{
-		Strategies:      strategies,
-		TasksByStrategy: tasksByStrategy,
-		ManualTasks:     manualTasks,
-	}
-
-	json.NewEncoder(w).Encode(response)
+	json.NewEncoder(w).Encode(dashboardResponse)
 }
