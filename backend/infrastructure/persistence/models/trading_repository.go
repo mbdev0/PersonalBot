@@ -18,6 +18,16 @@ type AfkConfig struct {
 	SellStrategies []SellStrategies `json:"sell_strategies"`
 }
 
+type BuyStrategyConfig struct {
+	BuyFee         int              `json:"buy_fee"`
+	BuyAmount      int              `json:"buy_amount"`
+	SellFee        int              `json:"sell_fee"`
+	SellStrategies []SellStrategies `json:"sell_strategies"`
+	Token          string           `json:"token_address"`
+	BuyTaskId      int              `json:"buy_task_id"`
+	PositionId     int              `json:"position_id"`
+}
+
 type Filters struct {
 	HasWebsite  *bool   `json:"has_website"`
 	HasTwitter  *bool   `json:"has_twitter"`
