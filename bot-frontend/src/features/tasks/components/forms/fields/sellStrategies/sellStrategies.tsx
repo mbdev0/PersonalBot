@@ -1,13 +1,13 @@
 import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
+import { SellStrategyEdit } from './sellStrategyEdit';
+import { SellStrategyEntry } from './sellStrategyEntry';
 import {
   STOP_LOSS_OPTIONS,
   TAKE_PROFIT_OPTIONS,
-  type SellStrategyCreate,
   type SellStrategy,
-} from '@/features/tasks/types/strategyTask';
-import { SellStrategyEdit } from './sellStrategyEdit';
-import { SellStrategyEntry } from './sellStrategyEntry';
+  type SellStrategyCreate,
+} from '@/features/tasks/types/sellStrategies';
 
 interface SellStrategiesProps {
   sellStrategies: SellStrategy[];
