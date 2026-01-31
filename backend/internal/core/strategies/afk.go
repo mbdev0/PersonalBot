@@ -19,6 +19,7 @@ type Afk struct {
 	Wallet         wallets.SolanaWallet
 	SellStrategies []StrategyConfig
 	SellFee        float64
+	State          string
 }
 
 func (a *Afk) New() {
@@ -35,4 +36,25 @@ func (a *Afk) SetId(id int64) {
 
 func (a *Afk) StrategyType() TradingType {
 	return a.strategyType
+}
+
+func (a *Afk) StrategyState() string {
+	return a.State
+}
+
+func (a *Afk) SetStrategyState(st string) {
+	a.State = st
+}
+
+func (a *Afk) GetWallet() wallets.SolanaWallet {
+	return a.Wallet
+}
+func (a *Afk) GetComputeUnits() uint32 {
+	return uint32(a.ComputeUnits)
+}
+func (a *Afk) GetSlippage() float64 {
+	return a.Slippage
+}
+func (a *Afk) GetSellFee() float64 {
+	return a.SellFee
 }

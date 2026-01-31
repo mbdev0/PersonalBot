@@ -1,0 +1,8 @@
+package strategies
+
+type StrategyState string
+
+const (
+	CREATED StrategyState = "CREATED"
+	RUNNING StrategyState = "Buy"
+)
