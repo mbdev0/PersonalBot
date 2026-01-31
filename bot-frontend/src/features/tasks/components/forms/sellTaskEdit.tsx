@@ -94,14 +94,7 @@ export function SellTaskEdit({ task, onClose }: SellTaskEditProps) {
           <div className="grid grid-cols-[120px_120px_130px] gap-4">
             <SlippageEntry slippage={slippage} onChange={setSlippage} />
             <ComputeUnitsEntry computeUnits={computeUnits} onChange={setComputeUnits} />
-            <WalletSelector
-              selectedWallet={wallet}
-              onChange={handleWalletChange}
-              isPending={isPending}
-              isError={isError}
-              data={data}
-              error={error}
-            />
+            <WalletSelector selectedWallet={wallet} onChange={handleWalletChange} />
           </div>
         </Card>
       </div>
