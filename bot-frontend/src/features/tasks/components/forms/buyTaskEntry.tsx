@@ -83,14 +83,7 @@ export function BuyTaskEntry({ onClose }: BuyTaskEntryProps) {
           <div className="grid grid-cols-[120px_120px_130px] gap-4">
             <SlippageEntry slippage={slippage} onChange={setSlippage} />
             <ComputeUnitsEntry computeUnits={computeUnits} onChange={setComputeUnits} />
-            <WalletSelector
-              selectedWallet={wallet}
-              onChange={setSelectedWallet}
-              isError={isError}
-              isPending={isPending}
-              error={error}
-              data={data}
-            />
+            <WalletSelector selectedWallet={wallet} onChange={setSelectedWallet} />
           </div>
         </Card>
       </div>

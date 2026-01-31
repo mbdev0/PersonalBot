@@ -1,10 +1,6 @@
 import { useWallets } from '@/features/wallets/hooks/useWallets';
 import { useUpdateStrategy } from '../../hooks/useStrategy';
-import {
-  type SellStrategy,
-  type StrategyTask,
-  type StrategyTaskPut,
-} from '../../types/strategyTask';
+import { type StrategyTask, type StrategyTaskPut } from '../../types/strategyTask';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import type { Wallet } from '@/features/wallets/types/wallet';
@@ -17,6 +13,7 @@ import { Input } from '@/components/ui/input';
 import { FiltersEntry } from './fields/filters';
 import { Card } from '@/components/ui/card';
 import { SellStrategies } from './fields/sellStrategies/sellStrategies';
+import type { SellStrategy } from '../../types/sellStrategies';
 
 interface AFKTaskEditProps {
   task: StrategyTask;
@@ -107,10 +104,6 @@ export function AFKTaskEdit({ task, onClose }: AFKTaskEditProps) {
             <WalletSelector
               selectedWallet={selectedWallet ?? wallet}
               onChange={handleWalletChange}
-              isError={isError}
-              isPending={isPending}
-              error={error}
-              data={data}
             />
           </div>
         </Card>

@@ -6,7 +6,7 @@ import { SlippageEntry } from './fields/slippage';
 import { ComputeUnitsEntry } from './fields/computeUnits';
 import { WalletSelector } from './fields/walletSelector';
 import { BuyEntry } from './fields/buy';
-import { type Filters, type SellStrategy, type StrategyTaskPost } from '../../types/strategyTask';
+import { type StrategyTaskPost } from '../../types/strategyTask';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -20,6 +20,8 @@ import {
 import { FiltersEntry } from './fields/filters';
 import { Card } from '@/components/ui/card';
 import { SellStrategies } from './fields/sellStrategies/sellStrategies';
+import type { SellStrategy } from '../../types/sellStrategies';
+import type { Filters } from '../../types/filters';
 
 interface AFKTaskEntryProps {
   onClose: () => void;
@@ -100,14 +102,7 @@ export function AFKTaskEntry({ onClose }: AFKTaskEntryProps) {
           <div className="grid grid-cols-[120px_120px_130px] gap-4">
             <SlippageEntry slippage={slippage} onChange={setSlippage} />
             <ComputeUnitsEntry computeUnits={computeUnits} onChange={setComputeUnits} />
-            <WalletSelector
-              selectedWallet={wallet}
-              onChange={setSelectedWallet}
-              isError={isError}
-              isPending={isPending}
-              error={error}
-              data={data}
-            />
+            <WalletSelector selectedWallet={wallet} onChange={setSelectedWallet} />
           </div>
         </Card>
       </div>

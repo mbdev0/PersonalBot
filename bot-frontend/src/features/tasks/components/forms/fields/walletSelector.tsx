@@ -7,24 +7,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useWallets } from '@/features/wallets/hooks/useWallets';
 
 interface WalletSelectorProps {
   selectedWallet: Wallet | null;
   onChange: (wallet: Wallet | null) => void;
-  isPending: boolean;
-  isError: boolean;
-  data: Wallet[] | undefined;
-  error: Error | null;
 }
 
-export function WalletSelector({
-  selectedWallet,
-  onChange,
-  isPending,
-  isError,
-  data,
-  error,
-}: WalletSelectorProps) {
+export function WalletSelector({ selectedWallet, onChange }: WalletSelectorProps) {
+  const { isPending, isError, data, error } = useWallets();
+
+  const effectiveWallet = selectedWallet ?? data?.[0] ?? null;
+
   if (isPending) return <div>Loading wallets...</div>;
   if (isError) return <div>Error: {error?.message}</div>;
   if (data?.length === 0) return <div>No wallets. Create one first!</div>;
@@ -33,7 +27,7 @@ export function WalletSelector({
     <div className="space-y-2">
       <Label htmlFor="wallet">Wallet</Label>
       <Select
-        value={selectedWallet?.wallet_name}
+        value={effectiveWallet?.wallet_name}
         onValueChange={(e) => onChange(data?.find((w) => w.wallet_name === e) ?? null)}
       >
         <SelectTrigger id="wallet">

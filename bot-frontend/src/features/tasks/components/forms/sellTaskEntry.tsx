@@ -21,8 +21,8 @@ interface SellTaskEntryProps {
 }
 
 export function SellTaskEntry({ onClose }: SellTaskEntryProps) {
-  const { isPending, isError, data, error } = useWallets();
   const postMutation = useAddTask();
+  const { data: wallets } = useWallets();
 
   const [slippage, setSlippage] = useState(SLIPPAGE_DEFAULT);
   const [computeUnits, setComputeUnits] = useState(COMPUTE_UNITS_DEFAULT);
@@ -31,12 +31,12 @@ export function SellTaskEntry({ onClose }: SellTaskEntryProps) {
   const [sellFee, setSellFee] = useState(SELL_FEE_DEFAULT);
   const [selectedWallet, setSelectedWallet] = useState<Wallet | null>(null);
 
-  const wallet = selectedWallet ?? data?.[0] ?? null;
+  const effectiveWallet = selectedWallet ?? wallets?.[0] ?? null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!wallet) {
+    if (!effectiveWallet) {
       alert('Please select a wallet');
       return;
     }
@@ -45,7 +45,7 @@ export function SellTaskEntry({ onClose }: SellTaskEntryProps) {
       type: 'Sell',
       slippage: slippage / 100,
       compute_units: computeUnits,
-      wallet_name: wallet.wallet_name,
+      wallet_name: effectiveWallet.wallet_name,
       token_address: tokenAddress,
       sell_amount: sellAmount / 100,
       sell_fee: sellFee,
@@ -54,11 +54,6 @@ export function SellTaskEntry({ onClose }: SellTaskEntryProps) {
     postMutation.mutate(taskBody);
     onClose();
   };
-
-  if (isPending) return <div className="text-center py-8">Loading wallets...</div>;
-  if (isError) return <div className="text-center py-8 text-red-600">Error: {error.message}</div>;
-  if (data?.length === 0)
-    return <div className="text-center py-8">No wallets available. Create a wallet first!</div>;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -83,14 +78,7 @@ export function SellTaskEntry({ onClose }: SellTaskEntryProps) {
           <div className="grid grid-cols-[120px_120px_130px] gap-4">
             <SlippageEntry slippage={slippage} onChange={setSlippage} />
             <ComputeUnitsEntry computeUnits={computeUnits} onChange={setComputeUnits} />
-            <WalletSelector
-              selectedWallet={wallet}
-              onChange={setSelectedWallet}
-              isError={isError}
-              isPending={isPending}
-              error={error}
-              data={data}
-            />
+            <WalletSelector selectedWallet={effectiveWallet} onChange={setSelectedWallet} />
           </div>
         </Card>
       </div>
@@ -99,7 +87,7 @@ export function SellTaskEntry({ onClose }: SellTaskEntryProps) {
         <Button type="button" variant="outline" onClick={onClose}>
           Cancel
         </Button>
-        <Button type="submit" disabled={!wallet || !tokenAddress}>
+        <Button type="submit" disabled={!effectiveWallet || !tokenAddress}>
           Create Task
         </Button>
       </div>
