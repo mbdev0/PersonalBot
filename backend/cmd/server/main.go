@@ -51,6 +51,18 @@ func main() {
 
 	taskRepo := repository.NewTaskRepository(db)
 	taskService := taskservice.NewTaskService(&fsm, &stateManger, taskRepo, &taskSubhub)
+
+	tradingStrategy := trading.Strategy{}
+	tradingStrategy.NewTradingStrategy(taskService, &posSubhub, &positionService, &strategySubHub)
+
+	tradingTaskRepo := repository.NewTradingRepository(db)
+	tradingService := trading.Service{}
+	tradingService.NewTradingService(&tradingStrategy, &strategySubHub, tradingTaskRepo, taskService)
+	err = tradingService.LoadFromDB(context.Background())
+	if err != nil {
+		logger.Error(err)
+	}
+
 	err = taskService.LoadFromDB(context.Background())
 	if err != nil {
 		logger.Error("error whilst loading from db: ", err)
@@ -60,17 +72,6 @@ func main() {
 	walletService := wallet.NewWalletService(walletRepo)
 	walletController := controller.NewWalletController(walletService)
 	walletHandler := http.StripPrefix("/api/wallet", handler.NewWalletHandler(walletController))
-
-	tradingStrategy := trading.Strategy{}
-	tradingStrategy.NewTradingStrategy(taskService, &posSubhub, &positionService, &strategySubHub)
-
-	tradingTaskRepo := repository.NewTradingRepository(db)
-	tradingService := trading.Service{}
-	tradingService.NewTradingService(&tradingStrategy, &strategySubHub, tradingTaskRepo)
-	err = tradingService.LoadFromDB(context.Background())
-	if err != nil {
-		logger.Error(err)
-	}
 
 	tradingController := controller.StrategyController{}
 	tradingController.New(&tradingService, walletService)
@@ -117,13 +118,13 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
 	defer cancel()
 
-	// do the tasks here
-	err = taskService.Shutdown(ctx)
+	err = tradingService.Shutdown(ctx)
 	if err != nil {
 		logger.Error(err)
 	}
 
-	err = tradingService.Shutdown(ctx)
+	// do the tasks here
+	err = taskService.Shutdown(ctx)
 	if err != nil {
 		logger.Error(err)
 	}

@@ -52,6 +52,26 @@ func (ts *TaskService) GetTaskWith(id int64) (tasks.Task, error) {
 	return task, nil
 }
 
+func (ts *TaskService) GetTaskWithStrategyId(id int64) (tasks.Task, error) {
+	for _, v := range ts.tasks {
+		if v.Type() == "Sell" {
+			continue
+		}
+
+		bt, ok := v.(*tasks.BuyTask)
+		if !ok {
+			return nil, fmt.Errorf("error whilst casting task: %d to buy task", id)
+		}
+
+		if *bt.StrategyId == id {
+			return bt, nil
+		}
+
+	}
+
+	return nil, fmt.Errorf("task not found with id: %d", id)
+}
+
 func (ts *TaskService) GetAllTasks() []tasks.Task {
 	ts.mu.Lock()
 	defer ts.mu.Unlock()
