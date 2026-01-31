@@ -7,33 +7,56 @@ import (
 	"personal_bot/internal/core/strategies"
 	"personal_bot/internal/monitoring/filters"
 	"personal_bot/internal/solana/utils"
+
+	"github.com/gagliardetto/solana-go"
 )
 
 func MapTradingTaskDtoToTradingTask(src dto.TradingTask, wallet wallets.SolanaWallet) (strategies.Task, error) {
 	switch src.Type {
 	case dto.AFK:
-		task, err := mapAfkDtoToAfk(src, wallet)
-		if err != nil {
-			return nil, err
-		}
-		return task, nil
+		return mapAfkDtoToAfk(src, wallet)
+	case dto.BUY:
+		return mapBuyDtoToBuy(src, wallet)
 	default:
 		return nil, fmt.Errorf("task with type: %s - not found", src.Type)
 	}
+}
+
+func mapBuyDtoToBuy(src dto.TradingTask, wallet wallets.SolanaWallet) (dst *strategies.Buy, err error) {
+	dest := strategies.Buy{}
+	dest.New()
+
+	dest.BuyFee = *src.BuyFee
+	dest.ComputeUnits = float64(src.ComputeUnits)
+	dest.Slippage = src.Slippage
+	dest.BuyAmount = utils.ConvertSolToLamport(*src.BuyAmount)
+	dest.Wallet = wallet
+	dest.SellStrategies = mapDTOToStrategyConfigs(*src.SellStrategies)
+	dest.SellFee = *src.SellFee
+	dest.State = string(strategies.CREATED)
+
+	dest.Token, err = solana.PublicKeyFromBase58(*src.TokenAddress)
+	if err != nil {
+		return nil, err
+	}
+
+	return &dest, nil
+
 }
 
 func mapAfkDtoToAfk(src dto.TradingTask, wallet wallets.SolanaWallet) (dst *strategies.Afk, err error) {
 	dest := strategies.Afk{}
 	dest.New()
 
-	dest.BuyFee = src.BuyFee
+	dest.BuyFee = *src.BuyFee
 	dest.ComputeUnits = float64(src.ComputeUnits)
 	dest.Slippage = src.Slippage
-	dest.BuyAmount = utils.ConvertSolToLamport(src.BuyAmount)
+	dest.BuyAmount = utils.ConvertSolToLamport(*src.BuyAmount)
 	dest.Wallet = wallet
-	dest.Filters = mapFiltersToDestFilters(src.Filters)
-	dest.SellStrategies = mapDTOToStrategyConfigs(src.SellStrategies)
-	dest.SellFee = src.SellFee
+	dest.Filters = mapFiltersToDestFilters(*src.Filters)
+	dest.SellStrategies = mapDTOToStrategyConfigs(*src.SellStrategies)
+	dest.SellFee = *src.SellFee
+	dest.State = string(strategies.CREATED)
 
 	return &dest, nil
 }
