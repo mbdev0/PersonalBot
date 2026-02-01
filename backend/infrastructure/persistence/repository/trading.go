@@ -38,6 +38,10 @@ func (tr *TradingRepository) GetAllTasks(ctx context.Context) ([]strategies.Task
 		}
 
 		mappedTask, err := mapper.MapRepoToTradingTask(task, wallet)
+		if err != nil {
+			return nil, err
+		}
+
 		dbTasks = append(dbTasks, mappedTask)
 	}
 
