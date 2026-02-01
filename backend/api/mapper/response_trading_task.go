@@ -32,7 +32,7 @@ func mapBuyToBuyResponse(src *strategies.Buy) (dest *dto.TradingTaskResponse, er
 	dst.BuyFee = &src.BuyFee
 	dst.ComputeUnits = src.ComputeUnits
 	dst.Slippage = src.Slippage
-	dst.SellFee = &src.SellFee
+	dst.SellFee = src.SellFee
 	sellStrategies := mapSellStratsToResponseStrats(src.SellStrategies)
 	dst.SellStrategies = &sellStrategies
 	dst.WalletName = src.Wallet.WalletName
@@ -59,7 +59,7 @@ func mapAfkToAfkResponse(src *strategies.Afk) (dest *dto.TradingTaskResponse, er
 
 	filters := mapFiltersToResponseFilters(src.Filters)
 	dst.Filters = &filters
-	dst.SellFee = &src.SellFee
+	dst.SellFee = src.SellFee
 
 	sellStrategies := mapSellStratsToResponseStrats(src.SellStrategies)
 	dst.SellStrategies = &sellStrategies

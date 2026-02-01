@@ -225,7 +225,7 @@ func (s *Strategy) createAndRunSellTask(sellableTask strategies.SellableStrategy
 		},
 		[]tasks.SellOption{
 			tasks.WithSellAmount(sellAmount),
-			tasks.WithSellFee(sellableTask.GetSellFee()),
+			tasks.WithSellFee(*sellableTask.GetSellFee()),
 			tasks.WithSellPositionId(&pos.PositionId),
 		},
 	))

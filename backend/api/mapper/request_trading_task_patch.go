@@ -50,9 +50,7 @@ func createAfkPatch(src dto.TradingTaskPatch, wallet *wallets.SolanaWallet) (res
 		respPatch.Slippage = src.Slippage
 	}
 
-	if src.SellFee != nil {
-		respPatch.SellFee = src.SellFee
-	}
+	respPatch.SellFee = src.SellFee
 
 	//if the wallet was set in the patch, we get it in the controller and pass it down
 	//this is to stop mixing of services and keep them as top level as possible
@@ -91,9 +89,7 @@ func createBuyPatch(src dto.TradingTaskPatch, wallet *wallets.SolanaWallet) (str
 		respPatch.Slippage = src.Slippage
 	}
 
-	if src.SellFee != nil {
-		respPatch.SellFee = src.SellFee
-	}
+	respPatch.SellFee = src.SellFee
 
 	//if the wallet was set in the patch, we get it in the controller and pass it down
 	//this is to stop mixing of services and keep them as top level as possible

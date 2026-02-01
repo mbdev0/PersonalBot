@@ -51,9 +51,7 @@ func (ap *AfkPatch) ApplyTo(task Task) error {
 		afk.SellStrategies = *ap.SellStrategies
 	}
 
-	if ap.SellFee != nil {
-		afk.SellFee = *ap.SellFee
-	}
+	afk.SellFee = ap.SellFee
 
 	return nil
 

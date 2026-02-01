@@ -53,9 +53,7 @@ func (bp *BuyPatch) ApplyTo(task Task) error {
 		buy.Token = *bp.Token
 	}
 
-	if bp.SellFee != nil {
-		buy.SellFee = *bp.SellFee
-	}
+	buy.SellFee = bp.SellFee
 
 	return nil
 

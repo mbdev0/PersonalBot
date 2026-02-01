@@ -18,7 +18,7 @@ type Afk struct {
 	ComputeUnits   float64
 	Wallet         wallets.SolanaWallet
 	SellStrategies []StrategyConfig
-	SellFee        float64
+	SellFee        *float64
 	State          string
 }
 
@@ -55,6 +55,6 @@ func (a *Afk) GetComputeUnits() uint32 {
 func (a *Afk) GetSlippage() float64 {
 	return a.Slippage
 }
-func (a *Afk) GetSellFee() float64 {
+func (a *Afk) GetSellFee() *float64 {
 	return a.SellFee
 }
