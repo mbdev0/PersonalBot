@@ -5,7 +5,14 @@ import (
 	"net/http"
 	"personal_bot/api/controller"
 	"personal_bot/api/dto"
-	"personal_bot/pkg/logger"
+)
+
+// TODO: CLEAN UP
+type RowType string
+
+const (
+	STRATEGY RowType = "strategy"
+	TASK     RowType = "task"
 )
 
 type DashboardHandler struct {
@@ -29,9 +36,6 @@ func (dh *DashboardHandler) GetDashboard(w http.ResponseWriter, r *http.Request)
 	strategies, _ := dh.strategyController.GetAll()
 	allTasks, _ := dh.taskController.GetAllTasks()
 
-	// tasksByStrategy := make(map[int64][]dto.ResponseTask)
-	// manualTasks := []dto.ResponseTask{}
-
 	dashboardResponse := dto.DashboardResponseDto{}
 	for _, st := range strategies {
 
@@ -40,7 +44,6 @@ func (dh *DashboardHandler) GetDashboard(w http.ResponseWriter, r *http.Request)
 		//TODO: terrible when we have 1000s of tasks -> maybe future improvement? - dont improve performance prematurely
 		if st.Type == dto.AFK {
 			for _, t := range allTasks {
-				logger.Information(*t.StrategyId)
 				if t.Type == string(dto.Sell) {
 					continue
 				}
@@ -50,8 +53,8 @@ func (dh *DashboardHandler) GetDashboard(w http.ResponseWriter, r *http.Request)
 				}
 
 				childRow := dto.ChildRow{
-					Type:      t.Type,
-					Id:        int(t.TaskId),
+					Type:      string(TASK),
+					Id:        t.TaskId,
 					WsMessage: "",
 					State:     t.State.TaskState,
 					Data:      t,
@@ -62,10 +65,10 @@ func (dh *DashboardHandler) GetDashboard(w http.ResponseWriter, r *http.Request)
 		}
 
 		tbr := dto.TableRow{
-			Type:      string(st.Type),
+			Type:      string(STRATEGY),
 			Id:        st.Id,
 			WsMessage: "",
-			State:     "", //TODO -> add state to strategies
+			State:     st.State,
 			Data:      st,
 			Children:  childrenRows,
 		}
