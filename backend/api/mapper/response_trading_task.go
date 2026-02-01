@@ -16,6 +16,8 @@ func MapTradingTaskToDto(src strategies.Task) (dest *dto.TradingTaskResponse, er
 		return mapAfkToAfkResponse(t)
 	case *strategies.Buy:
 		return mapBuyToBuyResponse(t)
+	case *strategies.Sell:
+		return mapSellToSellResponse(t)
 	default:
 		return nil, fmt.Errorf("task not found with type - make sure the type is created/mapping is created")
 	}
@@ -65,6 +67,25 @@ func mapAfkToAfkResponse(src *strategies.Afk) (dest *dto.TradingTaskResponse, er
 	dst.WalletName = src.Wallet.WalletName
 	dst.WalletAddress = src.Wallet.PublicKey.Short(constants.ShortPublicAddressInt)
 	dst.State = string(src.State)
+
+	return &dst, nil
+}
+
+func mapSellToSellResponse(t *strategies.Sell) (dest *dto.TradingTaskResponse, err error) {
+	dst := dto.TradingTaskResponse{}
+	dst.Type = dto.TradingType(t.StrategyType())
+	dst.Id = t.StrategyTaskId()
+	sellAmount := t.SellAmount
+	dst.SellAmount = &sellAmount
+	dst.SellFee = &t.SellFee
+	dst.ComputeUnits = t.ComputeUnits
+	dst.Slippage = t.Slippage
+	dst.WalletName = t.Wallet.WalletName
+	dst.WalletAddress = t.Wallet.PublicKey.Short(constants.ShortPublicAddressInt)
+	dst.State = string(t.State)
+	dst.SellTaskId = &t.SellTaskId
+	tokenAddress := t.Token.String()
+	dst.TokenAddress = &tokenAddress
 
 	return &dst, nil
 }
