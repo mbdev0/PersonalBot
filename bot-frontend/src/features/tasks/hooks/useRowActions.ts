@@ -14,6 +14,8 @@ export function useRowActions(setEditingRow: (row: Row | null) => void): RowActi
   const deleteMutation = useDeleteTask();
   const duplicateMutation = useAddTask();
   const transitionMutation = useTransitionTask();
+  const startStrategy = useStartStrategy();
+  const stopStrategy = useStopStrategy();
 
   const deleteStrategyMutation = useDeleteStrategy();
   const duplicateStrategyMutation = useAddStrategy();
@@ -24,22 +26,14 @@ export function useRowActions(setEditingRow: (row: Row | null) => void): RowActi
         if (row.type === TaskRowType.Task) {
           transitionMutation.mutate({ id: row.id, taskAction: TaskType.task_run });
         } else {
-          const { error } = useStartStrategy({ id: row.id });
-
-          if (error) {
-            console.log('error whilst starting task');
-          }
+          startStrategy.mutate(row.id);
         }
       },
       onStop: (row: Row) => {
         if (row.type === TaskRowType.Task) {
           transitionMutation.mutate({ id: row.id, taskAction: TaskType.task_cancel });
         } else {
-          const { error } = useStopStrategy({ id: row.id });
-
-          if (error) {
-            console.log('error whilst starting task');
-          }
+          stopStrategy.mutate(row.id);
         }
       },
       onEdit: (row: Row) => {

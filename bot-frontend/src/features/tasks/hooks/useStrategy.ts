@@ -1,5 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { StrategyTaskPost, StrategyTaskPut } from '../types/strategyTask';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   deleteStrategy,
   postStrategy,
@@ -7,6 +6,8 @@ import {
   startStrategy,
   stopStrategy,
 } from '../api/strategyTasks';
+import type { StrategyTaskPost } from '../types/strategies/strategyTaskPost';
+import type { StrategyTaskPut } from '../types/strategies/strategyTaskPut';
 
 export function useAddStrategy() {
   const client = useQueryClient();
@@ -44,16 +45,30 @@ export function useDeleteStrategy() {
   });
 }
 
-export function useStartStrategy({ id }: { id: number }) {
-  return useQuery({
-    queryKey: ['startStrategy', id],
-    queryFn: () => startStrategy(id),
+export function useStartStrategy() {
+  const client = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: number) => startStrategy(id),
+    onSuccess() {
+      client.invalidateQueries({ queryKey: ['dashboard'] });
+    },
+    onError(e) {
+      console.error('error whilst starting strategy: ', e);
+    },
   });
 }
 
-export function useStopStrategy({ id }: { id: number }) {
-  return useQuery({
-    queryKey: ['stopStrategy', id],
-    queryFn: () => stopStrategy(id),
+export function useStopStrategy() {
+  const client = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: number) => stopStrategy(id),
+    onSuccess() {
+      client.invalidateQueries({ queryKey: ['dashboard'] });
+    },
+    onError(e) {
+      console.error('error whilst stopping strategy: ', e);
+    },
   });
 }
