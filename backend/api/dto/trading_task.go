@@ -52,13 +52,21 @@ type TradingTaskResponse struct {
 }
 
 type TradingTaskPatch struct {
-	Type           *TradingType       `json:"trading_type"`
-	BuyAmount      *float64           `json:"buy_amount"`
-	BuyFee         *float64           `json:"buy_fee"`
-	ComputeUnits   *float64           `json:"compute_units"`
-	Slippage       *float64           `json:"slippage"`
-	Wallet         *string            `json:"wallet_name"`
-	Filters        *Filters           `json:"filters"`
-	SellStrategies *[]SellStrategyDTO `json:"sell_strategies"`
-	SellFee        *float64           `json:"sell_fee"`
+	Type         *TradingType `json:"trading_type" validate:"omitempty,oneof=AFK BUY SELL"`
+	ComputeUnits *float64     `json:"compute_units" validate:"omitempty,gt=0"`
+	WalletName   *string      `json:"wallet_name" validate:"omitempty"`
+	Slippage     *float64     `json:"slippage" validate:"omitempty,gte=0,lte=1"`
+
+	Filters        *Filters           `json:"filters,omitempty"`
+	SellStrategies *[]SellStrategyDTO `json:"sell_strategies,omitempty"`
+	BuyAmount      *float64           `json:"buy_amount,omitempty" validate:"omitempty,gt=0"`
+	BuyFee         *float64           `json:"buy_fee,omitempty" validate:"omitempty,gte=0"`
+	SellAmount     *float64           `json:"sell_amount,omitempty" validate:"omitempty,gt=0"`
+	SellFee        *float64           `json:"sell_fee,omitempty" validate:"omitempty,gte=0"`
+	TokenAddress   *string            `json:"token_address,omitempty"`
+}
+
+func (t *TradingTaskPatch) Validate() error {
+	validate := validator.New()
+	return validate.Struct(t)
 }

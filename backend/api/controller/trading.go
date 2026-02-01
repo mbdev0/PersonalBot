@@ -96,8 +96,8 @@ func (sc *StrategyController) Update(ctx context.Context, id int64, tsk dto.Trad
 	//if the wallet is nil (which it will be if the user didn't pass in the wallet in the patch)
 	//we will not update the wallet inside the mapper
 	var wallet *wallets.SolanaWallet
-	if tsk.Wallet != nil {
-		walletResp, err := sc.walletService.GetByName(ctx, *tsk.Wallet)
+	if tsk.WalletName != nil {
+		walletResp, err := sc.walletService.GetByName(ctx, *tsk.WalletName)
 		if err != nil {
 			return nil, err
 		}
