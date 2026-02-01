@@ -11,15 +11,17 @@ import { SELL_AMOUNT_DEFAULT, SELL_FEE_DEFAULT } from '../../utils/constants';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { SellEntry } from './fields/sell';
+import type { SellStrategyTaskPut } from '../../types/strategies/strategyTaskPut';
+import { useUpdateStrategy } from '../../hooks/useStrategy';
 
 interface SellTaskEditProps {
-  task: Task;
+  task: SellStrategyTaskPut;
   onClose: () => void;
 }
 
 export function SellTaskEdit({ task, onClose }: SellTaskEditProps) {
   const { isPending, isError, data, error } = useWallets();
-  const putMutation = useUpdateTask();
+  const putMutation = useUpdateStrategy();
 
   if (!task.sell_amount) {
     return (
@@ -52,8 +54,9 @@ export function SellTaskEdit({ task, onClose }: SellTaskEditProps) {
       return;
     }
 
-    const taskBody = {
-      type: 'Sell',
+    const taskBody: SellStrategyTaskPut = {
+      id: task.id,
+      trading_type: 'SELL',
       slippage: slippage / 100,
       compute_units: computeUnits,
       wallet_name: wallet.wallet_name,
@@ -62,7 +65,7 @@ export function SellTaskEdit({ task, onClose }: SellTaskEditProps) {
       sell_fee: sellFee ?? SELL_FEE_DEFAULT,
     };
 
-    putMutation.mutate({ ...taskBody, id: task.task_id });
+    putMutation.mutate({ ...taskBody, id: task.id });
     onClose();
   };
 

@@ -15,13 +15,15 @@ import {
   SELL_FEE_DEFAULT,
   SLIPPAGE_DEFAULT,
 } from '../../utils/constants';
+import { useAddStrategy } from '../../hooks/useStrategy';
+import type { SellStrategyTaskPost } from '../../types/strategies/strategyTaskPost';
 
 interface SellTaskEntryProps {
   onClose: () => void;
 }
 
 export function SellTaskEntry({ onClose }: SellTaskEntryProps) {
-  const postMutation = useAddTask();
+  const postMutation = useAddStrategy();
   const { data: wallets } = useWallets();
 
   const [slippage, setSlippage] = useState(SLIPPAGE_DEFAULT);
@@ -41,8 +43,8 @@ export function SellTaskEntry({ onClose }: SellTaskEntryProps) {
       return;
     }
 
-    const taskBody = {
-      type: 'Sell',
+    const taskBody: SellStrategyTaskPost = {
+      trading_type: 'SELL',
       slippage: slippage / 100,
       compute_units: computeUnits,
       wallet_name: effectiveWallet.wallet_name,
