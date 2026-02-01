@@ -1,4 +1,4 @@
-import type { StrategyTask } from './strategyTask';
+import type { StrategyTask } from './strategies/strategyTask';
 import type { Task } from './task';
 
 interface StrategyRow {

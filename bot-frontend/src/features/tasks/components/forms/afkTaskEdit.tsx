@@ -1,6 +1,5 @@
 import { useWallets } from '@/features/wallets/hooks/useWallets';
 import { useUpdateStrategy } from '../../hooks/useStrategy';
-import { type StrategyTask, type StrategyTaskPut } from '../../types/strategyTask';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import type { Wallet } from '@/features/wallets/types/wallet';
@@ -14,9 +13,11 @@ import { FiltersEntry } from './fields/filters';
 import { Card } from '@/components/ui/card';
 import { SellStrategies } from './fields/sellStrategies/sellStrategies';
 import type { SellStrategy } from '../../types/sellStrategies';
+import type { AFKStrategyTask } from '../../types/strategies/strategyTask';
+import type { AFKStrategyTaskPut } from '../../types/strategies/strategyTaskPut';
 
 interface AFKTaskEditProps {
-  task: StrategyTask;
+  task: AFKStrategyTask;
   onClose: () => void;
 }
 
@@ -49,7 +50,7 @@ export function AFKTaskEdit({ task, onClose }: AFKTaskEditProps) {
       return;
     }
 
-    const taskBody: StrategyTaskPut = {
+    const taskBody: AFKStrategyTaskPut = {
       trading_type: 'AFK',
       buy_amount: buyAmount,
       buy_fee: buyFee,

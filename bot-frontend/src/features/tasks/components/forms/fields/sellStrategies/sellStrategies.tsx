@@ -6,7 +6,7 @@ import {
   STOP_LOSS_OPTIONS,
   TAKE_PROFIT_OPTIONS,
   type SellStrategy,
-  type SellStrategyCreate,
+  type SellStrategyPost,
 } from '@/features/tasks/types/sellStrategies';
 
 interface SellStrategiesProps {
@@ -15,7 +15,7 @@ interface SellStrategiesProps {
 }
 
 export function SellStrategies({ sellStrategies, setSellStrategies }: SellStrategiesProps) {
-  const onAddSellStrategy = (strat: SellStrategyCreate) => {
+  const onAddSellStrategy = (strat: SellStrategyPost) => {
     const strategyWithId: SellStrategy = {
       id: crypto.randomUUID(),
       ...strat,

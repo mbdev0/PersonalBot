@@ -1,13 +1,15 @@
 //This will be for Strategy tasks, e.g. AFK, Spam etc.
 
 import { API_BASE } from '../../../config/urls';
-import { MapStrategyToPostDto, MapStrategyToPutDto } from '../mapper/strategyMapper';
-import type { StrategyTaskPost, StrategyTaskPut } from '../types/strategyTask';
+import { mapStrategyTaskToPostDto } from '../mapper/strategy/strategyPostMapper';
+import { mapStrategyTaskToPutDto } from '../mapper/strategy/strategyPutMapper';
+import type { StrategyTaskPost } from '../types/strategies/strategyTaskPost';
+import type { StrategyTaskPut } from '../types/strategies/strategyTaskPut';
 
 const STRATEGY_BASE = '/trading';
 
 export async function postStrategy(task: StrategyTaskPost) {
-  const mappedTasks = MapStrategyToPostDto(task);
+  const mappedTasks = mapStrategyTaskToPostDto(task);
   const url = API_BASE + STRATEGY_BASE + '/create';
 
   const response = await fetch(url, {
@@ -41,7 +43,7 @@ export async function deleteStrategy(id: number) {
 }
 
 export async function putStrategy(task: StrategyTaskPut) {
-  const mappedTasks = MapStrategyToPutDto(task);
+  const mappedTasks = mapStrategyTaskToPutDto(task);
   const url = API_BASE + STRATEGY_BASE + `/task/${task.id}`;
 
   const response = await fetch(url, {

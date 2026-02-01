@@ -1,11 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
-  type SellStrategyCreate,
-  type SellStrategyType,
-  type SellStrategyTypeOptions,
-} from '@/features/tasks/types/strategyTask';
-import {
   Select,
   SelectTrigger,
   SelectValue,
@@ -17,11 +12,16 @@ import {
 import { Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { Label } from '@/components/ui/label';
+import type {
+  SellStrategyPost,
+  SellStrategyType,
+  SellStrategyTypeOptions,
+} from '@/features/tasks/types/sellStrategies';
 
 interface SellStrategyEntryProps {
   name: 'Take Profit' | 'Stop Loss';
   sellStrategyTypes: SellStrategyTypeOptions[];
-  onAddStrategy: (sellStrat: SellStrategyCreate) => void;
+  onAddStrategy: (sellStrat: SellStrategyPost) => void;
 }
 
 export function SellStrategyEntry({
