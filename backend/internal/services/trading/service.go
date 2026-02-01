@@ -49,8 +49,14 @@ func (s *Service) Create(st strategies.Task) (task strategies.Task, err error) {
 		return nil, fmt.Errorf("task already exists with id: %d", st.StrategyTaskId())
 	}
 
+	//if we get a buy/sell strategy we precreate the task to speed up running
 	if st.StrategyType() == strategies.BUY {
 		err := s.initBuyStrategy(st)
+		if err != nil {
+			return nil, err
+		}
+	} else if st.StrategyType() == strategies.SELL {
+		err := s.initSellStrategy(st)
 		if err != nil {
 			return nil, err
 		}
@@ -83,6 +89,39 @@ func (s *Service) createBuyTask(buyTask strategies.Buy) *tasks.BuyTask {
 	)
 
 	return bt
+}
+
+func (s *Service) initSellStrategy(st strategies.Task) (err error) {
+	sellStrategy, ok := st.(*strategies.Sell)
+	if !ok {
+		return fmt.Errorf("expected strategy task to be a Sell Strategy - ended up getting a different type")
+	}
+
+	sellTask := s.createSellTask(*sellStrategy)
+	createdTask, err := s.taskService.Create(sellTask)
+	if err != nil {
+		return err
+	}
+
+	sellStrategy.SellTaskId = createdTask.Id()
+	return nil
+}
+
+func (s *Service) createSellTask(sell strategies.Sell) *tasks.SellTask {
+	st := tasks.NewSellTask(
+		sell.GetWallet(),
+		sell.Token,
+		[]tasks.Option{
+			tasks.WithComputeUnits(uint32(sell.GetComputeUnits())),
+			tasks.WithSlippage(sell.GetSlippage()),
+		},
+		[]tasks.SellOption{
+			tasks.WithSellAmount(sell.SellAmount),
+			tasks.WithSellFee(sell.SellFee),
+		},
+	)
+
+	return st
 }
 
 func (s *Service) Delete(id int64, ctx context.Context) error {
@@ -184,6 +223,8 @@ func (s *Service) Start(id int64) error {
 		go s.strategy.AfkSniping(tsk, ctxCancel)
 	case *strategies.Buy:
 		go s.strategy.Buy(tsk, ctxCancel)
+	case *strategies.Sell:
+		go s.strategy.Sell(tsk, ctxCancel)
 	default:
 		//if the task matches no type
 		cancel()

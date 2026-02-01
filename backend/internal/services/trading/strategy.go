@@ -26,6 +26,13 @@ type Strategy struct {
 	positionService *positionservice.Service
 }
 
+func (s *Strategy) Sell(tsk *strategies.Sell, ctxCancel context.Context) {
+	err := s.taskService.TransitionTask(tsk.SellTaskId, tasks.TaskRun)
+	if err != nil {
+		logger.Error(err)
+	}
+}
+
 func (s *Strategy) NewTradingStrategy(ts *taskservice.TaskService, ph *positionhub.SubscriptionHub, ps *positionservice.Service, sh *strategy.SubscriptionHub) {
 	s.taskService = ts
 	s.positionHub = ph
