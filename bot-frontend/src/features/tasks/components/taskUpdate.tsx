@@ -28,17 +28,17 @@ export function TaskUpdate({ row, onClose }: TaskUpdateProps) {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="Buy">Buy</SelectItem>
-            <SelectItem value="Sell">Sell</SelectItem>
+            <SelectItem value="BUY">Buy</SelectItem>
+            <SelectItem value="SELL">Sell</SelectItem>
             <SelectItem value="AFK">AFK</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
-      {row.type === TaskRowType.Task && row.data.type === 'Buy' && (
+      {row.type === TaskRowType.Strategy && row.data.trading_type === 'BUY' && (
         <BuyTaskEdit task={row.data} onClose={onClose}></BuyTaskEdit>
       )}
-      {row.type === TaskRowType.Task && row.data.type === 'Sell' && (
+      {row.type === TaskRowType.Strategy && row.data.trading_type === 'SELL' && (
         <SellTaskEdit task={row.data} onClose={onClose}></SellTaskEdit>
       )}
 
