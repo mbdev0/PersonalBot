@@ -4,5 +4,5 @@ type StrategyState string
 
 const (
 	CREATED StrategyState = "CREATED"
-	RUNNING StrategyState = "Buy"
+	RUNNING StrategyState = "RUNNING"
 )
