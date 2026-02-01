@@ -7,24 +7,24 @@ type DashboardResponse struct {
 }
 
 type TableRow struct {
-	Type      string
-	Id        int64
-	WsMessage string
-	State     string
-	Data      TradingTaskResponse //the trading task itself holding all options
-	Children  []ChildRow          //a table row can/cannot have children depending on type
+	Type      string              `json:"type"`
+	Id        int64               `json:"id"`
+	WsMessage string              `json:"wsMessage"`
+	State     string              `json:"state"`
+	Data      TradingTaskResponse `json:"data"`     //the trading task itself holding all options
+	Children  []ChildRow          `json:"children"` //a table row can/cannot have children depending on type
 }
 
 type ChildRow struct {
-	Type      string
-	Id        int
-	WsMessage string
-	State     string
+	Type      string `json:"type"`
+	Id        int64  `json:"id"`
+	WsMessage string `json:"wsMessage"`
+	State     string `json:"state"`
 	Data      ResponseTask
 }
 
 type DashboardResponseDto struct {
-	Rows []TableRow
+	Rows []TableRow `json:"rows"`
 }
 
 //dashboard response should be
