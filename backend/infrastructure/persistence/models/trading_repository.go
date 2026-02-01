@@ -28,6 +28,13 @@ type BuyStrategyConfig struct {
 	PositionId     int              `json:"position_id"`
 }
 
+type SellStrategyConfig struct {
+	SellFee    int     `json:"sell_fee"`
+	SellAmount float64 `json:"sell_amount"`
+	Token      string  `json:"token_address"`
+	SellTaskId int     `json:"sell_task_id"`
+}
+
 type Filters struct {
 	HasWebsite  *bool   `json:"has_website"`
 	HasTwitter  *bool   `json:"has_twitter"`
