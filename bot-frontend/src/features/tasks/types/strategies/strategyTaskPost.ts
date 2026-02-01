@@ -59,7 +59,7 @@ export interface BuyStrategyTaskPost extends BaseStrategyTaskPost {
   trading_type: 'BUY';
   buy_amount: number;
   buy_fee: number;
-  sell_fee: number;
+  sell_fee?: number;
   sell_strategies: SellStrategyPost[];
   token_address: string;
 }
