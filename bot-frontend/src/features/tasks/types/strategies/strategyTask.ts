@@ -1,0 +1,76 @@
+import type { Filters } from '../filters';
+import type { SellStrategyDto } from '../sellStrategies';
+
+export type TradingType = 'AFK' | 'BUY' | 'SELL';
+
+interface BaseStrategyTaskDto {
+  trading_type: TradingType;
+  id: number;
+  wallet_name: string;
+  wallet_address: string;
+  compute_units: number;
+  slippage: number;
+}
+
+export interface AFKStrategyTaskDto extends BaseStrategyTaskDto {
+  trading_type: 'AFK';
+  buy_amount: number;
+  buy_fee: number;
+  sell_fee: number;
+  filters: Filters;
+  sell_strategies: SellStrategyDto[];
+}
+
+export interface BuyStrategyTaskDto extends BaseStrategyTaskDto {
+  trading_type: 'BUY';
+  buy_amount: number;
+  buy_fee: number;
+  sell_fee: number;
+  sell_strategies: SellStrategyDto[];
+  token_address: string;
+}
+
+export interface SellStrategyTaskDto extends BaseStrategyTaskDto {
+  trading_type: 'SELL';
+  sell_amount: number;
+  sell_fee: number;
+  token_address: string;
+}
+
+export type StrategyTaskDto = AFKStrategyTaskDto | BuyStrategyTaskDto | SellStrategyTaskDto;
+
+interface BaseStrategyTask {
+  trading_type: TradingType;
+  id: number;
+  wallet_name: string;
+  wallet_address: string;
+  compute_units: number;
+  slippage: number;
+}
+
+export interface AFKStrategyTask extends BaseStrategyTask {
+  trading_type: 'AFK';
+  buy_amount: number;
+  buy_fee: number;
+  sell_fee: number;
+  filters: Filters;
+  sell_strategies: SellStrategyDto[];
+}
+
+export interface BuyStrategyTask extends BaseStrategyTask {
+  trading_type: 'BUY';
+  buy_amount: number;
+  buy_fee: number;
+  sell_fee: number;
+  sell_strategies: SellStrategyDto[];
+  token_address: string;
+}
+
+export interface SellStrategyTask extends BaseStrategyTask {
+  trading_type: 'SELL';
+  sell_amount: number;
+  sell_fee: number;
+  token_address: string;
+}
+
+export type StrategyTask = AFKStrategyTask | BuyStrategyTask | SellStrategyTask;

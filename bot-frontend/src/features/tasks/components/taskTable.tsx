@@ -59,35 +59,26 @@ export function TaskTable() {
 
 function buildRows(data: Dashboard, expandedIds: Set<number>): Row[] {
   const rows: Row[] = [];
-  data.strategies.forEach((s) => {
-    rows.push({
-      id: s.id,
-      type: TaskRowType.Strategy,
-      depth: 0,
-      data: s,
-    });
-
-    if (expandedIds.has(s.id)) {
-      const tasks = data.tasksByStrategy[s.id] || [];
-      tasks.forEach((t) => {
-        rows.push({
-          id: t.task_id,
-          strategyId: s.id,
-          type: TaskRowType.Task,
-          depth: 1,
-          data: t,
-        });
+  data.rows.forEach((r) => {
+    if (r.type == 'strategy') {
+      rows.push({
+        id: r.id,
+        type: TaskRowType.Strategy,
+        depth: 0,
+        data: r.data,
       });
-    }
-  });
 
-  data.manualTasks.forEach((t) => {
-    rows.push({
-      id: t.task_id,
-      type: TaskRowType.Task,
-      depth: 0,
-      data: t,
-    });
+      if (r.children.length > 0) {
+        r.children.forEach((c) => {
+          rows.push({
+            id: c.id,
+            type: TaskRowType.Task,
+            depth: 1,
+            data: c.data,
+          });
+        });
+      }
+    }
   });
 
   return rows;

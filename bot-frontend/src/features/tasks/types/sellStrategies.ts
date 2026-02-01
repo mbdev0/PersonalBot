@@ -5,7 +5,7 @@ export interface SellStrategy {
   sell_amount: number;
 }
 
-export type SellStrategyCreate = Omit<SellStrategy, 'id'>;
+export type SellStrategyPost = Omit<SellStrategy, 'id'>;
 
 export interface SellStrategyDto {
   id: string;
