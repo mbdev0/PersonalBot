@@ -154,14 +154,16 @@ func (s *Service) Delete(id int64, ctx context.Context) error {
 		return fmt.Errorf(" unsuccessful delete from database")
 	}
 
-	bt, err := s.taskService.GetTaskWithStrategyId(id)
-	if err != nil {
-		return err
-	}
+	if task.StrategyType() == strategies.BUY || task.StrategyType() == strategies.SELL {
+		bt, err := s.taskService.GetTaskWithStrategyId(id)
+		if err != nil {
+			return err
+		}
 
-	err = s.taskService.DeleteTask(bt.Id())
-	if err != nil {
-		return err
+		err = s.taskService.DeleteTask(bt.Id())
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
