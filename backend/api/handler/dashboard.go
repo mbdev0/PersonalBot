@@ -7,14 +7,6 @@ import (
 	"personal_bot/api/dto"
 )
 
-// TODO: CLEAN UP
-type RowType string
-
-const (
-	STRATEGY RowType = "strategy"
-	TASK     RowType = "task"
-)
-
 type DashboardHandler struct {
 	strategyController *controller.StrategyController
 	taskController     *controller.TaskController
@@ -53,7 +45,7 @@ func (dh *DashboardHandler) GetDashboard(w http.ResponseWriter, r *http.Request)
 				}
 
 				childRow := dto.ChildRow{
-					Type:      string(TASK),
+					Type:      string(dto.TASK),
 					Id:        t.TaskId,
 					WsMessage: "",
 					State:     t.State.TaskState,
@@ -65,7 +57,7 @@ func (dh *DashboardHandler) GetDashboard(w http.ResponseWriter, r *http.Request)
 		}
 
 		tbr := dto.TableRow{
-			Type:      string(STRATEGY),
+			Type:      string(dto.STRATEGY),
 			Id:        st.Id,
 			WsMessage: "",
 			State:     st.State,
