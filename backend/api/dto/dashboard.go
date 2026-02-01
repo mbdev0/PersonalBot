@@ -27,6 +27,10 @@ type DashboardResponseDto struct {
 	Rows []TableRow `json:"rows"`
 }
 
+func (dr *DashboardResponseDto) New() {
+	dr.Rows = []TableRow{}
+}
+
 type RowType string
 
 const (

@@ -27,8 +27,9 @@ func (dh *DashboardHandler) registerRoutes(mux *http.ServeMux) {
 func (dh *DashboardHandler) GetDashboard(w http.ResponseWriter, r *http.Request) {
 	strategies, _ := dh.strategyController.GetAll()
 	allTasks, _ := dh.taskController.GetAllTasks()
-
 	dashboardResponse := dto.DashboardResponseDto{}
+	dashboardResponse.New()
+
 	for _, st := range strategies {
 
 		childrenRows := []dto.ChildRow{}
