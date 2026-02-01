@@ -34,7 +34,8 @@ func mapBuyDtoToBuy(src dto.TradingTask, wallet wallets.SolanaWallet) (dst *stra
 	dest.BuyAmount = utils.ConvertSolToLamport(*src.BuyAmount)
 	dest.Wallet = wallet
 	dest.SellStrategies = mapDTOToStrategyConfigs(*src.SellStrategies)
-	dest.SellFee = *src.SellFee
+
+	dest.SellFee = src.SellFee
 	dest.State = string(strategies.CREATED)
 
 	dest.Token, err = solana.PublicKeyFromBase58(*src.TokenAddress)
@@ -57,7 +58,7 @@ func mapAfkDtoToAfk(src dto.TradingTask, wallet wallets.SolanaWallet) (dst *stra
 	dest.Wallet = wallet
 	dest.Filters = mapFiltersToDestFilters(*src.Filters)
 	dest.SellStrategies = mapDTOToStrategyConfigs(*src.SellStrategies)
-	dest.SellFee = *src.SellFee
+	dest.SellFee = src.SellFee
 	dest.State = string(strategies.CREATED)
 
 	return &dest, nil

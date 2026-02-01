@@ -17,7 +17,7 @@ type Buy struct {
 	Token          solana.PublicKey
 	Wallet         wallets.SolanaWallet
 	SellStrategies []StrategyConfig
-	SellFee        float64
+	SellFee        *float64
 	BuyTaskId      int64
 	PositionId     int64
 	State          string
@@ -55,6 +55,6 @@ func (b *Buy) GetComputeUnits() uint32 {
 func (b *Buy) GetSlippage() float64 {
 	return b.Slippage
 }
-func (b *Buy) GetSellFee() float64 {
+func (b *Buy) GetSellFee() *float64 {
 	return b.SellFee
 }

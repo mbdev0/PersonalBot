@@ -59,8 +59,11 @@ func mapToAfkConfig(afk *strategies.Afk) (models.AfkConfig, error) {
 	buyFee := utils.ConvertSolToLamport(afk.BuyFee)
 	afkConfig.BuyFee = int(buyFee.Int64())
 
-	sellFee := utils.ConvertSolToLamport(afk.SellFee)
-	afkConfig.SellFee = int(sellFee.Int64())
+	if afk.SellFee != nil {
+		sellFee := utils.ConvertSolToLamport(*afk.SellFee)
+		sellFeeInt := int(sellFee.Int64())
+		afkConfig.SellFee = &sellFeeInt
+	}
 
 	afkConfig.SellStrategies = mapSellStratsToRepo(afk.SellStrategies)
 
@@ -101,8 +104,11 @@ func mapToBuyConfig(buy *strategies.Buy) (models.BuyStrategyConfig, error) {
 
 	buyConfig.Token = buy.Token.String()
 
-	sellFee := utils.ConvertSolToLamport(buy.SellFee)
-	buyConfig.SellFee = int(sellFee.Int64())
+	if buy.SellFee != nil {
+		sellFee := utils.ConvertSolToLamport(*buy.SellFee)
+		sellFeeInt := int(sellFee.Int64())
+		buyConfig.SellFee = &sellFeeInt
+	}
 
 	buyConfig.SellStrategies = mapSellStratsToRepo(buy.SellStrategies)
 
@@ -228,7 +234,12 @@ func mapAfkRepoToTradingTask(src models.TradingRow, wallet models.WalletReposito
 	}
 
 	afkTask.Filters = mapRepoFiltersToFilters(config)
-	afkTask.SellFee = utils.ConvertLamportToSol(big.NewInt(int64(config.SellFee)))
+
+	if config.SellFee != nil {
+		sellFee := utils.ConvertLamportToSol(big.NewInt(int64(*config.SellFee)))
+		afkTask.SellFee = &sellFee
+	}
+
 	afkTask.SellStrategies = mapRepoToStrategyConfigs(config.SellStrategies)
 
 	return &afkTask, nil
@@ -263,7 +274,10 @@ func mapBuyRepoToTradingTask(src models.TradingRow, wallet models.WalletReposito
 		PublicKey:  privateKey.PublicKey(),
 	}
 
-	buyTask.SellFee = utils.ConvertLamportToSol(big.NewInt(int64(config.SellFee)))
+	if config.SellFee != nil {
+		sellFee := utils.ConvertLamportToSol(big.NewInt(int64(*config.SellFee)))
+		buyTask.SellFee = &sellFee
+	}
 	buyTask.SellStrategies = mapRepoToStrategyConfigs(config.SellStrategies)
 	token, err := solana.PublicKeyFromBase58(config.Token)
 	if err != nil {
