@@ -17,6 +17,8 @@ func MapTradingTaskDtoToTradingTask(src dto.TradingTask, wallet wallets.SolanaWa
 		return mapAfkDtoToAfk(src, wallet)
 	case dto.BUY:
 		return mapBuyDtoToBuy(src, wallet)
+	case dto.SELL:
+		return mapSellDtoToSell(src, wallet)
 	default:
 		return nil, fmt.Errorf("task with type: %s - not found", src.Type)
 	}
@@ -57,6 +59,25 @@ func mapAfkDtoToAfk(src dto.TradingTask, wallet wallets.SolanaWallet) (dst *stra
 	dest.SellStrategies = mapDTOToStrategyConfigs(*src.SellStrategies)
 	dest.SellFee = *src.SellFee
 	dest.State = string(strategies.CREATED)
+
+	return &dest, nil
+}
+
+func mapSellDtoToSell(src dto.TradingTask, wallet wallets.SolanaWallet) (dst strategies.Task, err error) {
+	dest := strategies.Sell{}
+	dest.New()
+
+	dest.SellFee = *src.SellFee
+	dest.SellAmount = *src.SellAmount
+	dest.ComputeUnits = float64(src.ComputeUnits)
+	dest.Slippage = src.Slippage
+	dest.Wallet = wallet
+	dest.State = string(strategies.CREATED)
+
+	dest.Token, err = solana.PublicKeyFromBase58(*src.TokenAddress)
+	if err != nil {
+		return nil, err
+	}
 
 	return &dest, nil
 }

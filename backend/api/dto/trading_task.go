@@ -5,8 +5,9 @@ import "github.com/go-playground/validator/v10"
 type TradingType string
 
 const (
-	AFK TradingType = "AFK"
-	BUY TradingType = "BUY"
+	AFK  TradingType = "AFK"
+	BUY  TradingType = "BUY"
+	SELL TradingType = "SELL"
 )
 
 type TradingTask struct {
@@ -38,12 +39,13 @@ type TradingTaskResponse struct {
 	WalletAddress string      `json:"wallet_address"`
 	State         string      `json:"state"`
 
-	SellStrategies *[]SellStrategyDTO `json:"sell_strategies"`
-	BuyAmount      *float64           `json:"buy_amount"`
+	SellStrategies *[]SellStrategyDTO `json:"sell_strategies,omitempty"`
+	BuyAmount      *float64           `json:"buy_amount,omitempty"`
 	Filters        *Filters           `json:"filters,omitempty"`
-	SellFee        *float64           `json:"sell_fee"`
-	BuyFee         *float64           `json:"buy_fee"`
-	SellAmount     *int64             `json:"sell_amount,omitempty"`
+	SellFee        *float64           `json:"sell_fee,omitempty"`
+	BuyFee         *float64           `json:"buy_fee,omitempty"`
+	SellAmount     *float64           `json:"sell_amount,omitempty"`
+	SellTaskId     *int64             `json:"sell_task_id,omitempty"`
 	BuyTaskId      *int64             `json:"buy_task_id,omitempty"`
 	PositionId     *int64             `json:"position_id,omitempty"`
 	TokenAddress   *string            `json:"token_address,omitempty"`
