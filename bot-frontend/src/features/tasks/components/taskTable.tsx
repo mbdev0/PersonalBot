@@ -22,12 +22,12 @@ export function TaskTable() {
   const rows = data.rows.map(mapDashboardRowToRow) ?? [];
 
   return (
-    <div className="bg-background text-foreground rounded-lg shadow-sm p-6">
+    <div className="table-container">
       <DashboardTable data={rows} setEditingRow={setEditingRow} />
 
       <BotDialog isOpen={!!editingRow} onClose={() => setEditingRow(null)}>
         <DialogHeader>
-          <DialogTitle>Edit Task</DialogTitle>
+          <DialogTitle className="font-semibold">Edit Task</DialogTitle>
         </DialogHeader>
         {editingRow && (
           <TaskUpdate row={editingRow} onClose={() => setEditingRow(null)}></TaskUpdate>

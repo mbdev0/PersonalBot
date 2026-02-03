@@ -12,7 +12,10 @@ export function BotDialog({ onClose, isOpen, className, children }: BotDialogPro
   return (
     <Dialog open={!!isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent
-        className={cn('no-scrollbar -mx-4 min-w-4/5 max-h-3/4 overflow-y-auto px-4', className)}
+        className={cn(
+          'no-scrollbar -mx-4 min-w-4/5 max-h-3/4 overflow-y-auto px-4 border-0',
+          className
+        )}
       >
         {children}
       </DialogContent>

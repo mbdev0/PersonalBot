@@ -35,15 +35,15 @@ export function DashboardTable({
   });
 
   return (
-    <div className="overflow-hidden rounded-2xl">
+    <div className="overflow-hidden">
       <Table className="table-fixed">
-        <TableHeader className="bg-accent">
+        <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id}>
+            <TableRow key={headerGroup.id} className="hover:bg-transparent">
               {headerGroup.headers.map((header) => (
                 <TableHead
                   style={{ width: header.column.columnDef.size }}
-                  className="text-center"
+                  className="table-header-cell text-center"
                   key={header.id}
                 >
                   {header.isPlaceholder
@@ -56,23 +56,42 @@ export function DashboardTable({
         </TableHeader>
         <TableBody>
           {table.getRowModel().rows.length ? (
-            table.getRowModel().rows.map((row) => (
-              <TableRow
-                key={row.id}
-                className={`text-center border-0 ${row.original.type === TaskRowType.Task && row.original.strategyId ? 'bg-muted/80 italic' : ''}`}
-                data-state={row.getIsSelected() && 'selected'}
-              >
-                {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
-                ))}
-              </TableRow>
-            ))
+            table.getRowModel().rows.map((row) => {
+              const isChild = row.original.type === TaskRowType.Task && row.original.strategyId;
+              const isParent = row.getCanExpand();
+              const isExpanded = isParent && row.getIsExpanded();
+              return (
+                <TableRow
+                  key={row.id}
+                  className={`text-center border-0 group transition-colors duration-200 ${
+                    isChild ? 'bg-foreground/1.5' : ''
+                  } ${isExpanded ? 'bg-foreground/2' : ''}`}
+                  data-state={row.getIsSelected() && 'selected'}
+                >
+                  {row.getVisibleCells().map((cell, cellIndex) => (
+                    <TableCell
+                      key={cell.id}
+                      className={`py-4 px-6 text-center text-[13px] font-medium ${
+                        isChild
+                          ? cellIndex === 0
+                            ? 'pl-14 relative before:content-[""] before:absolute before:left-8 before:top-0 before:bottom-0 before:w-px before:bg-foreground/10'
+                            : 'text-foreground/60 text-[12px]'
+                          : 'text-foreground/80'
+                      }`}
+                    >
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              );
+            })
           ) : (
-            <TableRow>
-              <TableCell colSpan={columns.length} className="h-24 text-center">
-                No results.
+            <TableRow className="hover:bg-transparent">
+              <TableCell
+                colSpan={columns.length}
+                className="h-32 text-center text-[13px] text-muted-foreground/40"
+              >
+                No tasks yet
               </TableCell>
             </TableRow>
           )}
