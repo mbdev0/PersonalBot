@@ -1,26 +1,30 @@
 import type { StrategyTask } from './strategies/strategyTask';
 import type { Task } from './task';
 
-interface StrategyRow {
-  id: number;
-  type: TaskRowType.Strategy;
-  depth: 0;
-  data: StrategyTask;
-}
-
-interface TaskRow {
-  id: number;
-  type: TaskRowType.Task;
-  depth: number;
-  data: Task;
-  strategyId?: number;
-}
-
 enum TaskRowType {
   Task = 'task',
   Strategy = 'strategy',
 }
 
-type Row = StrategyRow | TaskRow;
+interface StrategyRow {
+  id: number;
+  type: TaskRowType.Strategy;
+  state: string;
+  wsMessage: string;
+  data: StrategyTask;
+  subRows: TaskRow[];
+}
 
-export { type Row, TaskRowType };
+interface TaskRow {
+  id: number;
+  type: TaskRowType.Task;
+  state: string;
+  wsMessage: string;
+  data: Task;
+  strategyId?: number;
+  subRows?: never;
+}
+
+type DisplayRow = StrategyRow | TaskRow;
+
+export { type DisplayRow, type StrategyRow, type TaskRow, TaskRowType };
