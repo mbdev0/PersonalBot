@@ -16,11 +16,11 @@ type TableRow struct {
 }
 
 type ChildRow struct {
-	Type      string `json:"type"`
-	Id        int64  `json:"id"`
-	WsMessage string `json:"wsMessage"`
-	State     string `json:"state"`
-	Data      ResponseTask
+	Type      string       `json:"type"`
+	Id        int64        `json:"id"`
+	WsMessage string       `json:"wsMessage"`
+	State     string       `json:"state"`
+	Data      ResponseTask `json:"data"`
 }
 
 type DashboardResponseDto struct {
