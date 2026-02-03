@@ -15,10 +15,8 @@ function App() {
               <h1 className="text-3xl font-bold">Trading Bot</h1>
               <p>Tasks</p>
             </header>
-            <div className="rounded-xl shadow-lg border bg-secondary p-5">
-              <TaskDashboard />
-              {/* <WalletDashboard /> */}
-            </div>
+            <TaskDashboard />
+            {/* <WalletDashboard /> */}
           </div>
         </div>
       </QueryClientProvider>
