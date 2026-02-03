@@ -2,9 +2,18 @@ import { useState } from 'react';
 import { deleteWalletMutation, useWallets } from '../hooks/useWallets';
 import WalletUpdate from './walletUpdate';
 import { type Wallet } from '../types/wallet';
-import './walletTable.css';
 import { BotDialog } from '@/components/botDialog';
 import { DialogHeader } from '@/components/ui/dialog';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
+import { Pencil, Trash2 } from 'lucide-react';
 
 function WalletTable() {
   const { isPending, isError, data, error } = useWallets();
@@ -22,7 +31,7 @@ function WalletTable() {
   return (
     <div className="wallet_table">
       <BotDialog isOpen={!!editingWallet} onClose={() => setEditingWallet(null)}>
-        <DialogHeader className="font-bold text-foreground">Edit Wallet</DialogHeader>
+        <DialogHeader className="font-semibold text-foreground">Edit Wallet</DialogHeader>
 
         {editingWallet && (
           <WalletUpdate
@@ -32,29 +41,42 @@ function WalletTable() {
           ></WalletUpdate>
         )}
       </BotDialog>
-      <table>
-        <thead>
-          <tr>
-            <th scope="col">Wallet Name</th>
-            <th scope="col">Chain</th>
-            <th scope="col">Public Key</th>
-            <th scope="col">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data?.map((wallet) => (
-            <tr key={wallet.wallet_name}>
-              <td>{wallet.wallet_name}</td>
-              <td>{wallet.chain}</td>
-              <td>{`${wallet.public_key.slice(0, 4)}...${wallet.public_key.slice(-4)}`}</td>
-              <td>
-                <button onClick={() => setEditingWallet(wallet)}>✏️</button>
-                <button onClick={() => deleteMutation.mutate(wallet.id)}>🗑️</button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <div className="table-container">
+        <Table>
+          <TableHeader>
+            <TableRow className="hover:bg-transparent">
+              <TableHead className="table-header-cell text-center">Wallet Name</TableHead>
+              <TableHead className="table-header-cell text-center">Chain</TableHead>
+              <TableHead className="table-header-cell text-center">Public Key</TableHead>
+              <TableHead className="table-header-cell text-center">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {data?.map((wallet) => (
+              <TableRow key={wallet.wallet_name} className="group">
+                <TableCell className="table-body-cell text-center">{wallet.wallet_name}</TableCell>
+                <TableCell className="table-body-cell text-center">{wallet.chain}</TableCell>
+                <TableCell className="table-body-cell text-center">
+                  {`${wallet.public_key.slice(0, 6)}...${wallet.public_key.slice(-6)}`}
+                </TableCell>
+                <TableCell className="py-4 px-6 text-center">
+                  <div className="flex gap-1.5 justify-center">
+                    <Button onClick={() => setEditingWallet(wallet)} className="action-button-edit">
+                      <Pencil className="action-icon" />
+                    </Button>
+                    <Button
+                      onClick={() => deleteMutation.mutate(wallet.id)}
+                      className="action-button-delete"
+                    >
+                      <Trash2 className="action-icon" />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
     </div>
   );
 }
