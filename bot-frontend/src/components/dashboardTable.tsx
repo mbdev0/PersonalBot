@@ -35,9 +35,9 @@ export function DashboardTable({
   });
 
   return (
-    <div className="overflow-hidden rounded-md border">
+    <div className="overflow-hidden rounded-2xl">
       <Table className="table-fixed">
-        <TableHeader>
+        <TableHeader className="bg-accent">
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow key={headerGroup.id}>
               {headerGroup.headers.map((header) => (
@@ -59,7 +59,7 @@ export function DashboardTable({
             table.getRowModel().rows.map((row) => (
               <TableRow
                 key={row.id}
-                className={`text-center ${row.original.type === TaskRowType.Task && row.original.strategyId ? 'bg-muted/80 italic' : ''}`}
+                className={`text-center border-0 ${row.original.type === TaskRowType.Task && row.original.strategyId ? 'bg-muted/80 italic' : ''}`}
                 data-state={row.getIsSelected() && 'selected'}
               >
                 {row.getVisibleCells().map((cell) => (

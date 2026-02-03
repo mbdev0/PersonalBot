@@ -1,4 +1,6 @@
-table, th, td {
+.wallet_table table,
+.wallet_table th,
+.wallet_table td {
 	border: 1px solid;
     border-collapse: collapse;
     padding-right: 20px;
