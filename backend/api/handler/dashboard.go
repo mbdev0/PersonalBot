@@ -25,8 +25,23 @@ func (dh *DashboardHandler) registerRoutes(mux *http.ServeMux) {
 }
 
 func (dh *DashboardHandler) GetDashboard(w http.ResponseWriter, r *http.Request) {
-	strategies, _ := dh.strategyController.GetAll()
-	allTasks, _ := dh.taskController.GetAllTasks()
+	strategies, err := dh.strategyController.GetAll()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	allTasks, err := dh.taskController.GetAllTasks()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	dashboardResp := dh.generateDashboardReponse(strategies, allTasks)
+
+	json.NewEncoder(w).Encode(dashboardResp)
+}
+
+func (dh *DashboardHandler) generateDashboardReponse(strategies []dto.TradingTaskResponse, allTasks []dto.ResponseTask) dto.DashboardResponseDto {
 	dashboardResponse := dto.DashboardResponseDto{}
 	dashboardResponse.New()
 
@@ -37,11 +52,8 @@ func (dh *DashboardHandler) GetDashboard(w http.ResponseWriter, r *http.Request)
 		//TODO: terrible when we have 1000s of tasks -> maybe future improvement? - dont improve performance prematurely
 		if st.Type == dto.AFK {
 			for _, t := range allTasks {
-				if t.Type == string(dto.Sell) {
-					continue
-				}
 
-				if t.StrategyId == nil || *t.StrategyId != st.Id {
+				if !dh.shouldCreateRowFor(t, st) {
 					continue
 				}
 
@@ -69,5 +81,17 @@ func (dh *DashboardHandler) GetDashboard(w http.ResponseWriter, r *http.Request)
 		dashboardResponse.Rows = append(dashboardResponse.Rows, tbr)
 	}
 
-	json.NewEncoder(w).Encode(dashboardResponse)
+	return dashboardResponse
+}
+
+func (dh *DashboardHandler) shouldCreateRowFor(t dto.ResponseTask, st dto.TradingTaskResponse) bool {
+	if t.Type == string(dto.Sell) {
+		return false
+	}
+
+	if t.StrategyId == nil || *t.StrategyId != st.Id {
+		return false
+	}
+
+	return true
 }
