@@ -1,11 +1,11 @@
-import type { Row } from './tableRows';
+import type { DisplayRow } from './tableRows';
 
 interface RowActions {
-  onStart: (row: Row) => void;
-  onStop: (row: Row) => void;
-  onEdit: (row: Row) => void;
-  onDelete: (row: Row) => void;
-  onDuplicate: (row: Row) => void;
+  onStart: (row: DisplayRow) => void;
+  onStop: (row: DisplayRow) => void;
+  onEdit: (row: DisplayRow) => void;
+  onDelete: (row: DisplayRow) => void;
+  onDuplicate: (row: DisplayRow) => void;
 }
 
 export { type RowActions };

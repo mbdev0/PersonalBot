@@ -1,16 +1,22 @@
 import { Button } from '@/components/ui/button';
 import type { RowActions } from '../types/rowActions';
-import type { Row } from '../types/tableRows';
+import { TaskRowType, type DisplayRow } from '../types/tableRows';
 import { ButtonGroup } from '@/components/ui/button-group';
+import { useState } from 'react';
+import { StrategyTaskState } from '../types/strategies/strategyTask';
 
 export interface ActionButtonProps {
-  row: Row;
-  isRunning: boolean;
-  setIsRunning: (arg: boolean) => void;
+  row: DisplayRow;
   rowActions: RowActions;
 }
 
-export function ActionButtons({ row, isRunning, setIsRunning, rowActions }: ActionButtonProps) {
+export function ActionButtons({ row, rowActions }: ActionButtonProps) {
+  const [isRunning, setIsRunning] = useState(
+    row.type === TaskRowType.Task
+      ? row.state === 'TaskRun'
+      : row.state === StrategyTaskState.running
+  );
+
   return (
     <>
       <ButtonGroup>

@@ -74,3 +74,8 @@ export interface SellStrategyTask extends BaseStrategyTask {
 }
 
 export type StrategyTask = AFKStrategyTask | BuyStrategyTask | SellStrategyTask;
+
+export enum StrategyTaskState {
+  create = 'CREATED',
+  running = 'RUNNING',
+}

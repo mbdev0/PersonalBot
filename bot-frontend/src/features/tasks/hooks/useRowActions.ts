@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { useAddTask, useDeleteTask, useTransitionTask } from './useTasks';
 import type { RowActions } from '../types/rowActions';
 import { TaskType } from '../types/task';
-import { TaskRowType, type Row } from '../types/tableRows';
+import { TaskRowType, type DisplayRow } from '../types/tableRows';
 import {
   useAddStrategy,
   useDeleteStrategy,
@@ -10,7 +10,7 @@ import {
   useStopStrategy,
 } from './useStrategy';
 
-export function useRowActions(setEditingRow: (row: Row | null) => void): RowActions {
+export function useRowActions(setEditingRow: (row: DisplayRow | null) => void): RowActions {
   const deleteMutation = useDeleteTask();
   const duplicateMutation = useAddTask();
   const transitionMutation = useTransitionTask();
@@ -22,28 +22,28 @@ export function useRowActions(setEditingRow: (row: Row | null) => void): RowActi
 
   return useMemo(
     () => ({
-      onStart: (row: Row) => {
+      onStart: (row: DisplayRow) => {
         if (row.type === TaskRowType.Task) {
           transitionMutation.mutate({ id: row.id, taskAction: TaskType.task_run });
         } else {
           startStrategy.mutate(row.id);
         }
       },
-      onStop: (row: Row) => {
+      onStop: (row: DisplayRow) => {
         if (row.type === TaskRowType.Task) {
           transitionMutation.mutate({ id: row.id, taskAction: TaskType.task_cancel });
         } else {
           stopStrategy.mutate(row.id);
         }
       },
-      onEdit: (row: Row) => {
+      onEdit: (row: DisplayRow) => {
         if (row.type === TaskRowType.Task) {
           setEditingRow(row);
         } else {
           setEditingRow(row);
         }
       },
-      onDelete: (row: Row) => {
+      onDelete: (row: DisplayRow) => {
         if (row.type === TaskRowType.Task) {
           deleteMutation.mutate(row.id);
         } else {
@@ -51,7 +51,7 @@ export function useRowActions(setEditingRow: (row: Row | null) => void): RowActi
           console.log('strategy task delete not implemented');
         }
       },
-      onDuplicate: (row: Row) => {
+      onDuplicate: (row: DisplayRow) => {
         if (row.type === TaskRowType.Task) {
           duplicateMutation.mutate(row.data);
         } else {
