@@ -19,8 +19,15 @@ export const columns: ColumnDef<DisplayRow>[] = [
     size: 10,
     cell: ({ row }) => {
       return row.getCanExpand() ? (
-        <button onClick={row.getToggleExpandedHandler()} style={{ cursor: 'pointer' }}>
-          {row.getIsExpanded() ? <ArrowDown /> : <ArrowRight />}
+        <button
+          onClick={row.getToggleExpandedHandler()}
+          className="h-6 w-6 flex items-center justify-center rounded-md hover:bg-foreground/8 transition-[background-color,box-shadow] duration-200 ring-1 ring-foreground/5 hover:ring-foreground/15"
+        >
+          {row.getIsExpanded() ? (
+            <ArrowDown className="h-3.5 w-3.5 text-foreground/60" />
+          ) : (
+            <ArrowRight className="h-3.5 w-3.5 text-foreground/60" />
+          )}
         </button>
       ) : (
         ''
@@ -29,7 +36,7 @@ export const columns: ColumnDef<DisplayRow>[] = [
   },
   {
     accessorKey: 'task_type',
-    header: () => <div className="font-extrabold">Task Type</div>,
+    header: 'Task Type',
     cell: ({ row }) => {
       {
         return row.original.type === TaskRowType.Task
@@ -41,7 +48,7 @@ export const columns: ColumnDef<DisplayRow>[] = [
   {
     accessorKey: 'task_name',
 
-    header: () => <div className="font-extrabold">Task Name</div>,
+    header: 'Task Name',
     cell: ({ row }) => {
       if (row.original.type === TaskRowType.Task) {
         if (row.original.strategyId) {
@@ -57,21 +64,21 @@ export const columns: ColumnDef<DisplayRow>[] = [
   },
   {
     accessorKey: 'message',
-    header: () => <div className="font-extrabold">Message</div>,
+    header: 'Message',
     cell: ({ row }) => {
       return row.original.wsMessage;
     },
   },
   {
     accessorKey: 'status',
-    header: () => <div className="font-extrabold">Status</div>,
+    header: 'Status',
     cell: ({ row }) => {
       return row.original.state;
     },
   },
   {
     accessorKey: 'actions',
-    header: () => <div className="font-extrabold">Actions</div>,
+    header: 'Actions',
     cell: ({ row, table }) => {
       return (
         <div className="flex justify-center">
