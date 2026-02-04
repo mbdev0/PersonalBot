@@ -2,6 +2,7 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -135,6 +136,24 @@
   }
 }
 
+@utility action-button-base {
+  @apply
+    inline-flex
+    items-center
+    justify-center
+    h-7
+    w-7
+    p-0
+    bg-background
+    rounded-xs
+    border-0
+    ring-1
+    ring-foreground/15
+    transition-[background-color,box-shadow]
+    duration-200;
+}
+
+
 @layer components {
   /* Table Styling */
   .table-container {
@@ -149,10 +168,6 @@
     @apply py-4 px-6 text-center text-[13px] font-medium text-foreground/80;
   }
 
-  /* Action Buttons */
-  .action-button-base {
-    @apply h-7 w-7 p-0 bg-foreground/5 border-0 ring-1 ring-foreground/15 transition-[background-color,box-shadow] duration-200;
-  }
 
   .action-button-edit {
     @apply action-button-base hover:bg-blue-500/15 hover:ring-blue-500/30;
@@ -173,7 +188,6 @@
   .action-button-neutral {
     @apply action-button-base hover:bg-foreground/10 hover:ring-foreground/25;
   }
-
   .action-icon {
     @apply h-3.5 w-3.5 text-foreground/70;
   }
