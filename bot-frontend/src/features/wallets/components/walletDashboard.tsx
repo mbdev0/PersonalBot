@@ -1,9 +1,8 @@
 import WalletTable from './walletTable';
-import './walletDashboard.css';
 import WalletEntry from './walletEntry';
 import { useState } from 'react';
 import { BotDialog } from '@/components/botDialog';
-import { DialogHeader } from '@/components/ui/dialog';
+import { DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/features/tasks/components/pageHeader';
 
@@ -25,7 +24,9 @@ function WalletDashboard() {
       </div>
       <WalletTable />
       <BotDialog isOpen={isAddModalShowing} onClose={() => setAddModal(false)}>
-        <DialogHeader className="font-bold text-foreground">Add Wallet</DialogHeader>
+        <DialogHeader>
+          <DialogTitle className="font-semibold text-foreground">Add Wallet</DialogTitle>
+        </DialogHeader>
         <WalletEntry onCompletion={() => setAddModal(false)}></WalletEntry>
       </BotDialog>
     </div>

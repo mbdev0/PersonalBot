@@ -12,7 +12,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
 import { Pencil, Trash2 } from 'lucide-react';
 
 function WalletTable() {
@@ -61,15 +60,18 @@ function WalletTable() {
                 </TableCell>
                 <TableCell className="py-4 px-6 text-center">
                   <div className="flex gap-1.5 justify-center">
-                    <Button onClick={() => setEditingWallet(wallet)} className="action-button-edit">
+                    <button
+                      onClick={() => setEditingWallet(wallet)}
+                      className="action-button-edit rounded-xs"
+                    >
                       <Pencil className="action-icon" />
-                    </Button>
-                    <Button
+                    </button>
+                    <button
                       onClick={() => deleteMutation.mutate(wallet.id)}
-                      className="action-button-delete"
+                      className="action-button-delete rounded-xs"
                     >
                       <Trash2 className="action-icon" />
-                    </Button>
+                    </button>
                   </div>
                 </TableCell>
               </TableRow>

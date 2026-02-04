@@ -6,7 +6,16 @@ import {
   getPubkeyFromPrivateKey,
   isValidSolanaPrivateKey,
 } from '../../../utils/crypto/private_key';
-import './walletUpdate.css';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 function WalletUpdate({
   wallet,
@@ -52,60 +61,71 @@ function WalletUpdate({
   }, [wallet.id]);
 
   return (
-    <div className="wallet-update-form">
-      <h2>Update Wallet</h2>
-      <div className="wallet_chain">
-        <h4>Wallet Chain</h4>
-        {/* https://stackoverflow.com/a/72883012 */}
-        <select
-          value={chain}
-          onChange={(e) => setChain(Chain[e.target.value as keyof typeof Chain])}
-        >
-          {getEnumKeys(Chain).map((key, index) => (
-            <option key={index} value={Chain[key]}>
-              {key}
-            </option>
-          ))}
-        </select>
+    <div className="space-y-5">
+      <div className="grid grid-cols-2">
+        <div className="space-y-2">
+          <Label>Wallet Chain</Label>
+          <Select value={chain} onValueChange={(e) => setChain(Chain[e as Chain])}>
+            <SelectTrigger id="taskType">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem key={'solana'} value={Chain.Solana}>
+                Solana
+              </SelectItem>
+              <SelectItem key={'bsc'} value={Chain.BSC}>
+                BSC
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2 w-2xs">
+          <Label>Wallet Name</Label>
+          <Input
+            type="text"
+            name="walletName"
+            id="walletName"
+            placeholder="WalletName"
+            value={walletName}
+            onChange={(e) => setWalletName(e.target.value)}
+          />
+        </div>
       </div>
-      <div className="wallet_name">
-        <h4>Wallet Name</h4>
-        <input
-          type="text"
-          name="walletName"
-          id="walletName"
-          placeholder="WalletName"
-          value={walletName}
-          onChange={(e) => setWalletName(e.target.value)}
-        />
-      </div>
-      <div className="public_key">
-        <h4>Wallet Address</h4>
-        <input
-          type="text"
-          name="public_key"
-          id="public_key"
-          placeholder="WalletAddress"
-          value={public_key}
-          disabled={true}
-        />
-      </div>
-      <div className="wallet_private_key">
-        <h4>Private Key</h4>
-        <input
-          type="text"
-          name="wallet_private_key"
-          id="wallet_private_key"
-          placeholder="Wallet Private Key"
-          value={walletPrivateKey}
-          onChange={(e) => {
-            setWalletPrivateKey(e.target.value);
-            setError('');
-          }}
-        />
-        <button className="check_button" onClick={() => handleCheck(walletPrivateKey)}>
-          Check
-        </button>
+
+      <div className="grid grid-cols-2">
+        <div className="space-y-2 w-8/12">
+          <Label>Wallet Address</Label>
+          <Input
+            type="text"
+            name="public_key"
+            id="public_key"
+            placeholder="WalletAddress"
+            value={public_key}
+            disabled={true}
+          />
+        </div>
+
+        <div>
+          <Label>Private Key</Label>
+          <div className="space-y-2 w-10/12 flex gap-3">
+            <Input
+              type="text"
+              name="wallet_private_key"
+              id="wallet_private_key"
+              placeholder="Wallet Private Key"
+              value={walletPrivateKey}
+              onChange={(e) => {
+                setWalletPrivateKey(e.target.value);
+                setError('');
+              }}
+            />
+
+            <Button className="check_button" onClick={() => handleCheck(walletPrivateKey)}>
+              Check
+            </Button>
+          </div>
+        </div>
       </div>
 
       {!!error && (
@@ -114,8 +134,8 @@ function WalletUpdate({
         </div>
       )}
 
-      <div className="submission">
-        <button
+      <div className="flex justify-end gap-2">
+        <Button
           onClick={() => {
             if (!isValidSolanaPrivateKey(walletPrivateKey)) {
               setError('Invalid private key');
@@ -149,15 +169,15 @@ function WalletUpdate({
           disabled={!walletPrivateKey || !isValidSolanaPrivateKey(walletPrivateKey)}
         >
           Update Wallet
-        </button>
+        </Button>
 
-        <button
+        <Button
           onClick={() => {
             onCancel();
           }}
         >
           Cancel
-        </button>
+        </Button>
       </div>
     </div>
   );
