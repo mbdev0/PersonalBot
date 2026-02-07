@@ -28,11 +28,11 @@ type Transaction struct {
 	signature    solana.Signature
 }
 
-func (bt *Transaction) BuildInstructionsWithPosition(ctx context.Context, reporter subscriptionhub.TaskReporter, ps *position.Service) error {
-	return bt.buildInstructions(ctx, reporter)
+func (bt *Transaction) BuildInstructionsWithPosition(ctx context.Context, publisher subscriptionhub.Publisher, ps *position.Service) error {
+	return bt.buildInstructions(ctx, publisher)
 }
 
-func (bt *Transaction) buildInstructions(ctx context.Context, reporter subscriptionhub.TaskReporter) error {
+func (bt *Transaction) buildInstructions(ctx context.Context, publisher subscriptionhub.Publisher) error {
 	if bt.BuyTask == nil {
 		return fmt.Errorf("buy task was nil - make sure buy task is set")
 	}
@@ -44,11 +44,13 @@ func (bt *Transaction) buildInstructions(ctx context.Context, reporter subscript
 	}
 
 	bt.instructions = &buyInstructions
-	reporter.Report("Instructions Built")
+	publisher.PublishMessage(bt.BuyTask, "Instructions Built")
+
+	// reporter.Report("Instructions Built")
 	return nil
 }
 
-func (bt *Transaction) BuildTransaction(ctx context.Context, reporter subscriptionhub.TaskReporter) error {
+func (bt *Transaction) BuildTransaction(ctx context.Context, publisher subscriptionhub.Publisher) error {
 	if bt.BuyTask == nil {
 		return fmt.Errorf("buy task was nil - make sure buy task is set")
 	}
@@ -77,12 +79,13 @@ func (bt *Transaction) BuildTransaction(ctx context.Context, reporter subscripti
 		return err
 	}
 	bt.transaction = tx
-	reporter.Report("Tx Built")
+	publisher.PublishMessage(bt.BuyTask, "TX Built")
+	// reporter.Report("Tx Built")
 
 	return nil
 }
 
-func (bt *Transaction) SendTransaction(ctx context.Context, reporter subscriptionhub.TaskReporter) error {
+func (bt *Transaction) SendTransaction(ctx context.Context, publisher subscriptionhub.Publisher) error {
 	rpcClient := client.GetClient()
 	// SIMULATE TRANSACTION
 	// txResp, err := rpcClient.SimulateTransaction(bt.BuyTask.Ctx(), bt.transaction)
@@ -110,11 +113,12 @@ func (bt *Transaction) SendTransaction(ctx context.Context, reporter subscriptio
 	// }
 
 	bt.signature = txResp
-	reporter.Report(fmt.Sprintf("Tx Sent: %s", txResp))
+	publisher.PublishMessage(bt.BuyTask, fmt.Sprintf("Tx Sent: %s", txResp))
+	// reporter.Report(fmt.Sprintf("Tx Sent: %s", txResp))
 	return nil
 }
 
-func (bt *Transaction) ConfirmTransaction(ctx context.Context, reporter subscriptionhub.TaskReporter) error {
+func (bt *Transaction) ConfirmTransaction(ctx context.Context, publisher subscriptionhub.Publisher) error {
 	stream := make(chan client.ConfirmMessage, 100)
 
 	go func(stream chan client.ConfirmMessage) {
@@ -126,7 +130,8 @@ func (bt *Transaction) ConfirmTransaction(ctx context.Context, reporter subscrip
 		if msg.Err != "" {
 			return fmt.Errorf("%v", msg.Err)
 		}
-		reporter.Report(msg.Message)
+		// reporter.Report(msg.Message)
+		publisher.PublishMessage(bt.BuyTask, msg.Message)
 	}
 
 	tokenAmnt, solAmnt, err := bt.ExtractTokenAndSolFromTx(bt.signature, ctx)
