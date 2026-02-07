@@ -30,7 +30,7 @@ type Transaction struct {
 	signature    solana.Signature
 }
 
-func (st *Transaction) BuildInstructionsWithPosition(ctx context.Context, reporter subscriptionhub.TaskReporter, ps *position.Service) error {
+func (st *Transaction) BuildInstructionsWithPosition(ctx context.Context, publisher subscriptionhub.Publisher, ps *position.Service) error {
 
 	sellInstructions, err := getAllInstructionsForSell(st.Task, ctx, ps)
 	if err != nil {
@@ -43,7 +43,8 @@ func (st *Transaction) BuildInstructionsWithPosition(ctx context.Context, report
 	}
 
 	st.instructions = sellInstructions
-	reporter.Report("Instructions Built")
+	publisher.PublishMessage(st.Task, "instructions built")
+	// reporter.Report("Instructions Built")
 	return nil
 }
 
@@ -63,7 +64,7 @@ func (st *Transaction) BuildInstructionsWithPosition(ctx context.Context, report
 // 	return nil
 // }
 
-func (st *Transaction) BuildTransaction(ctx context.Context, reporter subscriptionhub.TaskReporter) error {
+func (st *Transaction) BuildTransaction(ctx context.Context, publisher subscriptionhub.Publisher) error {
 	if st.Task == nil {
 		return fmt.Errorf("sell task is null - check if sell task was set")
 	}
@@ -91,12 +92,13 @@ func (st *Transaction) BuildTransaction(ctx context.Context, reporter subscripti
 	}
 
 	st.transaction = tx
-	reporter.Report("Tx Built")
+	publisher.PublishMessage(st.Task, "tx built")
+	// reporter.Report("Tx Built")
 
 	return nil
 }
 
-func (st *Transaction) SendTransaction(ctx context.Context, reporter subscriptionhub.TaskReporter) error {
+func (st *Transaction) SendTransaction(ctx context.Context, publisher subscriptionhub.Publisher) error {
 	rpcClient := client.GetClient()
 
 	// simulate the transaction
@@ -124,11 +126,12 @@ func (st *Transaction) SendTransaction(ctx context.Context, reporter subscriptio
 	}
 
 	st.signature = txResp
-	reporter.Report(fmt.Sprintf("Tx Sent: %s", txResp))
+	// reporter.Report(fmt.Sprintf("Tx Sent: %s", txResp))
+	publisher.PublishMessage(st.Task, fmt.Sprintf("Tx Sent: %s", txResp))
 	return nil
 }
 
-func (st *Transaction) ConfirmTransaction(ctx context.Context, reporter subscriptionhub.TaskReporter) error {
+func (st *Transaction) ConfirmTransaction(ctx context.Context, publisher subscriptionhub.Publisher) error {
 	stream := make(chan client.ConfirmMessage, 100)
 
 	go func(stream chan client.ConfirmMessage) {
@@ -140,7 +143,8 @@ func (st *Transaction) ConfirmTransaction(ctx context.Context, reporter subscrip
 		if msg.Err != "" {
 			return fmt.Errorf("%v", msg.Err)
 		}
-		reporter.Report(msg.Message)
+		// reporter.Report(msg.Message)
+		publisher.PublishMessage(st.Task, msg.Message)
 	}
 
 	return nil
