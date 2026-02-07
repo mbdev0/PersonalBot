@@ -191,9 +191,10 @@ func (th *TaskHandler) transitionTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = th.controller.TransitionTask(int64(convertedId), transition.State)
+	err = th.controller.TransitionTask(int64(convertedId), transition.Action)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	w.WriteHeader(http.StatusNoContent)

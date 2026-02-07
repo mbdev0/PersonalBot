@@ -1,10 +1,10 @@
 package controller
 
 import (
+	"fmt"
 	"personal_bot/api/dto"
 	"personal_bot/api/mapper"
 	"personal_bot/internal/core/models/wallets"
-	"personal_bot/internal/core/tasks"
 	subscriptionhub "personal_bot/internal/services/subscription_hub"
 	taskservice "personal_bot/internal/services/task_service"
 	"personal_bot/internal/services/wallet"
@@ -117,17 +117,19 @@ func (tc *TaskController) DeleteTask(id int64) (err error) {
 	return nil
 }
 
-func (tc *TaskController) TransitionTask(id int64, newState string) (err error) {
-	state, err := tasks.ParseStateString(newState)
-	if err != nil {
-		return err
+func (tc *TaskController) TransitionTask(id int64, action dto.ActionType) (err error) {
+	switch action {
+	case dto.Run:
+		if err = tc.TaskService.StartTask(id); err != nil {
+			return err
+		}
+	case dto.Stop:
+		if err = tc.TaskService.StopTask(id); err != nil {
+			return err
+		}
+	default:
+		return fmt.Errorf("invalid state passed in - use either Run or Cancel")
 	}
-
-	err = tc.TaskService.TransitionTask(id, state)
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
 
