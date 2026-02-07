@@ -17,6 +17,13 @@ type TaskController struct {
 	WalletService *wallet.Service
 }
 
+func NewTaskController(ts *taskservice.TaskService, walletService *wallet.Service) *TaskController {
+	return &TaskController{
+		TaskService:   ts,
+		WalletService: walletService,
+	}
+}
+
 func (tc *TaskController) CreateTask(ctx context.Context, requestTask dto.RequestTask) (*dto.ResponseTask, error) {
 	// get the req struct
 	// map to buy task or sell task depending

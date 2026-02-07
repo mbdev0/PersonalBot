@@ -34,11 +34,10 @@ func main() {
 	app.Launch()
 
 	//TODO: move the init of api's into launch and return one mux back
-	// fsm := state.Machine{}
 	taskSubhub := subscriptionhub.NewTaskSubscriptionHub()
 
 	posSubhub := positionhub.NewSubscriptionHub()
-	positionService := position.NewPositionService(&posSubhub)
+	positionService := position.NewPositionService(posSubhub)
 
 	strategySubHub := strategy.NewSubscriptionHub()
 
@@ -47,23 +46,15 @@ func main() {
 		PositionService: positionService,
 	}
 	fsmSteps := cryptostates.Build(&deps)
-	executor := transaction.Executor{}
-	executor.New(taskSubhub, positionService, fsmSteps)
-
-	// stateManger := state.Manager{}
-	// stateManger.New(&taskSubhub, &executor)
+	executor := transaction.NewExecutor(taskSubhub, positionService, fsmSteps)
 
 	taskRepo := repository.NewTaskRepository(db)
-	taskManager := taskservice.NewTaskManager(taskSubhub, &executor)
-	// taskService := taskservice.NewTaskService(&fsm, &stateManger, taskRepo, &taskSubhub)
+	taskManager := taskservice.NewTaskManager(taskSubhub, executor)
 	taskService := taskservice.NewTaskService(taskRepo, taskSubhub, taskManager)
 
-	tradingStrategy := trading.Strategy{}
-	tradingStrategy.NewTradingStrategy(taskService, &posSubhub, positionService, &strategySubHub)
-
+	tradingStrategy := trading.NewTradingStrategy(taskService, posSubhub, positionService, strategySubHub)
 	tradingTaskRepo := repository.NewTradingRepository(db)
-	tradingService := trading.Service{}
-	tradingService.NewTradingService(&tradingStrategy, &strategySubHub, tradingTaskRepo, taskService)
+	tradingService := trading.NewTradingService(tradingStrategy, strategySubHub, tradingTaskRepo, taskService)
 	err = tradingService.LoadFromDB(context.Background())
 	if err != nil {
 		logger.Error(err)
@@ -79,20 +70,19 @@ func main() {
 	walletController := controller.NewWalletController(walletService)
 	walletHandler := http.StripPrefix("/api/wallet", handler.NewWalletHandler(walletController))
 
-	tradingController := controller.StrategyController{}
-	tradingController.New(&tradingService, walletService)
-	tradingHandler := http.StripPrefix("/api/trading", handler.NewTradingHandler(&tradingController))
+	tradingController := controller.NewStrategyController(tradingService, walletService)
+	tradingHandler := http.StripPrefix("/api/trading", handler.NewTradingHandler(tradingController))
 
-	buyController := controller.TaskController{TaskService: taskService, WalletService: walletService}
-	buyHandler := http.StripPrefix("/api/tasks", handler.NewTaskHandler(&buyController))
+	taskController := controller.NewTaskController(taskService, walletService)
+	taskHandler := http.StripPrefix("/api/tasks", handler.NewTaskHandler(taskController))
 
 	positionController := controller.PositionController{PositionService: positionService}
 	positionHandler := http.StripPrefix("/api/position", handler.NewPositionHandler(&positionController))
 
-	dashboardHandler := http.StripPrefix("/api/dashboard", handler.NewDashboardHandler(&tradingController, &buyController))
+	dashboardHandler := http.StripPrefix("/api/dashboard", handler.NewDashboardHandler(tradingController, taskController))
 
 	mux := http.NewServeMux()
-	mux.Handle("/api/tasks/", buyHandler)
+	mux.Handle("/api/tasks/", taskHandler)
 	mux.Handle("/api/trading/", tradingHandler)
 	mux.Handle("/api/position/", positionHandler)
 	mux.Handle("/api/wallet/", walletHandler)

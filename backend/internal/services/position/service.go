@@ -17,8 +17,8 @@ type Service struct {
 	subhub    *position_hub.SubscriptionHub
 }
 
-func NewPositionService(subhub *position_hub.SubscriptionHub) Service {
-	return Service{
+func NewPositionService(subhub *position_hub.SubscriptionHub) *Service {
+	return &Service{
 		positions: map[int64]*position.Position{},
 		mu:        &sync.Mutex{},
 		subhub:    subhub,
