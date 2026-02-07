@@ -6,30 +6,27 @@ import (
 	"personal_bot/app/iterable"
 	"personal_bot/infrastructure/persistence/repository"
 	"personal_bot/internal/core/tasks"
-	"personal_bot/internal/services/state"
 	subscriptionhub "personal_bot/internal/services/subscription_hub"
 	"personal_bot/pkg/logger"
 	"sync"
 )
 
 type TaskService struct {
-	stateMachine *state.Machine
-	stateManager *state.Manager
-	repo         *repository.TaskRepository
-	hub          *subscriptionhub.Hub
-	tasks        map[int64]tasks.Task
-	mu           sync.Mutex
-	iter         *iterable.Iterable
+	taskManager *Manager
+	repo        *repository.TaskRepository
+	hub         *subscriptionhub.Hub
+	tasks       map[int64]tasks.Task
+	mu          sync.Mutex
+	iter        *iterable.Iterable
 }
 
-func NewTaskService(sm *state.Machine, stateManager *state.Manager, repo *repository.TaskRepository, hub *subscriptionhub.Hub) *TaskService {
+func NewTaskService(repo *repository.TaskRepository, hub *subscriptionhub.Hub, tManager *Manager) *TaskService {
 	return &TaskService{
-		hub:          hub,
-		stateMachine: sm,
-		stateManager: stateManager,
-		repo:         repo,
-		tasks:        map[int64]tasks.Task{},
-		iter:         iterable.NewIterable(),
+		taskManager: tManager,
+		hub:         hub,
+		repo:        repo,
+		tasks:       map[int64]tasks.Task{},
+		iter:        iterable.NewIterable(),
 	}
 }
 
@@ -103,24 +100,39 @@ func (ts *TaskService) DeleteTask(id int64) (err error) {
 	return nil
 }
 
-func (ts *TaskService) TransitionTask(id int64, newState tasks.TaskState) (err error) {
-	// in here we'll manage changing state
+func (ts *TaskService) StartTask(id int64) (err error) {
 	ts.mu.Lock()
 	defer ts.mu.Unlock()
+
+	task, ok := ts.tasks[id]
+
+	if !ok {
+		return fmt.Errorf("task not found with id: %d", id)
+	}
+
+	if !task.State().TaskState.IsAbleToRun() {
+		return fmt.Errorf("task is in terminal state - not able to run - State: %s", task.State())
+	}
+
+	task.SetState(tasks.State{TaskState: tasks.TaskValidating})
+	//set to the next state after create
+	if err := ts.taskManager.RunTask(task); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (ts *TaskService) StopTask(id int64) error {
+	ts.mu.Lock()
+	defer ts.mu.Unlock()
+
 	task, ok := ts.tasks[id]
 	if !ok {
-		return fmt.Errorf("Task not found with the id: %d", id)
+		return fmt.Errorf("task not found with id: %d", id)
 	}
 
-	err = ts.stateMachine.Transition(task, newState)
-	ts.hub.PublishStateChange(task)
-
-	if err != nil {
-		return fmt.Errorf("transition failed for task %d with error: %w", task.Id(), err)
-	}
-
-	err = ts.stateManager.ExecuteAction(newState, task)
-	if err != nil {
+	if err := ts.taskManager.StopTask(task); err != nil {
 		return err
 	}
 

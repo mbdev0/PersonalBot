@@ -10,8 +10,8 @@ import (
 	"personal_bot/app"
 	"personal_bot/infrastructure/persistence"
 	"personal_bot/infrastructure/persistence/repository"
+	cryptostates "personal_bot/internal/core/tasks/crypto_states"
 	"personal_bot/internal/services/position"
-	"personal_bot/internal/services/state"
 	subscriptionhub "personal_bot/internal/services/subscription_hub"
 	positionhub "personal_bot/internal/services/subscription_hub/position"
 	"personal_bot/internal/services/subscription_hub/strategy"
@@ -34,26 +34,32 @@ func main() {
 	app.Launch()
 
 	//TODO: move the init of api's into launch and return one mux back
-	fsm := state.Machine{}
-	taskSubhub := subscriptionhub.Hub{}
-	taskSubhub.New()
+	// fsm := state.Machine{}
+	taskSubhub := subscriptionhub.NewTaskSubscriptionHub()
 
 	posSubhub := positionhub.NewSubscriptionHub()
 	positionService := position.NewPositionService(&posSubhub)
 
 	strategySubHub := strategy.NewSubscriptionHub()
 
+	deps := cryptostates.Dependencies{
+		Publisher:       taskSubhub,
+		PositionService: positionService,
+	}
+	fsmSteps := cryptostates.Build(&deps)
 	executor := transaction.Executor{}
-	executor.New(&taskSubhub, &positionService)
+	executor.New(taskSubhub, positionService, fsmSteps)
 
-	stateManger := state.Manager{}
-	stateManger.New(&taskSubhub, &executor)
+	// stateManger := state.Manager{}
+	// stateManger.New(&taskSubhub, &executor)
 
 	taskRepo := repository.NewTaskRepository(db)
-	taskService := taskservice.NewTaskService(&fsm, &stateManger, taskRepo, &taskSubhub)
+	taskManager := taskservice.NewTaskManager(taskSubhub, &executor)
+	// taskService := taskservice.NewTaskService(&fsm, &stateManger, taskRepo, &taskSubhub)
+	taskService := taskservice.NewTaskService(taskRepo, taskSubhub, taskManager)
 
 	tradingStrategy := trading.Strategy{}
-	tradingStrategy.NewTradingStrategy(taskService, &posSubhub, &positionService, &strategySubHub)
+	tradingStrategy.NewTradingStrategy(taskService, &posSubhub, positionService, &strategySubHub)
 
 	tradingTaskRepo := repository.NewTradingRepository(db)
 	tradingService := trading.Service{}
@@ -80,7 +86,7 @@ func main() {
 	buyController := controller.TaskController{TaskService: taskService, WalletService: walletService}
 	buyHandler := http.StripPrefix("/api/tasks", handler.NewTaskHandler(&buyController))
 
-	positionController := controller.PositionController{PositionService: &positionService}
+	positionController := controller.PositionController{PositionService: positionService}
 	positionHandler := http.StripPrefix("/api/position", handler.NewPositionHandler(&positionController))
 
 	dashboardHandler := http.StripPrefix("/api/dashboard", handler.NewDashboardHandler(&tradingController, &buyController))
