@@ -13,17 +13,17 @@ import (
 )
 
 type Executor struct {
-	// subhub          *subscriptionhub.Hub
 	publisher       subscriptionhub.Publisher
 	positionService *position.Service
 	steps           cryptostates.Transitions
 }
 
-func (e *Executor) New(publisher subscriptionhub.Publisher, posService *position.Service, steps cryptostates.Transitions) {
-	// e.subhub = subhub
-	e.publisher = publisher
-	e.positionService = posService
-	e.steps = steps
+func NewExecutor(publisher subscriptionhub.Publisher, posService *position.Service, steps cryptostates.Transitions) *Executor {
+	return &Executor{
+		publisher:       publisher,
+		positionService: posService,
+		steps:           steps,
+	}
 }
 
 func (e *Executor) GetImplementation(task tasks.Task) (transaction.Transaction, error) {

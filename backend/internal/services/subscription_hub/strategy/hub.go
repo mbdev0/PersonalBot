@@ -21,8 +21,8 @@ type SubscriptionHub struct {
 	last          map[int64]strategies.StrategyMessage
 }
 
-func NewSubscriptionHub() SubscriptionHub {
-	return SubscriptionHub{
+func NewSubscriptionHub() *SubscriptionHub {
+	return &SubscriptionHub{
 		subscriptions: map[int64]*Subscription{},
 		bufferSize:    1000,
 		mu:            &sync.Mutex{},

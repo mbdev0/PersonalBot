@@ -26,11 +26,13 @@ type Strategy struct {
 	positionService *positionservice.Service
 }
 
-func (s *Strategy) NewTradingStrategy(ts *taskservice.TaskService, ph *positionhub.SubscriptionHub, ps *positionservice.Service, sh *strategy.SubscriptionHub) {
-	s.taskService = ts
-	s.positionHub = ph
-	s.positionService = ps
-	s.strategyHub = sh
+func NewTradingStrategy(ts *taskservice.TaskService, ph *positionhub.SubscriptionHub, ps *positionservice.Service, sh *strategy.SubscriptionHub) *Strategy {
+	return &Strategy{
+		taskService:     ts,
+		positionHub:     ph,
+		positionService: ps,
+		strategyHub:     sh,
+	}
 }
 
 func (s *Strategy) Sell(tsk *strategies.Sell, ctxCancel context.Context) {

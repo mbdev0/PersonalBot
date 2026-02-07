@@ -17,11 +17,13 @@ type Hub struct {
 	bufferSize int
 }
 
-func (h *Hub) New() {
-	h.subscriptions = map[int64]Subscription{}
-	h.last = map[int64]tasks.TaskEvent{}
-	h.mu = &sync.RWMutex{}
-	h.bufferSize = 1000
+func NewTaskSubscriptionHub() *Hub {
+	return &Hub{
+		subscriptions: map[int64]Subscription{},
+		last:          map[int64]tasks.TaskEvent{},
+		mu:            &sync.RWMutex{},
+		bufferSize:    1000,
+	}
 }
 
 func (h *Hub) Subscribe(task tasks.Task) (*Subscription, error) {

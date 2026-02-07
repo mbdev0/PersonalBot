@@ -16,9 +16,11 @@ type StrategyController struct {
 	walletService   *wallet.Service
 }
 
-func (sc *StrategyController) New(service *trading.Service, walletService *wallet.Service) {
-	sc.strategyService = service
-	sc.walletService = walletService
+func NewStrategyController(service *trading.Service, walletService *wallet.Service) *StrategyController {
+	return &StrategyController{
+		strategyService: service,
+		walletService:   walletService,
+	}
 }
 
 func (sc *StrategyController) Create(ctx context.Context, task dto.TradingTask) (*dto.TradingTaskResponse, error) {

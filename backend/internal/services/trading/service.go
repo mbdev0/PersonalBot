@@ -26,15 +26,18 @@ type Service struct {
 	taskService *taskservice.TaskService
 }
 
-func (s *Service) NewTradingService(strat *Strategy, sh *strategy.SubscriptionHub, tr *repository.TradingRepository, ts *taskservice.TaskService) {
-	s.strategy = strat
-	s.tasks = map[int64]strategies.Task{}
-	s.running = map[int64]context.CancelFunc{}
-	s.mu = &sync.Mutex{}
-	s.subhub = sh
-	s.repo = tr
-	s.iterable = iterable.NewIterable()
-	s.taskService = ts
+func NewTradingService(strat *Strategy, sh *strategy.SubscriptionHub, tr *repository.TradingRepository, ts *taskservice.TaskService) *Service {
+
+	return &Service{
+		strategy:    strat,
+		tasks:       map[int64]strategies.Task{},
+		running:     map[int64]context.CancelFunc{},
+		mu:          &sync.Mutex{},
+		subhub:      sh,
+		repo:        tr,
+		iterable:    iterable.NewIterable(),
+		taskService: ts,
+	}
 }
 
 func (s *Service) Create(st strategies.Task) (task strategies.Task, err error) {
