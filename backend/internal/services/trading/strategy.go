@@ -26,13 +26,6 @@ type Strategy struct {
 	positionService *positionservice.Service
 }
 
-func (s *Strategy) Sell(tsk *strategies.Sell, ctxCancel context.Context) {
-	err := s.taskService.TransitionTask(tsk.SellTaskId, tasks.TaskRun)
-	if err != nil {
-		logger.Error(err)
-	}
-}
-
 func (s *Strategy) NewTradingStrategy(ts *taskservice.TaskService, ph *positionhub.SubscriptionHub, ps *positionservice.Service, sh *strategy.SubscriptionHub) {
 	s.taskService = ts
 	s.positionHub = ph
@@ -40,8 +33,15 @@ func (s *Strategy) NewTradingStrategy(ts *taskservice.TaskService, ph *positionh
 	s.strategyHub = sh
 }
 
+func (s *Strategy) Sell(tsk *strategies.Sell, ctxCancel context.Context) {
+	if err := s.taskService.StartTask(tsk.SellTaskId); err != nil {
+		logger.Error(err)
+	}
+
+}
+
 func (s *Strategy) Buy(buyTask *strategies.Buy, ctx context.Context) {
-	err := s.taskService.TransitionTask(buyTask.BuyTaskId, tasks.TaskRun)
+	err := s.taskService.StartTask(buyTask.BuyTaskId)
 	if err != nil {
 		logger.Error(err)
 	}
@@ -119,7 +119,7 @@ func (s *Strategy) createAndRunBuyTask(coin models.Coin, afkTask *strategies.Afk
 
 	s.strategyHub.PublishTakeCreation(afkTask.StrategyTaskId(), bt)
 
-	err = s.taskService.TransitionTask(bt.Id(), tasks.TaskRun)
+	err = s.taskService.StartTask(bt.Id())
 	if err != nil {
 		return nil, err
 	}
@@ -233,6 +233,5 @@ func (s *Strategy) createAndRunSellTask(sellableTask strategies.SellableStrategy
 	if err != nil {
 		logger.Error(err)
 	}
-
-	s.taskService.TransitionTask(tsk.Id(), tasks.TaskRun)
+	s.taskService.StartTask(tsk.Id())
 }
