@@ -7,8 +7,15 @@ const (
 	Sell TransactionType = "Sell"
 )
 
+type ActionType string
+
+const (
+	Run  ActionType = "Run"
+	Stop ActionType = "Stop"
+)
+
 type RequestTransitionTask struct {
-	State string `json:"state"`
+	Action ActionType `json:"action"`
 }
 
 type RequestTask struct {
