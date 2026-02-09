@@ -8,7 +8,7 @@ interface DashboardDto {
 interface BaseDashboardRowDto {
   type: string;
   id: number;
-  wsMessage: string;
+  ws_message: string;
   state: string;
 }
 
@@ -29,7 +29,7 @@ type DashboardRowDto = StrategyDashboardRowDto | TaskDashboardRowDto;
 interface BaseDashboardRow {
   type: string;
   id: number;
-  wsMessage: string;
+  ws_message: string;
   state: string;
 }
 

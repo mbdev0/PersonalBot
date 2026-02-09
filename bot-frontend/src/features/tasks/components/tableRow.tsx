@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { TaskRowType, type DisplayRow } from '../types/tableRows';
 import { ActionButtons } from './actionButtons';
 import type { RowActions } from '../types/rowActions';
@@ -14,7 +13,7 @@ export function UnifiedTaskRow({ tableRow, rowActions }: TableRowProps) {
     <TableRow>
       <TableCell>{generateTableName(tableRow)}</TableCell>
       <TableCell>{generateRowType(tableRow)}</TableCell>
-      <TableCell>{tableRow.wsMessage}</TableCell>
+      <TableCell>{tableRow.ws_message}</TableCell>
       <TableCell>{tableRow.state}</TableCell>
       <TableCell>
         <ActionButtons row={tableRow} rowActions={rowActions}></ActionButtons>

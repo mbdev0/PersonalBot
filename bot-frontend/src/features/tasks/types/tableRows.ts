@@ -10,7 +10,7 @@ interface StrategyRow {
   id: number;
   type: TaskRowType.Strategy;
   state: string;
-  wsMessage: string;
+  ws_message: string;
   data: StrategyTask;
   subRows: TaskRow[];
 }
@@ -19,7 +19,7 @@ interface TaskRow {
   id: number;
   type: TaskRowType.Task;
   state: string;
-  wsMessage: string;
+  ws_message: string;
   data: Task;
   strategyId?: number;
   subRows?: never;
