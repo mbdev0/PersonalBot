@@ -30,7 +30,7 @@ function mapStrategyRowDtoToStrategyRow(src: StrategyDashboardRowDto): StrategyD
   return {
     type: 'strategy',
     id: src.id,
-    wsMessage: src.wsMessage,
+    ws_message: src.ws_message,
     state: src.state,
     data: mapStrategyTaskDtoToStrategyTask(src.data),
     children: src.children.map(mapTaskRowDtoToTaskRow),
@@ -41,7 +41,7 @@ function mapTaskRowDtoToTaskRow(src: TaskDashboardRowDto): TaskDashboardRow {
   return {
     type: 'task',
     id: src.id,
-    wsMessage: src.wsMessage,
+    ws_message: src.ws_message,
     state: src.state,
     data: mapTaskDtoToTask(src.data),
   };

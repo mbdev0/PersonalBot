@@ -7,13 +7,13 @@ export function mapDashboardRowToRow(row: DashboardRow): DisplayRow {
       id: row.id,
       type: TaskRowType.Strategy,
       state: row.state,
-      wsMessage: row.wsMessage,
+      ws_message: row.ws_message,
       data: row.data,
       subRows: row.children.map((child) => ({
         id: child.id,
         type: TaskRowType.Task as const,
         state: child.state,
-        wsMessage: child.wsMessage,
+        ws_message: child.ws_message,
         data: child.data,
         strategyId: row.id,
       })),
@@ -24,7 +24,7 @@ export function mapDashboardRowToRow(row: DashboardRow): DisplayRow {
     id: row.id,
     type: TaskRowType.Task,
     state: row.state,
-    wsMessage: row.wsMessage,
+    ws_message: row.ws_message,
     data: row.data,
   };
 }

@@ -1,15 +1,9 @@
 package dto
 
-type DashboardResponse struct {
-	Strategies      []TradingTaskResponse    `json:"strategies"`
-	TasksByStrategy map[int64][]ResponseTask `json:"tasksByStrategy"`
-	ManualTasks     []ResponseTask           `json:"manualTasks"`
-}
-
 type TableRow struct {
 	Type      string              `json:"type"`
 	Id        int64               `json:"id"`
-	WsMessage string              `json:"wsMessage"`
+	WsMessage string              `json:"ws_message"`
 	State     string              `json:"state"`
 	Data      TradingTaskResponse `json:"data"`
 	Children  []ChildRow          `json:"children"`
@@ -18,7 +12,7 @@ type TableRow struct {
 type ChildRow struct {
 	Type      string       `json:"type"`
 	Id        int64        `json:"id"`
-	WsMessage string       `json:"wsMessage"`
+	WsMessage string       `json:"ws_message"`
 	State     string       `json:"state"`
 	Data      ResponseTask `json:"data"`
 }
