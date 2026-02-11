@@ -1,10 +1,12 @@
 package handler
 
 import (
+	"cmp"
 	"encoding/json"
 	"net/http"
 	"personal_bot/api/controller"
 	"personal_bot/api/dto"
+	"slices"
 )
 
 type DashboardHandler struct {
@@ -36,12 +38,12 @@ func (dh *DashboardHandler) GetDashboard(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	dashboardResp := dh.generateDashboardReponse(strategies, allTasks)
+	dashboardResp := dh.generateDashboardResponse(strategies, allTasks)
 
 	json.NewEncoder(w).Encode(dashboardResp)
 }
 
-func (dh *DashboardHandler) generateDashboardReponse(strategies []dto.TradingTaskResponse, allTasks []dto.ResponseTask) dto.DashboardResponseDto {
+func (dh *DashboardHandler) generateDashboardResponse(strategies []dto.TradingTaskResponse, allTasks []dto.ResponseTask) dto.DashboardResponseDto {
 	dashboardResponse := dto.DashboardResponseDto{}
 	dashboardResponse.New()
 
@@ -69,6 +71,10 @@ func (dh *DashboardHandler) generateDashboardReponse(strategies []dto.TradingTas
 			}
 		}
 
+		slices.SortFunc(childrenRows, func(a, b dto.ChildRow) int {
+			return cmp.Compare(a.Data.TimeCreated, b.Data.TimeCreated)
+		})
+
 		tbr := dto.TableRow{
 			Type:      string(dto.STRATEGY),
 			Id:        st.Id,
@@ -80,6 +86,10 @@ func (dh *DashboardHandler) generateDashboardReponse(strategies []dto.TradingTas
 
 		dashboardResponse.Rows = append(dashboardResponse.Rows, tbr)
 	}
+
+	slices.SortFunc(dashboardResponse.Rows, func(a, b dto.TableRow) int {
+		return cmp.Compare(a.Data.TimeCreated, b.Data.TimeCreated)
+	})
 
 	return dashboardResponse
 }
