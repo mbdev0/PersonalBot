@@ -1,15 +1,16 @@
 package models
 
 type TaskRow struct {
-	Id           int    `db:"id"`
-	TaskType     string `db:"task_type"`
-	WalletId     string `db:"wallet_id"`
-	Slippage     int    `db:"slippage_percentage"`
-	ComputeUnits int    `db:"compute_units"`
-	Config       string `db:"config"`
-	State        string `db:"state"`
-	Token        string `db:"token"`
-	StrategyId   *int64 `db:"strategy_id"`
+	Id              int    `db:"id"`
+	TaskType        string `db:"task_type"`
+	WalletId        string `db:"wallet_id"`
+	Slippage        int    `db:"slippage_percentage"`
+	ComputeUnits    int    `db:"compute_units"`
+	Config          string `db:"config"`
+	State           string `db:"state"`
+	Token           string `db:"token"`
+	StrategyId      *int64 `db:"strategy_id"`
+	TimeCreatedUnix int64  `db:"time_created"`
 }
 
 // Stored as lamports

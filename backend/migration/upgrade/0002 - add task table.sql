@@ -8,7 +8,8 @@ CREATE TABLE "tasks" (
 	"strategy_id"	INTEGER,
 	"state"	TEXT NOT NULL,
 	"token"	TEXT NOT NULL,
-	PRIMARY KEY("id"),
+	"time_created"	INTEGER NOT NULL,
 	FOREIGN KEY("strategy_id") REFERENCES "trading_tasks"("id") ON DELETE CASCADE,
-	FOREIGN KEY("wallet_id") REFERENCES "crypto_wallets"("id")
-)
+	FOREIGN KEY("wallet_id") REFERENCES "crypto_wallets"("id"),
+	PRIMARY KEY("id")
+);

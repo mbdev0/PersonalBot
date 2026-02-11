@@ -34,6 +34,7 @@ func mapAfkToRepo(afk *strategies.Afk) (*models.TradingRow, error) {
 	taskRow.TradingType = "AFK"
 	taskRow.WalletId = afk.Wallet.Id
 	taskRow.Id = int(afk.StrategyTaskId())
+	taskRow.TimeCreatedUnix = afk.TimeCreated
 
 	afkConfig, err := mapToAfkConfig(afk)
 	if err != nil {
@@ -77,6 +78,7 @@ func mapBuyToRepo(buy *strategies.Buy) (*models.TradingRow, error) {
 	taskRow.TradingType = "BUY"
 	taskRow.WalletId = buy.Wallet.Id
 	taskRow.Id = int(buy.StrategyTaskId())
+	taskRow.TimeCreatedUnix = buy.TimeCreated
 
 	buyConfig, err := mapToBuyConfig(buy)
 	if err != nil {
@@ -125,6 +127,7 @@ func mapSellToRepo(t *strategies.Sell) (*models.TradingRow, error) {
 	taskRow.TradingType = "SELL"
 	taskRow.WalletId = t.Wallet.Id
 	taskRow.Id = int(t.StrategyTaskId())
+	taskRow.TimeCreatedUnix = t.TimeCreated
 
 	sellConfig, err := mapToSellConfig(t)
 	if err != nil {
@@ -241,6 +244,7 @@ func mapAfkRepoToTradingTask(src models.TradingRow, wallet models.WalletReposito
 	}
 
 	afkTask.SellStrategies = mapRepoToStrategyConfigs(config.SellStrategies)
+	afkTask.TimeCreated = src.TimeCreatedUnix
 
 	return &afkTask, nil
 }
@@ -287,6 +291,7 @@ func mapBuyRepoToTradingTask(src models.TradingRow, wallet models.WalletReposito
 	buyTask.Token = token
 	buyTask.PositionId = int64(config.PositionId)
 	buyTask.BuyTaskId = int64(config.BuyTaskId)
+	buyTask.TimeCreated = src.TimeCreatedUnix
 
 	return &buyTask, nil
 }
@@ -308,6 +313,7 @@ func mapSellRepoToTradingTask(src models.TradingRow, wallet models.WalletReposit
 	sellTask.ComputeUnits = float64(src.ComputeUnits)
 	sellTask.Slippage = float64(src.Slippage) / 100
 	sellTask.SellTaskId = int64(config.SellTaskId)
+	sellTask.TimeCreated = src.TimeCreatedUnix
 
 	privateKey, err := solana.PrivateKeyFromBase58(wallet.PrivateKey)
 	if err != nil {

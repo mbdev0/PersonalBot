@@ -42,6 +42,7 @@ func mapBuyToBuyResponse(src *strategies.Buy) (dest *dto.TradingTaskResponse, er
 	dst.PositionId = &src.PositionId
 	tokenAddress := src.Token.String()
 	dst.TokenAddress = &tokenAddress
+	dst.TimeCreated = src.TimeCreated
 
 	return &dst, nil
 }
@@ -67,6 +68,7 @@ func mapAfkToAfkResponse(src *strategies.Afk) (dest *dto.TradingTaskResponse, er
 	dst.WalletName = src.Wallet.WalletName
 	dst.WalletAddress = src.Wallet.PublicKey.Short(constants.ShortPublicAddressInt)
 	dst.State = string(src.State)
+	dst.TimeCreated = src.TimeCreated
 
 	return &dst, nil
 }
@@ -86,6 +88,7 @@ func mapSellToSellResponse(t *strategies.Sell) (dest *dto.TradingTaskResponse, e
 	dst.SellTaskId = &t.SellTaskId
 	tokenAddress := t.Token.String()
 	dst.TokenAddress = &tokenAddress
+	dst.TimeCreated = t.TimeCreated
 
 	return &dst, nil
 }

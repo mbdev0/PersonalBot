@@ -46,6 +46,7 @@ type ResponseTask struct {
 	SellPositionId    *int64   `json:"sell_position_id,omitempty"`
 	StrategyId        *int64   `json:"strategy_id,omitempty"`
 	State             State    `json:"state"`
+	TimeCreated       int64    `json:"time_created"`
 }
 
 type State struct {

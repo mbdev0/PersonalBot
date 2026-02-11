@@ -20,6 +20,7 @@ type Afk struct {
 	SellStrategies []StrategyConfig
 	SellFee        *float64
 	State          string
+	TimeCreated    int64
 }
 
 func (a *Afk) New() {

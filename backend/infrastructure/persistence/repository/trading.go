@@ -19,7 +19,7 @@ func NewTradingRepository(db *sql.DB) *TradingRepository {
 
 func (tr *TradingRepository) GetAllTasks(ctx context.Context) ([]strategies.Task, error) {
 	query := `
-	SELECT tt.id, tt.trading_type, tt.slippage, tt.compute_units, tt.config, cw.id, cw.wallet_name, cw.chain, cw.private_key
+	SELECT tt.id, tt.trading_type, tt.slippage, tt.compute_units, tt.config, tt.time_created, cw.id, cw.wallet_name, cw.chain, cw.private_key
 		FROM trading_tasks tt
 		INNER JOIN crypto_wallets cw WHERE cw.id = tt.wallet_id
 	`
@@ -32,7 +32,7 @@ func (tr *TradingRepository) GetAllTasks(ctx context.Context) ([]strategies.Task
 	for rows.Next() {
 		task := models.TradingRow{}
 		wallet := models.WalletRepository{}
-		err := rows.Scan(&task.Id, &task.TradingType, &task.Slippage, &task.ComputeUnits, &task.Config, &wallet.Id, &wallet.WalletName, &wallet.Chain, &wallet.PrivateKey)
+		err := rows.Scan(&task.Id, &task.TradingType, &task.Slippage, &task.ComputeUnits, &task.Config, &task.TimeCreatedUnix, &wallet.Id, &wallet.WalletName, &wallet.Chain, &wallet.PrivateKey)
 		if err != nil {
 			return nil, err
 		}
@@ -64,13 +64,14 @@ func (tr *TradingRepository) AddAllTasks(tasks []strategies.Task, ctx context.Co
 	}
 
 	baseQuery := `
-		INSERT into trading_tasks values (?,?,?,?,?,?)
+		INSERT into trading_tasks values (?,?,?,?,?,?,?)
 		ON CONFLICT(id) DO UPDATE SET
             trading_type = excluded.trading_type,
             wallet_id = excluded.wallet_id,
             slippage = excluded.slippage,
             compute_units = excluded.compute_units,
-            config = excluded.config
+            config = excluded.config,
+			time_created = excluded.time_created
 	`
 
 	tx, err := tr.db.BeginTx(ctx, nil)
@@ -91,7 +92,7 @@ func (tr *TradingRepository) AddAllTasks(tasks []strategies.Task, ctx context.Co
 			return false, fmt.Errorf("failed to map task: %d", t.StrategyTaskId())
 		}
 
-		_, err = stmt.ExecContext(ctx, mappedTask.Id, mappedTask.TradingType, mappedTask.WalletId, mappedTask.Slippage, mappedTask.ComputeUnits, mappedTask.Config)
+		_, err = stmt.ExecContext(ctx, mappedTask.Id, mappedTask.TradingType, mappedTask.WalletId, mappedTask.Slippage, mappedTask.ComputeUnits, mappedTask.Config, mappedTask.TimeCreatedUnix)
 		if err != nil {
 			return false, fmt.Errorf("error whilst executing data for task id: %d, error: %w", t.StrategyTaskId(), err)
 		}

@@ -7,6 +7,7 @@ import (
 	"personal_bot/internal/core/strategies"
 	"personal_bot/internal/monitoring/filters"
 	"personal_bot/internal/solana/utils"
+	"time"
 
 	"github.com/gagliardetto/solana-go"
 )
@@ -43,6 +44,8 @@ func mapBuyDtoToBuy(src dto.TradingTask, wallet wallets.SolanaWallet) (dst *stra
 		return nil, err
 	}
 
+	dest.TimeCreated = time.Now().Unix()
+
 	return &dest, nil
 
 }
@@ -60,6 +63,7 @@ func mapAfkDtoToAfk(src dto.TradingTask, wallet wallets.SolanaWallet) (dst *stra
 	dest.SellStrategies = mapDTOToStrategyConfigs(*src.SellStrategies)
 	dest.SellFee = src.SellFee
 	dest.State = string(strategies.CREATED)
+	dest.TimeCreated = time.Now().Unix()
 
 	return &dest, nil
 }
@@ -74,6 +78,7 @@ func mapSellDtoToSell(src dto.TradingTask, wallet wallets.SolanaWallet) (dst str
 	dest.Slippage = src.Slippage
 	dest.Wallet = wallet
 	dest.State = string(strategies.CREATED)
+	dest.TimeCreated = time.Now().Unix()
 
 	dest.Token, err = solana.PublicKeyFromBase58(*src.TokenAddress)
 	if err != nil {

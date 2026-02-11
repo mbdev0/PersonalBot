@@ -19,6 +19,7 @@ type SellTask struct {
 	Fee            float64
 	Slippage       float64
 	ComputeUnits   uint32
+	TimeCreated    int64
 	state          State
 	mu             *sync.RWMutex
 }
@@ -58,3 +59,4 @@ func (st *SellTask) SetState(newState State) {
 	defer st.mu.Unlock()
 	st.state = newState
 }
+func (st *SellTask) SetTime(t int64) { st.TimeCreated = t }
