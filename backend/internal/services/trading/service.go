@@ -147,7 +147,6 @@ func (s *Service) Delete(id int64, ctx context.Context) error {
 
 	success, err := s.repo.Delete(ctx, id)
 	if err != nil {
-		// Rollback in-memory change
 		s.tasks[id] = task
 		return fmt.Errorf("failed to delete from database: %w", err)
 	}
@@ -157,13 +156,25 @@ func (s *Service) Delete(id int64, ctx context.Context) error {
 		return fmt.Errorf(" unsuccessful delete from database")
 	}
 
-	if task.StrategyType() == strategies.BUY || task.StrategyType() == strategies.SELL {
-		bt, err := s.taskService.GetTaskWithStrategyId(id)
+	if task.StrategyType() == strategies.BUY {
+		task, err := s.taskService.GetTaskWithStrategyId(id)
 		if err != nil {
 			return err
 		}
 
-		err = s.taskService.DeleteTask(bt.Id())
+		err = s.taskService.DeleteTask(task.Id())
+		if err != nil {
+			return err
+		}
+	}
+
+	if task.StrategyType() == strategies.SELL {
+		sell, ok := task.(*strategies.Sell)
+		if !ok {
+			return fmt.Errorf("unable to cast task id %d, to type sell strategy", task.StrategyTaskId())
+		}
+
+		err := s.taskService.DeleteTask(sell.SellTaskId)
 		if err != nil {
 			return err
 		}
