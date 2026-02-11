@@ -9,6 +9,7 @@ import (
 	subscriptionhub "personal_bot/internal/services/subscription_hub"
 	"personal_bot/pkg/logger"
 	"sync"
+	"time"
 )
 
 type TaskService struct {
@@ -34,6 +35,7 @@ func (ts *TaskService) Create(task tasks.Task) (tasks.Task, error) {
 	ts.mu.Lock()
 	defer ts.mu.Unlock()
 	task.SetId(ts.iter.ID())
+	task.SetTime(time.Now().Unix())
 
 	ts.tasks[task.Id()] = task
 	return task, nil

@@ -49,6 +49,7 @@ type TradingTaskResponse struct {
 	BuyTaskId      *int64             `json:"buy_task_id,omitempty"`
 	PositionId     *int64             `json:"position_id,omitempty"`
 	TokenAddress   *string            `json:"token_address,omitempty"`
+	TimeCreated    int64              `json:"time_created"`
 }
 
 type TradingTaskPatch struct {

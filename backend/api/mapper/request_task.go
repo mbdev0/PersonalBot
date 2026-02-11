@@ -7,6 +7,7 @@ import (
 	"personal_bot/internal/core/constants"
 	"personal_bot/internal/core/models/wallets"
 	"personal_bot/internal/core/tasks"
+	"time"
 
 	"github.com/gagliardetto/solana-go"
 )
@@ -50,6 +51,7 @@ func createBuyTask(req *dto.RequestTask, wallet wallets.SolanaWallet) (task *tas
 		[]tasks.Option{
 			tasks.WithComputeUnits(req.ComputeUnits),
 			tasks.WithSlippage(req.Slippage),
+			tasks.WithUnixTime(time.Now().Unix()),
 		},
 		[]tasks.BuyOption{
 			tasks.WithBuyAmount(bigBuyAmount),
@@ -88,6 +90,7 @@ func createSellTask(reqTask *dto.RequestTask, wallet wallets.SolanaWallet) (task
 		[]tasks.Option{
 			tasks.WithComputeUnits(reqTask.ComputeUnits),
 			tasks.WithSlippage(reqTask.Slippage),
+			tasks.WithUnixTime(time.Now().Unix()),
 		},
 		sellOptions,
 	)

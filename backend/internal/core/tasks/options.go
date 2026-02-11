@@ -11,6 +11,10 @@ func WithComputeUnits(cu uint32) Option {
 	return func(t Task) { t.SetComputeUnit(cu) }
 }
 
+func WithUnixTime(time int64) Option {
+	return func(t Task) { t.SetTime(time) }
+}
+
 type BuyOption func(*BuyTask)
 
 func WithBuyAmount(amnt *big.Int) BuyOption {

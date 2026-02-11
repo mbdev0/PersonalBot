@@ -17,6 +17,7 @@ type Sell struct {
 	Wallet       wallets.SolanaWallet
 	State        string
 	SellTaskId   int64
+	TimeCreated  int64
 }
 
 func (b *Sell) New() {

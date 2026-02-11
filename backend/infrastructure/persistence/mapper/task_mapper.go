@@ -62,6 +62,7 @@ func createBuyTask(src models.TaskRow, wallet models.WalletRepository) (*tasks.B
 	buyTask := tasks.NewBuyTask(mappedWallet, token, []tasks.Option{
 		tasks.WithSlippage(float64(src.Slippage) / 100.0),
 		tasks.WithComputeUnits(uint32(src.ComputeUnits)),
+		tasks.WithUnixTime(src.TimeCreatedUnix),
 	}, buyOpts)
 
 	buyTask.SetId(int64(src.Id))
@@ -95,6 +96,7 @@ func createSellTask(src models.TaskRow, wallet models.WalletRepository) (*tasks.
 	sellTask := tasks.NewSellTask(mappedWallet, token, []tasks.Option{
 		tasks.WithComputeUnits(uint32(src.ComputeUnits)),
 		tasks.WithSlippage(float64(src.Slippage) / 100.0),
+		tasks.WithUnixTime(src.TimeCreatedUnix),
 	}, []tasks.SellOption{
 		tasks.WithSellAmount(float64(sellConfig.SellAmount) / 100.0),
 		tasks.WithSellFee(sellFee),
@@ -136,6 +138,7 @@ func MapTaskToRepo(src tasks.Task) (*models.TaskRow, error) {
 		taskRow.ComputeUnits = int(task.ComputeUnits)
 		taskRow.Config = string(configJSON)
 		taskRow.StrategyId = task.StrategyId
+		taskRow.TimeCreatedUnix = task.TimeCreated
 
 	case *tasks.SellTask:
 
@@ -156,6 +159,7 @@ func MapTaskToRepo(src tasks.Task) (*models.TaskRow, error) {
 		taskRow.Token = task.Token.String()
 		taskRow.Slippage = int(task.Slippage * 100)
 		taskRow.ComputeUnits = int(task.ComputeUnits)
+		taskRow.TimeCreatedUnix = task.TimeCreated
 		taskRow.Config = string(configJSON)
 
 	default:

@@ -20,6 +20,7 @@ type BuyTask struct {
 	Slippage     float64          `validate:"required,gt=0,lt=1"` // Slippage percentage (0.0 to 1.0)
 	ComputeUnits uint32           `validate:"required,min=1"`
 	StrategyId   *int64
+	TimeCreated  int64
 	state        State
 	mu           *sync.RWMutex
 }
@@ -59,3 +60,4 @@ func (bt *BuyTask) State() State { bt.mu.RLock(); defer bt.mu.RUnlock(); return 
 func (bt *BuyTask) SetComputeUnit(cu uint32)     { bt.ComputeUnits = cu }
 func (bt *BuyTask) SetSlippage(slippage float64) { bt.Slippage = slippage }
 func (bt *BuyTask) SetState(newState State)      { bt.mu.Lock(); defer bt.mu.Unlock(); bt.state = newState }
+func (bt *BuyTask) SetTime(t int64)              { bt.TimeCreated = t }

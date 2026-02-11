@@ -8,4 +8,5 @@ type Task interface {
 	SetId(id int64)
 	SetSlippage(slippage float64)
 	SetComputeUnit(cu uint32)
+	SetTime(t int64)
 }

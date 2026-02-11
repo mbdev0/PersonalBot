@@ -21,6 +21,7 @@ type Buy struct {
 	BuyTaskId      int64
 	PositionId     int64
 	State          string
+	TimeCreated    int64
 }
 
 func (b *Buy) New() {

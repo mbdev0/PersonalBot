@@ -1,12 +1,13 @@
 package models
 
 type TradingRow struct {
-	Id           int    `db:"id"`
-	TradingType  string `db:"trading_type"`
-	WalletId     string `db:"wallet_id"`
-	Slippage     int    `db:"slippage"`
-	ComputeUnits int    `db:"compute_units"`
-	Config       string `db:"config"`
+	Id              int    `db:"id"`
+	TradingType     string `db:"trading_type"`
+	WalletId        string `db:"wallet_id"`
+	Slippage        int    `db:"slippage"`
+	ComputeUnits    int    `db:"compute_units"`
+	Config          string `db:"config"`
+	TimeCreatedUnix int64  `db:"time_created"`
 }
 
 type AfkConfig struct {
