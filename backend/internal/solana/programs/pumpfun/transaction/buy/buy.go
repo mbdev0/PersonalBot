@@ -46,7 +46,6 @@ func (bt *Transaction) buildInstructions(ctx context.Context, publisher subscrip
 	bt.instructions = &buyInstructions
 	publisher.PublishMessage(bt.BuyTask, "Instructions Built")
 
-	// reporter.Report("Instructions Built")
 	return nil
 }
 
@@ -80,7 +79,6 @@ func (bt *Transaction) BuildTransaction(ctx context.Context, publisher subscript
 	}
 	bt.transaction = tx
 	publisher.PublishMessage(bt.BuyTask, "TX Built")
-	// reporter.Report("Tx Built")
 
 	return nil
 }
@@ -114,7 +112,6 @@ func (bt *Transaction) SendTransaction(ctx context.Context, publisher subscripti
 
 	bt.signature = txResp
 	publisher.PublishMessage(bt.BuyTask, fmt.Sprintf("Tx Sent: %s", txResp))
-	// reporter.Report(fmt.Sprintf("Tx Sent: %s", txResp))
 	return nil
 }
 
@@ -130,7 +127,6 @@ func (bt *Transaction) ConfirmTransaction(ctx context.Context, publisher subscri
 		if msg.Err != "" {
 			return fmt.Errorf("%v", msg.Err)
 		}
-		// reporter.Report(msg.Message)
 		publisher.PublishMessage(bt.BuyTask, msg.Message)
 	}
 
