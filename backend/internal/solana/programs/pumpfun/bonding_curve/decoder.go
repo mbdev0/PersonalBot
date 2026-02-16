@@ -177,16 +177,17 @@ func decryptBondingCurveData(dataBinary []byte) (*models.BondingCurve, error) {
 	bondingCurve := new(models.BondingCurve)
 	var err error
 	switch len(dataBinary) {
-	case 82:
+	case 83:
 		bondingCurve, err = parseV1(dataBinary)
 		if err != nil {
 			return nil, err
 		}
-	case 151:
+	case 152:
 		bondingCurve, err = parseV2(dataBinary)
 		if err != nil {
 			return nil, err
 		}
+
 	}
 
 	return bondingCurve, nil
@@ -206,6 +207,7 @@ func parseV0(data []byte) (*models.BondingCurve, error) {
 		RealTokenReserves:    v0.RealTokenReserves,
 		RealSolReserves:      v0.RealSolReserves,
 		TokenTotalSupply:     v0.TokenTotalSupply,
+		Complete:             v0.Complete,
 	}, nil
 }
 
@@ -223,6 +225,7 @@ func parseV1(data []byte) (*models.BondingCurve, error) {
 		RealTokenReserves:    v1.RealTokenReserves,
 		RealSolReserves:      v1.RealSolReserves,
 		TokenTotalSupply:     v1.TokenTotalSupply,
+		Complete:             v1.Complete,
 		Creator:              v1.Creator.ToPointer(),
 	}, nil
 }
@@ -241,6 +244,7 @@ func parseV2(data []byte) (*models.BondingCurve, error) {
 		RealTokenReserves:    v2.RealTokenReserves,
 		RealSolReserves:      v2.RealSolReserves,
 		TokenTotalSupply:     v2.TokenTotalSupply,
+		Complete:             v2.Complete,
 		Creator:              v2.Creator.ToPointer(),
 		IsMayhemMode:         v2.IsMayhemMode,
 	}, nil
