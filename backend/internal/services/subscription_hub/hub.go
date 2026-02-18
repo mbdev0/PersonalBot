@@ -110,10 +110,11 @@ func (h *Hub) cancel(t tasks.Task) func() {
 
 func (h *Hub) PublishStateChange(task tasks.Task) {
 	taskEvent := tasks.TaskEvent{
-		TaskId:    task.Id(),
-		State:     task.State(),
-		Time:      time.Now().Local().String(),
-		EventType: tasks.StateUpdate,
+		TaskId:     task.Id(),
+		StrategyId: *task.GetStrategyId(),
+		State:      task.State(),
+		Time:       time.Now().Local().String(),
+		EventType:  tasks.StateUpdate,
 	}
 
 	h.publish(task, taskEvent)
@@ -121,11 +122,12 @@ func (h *Hub) PublishStateChange(task tasks.Task) {
 
 func (h *Hub) PublishMessage(task tasks.Task, message string) {
 	taskEvent := tasks.TaskEvent{
-		TaskId:    task.Id(),
-		State:     task.State(),
-		Time:      time.Now().Local().String(),
-		Message:   message,
-		EventType: tasks.ProgressMessage,
+		TaskId:     task.Id(),
+		StrategyId: *task.GetStrategyId(),
+		State:      task.State(),
+		Time:       time.Now().Local().String(),
+		Message:    message,
+		EventType:  tasks.ProgressMessage,
 	}
 
 	h.publish(task, taskEvent)

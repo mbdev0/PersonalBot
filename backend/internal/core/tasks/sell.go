@@ -21,6 +21,7 @@ type SellTask struct {
 	ComputeUnits   uint32
 	TimeCreated    int64
 	state          State
+	StrategyId     *int64
 	mu             *sync.RWMutex
 }
 
@@ -47,6 +48,10 @@ func NewSellTask(wallet wallets.SolanaWallet, token solana.PublicKey, common []O
 	return st
 }
 
+func (st *SellTask) GetStrategyId() *int64 {
+	return st.StrategyId
+}
+
 func (st *SellTask) State() State   { st.mu.RLock(); defer st.mu.RUnlock(); return st.state }
 func (st *SellTask) Id() int64      { return st.id }
 func (st *SellTask) SetId(id int64) { st.id = id }
@@ -59,4 +64,5 @@ func (st *SellTask) SetState(newState State) {
 	defer st.mu.Unlock()
 	st.state = newState
 }
-func (st *SellTask) SetTime(t int64) { st.TimeCreated = t }
+func (st *SellTask) SetTime(t int64)        { st.TimeCreated = t }
+func (st *SellTask) SetStrategyId(id int64) { st.mu.Lock(); defer st.mu.Unlock(); st.StrategyId = &id }

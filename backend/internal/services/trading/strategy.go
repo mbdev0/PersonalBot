@@ -131,8 +131,8 @@ func (s *Strategy) createAndRunBuyTask(coin models.Coin, afkTask *strategies.Afk
 
 func (s *Strategy) createBuyTask(afkTask *strategies.Afk, tokenAddr solana.PublicKey) *tasks.BuyTask {
 	bt := tasks.NewBuyTask(afkTask.Wallet, tokenAddr,
-		[]tasks.Option{tasks.WithSlippage(afkTask.Slippage), tasks.WithComputeUnits(uint32(afkTask.ComputeUnits))},
-		[]tasks.BuyOption{tasks.WithBuyAmount(afkTask.BuyAmount), tasks.WithBuyFee(afkTask.BuyFee), tasks.WithStrategyId(afkTask.StrategyTaskId())},
+		[]tasks.Option{tasks.WithSlippage(afkTask.Slippage), tasks.WithComputeUnits(uint32(afkTask.ComputeUnits)), tasks.WithStrategyId(afkTask.StrategyTaskId())},
+		[]tasks.BuyOption{tasks.WithBuyAmount(afkTask.BuyAmount), tasks.WithBuyFee(afkTask.BuyFee)},
 	)
 	return bt
 }

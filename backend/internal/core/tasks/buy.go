@@ -54,10 +54,14 @@ func (bt *BuyTask) SetId(id int64) {
 	bt.id = id
 }
 
-func (bt *BuyTask) Type() string { return bt.taskType }
-func (bt *BuyTask) State() State { bt.mu.RLock(); defer bt.mu.RUnlock(); return bt.state } // keep as RLock as many routines might alter
+func (bt *BuyTask) GetStrategyId() *int64 {
+	return bt.StrategyId
+}
 
+func (bt *BuyTask) Type() string                 { return bt.taskType }
+func (bt *BuyTask) State() State                 { bt.mu.RLock(); defer bt.mu.RUnlock(); return bt.state } // keep as RLock as many routines might alter
 func (bt *BuyTask) SetComputeUnit(cu uint32)     { bt.ComputeUnits = cu }
 func (bt *BuyTask) SetSlippage(slippage float64) { bt.Slippage = slippage }
 func (bt *BuyTask) SetState(newState State)      { bt.mu.Lock(); defer bt.mu.Unlock(); bt.state = newState }
 func (bt *BuyTask) SetTime(t int64)              { bt.TimeCreated = t }
+func (bt *BuyTask) SetStrategyId(id int64)       { bt.mu.Lock(); defer bt.mu.Unlock(); bt.StrategyId = &id }

@@ -87,8 +87,8 @@ func (s *Service) initBuyStrategy(st strategies.Task) (err error) {
 }
 
 func (s *Service) createBuyTask(buyTask strategies.Buy) *tasks.BuyTask {
-	bt := tasks.NewBuyTask(buyTask.Wallet, buyTask.Token, []tasks.Option{tasks.WithSlippage(buyTask.Slippage), tasks.WithComputeUnits(uint32(buyTask.ComputeUnits))},
-		[]tasks.BuyOption{tasks.WithBuyAmount(buyTask.BuyAmount), tasks.WithBuyFee(buyTask.BuyFee), tasks.WithStrategyId(buyTask.StrategyTaskId())},
+	bt := tasks.NewBuyTask(buyTask.Wallet, buyTask.Token, []tasks.Option{tasks.WithSlippage(buyTask.Slippage), tasks.WithComputeUnits(uint32(buyTask.ComputeUnits)), tasks.WithStrategyId(buyTask.StrategyTaskId())},
+		[]tasks.BuyOption{tasks.WithBuyAmount(buyTask.BuyAmount), tasks.WithBuyFee(buyTask.BuyFee)},
 	)
 
 	return bt
@@ -117,6 +117,7 @@ func (s *Service) createSellTask(sell strategies.Sell) *tasks.SellTask {
 		[]tasks.Option{
 			tasks.WithComputeUnits(uint32(sell.GetComputeUnits())),
 			tasks.WithSlippage(sell.GetSlippage()),
+			tasks.WithStrategyId(sell.StrategyTaskId()),
 		},
 		[]tasks.SellOption{
 			tasks.WithSellAmount(sell.SellAmount),

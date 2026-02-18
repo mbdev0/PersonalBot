@@ -2,6 +2,8 @@ package tasks
 
 type Task interface {
 	Id() int64
+	GetStrategyId() *int64
+	SetStrategyId(id int64)
 	SetState(State)
 	Type() string
 	State() State
