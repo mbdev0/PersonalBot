@@ -15,6 +15,10 @@ func WithUnixTime(time int64) Option {
 	return func(t Task) { t.SetTime(time) }
 }
 
+func WithStrategyId(id int64) Option {
+	return func(t Task) { t.SetStrategyId(id) }
+}
+
 type BuyOption func(*BuyTask)
 
 func WithBuyAmount(amnt *big.Int) BuyOption {
@@ -22,9 +26,6 @@ func WithBuyAmount(amnt *big.Int) BuyOption {
 }
 func WithBuyFee(fee float64) BuyOption {
 	return func(t *BuyTask) { t.mu.Lock(); defer t.mu.Unlock(); t.Fee = fee }
-}
-func WithStrategyId(id int64) BuyOption {
-	return func(t *BuyTask) { t.mu.Lock(); defer t.mu.Unlock(); t.StrategyId = &id }
 }
 
 type SellOption func(*SellTask)

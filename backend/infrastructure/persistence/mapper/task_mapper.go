@@ -55,15 +55,17 @@ func createBuyTask(src models.TaskRow, wallet models.WalletRepository) (*tasks.B
 		tasks.WithBuyFee(buyFee),
 	}
 
-	if src.StrategyId != nil {
-		buyOpts = append(buyOpts, tasks.WithStrategyId(int64(*src.StrategyId)))
-	}
-
-	buyTask := tasks.NewBuyTask(mappedWallet, token, []tasks.Option{
+	taskOpts := []tasks.Option{
 		tasks.WithSlippage(float64(src.Slippage) / 100.0),
 		tasks.WithComputeUnits(uint32(src.ComputeUnits)),
 		tasks.WithUnixTime(src.TimeCreatedUnix),
-	}, buyOpts)
+	}
+
+	if src.StrategyId != nil {
+		taskOpts = append(taskOpts, tasks.WithStrategyId(*src.StrategyId))
+	}
+
+	buyTask := tasks.NewBuyTask(mappedWallet, token, taskOpts, buyOpts)
 
 	buyTask.SetId(int64(src.Id))
 
@@ -91,13 +93,19 @@ func createSellTask(src models.TaskRow, wallet models.WalletRepository) (*tasks.
 		return nil, fmt.Errorf("invalid sell amount: %d (must be 1-100)", sellConfig.SellAmount)
 	}
 
-	sellFeeLamport := new(big.Int).SetInt64(int64(sellConfig.SellFee))
-	sellFee := utils.ConvertLamportToSol(sellFeeLamport)
-	sellTask := tasks.NewSellTask(mappedWallet, token, []tasks.Option{
+	taskOpts := []tasks.Option{
 		tasks.WithComputeUnits(uint32(src.ComputeUnits)),
 		tasks.WithSlippage(float64(src.Slippage) / 100.0),
 		tasks.WithUnixTime(src.TimeCreatedUnix),
-	}, []tasks.SellOption{
+	}
+
+	if src.StrategyId != nil {
+		taskOpts = append(taskOpts, tasks.WithStrategyId(*src.StrategyId))
+	}
+
+	sellFeeLamport := new(big.Int).SetInt64(int64(sellConfig.SellFee))
+	sellFee := utils.ConvertLamportToSol(sellFeeLamport)
+	sellTask := tasks.NewSellTask(mappedWallet, token, taskOpts, []tasks.SellOption{
 		tasks.WithSellAmount(float64(sellConfig.SellAmount) / 100.0),
 		tasks.WithSellFee(sellFee),
 	})
@@ -161,6 +169,7 @@ func MapTaskToRepo(src tasks.Task) (*models.TaskRow, error) {
 		taskRow.ComputeUnits = int(task.ComputeUnits)
 		taskRow.TimeCreatedUnix = task.TimeCreated
 		taskRow.Config = string(configJSON)
+		taskRow.StrategyId = task.StrategyId
 
 	default:
 		return nil, fmt.Errorf("unknown task type: %T", src)
