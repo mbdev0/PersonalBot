@@ -281,7 +281,17 @@ func (th *TaskHandler) subscribe(w http.ResponseWriter, r *http.Request) {
 
 		switch msg.Type {
 		case dto.Subscribe:
-			sub, err := th.controller.Subscribe(msg.Id)
+			var sub *subscriptionhub.Subscription
+			var err error
+
+			if msg.StrategyId != nil {
+				sub, err = th.controller.SubscribeByStrategy(*msg.StrategyId)
+			} else if msg.Id != nil {
+				sub, err = th.controller.Subscribe(*msg.Id)
+			} else {
+				err = fmt.Errorf("invalid arguments passed: %v", msg)
+			}
+
 			if err != nil {
 				resp.Error = err.Error()
 				err := wsjson.Write(ctx, c, resp)
@@ -293,7 +303,15 @@ func (th *TaskHandler) subscribe(w http.ResponseWriter, r *http.Request) {
 			subscribers <- *sub
 
 		case dto.Unsubscribe:
-			err := th.controller.Unsubcribe(msg.Id)
+			var err error
+			if msg.StrategyId != nil {
+				err = th.controller.UnsubscribeByStrategy(*msg.StrategyId)
+			} else if msg.Id != nil {
+				err = th.controller.Unsubcribe(*msg.Id)
+			} else {
+				err = fmt.Errorf("invalid arguments passed: %v", msg)
+			}
+
 			if err != nil {
 				resp.Error = err.Error()
 				err := wsjson.Write(ctx, c, resp)

@@ -140,6 +140,33 @@ func (tc *TaskController) TransitionTask(id int64, action dto.ActionType) (err e
 	return nil
 }
 
+func (tc *TaskController) SubscribeByStrategy(id int64) (*subscriptionhub.Subscription, error) {
+	task, err := tc.TaskService.GetTaskWithStrategyId(id)
+	if err != nil {
+		return nil, err
+	}
+
+	c, err := tc.TaskService.Subscribe(task)
+	if err != nil {
+		return nil, err
+	}
+
+	return c, nil
+}
+
+func (tc *TaskController) UnsubscribeByStrategy(id int64) error {
+	task, err := tc.TaskService.GetTaskWithStrategyId(id)
+	if err != nil {
+		return err
+	}
+
+	err = tc.TaskService.Unsubscribe(task)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (tc *TaskController) Subscribe(id int64) (*subscriptionhub.Subscription, error) {
 	task, err := tc.TaskService.GetTaskWith(id)
 	if err != nil {

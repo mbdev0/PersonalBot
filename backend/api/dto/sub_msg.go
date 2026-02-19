@@ -6,8 +6,9 @@ import (
 )
 
 type TaskSubscribe struct {
-	Type SubType `json:"type"`
-	Id   int64   `json:"id"`
+	Type       SubType `json:"type"`
+	Id         *int64  `json:"id,omitempty"`
+	StrategyId *int64  `json:"strategy_id,omitempty"`
 }
 
 type TaskSubResponse struct {
