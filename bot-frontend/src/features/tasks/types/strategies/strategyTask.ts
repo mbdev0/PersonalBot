@@ -28,6 +28,8 @@ export interface BuyStrategyTaskDto extends BaseStrategyTaskDto {
   sell_fee: number;
   sell_strategies: SellStrategyDto[];
   token_address: string;
+  buy_task_id: number;
+  position_id: number;
 }
 
 export interface SellStrategyTaskDto extends BaseStrategyTaskDto {
@@ -35,6 +37,7 @@ export interface SellStrategyTaskDto extends BaseStrategyTaskDto {
   sell_amount: number;
   sell_fee: number;
   token_address: string;
+  sell_task_id: number;
 }
 
 export type StrategyTaskDto = AFKStrategyTaskDto | BuyStrategyTaskDto | SellStrategyTaskDto;
@@ -64,6 +67,8 @@ export interface BuyStrategyTask extends BaseStrategyTask {
   sell_fee: number;
   sell_strategies: SellStrategyDto[];
   token_address: string;
+  buy_task_id: number;
+  position_id: number;
 }
 
 export interface SellStrategyTask extends BaseStrategyTask {
@@ -71,6 +76,7 @@ export interface SellStrategyTask extends BaseStrategyTask {
   sell_amount: number;
   sell_fee: number;
   token_address: string;
+  sell_task_id: number;
 }
 
 export type StrategyTask = AFKStrategyTask | BuyStrategyTask | SellStrategyTask;

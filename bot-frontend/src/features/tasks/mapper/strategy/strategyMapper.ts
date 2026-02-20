@@ -30,6 +30,8 @@ export function mapStrategyTaskDtoToStrategyTask(src: StrategyTaskDto): Strategy
         sell_fee: src.sell_fee,
         token_address: src.token_address,
         sell_strategies: src.sell_strategies,
+        buy_task_id: src.buy_task_id,
+        position_id: src.position_id,
       };
 
     case 'SELL':
@@ -43,6 +45,7 @@ export function mapStrategyTaskDtoToStrategyTask(src: StrategyTaskDto): Strategy
         sell_amount: src.sell_amount,
         sell_fee: src.sell_fee,
         token_address: src.token_address,
+        sell_task_id: src.sell_task_id,
       };
   }
 }
