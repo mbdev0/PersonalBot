@@ -8,11 +8,11 @@ import {
 } from '@/components/ui/select';
 import { BuyTaskEdit } from './forms/buyTaskEdit';
 import { SellTaskEdit } from './forms/sellTaskEdit';
-import { TaskRowType, type Row } from '../types/tableRows';
+import { TaskRowType, type DisplayRow } from '../types/tableRows';
 import { AFKTaskEdit } from './forms/afkTaskEdit';
 
 interface TaskUpdateProps {
-  row: Row;
+  row: DisplayRow;
   onClose: () => void;
 }
 
