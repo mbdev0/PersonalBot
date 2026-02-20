@@ -42,7 +42,7 @@ export interface StrategyDashboardRow extends BaseDashboardRow {
 export interface TaskDashboardRow extends BaseDashboardRow {
   type: 'task';
   data: Task;
-  children?: never;
+  children?: undefined;
 }
 
 export type DashboardRow = StrategyDashboardRow | TaskDashboardRow;
