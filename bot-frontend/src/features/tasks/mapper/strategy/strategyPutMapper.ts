@@ -43,7 +43,7 @@ function mapBuyPutToDto(src: BuyStrategyTaskPut): BuyStrategyTaskPutDto {
     wallet_name: src.wallet_name,
     buy_amount: src.buy_amount,
     buy_fee: src.buy_fee,
-    sell_fee: src.sell_fee,
+    sell_fee: src.sell_fee ?? 0,
     token_address: src.token_address,
     sell_strategies: src.sell_strategies.map(mapSellStrategyPostToDto),
   };
