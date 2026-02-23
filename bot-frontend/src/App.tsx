@@ -5,6 +5,7 @@ import { BrowserRouter, Route, Routes } from 'react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import WalletDashboard from './features/wallets/components/walletDashboard';
 import { AppSidebar } from './components/appSidebar';
+import { WebsocketProvider } from './context/websocketContext';
 
 const queryClient = new QueryClient();
 
@@ -12,23 +13,25 @@ function App() {
   return (
     <ThemeProvider defaultTheme="dark" storageKey="ui-theme">
       <QueryClientProvider client={queryClient}>
-        <BrowserRouter>
-          <SidebarProvider defaultOpen={false}>
-            <AppSidebar />
+        <WebsocketProvider>
+          <BrowserRouter>
+            <SidebarProvider defaultOpen={false}>
+              <AppSidebar />
 
-            <div className="min-h-screen bg-background w-full flex justify-center">
-              <div className="max-w-11/12 w-full py-8">
-                <header className="mb-8">
-                  <h1 className="text-3xl font-bold">Trading Bot</h1>
-                </header>
-                <Routes>
-                  <Route path="/" element={<TaskDashboard />} />
-                  <Route path="/wallets" element={<WalletDashboard />} />
-                </Routes>
+              <div className="min-h-screen bg-background w-full flex justify-center">
+                <div className="max-w-11/12 w-full py-8">
+                  <header className="mb-8">
+                    <h1 className="text-3xl font-bold">Trading Bot</h1>
+                  </header>
+                  <Routes>
+                    <Route path="/" element={<TaskDashboard />} />
+                    <Route path="/wallets" element={<WalletDashboard />} />
+                  </Routes>
+                </div>
               </div>
-            </div>
-          </SidebarProvider>
-        </BrowserRouter>
+            </SidebarProvider>
+          </BrowserRouter>
+        </WebsocketProvider>
       </QueryClientProvider>
     </ThemeProvider>
   );
