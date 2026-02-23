@@ -30,6 +30,8 @@ func (h *Hub) Subscribe(task tasks.Task) (*Subscription, error) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 
+	logger.Information("new subscription to task: %i", task.Id())
+
 	// if there is an existing subscription, return an error -> we don't want multiple subs per task
 	if _, ok := h.subscriptions[task.Id()]; ok {
 		return nil, fmt.Errorf("an existing subscription is attatched to task: %d", task.Id())
@@ -56,6 +58,8 @@ func (h *Hub) Subscribe(task tasks.Task) (*Subscription, error) {
 }
 
 func (h *Hub) Unsubcribe(task tasks.Task) error {
+	logger.Information("new unsub to task: %i", task.Id())
+
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	sub, ok := h.subscriptions[task.Id()]

@@ -198,17 +198,19 @@ func (th *TaskHandler) transitionTask(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusNoContent)
-	if err != nil {
-		logger.Error(err)
-	}
 }
 
 func (th *TaskHandler) subscribe(w http.ResponseWriter, r *http.Request) {
 	subscribers := make(chan subscriptionhub.Subscription, th.bufferSize)
 	defer close(subscribers)
 
-	c, err := websocket.Accept(w, r, nil)
+	opts := &websocket.AcceptOptions{
+		OriginPatterns: []string{"localhost:5173"},
+	}
+
+	c, err := websocket.Accept(w, r, opts)
 	if err != nil {
+		logger.Error(err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -270,6 +272,7 @@ func (th *TaskHandler) subscribe(w http.ResponseWriter, r *http.Request) {
 		err := wsjson.Read(ctx, c, &msg)
 
 		if err != nil {
+			logger.Error("error whilst reading", err)
 			resp.Error = err.Error()
 			wsjson.Write(ctx, c, "err")
 			err := wsjson.Write(ctx, c, resp)
