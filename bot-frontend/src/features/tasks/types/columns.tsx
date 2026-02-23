@@ -66,7 +66,11 @@ export const columns: ColumnDef<DisplayRow>[] = [
     accessorKey: 'message',
     header: 'Message',
     cell: ({ row }) => {
-      return row.original.ws_message;
+      return (
+        <div className="whitespace-normal break-all text-left px-2 max-w-xs">
+          {row.original.ws_message}
+        </div>
+      );
     },
   },
   {
