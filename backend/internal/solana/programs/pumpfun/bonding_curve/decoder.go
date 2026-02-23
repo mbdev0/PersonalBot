@@ -182,7 +182,7 @@ func decryptBondingCurveData(dataBinary []byte) (*models.BondingCurve, error) {
 		if err != nil {
 			return nil, err
 		}
-	case 152:
+	case 151:
 		bondingCurve, err = parseV2(dataBinary)
 		if err != nil {
 			return nil, err
