@@ -3,6 +3,7 @@
 import { API_BASE } from '../../../config/urls';
 import { mapStrategyTaskToPostDto } from '../mapper/strategy/strategyPostMapper';
 import { mapStrategyTaskToPutDto } from '../mapper/strategy/strategyPutMapper';
+import type { StrategyTaskDto } from '../types/strategies/strategyTask';
 import type { StrategyTaskPost } from '../types/strategies/strategyTaskPost';
 import type { StrategyTaskPut } from '../types/strategies/strategyTaskPut';
 
@@ -25,7 +26,9 @@ export async function postStrategy(task: StrategyTaskPost) {
     throw new Error(`Failed to add new task: ${response.status}`);
   }
 
-  return response.status;
+  const createdStrategyTask: StrategyTaskDto = await response.json();
+
+  return createdStrategyTask;
 }
 
 export async function deleteStrategy(id: number) {

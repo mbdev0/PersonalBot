@@ -8,14 +8,23 @@ import {
 } from '../api/strategyTasks';
 import type { StrategyTaskPost } from '../types/strategies/strategyTaskPost';
 import type { StrategyTaskPut } from '../types/strategies/strategyTaskPut';
+import { useWebsocketSend } from '@/context/websocketContext';
 
 export function useAddStrategy() {
   const client = useQueryClient();
+  const send = useWebsocketSend();
 
   return useMutation({
     mutationFn: (task: StrategyTaskPost) => postStrategy(task),
-    onSuccess() {
+    onSuccess: (response) => {
       client.invalidateQueries({ queryKey: ['dashboard'] });
+      if (response.trading_type == 'BUY') {
+        send({ type: 'Subscribe', id: response.buy_task_id });
+      }
+
+      if (response.trading_type == 'SELL') {
+        send({ type: 'Subscribe', id: response.sell_task_id });
+      }
     },
     onError(e) {
       console.error('error: ', e);

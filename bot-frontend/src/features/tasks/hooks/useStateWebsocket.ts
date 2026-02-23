@@ -1,15 +1,15 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import type {
   Dashboard,
   DashboardRow,
   StrategyDashboardRow,
   TaskDashboardRow,
 } from '../types/dashboard';
-import type { TaskWSMessage } from '../types/task_websocket';
+import type { SendTaskWSMessage, TaskWSMessage } from '../types/task_websocket';
 
 //this is for states for tasks only
-const useStateWebsocket = () => {
+export const useStateWebsocket = () => {
   const client = useQueryClient();
   const websocket = useRef<WebSocket | undefined>(undefined);
 
@@ -43,9 +43,13 @@ const useStateWebsocket = () => {
         if (shouldMoveStateAndMessageUp(strategyTask)) {
           const updated: StrategyDashboardRow = {
             ...strategyTask,
-            state: data.task_event.state,
-            ws_message: data.task_event.message,
           };
+          if (data.task_event.event_type == 'StatusUpdate') {
+            updated.state = data.task_event.state.task_state;
+          }
+          if (data.task_event.event_type == 'ProgressMessage') {
+            updated.ws_message = data.task_event.message;
+          }
 
           const updatedRows: DashboardRow[] = [
             ...oldData.rows.slice(0, strategyTaskIdx),
@@ -71,7 +75,7 @@ const useStateWebsocket = () => {
         const childTask = strategyTask.children[childTaskIdx];
         const updatedChildRow: TaskDashboardRow = {
           ...childTask,
-          state: data.task_event.state,
+          state: data.task_event.state.task_state,
           ws_message: data.task_event.message,
         };
 
@@ -111,13 +115,13 @@ const useStateWebsocket = () => {
 
   //we want to return a send object so we can subscribe to tasks//unsubscribe to tasks
 
-  const send = (type: 'Subscribe' | 'Unsubscribe', task_id: number) => {
-    if (websocket.current?.OPEN) {
-      websocket.current.send(JSON.stringify({ type: type, task_id: task_id }));
+  const send = useCallback((msg: SendTaskWSMessage) => {
+    if (websocket.current?.readyState == WebSocket.OPEN) {
+      websocket.current.send(JSON.stringify(msg));
     } else {
       console.error('unable to send message to websocket');
     }
-  };
+  }, []);
 
   return {
     send,
