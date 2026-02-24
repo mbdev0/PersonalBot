@@ -3,7 +3,9 @@ package handler
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"net"
 	"net/http"
 	"personal_bot/api/controller"
 	"personal_bot/api/dto"
@@ -217,7 +219,7 @@ func (th *TaskHandler) subscribe(w http.ResponseWriter, r *http.Request) {
 
 	defer func(c *websocket.Conn) {
 		err := c.CloseNow()
-		if err != nil {
+		if err != nil && !errors.Is(err, net.ErrClosed) {
 			logger.Error(err.Error())
 		}
 	}(c)
@@ -272,6 +274,12 @@ func (th *TaskHandler) subscribe(w http.ResponseWriter, r *http.Request) {
 		err := wsjson.Read(ctx, c, &msg)
 
 		if err != nil {
+			closeStatus := websocket.CloseStatus(err)
+			if closeStatus == websocket.StatusNormalClosure || closeStatus == websocket.StatusGoingAway {
+				logger.Information(fmt.Sprintf("WebSocket closed normally (status: %s)", closeStatus.String()))
+				return
+			}
+
 			logger.Error("error whilst reading", err)
 			resp.Error = err.Error()
 			wsjson.Write(ctx, c, "err")
