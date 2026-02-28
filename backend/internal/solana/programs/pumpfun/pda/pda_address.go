@@ -17,6 +17,16 @@ func GetBondingCurveAddress(tokenAddress string) (bondingCurveAddress string, er
 	return address, err
 }
 
+func GetBondingCurveV2Address(tokenAddress string) (bondingCurveV2Address string, err error) {
+	caBytes, _ := base58.Decode(tokenAddress)
+	programId, _ := base58.Decode(constants.Program)
+	seeds := [][]byte{[]byte("bonding-curve-v2"), caBytes}
+	address, _, err := utils.FindProgramAddressSync(seeds, programId)
+
+	return address, err
+
+}
+
 func GetAssociatedBondingCurveAddress(bondingCurveAddr string, tokenAddress string, isNewTokenAddress bool) (associatedBondingCurveAddress string, err error) {
 	caBytes, _ := base58.Decode(tokenAddress)
 

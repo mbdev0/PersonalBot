@@ -26,6 +26,7 @@ type AccountAddressesSet struct {
 	TokenProgram                  string
 	WalletAddress                 string
 	UserVolumeAccumulator         string
+	BondingCurveV2Address         string
 }
 
 type BuyArgs struct {
@@ -129,9 +130,13 @@ func resolvePDAs(accountAddressesSet *AccountAddressesSet, isNewTokenAddress boo
 	}
 
 	accountAddressesSet.UserVolumeAccumulator, err = pda.GetUserVolumeAccumulatorAddress(walletAddress.String())
-
 	if err != nil {
 		return fmt.Errorf("error finding user volume accumululator address")
+	}
+
+	accountAddressesSet.BondingCurveV2Address, err = pda.GetBondingCurveV2Address(tokenAddress.String())
+	if err != nil {
+		return fmt.Errorf("error finding bonding-curve-v2 address")
 	}
 
 	return nil
@@ -156,6 +161,7 @@ func buildAccounts(accountAddressesSet AccountAddressesSet) (accounts []*solana.
 		utils.GetAccountMeta(accountAddressesSet.UserVolumeAccumulator, true, false),
 		utils.GetAccountMeta(constants.FeeConfig, false, false),
 		utils.GetAccountMeta(constants.FeeProgram, false, false),
+		utils.GetAccountMeta(accountAddressesSet.BondingCurveV2Address, false, false),
 	}
 	return accounts
 }
