@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useAddTask } from '../../hooks/useTasks';
 import { useWallets } from '../../../wallets/hooks/useWallets';
 import type { Wallet } from '../../../wallets/types/wallet';
 import { ComputeUnitsEntry } from './fields/computeUnits';

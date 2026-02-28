@@ -12,6 +12,7 @@ import type { SendTaskWSMessage, TaskWSMessage } from '../types/task_websocket';
 export const useStateWebsocket = () => {
   const client = useQueryClient();
   const websocket = useRef<WebSocket | undefined>(undefined);
+  const subscribedTasks = useRef<Set<Number>>(new Set<Number>());
 
   useEffect(() => {
     const ws = new WebSocket('ws://127.0.0.1:9090/api/tasks/subscribe');
@@ -116,8 +117,17 @@ export const useStateWebsocket = () => {
   //we want to return a send object so we can subscribe to tasks//unsubscribe to tasks
 
   const send = useCallback((msg: SendTaskWSMessage) => {
+    if (msg.type === 'Subscribe' && subscribedTasks.current.has(msg.id)) {
+      return;
+    }
+
     if (websocket.current?.readyState == WebSocket.OPEN) {
       websocket.current.send(JSON.stringify(msg));
+      if (msg.type === 'Subscribe') {
+        subscribedTasks.current.add(msg.id);
+      } else {
+        subscribedTasks.current.delete(msg.id);
+      }
     } else {
       console.error('unable to send message to websocket');
     }

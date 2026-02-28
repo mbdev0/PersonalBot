@@ -1,4 +1,3 @@
-// internal/core/tasks/state.go
 package tasks
 
 import "fmt"
