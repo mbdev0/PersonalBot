@@ -116,3 +116,7 @@ export {
   type TaskPut,
   type TaskPutDto,
 };
+
+export function isTerminal(state: string) {
+  return state === TaskType.task_done || state === TaskType.tx_failed;
+}

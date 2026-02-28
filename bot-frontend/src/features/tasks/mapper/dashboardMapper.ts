@@ -1,4 +1,3 @@
-// features/dashboard/mapper/dashboardMapper.ts
 import { mapTaskDtoToTask } from '../../tasks/mapper/taskMapper';
 import type {
   DashboardDto,
