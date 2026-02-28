@@ -8,7 +8,7 @@ import {
 } from '../api/strategyTasks';
 import type { StrategyTaskPost } from '../types/strategies/strategyTaskPost';
 import type { StrategyTaskPut } from '../types/strategies/strategyTaskPut';
-import { useWebsocketSend } from '@/context/websocketContext';
+import { useWebsocketSend } from '@/hooks/useWebsocketSend';
 
 export function useAddStrategy() {
   const client = useQueryClient();
