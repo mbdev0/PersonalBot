@@ -88,6 +88,11 @@ func getAccounts(sellTask *tasks.SellTask, ctx context.Context) ([]*solana.Accou
 		return nil, err
 	}
 
+	bondingCurveV2Address, err := pda.GetBondingCurveV2Address(sellTask.Token.String())
+	if err != nil {
+		return nil, err
+	}
+
 	accounts := []*solana.AccountMeta{
 		utils.GetAccountMeta(constants.GlobalAccount, false, false),
 		utils.GetAccountMeta(constants.FeeRecipient, true, false),
@@ -103,6 +108,7 @@ func getAccounts(sellTask *tasks.SellTask, ctx context.Context) ([]*solana.Accou
 		utils.GetAccountMeta(constants.Program, false, false),
 		utils.GetAccountMeta(constants.FeeConfig, false, false),
 		utils.GetAccountMeta(constants.FeeProgram, false, false),
+		utils.GetAccountMeta(bondingCurveV2Address, false, false),
 	}
 
 	return accounts, nil
