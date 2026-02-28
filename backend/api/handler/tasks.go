@@ -275,7 +275,11 @@ func (th *TaskHandler) subscribe(w http.ResponseWriter, r *http.Request) {
 
 		if err != nil {
 			closeStatus := websocket.CloseStatus(err)
-			if closeStatus == websocket.StatusNormalClosure || closeStatus == websocket.StatusGoingAway {
+			isValidCloseStatus := closeStatus == websocket.StatusNormalClosure ||
+				closeStatus == websocket.StatusGoingAway ||
+				closeStatus == websocket.StatusNoStatusRcvd
+
+			if isValidCloseStatus {
 				logger.Information(fmt.Sprintf("WebSocket closed normally (status: %s)", closeStatus.String()))
 				return
 			}
