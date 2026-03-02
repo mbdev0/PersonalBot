@@ -86,4 +86,5 @@ export enum StrategyTaskState {
   running = 'RUNNING',
   failed = 'FAILED',
   success = 'SUCCESS',
+  cancelled = 'CANCELLED',
 }

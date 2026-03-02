@@ -15,7 +15,11 @@ export function ActionButtons({ row, rowActions }: ActionButtonProps) {
 
   const isTerminal = isDone || isFailed;
 
-  const isRunning = !isDone && !isFailed && row.state != StrategyTaskState.create;
+  const isRunning =
+    !isDone &&
+    !isFailed &&
+    row.state != StrategyTaskState.create &&
+    row.state != StrategyTaskState.cancelled;
 
   return (
     <div className="flex gap-1.5">
