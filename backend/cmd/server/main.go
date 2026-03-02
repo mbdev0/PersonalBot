@@ -52,7 +52,7 @@ func main() {
 	taskManager := taskservice.NewTaskManager(taskSubhub, executor)
 	taskService := taskservice.NewTaskService(taskRepo, taskSubhub, taskManager)
 
-	tradingStrategy := trading.NewTradingStrategy(taskService, posSubhub, positionService, strategySubHub)
+	tradingStrategy := trading.NewTradingStrategy(taskService, posSubhub, positionService, strategySubHub, taskSubhub)
 	tradingTaskRepo := repository.NewTradingRepository(db)
 	tradingService := trading.NewTradingService(tradingStrategy, strategySubHub, tradingTaskRepo, taskService)
 	err = tradingService.LoadFromDB(context.Background())

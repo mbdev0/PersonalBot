@@ -37,9 +37,11 @@ type StrategyResponse struct {
 }
 
 type StrategyMessageResponse struct {
-	Id    int64        `json:"id"`
-	Event string       `json:"event"`
-	Task  ResponseTask `json:"task"`
+	Id      int64         `json:"id"`
+	Event   string        `json:"event"`
+	Task    *ResponseTask `json:"task,omitempty"`
+	State   *string       `json:"state,omitempty"`
+	Message *string       `json:"message,omitempty"`
 }
 
 type SubType string

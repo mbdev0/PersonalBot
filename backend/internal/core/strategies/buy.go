@@ -21,6 +21,7 @@ type Buy struct {
 	BuyTaskId      int64
 	PositionId     int64
 	State          string
+	Message        string
 	TimeCreated    int64
 }
 
@@ -45,6 +46,14 @@ func (b *Buy) StrategyState() string {
 
 func (b *Buy) SetStrategyState(st string) {
 	b.State = st
+}
+
+func (b *Buy) StrategyMessage() string {
+	return b.Message
+}
+
+func (b *Buy) SetStrategyMessage(message string) {
+	b.Message = message
 }
 
 func (b *Buy) GetWallet() wallets.SolanaWallet {

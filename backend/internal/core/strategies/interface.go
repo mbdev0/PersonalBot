@@ -6,4 +6,6 @@ type Task interface {
 	StrategyType() TradingType
 	StrategyState() string
 	SetStrategyState(st string)
+	StrategyMessage() string
+	SetStrategyMessage(message string)
 }

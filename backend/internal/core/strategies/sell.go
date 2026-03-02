@@ -16,42 +16,51 @@ type Sell struct {
 	Token        solana.PublicKey
 	Wallet       wallets.SolanaWallet
 	State        string
+	Message      string
 	SellTaskId   int64
 	TimeCreated  int64
 }
 
-func (b *Sell) New() {
-	b.strategyType = SELL
+func (s *Sell) New() {
+	s.strategyType = SELL
 }
 
-func (b *Sell) StrategyTaskId() int64 {
-	return b.id
+func (s *Sell) StrategyTaskId() int64 {
+	return s.id
 }
 
-func (b *Sell) SetId(id int64) {
-	b.id = id
+func (s *Sell) SetId(id int64) {
+	s.id = id
 }
-func (b *Sell) StrategyType() TradingType {
-	return b.strategyType
-}
-
-func (b *Sell) StrategyState() string {
-	return b.State
+func (s *Sell) StrategyType() TradingType {
+	return s.strategyType
 }
 
-func (b *Sell) SetStrategyState(st string) {
-	b.State = st
+func (s *Sell) StrategyState() string {
+	return s.State
 }
 
-func (b *Sell) GetWallet() wallets.SolanaWallet {
-	return b.Wallet
+func (s *Sell) SetStrategyState(st string) {
+	s.State = st
 }
-func (b *Sell) GetComputeUnits() uint32 {
-	return uint32(b.ComputeUnits)
+
+func (s *Sell) StrategyMessage() string {
+	return s.Message
 }
-func (b *Sell) GetSlippage() float64 {
-	return b.Slippage
+
+func (s *Sell) SetStrategyMessage(message string) {
+	s.Message = message
 }
-func (b *Sell) GetSellFee() float64 {
-	return b.SellFee
+
+func (s *Sell) GetWallet() wallets.SolanaWallet {
+	return s.Wallet
+}
+func (s *Sell) GetComputeUnits() uint32 {
+	return uint32(s.ComputeUnits)
+}
+func (s *Sell) GetSlippage() float64 {
+	return s.Slippage
+}
+func (s *Sell) GetSellFee() float64 {
+	return s.SellFee
 }

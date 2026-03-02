@@ -3,7 +3,9 @@ package strategies
 import "personal_bot/internal/core/tasks"
 
 type StrategyMessage struct {
-	Id    int64      `json:"id"`
-	Event string     `json:"event"`
-	Task  tasks.Task `json:"task"`
+	Id      int64      `json:"id"`
+	Event   string     `json:"event"`
+	Task    tasks.Task `json:"task,omitempty"`
+	State   *string    `json:"state,omitempty"`
+	Message *string    `json:"message,omitempty"`
 }

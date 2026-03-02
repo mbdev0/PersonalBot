@@ -20,6 +20,7 @@ type Afk struct {
 	SellStrategies []StrategyConfig
 	SellFee        *float64
 	State          string
+	Message        string
 	TimeCreated    int64
 }
 
@@ -45,6 +46,14 @@ func (a *Afk) StrategyState() string {
 
 func (a *Afk) SetStrategyState(st string) {
 	a.State = st
+}
+
+func (a *Afk) StrategyMessage() string {
+	return a.Message
+}
+
+func (a *Afk) SetStrategyMessage(message string) {
+	a.Message = message
 }
 
 func (a *Afk) GetWallet() wallets.SolanaWallet {

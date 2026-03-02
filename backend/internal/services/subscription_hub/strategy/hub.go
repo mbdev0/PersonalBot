@@ -9,7 +9,7 @@ import (
 )
 
 type Subscription struct {
-	sub_id  int64
+	Sub_id  int64
 	SubChan chan strategies.StrategyMessage
 	cancel  func()
 }
@@ -45,7 +45,7 @@ func (sh *SubscriptionHub) Subscribe(taskId int64) (*Subscription, error) {
 
 	cancel := sh.cancel(taskId)
 
-	sub := &Subscription{sub_id: taskId, SubChan: subChan, cancel: cancel}
+	sub := &Subscription{Sub_id: taskId, SubChan: subChan, cancel: cancel}
 
 	sh.subscriptions[taskId] = sub
 	return sub, nil
@@ -83,6 +83,50 @@ func (sh *SubscriptionHub) PublishTakeCreation(id int64, task tasks.Task) error 
 	}
 
 	logger.Information("publishing task creation")
+
+	sh.last[id] = msg
+
+	sub, ok := sh.subscriptions[id]
+	if !ok {
+		return fmt.Errorf("task not found with id: %d", id)
+	}
+	sub.SubChan <- msg
+	return nil
+}
+
+func (sh *SubscriptionHub) PublishStateUpdate(id int64, state string) error {
+	sh.mu.Lock()
+	defer sh.mu.Unlock()
+
+	msg := strategies.StrategyMessage{
+		Id:    id,
+		Event: "STATUS_UPDATE",
+		State: &state,
+	}
+
+	logger.Information("publishing state update")
+
+	sh.last[id] = msg
+
+	sub, ok := sh.subscriptions[id]
+	if !ok {
+		return fmt.Errorf("task not found with id: %d", id)
+	}
+	sub.SubChan <- msg
+	return nil
+}
+
+func (sh *SubscriptionHub) PublishProgressMessage(id int64, message string) error {
+	sh.mu.Lock()
+	defer sh.mu.Unlock()
+
+	msg := strategies.StrategyMessage{
+		Id:      id,
+		Event:   "MESSAGE_UPDATE",
+		Message: &message,
+	}
+
+	logger.Information("publishing state update")
 
 	sh.last[id] = msg
 
