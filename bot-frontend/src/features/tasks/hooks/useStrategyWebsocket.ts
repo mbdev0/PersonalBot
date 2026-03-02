@@ -1,9 +1,10 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useRef } from 'react';
 import type { Dashboard, DashboardRow, StrategyDashboardRow } from '../types/dashboard';
-import type {
-  StrategySendWSMessage,
-  StrategyWSMessage,
+import {
+  StrategyEventType,
+  type StrategySendWSMessage,
+  type StrategyWSMessage,
 } from '../types/strategies/strategyWebsocket';
 
 export const useStrategyWebsocket = () => {
@@ -52,7 +53,10 @@ export const useStrategyWebsocket = () => {
 
           const updates: Partial<StrategyDashboardRow> = {};
 
-          if (data.strategy_msg.event === 'STATUS_UPDATE' && data.strategy_msg.state) {
+          if (
+            data.strategy_msg.event === StrategyEventType.STATUS_UPDATE &&
+            data.strategy_msg.state
+          ) {
             updates.state = data.strategy_msg.state;
 
             if (isTerminalState(data.strategy_msg.state)) {
@@ -60,7 +64,10 @@ export const useStrategyWebsocket = () => {
             }
           }
 
-          if (data.strategy_msg.event === 'MESSAGE_UPDATE' && data.strategy_msg.message) {
+          if (
+            data.strategy_msg.event === StrategyEventType.MESSAGE_UPDATE &&
+            data.strategy_msg.message
+          ) {
             updates.ws_message = data.strategy_msg.message;
           }
 

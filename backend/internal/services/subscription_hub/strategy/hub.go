@@ -78,7 +78,7 @@ func (sh *SubscriptionHub) PublishTakeCreation(id int64, task tasks.Task) error 
 
 	msg := strategies.StrategyMessage{
 		Id:    id,
-		Event: "TASK_CREATION",
+		Event: strategies.TaskCreation,
 		Task:  task,
 	}
 
@@ -100,7 +100,7 @@ func (sh *SubscriptionHub) PublishStateUpdate(id int64, state string) error {
 
 	msg := strategies.StrategyMessage{
 		Id:    id,
-		Event: "STATUS_UPDATE",
+		Event: strategies.StatusUpdate,
 		State: &state,
 	}
 
@@ -122,7 +122,7 @@ func (sh *SubscriptionHub) PublishProgressMessage(id int64, message string) erro
 
 	msg := strategies.StrategyMessage{
 		Id:      id,
-		Event:   "MESSAGE_UPDATE",
+		Event:   strategies.MessageUpdate,
 		Message: &message,
 	}
 

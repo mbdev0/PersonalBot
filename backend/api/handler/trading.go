@@ -316,20 +316,18 @@ func (th *TradingHandler) readFromSub(sub strategy.Subscription, wsWriteChan cha
 			},
 		}
 
-		if msg.Event == "TASK_CREATION" {
+		switch msg.Event {
+		case "TASK_CREATION":
 			mappedTask, err := mapper.MapTaskToReponseTask(msg.Task)
 			if err != nil {
 				logger.Error("failed to map task: ", err)
 			}
-
 			strategyResponse.StrategyMessage.Task = mappedTask
-		}
 
-		if msg.Event == "STATUS_UPDATE" {
+		case "STATUS_UPDATE":
 			strategyResponse.StrategyMessage.State = msg.State
-		}
 
-		if msg.Event == "MESSAGE_UPDATE" {
+		case "MESSAGE_UPDATE":
 			strategyResponse.StrategyMessage.Message = msg.Message
 		}
 
