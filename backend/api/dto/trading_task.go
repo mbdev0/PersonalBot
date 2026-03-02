@@ -38,6 +38,7 @@ type TradingTaskResponse struct {
 	WalletName    string      `json:"wallet_name"`
 	WalletAddress string      `json:"wallet_address"`
 	State         string      `json:"state"`
+	Message       string      `json:"message"`
 
 	SellStrategies *[]SellStrategyDTO `json:"sell_strategies,omitempty"`
 	BuyAmount      *float64           `json:"buy_amount,omitempty"`
