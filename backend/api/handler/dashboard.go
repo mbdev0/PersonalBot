@@ -78,7 +78,7 @@ func (dh *DashboardHandler) generateDashboardResponse(strategies []dto.TradingTa
 		tbr := dto.TableRow{
 			Type:      string(dto.STRATEGY),
 			Id:        st.Id,
-			WsMessage: "",
+			WsMessage: st.Message,
 			State:     st.State,
 			Data:      st,
 			Children:  childrenRows,
