@@ -268,29 +268,14 @@ func (s *Service) Stop(id int64) error {
 		return fmt.Errorf("task not running with id: %d", id)
 	}
 
-	if strategyTask.StrategyType() == strategies.BUY || strategyTask.StrategyType() == strategies.SELL {
-		//we get the task with strategy id
-		// if the state is failed, we set the state as failed
-		// if state is done, we set as success
-		// if state is created, set created
+	t, err := s.taskService.GetTaskWithStrategyId(strategyTask.StrategyTaskId())
+	if err != nil {
+		return err
+	}
 
-		task, err := s.taskService.GetTaskWithStrategyId(strategyTask.StrategyTaskId())
-		if err != nil {
-			return err
-		}
-
-		if task.State().TaskState.IsError() {
-			strategyTask.SetStrategyState(string(strategies.FAILED))
-		}
-
-		if task.State().TaskState.IsSuccess() {
-			strategyTask.SetStrategyState(string(strategies.SUCCESS))
-		}
-
-		if task.State().TaskState.IsCreate() {
-			strategyTask.SetStrategyState(string(strategies.CREATED))
-		}
-
+	err = s.taskService.StopTask(t.Id())
+	if err != nil {
+		return err
 	}
 
 	taskCancel()

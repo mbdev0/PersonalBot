@@ -8,8 +8,7 @@ import type {
 } from '../types/dashboard';
 import type { SendTaskWSMessage, TaskWSMessage } from '../types/taskWebsocket';
 
-//this is for states for tasks only -
-// TODO: ONLY FOR CHILDREN
+// ONLY FOR CHILDREN
 export const useTaskWebsocket = () => {
   const client = useQueryClient();
   const websocket = useRef<WebSocket | undefined>(undefined);

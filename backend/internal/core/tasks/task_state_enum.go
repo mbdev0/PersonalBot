@@ -138,6 +138,10 @@ func (ts TaskState) IsCreate() bool {
 	return ts == TaskCreate
 }
 
+func (ts TaskState) IsCancel() bool {
+	return ts == TaskCancel
+}
+
 func (ts TaskState) IsAbleToRun() bool {
 	return ts == TaskCreate || ts.IsRetryable()
 }

@@ -43,7 +43,7 @@ func (s *Strategy) Sell(tsk *strategies.Sell, ctxCancel context.Context) {
 		logger.Error(err)
 	}
 
-	go s.syncStateAndMessage(tsk.SellTaskId, tsk)
+	go s.syncStateAndMessage(tsk.SellTaskId, tsk, ctxCancel)
 
 }
 
@@ -55,7 +55,7 @@ func (s *Strategy) Buy(buyTask *strategies.Buy, ctx context.Context) {
 	}
 
 	//need to track ctx in here?
-	go s.syncStateAndMessage(buyTask.BuyTaskId, buyTask)
+	go s.syncStateAndMessage(buyTask.BuyTaskId, buyTask, ctx)
 
 	if len(buyTask.SellStrategies) != 0 {
 		pos, ok := s.positionHub.WaitForCreate(buyTask.PositionId)
@@ -70,7 +70,7 @@ func (s *Strategy) Buy(buyTask *strategies.Buy, ctx context.Context) {
 
 }
 
-func (s *Strategy) syncStateAndMessage(taskId int64, strategyTask strategies.Task) error {
+func (s *Strategy) syncStateAndMessage(taskId int64, strategyTask strategies.Task, ctx context.Context) error {
 	task, err := s.taskService.GetTaskWith(taskId)
 	if err != nil {
 		logger.Error(err)
@@ -81,23 +81,46 @@ func (s *Strategy) syncStateAndMessage(taskId int64, strategyTask strategies.Tas
 		logger.Error(err)
 		return err
 	}
-
 	logger.Information("subscribed to task successfully")
+	defer s.taskHub.Unsubcribe(task)
 
-	for msg := range sub.Chan() {
-		if msg.EventType == tasks.StateUpdate {
-			strategyTask.SetStrategyState(msg.State.TaskState.ToString())
+	for {
+		select {
+		case <-ctx.Done():
+			logger.Information("strategy task stopped")
+			strategyTask.SetStrategyState(string(strategies.CANCELLED))
 			err := s.strategyHub.PublishStateUpdate(strategyTask.StrategyTaskId(), strategyTask.StrategyState())
 			if err != nil {
 				logger.Error(err)
+				return err
 			}
+			return ctx.Err()
+		case msg, ok := <-sub.Chan():
+			if !ok {
+				logger.Information("sub chan closed")
+				return nil
+			}
+			s.processMessage(msg, strategyTask)
 		}
-		if msg.EventType == tasks.ProgressMessage {
-			strategyTask.SetStrategyMessage(msg.Message)
-			err := s.strategyHub.PublishProgressMessage(strategyTask.StrategyTaskId(), strategyTask.StrategyMessage())
-			if err != nil {
-				logger.Error(err)
-			}
+	}
+}
+
+func (s *Strategy) processMessage(msg tasks.TaskEvent, strategyTask strategies.Task) error {
+	if msg.EventType == tasks.StateUpdate {
+		strategyTask.SetStrategyState(msg.State.TaskState.ToString())
+		err := s.strategyHub.PublishStateUpdate(strategyTask.StrategyTaskId(), strategyTask.StrategyState())
+		if err != nil {
+			logger.Error(err)
+			return err
+		}
+	}
+
+	if msg.EventType == tasks.ProgressMessage {
+		strategyTask.SetStrategyMessage(msg.Message)
+		err := s.strategyHub.PublishProgressMessage(strategyTask.StrategyTaskId(), strategyTask.StrategyMessage())
+		if err != nil {
+			logger.Error(err)
+			return err
 		}
 	}
 	return nil
