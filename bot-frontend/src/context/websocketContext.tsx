@@ -9,13 +9,4 @@ export const WebSocketContext = createContext<{
   sendStrategyWSMessage: (msg: StrategySendWSMessage) => void;
 } | null>(null);
 
-export function WebsocketProvider({ children }: { children: ReactNode }) {
-  const { send } = useTaskWebsocket();
-  const { sendStrategyWSMessage } = useStrategyWebsocket();
 
-  return (
-    <WebSocketContext.Provider value={{ send, sendStrategyWSMessage }}>
-      {children}
-    </WebSocketContext.Provider>
-  );
-}

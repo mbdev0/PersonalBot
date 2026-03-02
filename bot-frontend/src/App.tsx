@@ -5,7 +5,7 @@ import { BrowserRouter, Route, Routes } from 'react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import WalletDashboard from './features/wallets/components/walletDashboard';
 import { AppSidebar } from './components/appSidebar';
-import { WebsocketProvider } from './context/websocketContext';
+import { WebsocketProvider } from './context/websocketProvider';
 
 const queryClient = new QueryClient();
 
