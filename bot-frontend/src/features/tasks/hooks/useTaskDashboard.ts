@@ -22,7 +22,7 @@ export function useTaskDashboard() {
 
     query.data.rows.forEach((row) => {
       if (row.type === 'strategy') {
-        if (row.state == 'SUCCESS') {
+        if (row.state == 'SUCCESS' || row.state == 'Done') {
           return;
         }
         strategySend({ type: 'Subscribe', id: row.data.id });
