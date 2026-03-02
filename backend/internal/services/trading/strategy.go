@@ -10,6 +10,7 @@ import (
 	"personal_bot/internal/monitoring/filters"
 	"personal_bot/internal/monitoring/models"
 	positionservice "personal_bot/internal/services/position"
+	subscriptionhub "personal_bot/internal/services/subscription_hub"
 	positionhub "personal_bot/internal/services/subscription_hub/position"
 	"personal_bot/internal/services/subscription_hub/strategy"
 	taskservice "personal_bot/internal/services/task_service"
@@ -23,15 +24,17 @@ type Strategy struct {
 	taskService     *taskservice.TaskService
 	positionHub     *positionhub.SubscriptionHub
 	strategyHub     *strategy.SubscriptionHub
+	taskHub         *subscriptionhub.Hub
 	positionService *positionservice.Service
 }
 
-func NewTradingStrategy(ts *taskservice.TaskService, ph *positionhub.SubscriptionHub, ps *positionservice.Service, sh *strategy.SubscriptionHub) *Strategy {
+func NewTradingStrategy(ts *taskservice.TaskService, ph *positionhub.SubscriptionHub, ps *positionservice.Service, sh *strategy.SubscriptionHub, th *subscriptionhub.Hub) *Strategy {
 	return &Strategy{
 		taskService:     ts,
 		positionHub:     ph,
 		positionService: ps,
 		strategyHub:     sh,
+		taskHub:         th,
 	}
 }
 
@@ -40,13 +43,19 @@ func (s *Strategy) Sell(tsk *strategies.Sell, ctxCancel context.Context) {
 		logger.Error(err)
 	}
 
+	go s.syncStateAndMessage(tsk.SellTaskId, tsk)
+
 }
 
 func (s *Strategy) Buy(buyTask *strategies.Buy, ctx context.Context) {
 	err := s.taskService.StartTask(buyTask.BuyTaskId)
 	if err != nil {
+		//we should set the task error here
 		logger.Error(err)
 	}
+
+	//need to track ctx in here?
+	go s.syncStateAndMessage(buyTask.BuyTaskId, buyTask)
 
 	if len(buyTask.SellStrategies) != 0 {
 		pos, ok := s.positionHub.WaitForCreate(buyTask.PositionId)
@@ -58,6 +67,40 @@ func (s *Strategy) Buy(buyTask *strategies.Buy, ctx context.Context) {
 		sellStrats := s.ResolveStrategyConfig(buyTask.SellStrategies, pos, ctx)
 		s.monitorPositionForSellStrategies(*pos, buyTask, sellStrats, ctx)
 	}
+
+}
+
+func (s *Strategy) syncStateAndMessage(taskId int64, strategyTask strategies.Task) error {
+	task, err := s.taskService.GetTaskWith(taskId)
+	if err != nil {
+		logger.Error(err)
+		return err
+	}
+	sub, err := s.taskHub.Subscribe(task)
+	if err != nil {
+		logger.Error(err)
+		return err
+	}
+
+	logger.Information("subscribed to task successfully")
+
+	for msg := range sub.Chan() {
+		if msg.EventType == tasks.StateUpdate {
+			strategyTask.SetStrategyState(msg.State.TaskState.ToString())
+			err := s.strategyHub.PublishStateUpdate(strategyTask.StrategyTaskId(), strategyTask.StrategyState())
+			if err != nil {
+				logger.Error(err)
+			}
+		}
+		if msg.EventType == tasks.ProgressMessage {
+			strategyTask.SetStrategyMessage(msg.Message)
+			err := s.strategyHub.PublishProgressMessage(strategyTask.StrategyTaskId(), strategyTask.StrategyMessage())
+			if err != nil {
+				logger.Error(err)
+			}
+		}
+	}
+	return nil
 }
 
 func (s *Strategy) AfkSniping(afkTask *strategies.Afk, ctx context.Context) {
@@ -172,6 +215,7 @@ func (s *Strategy) ResolveStrategyConfig(sellStratsConfig []strategies.StrategyC
 func (s *Strategy) monitorPositionForSellStrategies(pos position.Position, sellableTask strategies.SellableStrategy, strats []sell.Strategy, ctx context.Context) error {
 	sub, err := s.positionHub.Subscribe(pos.PositionId, true)
 	if err != nil {
+		logger.Error(err)
 		return err
 	}
 
