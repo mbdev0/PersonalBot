@@ -63,8 +63,6 @@ export function useStartStrategy() {
 }
 
 export function useStopStrategy() {
-  // const client = useQueryClient();
-
   return useMutation({
     mutationFn: (id: number) => stopStrategy(id),
     onSuccess() {},
