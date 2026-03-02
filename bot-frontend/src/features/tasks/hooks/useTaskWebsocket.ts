@@ -6,13 +6,14 @@ import type {
   StrategyDashboardRow,
   TaskDashboardRow,
 } from '../types/dashboard';
-import type { SendTaskWSMessage, TaskWSMessage } from '../types/task_websocket';
+import type { SendTaskWSMessage, TaskWSMessage } from '../types/taskWebsocket';
 
-//this is for states for tasks only
-export const useStateWebsocket = () => {
+//this is for states for tasks only -
+// TODO: ONLY FOR CHILDREN
+export const useTaskWebsocket = () => {
   const client = useQueryClient();
   const websocket = useRef<WebSocket | undefined>(undefined);
-  const subscribedTasks = useRef<Set<Number>>(new Set<Number>());
+  const subscribedTasks = useRef<Set<number>>(new Set<number>());
 
   useEffect(() => {
     const ws = new WebSocket('ws://127.0.0.1:9090/api/tasks/subscribe');
@@ -39,29 +40,6 @@ export const useStateWebsocket = () => {
         if (strategyTask.type != 'strategy') {
           console.error('when looking for strategy task - we ended up getting a task for the row');
           return oldData;
-        }
-
-        if (shouldMoveStateAndMessageUp(strategyTask)) {
-          const updated: StrategyDashboardRow = {
-            ...strategyTask,
-          };
-          if (data.task_event.event_type == 'StatusUpdate') {
-            updated.state = data.task_event.state.task_state;
-          }
-          if (data.task_event.event_type == 'ProgressMessage') {
-            updated.ws_message = data.task_event.message;
-          }
-
-          const updatedRows: DashboardRow[] = [
-            ...oldData.rows.slice(0, strategyTaskIdx),
-            updated,
-            ...oldData.rows.slice(strategyTaskIdx + 1),
-          ];
-
-          return {
-            ...oldData,
-            rows: updatedRows,
-          };
         }
 
         const childTaskIdx = strategyTask.children.findIndex(
@@ -137,9 +115,3 @@ export const useStateWebsocket = () => {
     send,
   };
 };
-
-function shouldMoveStateAndMessageUp(row: DashboardRow): boolean {
-  return (
-    row.type === 'strategy' && (row.data.trading_type === 'BUY' || row.data.trading_type === 'SELL')
-  );
-}
