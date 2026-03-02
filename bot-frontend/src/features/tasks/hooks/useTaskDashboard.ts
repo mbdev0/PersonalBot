@@ -2,12 +2,13 @@ import { useQuery } from '@tanstack/react-query';
 import { getDashboard } from '../api/taskDashboard';
 import { useEffect } from 'react';
 import type { StrategyDashboardRow } from '../types/dashboard';
-import { useWebsocketSend } from '@/hooks/useWebsocketSend';
-import type { SendTaskWSMessage } from '../types/task_websocket';
+import { useStrategyWebsocketSend, useTaskWebsocketSend } from '@/hooks/useWebsocketSend';
+import type { SendTaskWSMessage } from '../types/taskWebsocket';
 import { isTerminal } from '../types/task';
 
 export function useTaskDashboard() {
-  const send = useWebsocketSend();
+  const send = useTaskWebsocketSend();
+  const strategySend = useStrategyWebsocketSend();
 
   const query = useQuery({
     queryKey: ['dashboard'],
@@ -21,15 +22,12 @@ export function useTaskDashboard() {
 
     query.data.rows.forEach((row) => {
       if (row.type === 'strategy') {
-        switch (row.data.trading_type) {
-          case 'BUY':
-            if (!isTerminal(row.state)) send({ type: 'Subscribe', id: row.data.buy_task_id });
-            break;
-          case 'SELL':
-            if (!isTerminal(row.state)) send({ type: 'Subscribe', id: row.data.sell_task_id });
-            break;
-          default:
-            subscribeToTaskChildren(row, send);
+        if (row.state == 'SUCCESS') {
+          return;
+        }
+        strategySend({ type: 'Subscribe', id: row.data.id });
+        if (row.children.length > 0) {
+          subscribeToTaskChildren(row, send);
         }
       }
     });
