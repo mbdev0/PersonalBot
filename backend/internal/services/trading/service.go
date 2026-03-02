@@ -258,7 +258,7 @@ func (s *Service) Stop(id int64) error {
 	defer s.mu.Unlock()
 
 	// this will call a tasks cancel
-	task, ok := s.tasks[id]
+	strategyTask, ok := s.tasks[id]
 	if !ok {
 		return fmt.Errorf("task not found with id: %d", id)
 	}
@@ -268,10 +268,33 @@ func (s *Service) Stop(id int64) error {
 		return fmt.Errorf("task not running with id: %d", id)
 	}
 
-	task.SetStrategyState(string(strategies.CREATED))
+	if strategyTask.StrategyType() == strategies.BUY || strategyTask.StrategyType() == strategies.SELL {
+		//we get the task with strategy id
+		// if the state is failed, we set the state as failed
+		// if state is done, we set as success
+		// if state is created, set created
+
+		task, err := s.taskService.GetTaskWithStrategyId(strategyTask.StrategyTaskId())
+		if err != nil {
+			return err
+		}
+
+		if task.State().TaskState.IsError() {
+			strategyTask.SetStrategyState(string(strategies.FAILED))
+		}
+
+		if task.State().TaskState.IsSuccess() {
+			strategyTask.SetStrategyState(string(strategies.SUCCESS))
+		}
+
+		if task.State().TaskState.IsCreate() {
+			strategyTask.SetStrategyState(string(strategies.CREATED))
+		}
+
+	}
 
 	taskCancel()
-	delete(s.running, task.StrategyTaskId())
+	delete(s.running, strategyTask.StrategyTaskId())
 	return nil
 }
 
