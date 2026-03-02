@@ -8,23 +8,17 @@ import {
 } from '../api/strategyTasks';
 import type { StrategyTaskPost } from '../types/strategies/strategyTaskPost';
 import type { StrategyTaskPut } from '../types/strategies/strategyTaskPut';
-import { useWebsocketSend } from '@/hooks/useWebsocketSend';
+import { useStrategyWebsocketSend } from '@/hooks/useWebsocketSend';
 
 export function useAddStrategy() {
   const client = useQueryClient();
-  const send = useWebsocketSend();
+  const strategySend = useStrategyWebsocketSend();
 
   return useMutation({
     mutationFn: (task: StrategyTaskPost) => postStrategy(task),
     onSuccess: (response) => {
       client.invalidateQueries({ queryKey: ['dashboard'] });
-      if (response.trading_type == 'BUY') {
-        send({ type: 'Subscribe', id: response.buy_task_id });
-      }
-
-      if (response.trading_type == 'SELL') {
-        send({ type: 'Subscribe', id: response.sell_task_id });
-      }
+      strategySend({ type: 'Subscribe', id: response.id });
     },
     onError(e) {
       console.error('error: ', e);
@@ -69,13 +63,11 @@ export function useStartStrategy() {
 }
 
 export function useStopStrategy() {
-  const client = useQueryClient();
+  // const client = useQueryClient();
 
   return useMutation({
     mutationFn: (id: number) => stopStrategy(id),
-    onSuccess() {
-      client.invalidateQueries({ queryKey: ['dashboard'] });
-    },
+    onSuccess() {},
     onError(e) {
       console.error('error whilst stopping strategy: ', e);
     },
