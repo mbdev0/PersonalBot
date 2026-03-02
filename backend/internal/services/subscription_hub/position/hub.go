@@ -175,7 +175,6 @@ func (sh *SubscriptionHub) PublishPositionUpdate(pos *position.Position) error {
 func (sh *SubscriptionHub) PublishPositionCreate(p *position.Position, ctx context.Context) {
 
 	sh.mu.Lock()
-
 	sh.activePositions.Set(p.PositionId, p)
 	finalizedProfit := new(big.Float).Quo(p.FinalizedProfit, big.NewFloat(constants.LamportsConversion))
 	tokensRemaining := new(big.Float).Quo(p.TokenRemaining, big.NewFloat(constants.TokenAmountDecimals))
@@ -187,7 +186,6 @@ func (sh *SubscriptionHub) PublishPositionCreate(p *position.Position, ctx conte
 		logger.Error(err)
 	}
 	totalPnl, unrealizedPnl, currentPrice := sh.getProfitValues(p, marketCap)
-
 	sh.mu.Unlock()
 
 	posMessage := position.PositionMessage{

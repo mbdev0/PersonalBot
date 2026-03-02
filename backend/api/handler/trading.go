@@ -3,7 +3,9 @@ package handler
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"net"
 	"net/http"
 	"personal_bot/api/controller"
 	"personal_bot/api/dto"
@@ -206,10 +208,15 @@ func (th *TradingHandler) stopTask(w http.ResponseWriter, r *http.Request) {
 
 func (th *TradingHandler) subscribe(w http.ResponseWriter, r *http.Request) {
 	subscribers := make(chan strategy.Subscription, 1000)
+	activeSubs := map[int64]strategy.Subscription{}
+
 	defer close(subscribers)
+	opts := &websocket.AcceptOptions{
+		OriginPatterns: []string{"localhost:5173"},
+	}
 
 	//upgrade to ws
-	c, err := websocket.Accept(w, r, nil)
+	c, err := websocket.Accept(w, r, opts)
 
 	if err != nil {
 		fmt.Println(err)
@@ -219,10 +226,19 @@ func (th *TradingHandler) subscribe(w http.ResponseWriter, r *http.Request) {
 
 	defer func(c *websocket.Conn) {
 		err := c.CloseNow()
-		if err != nil {
+		if err != nil && !errors.Is(err, net.ErrClosed) {
 			logger.Error(err.Error())
 		}
 	}(c)
+
+	defer func() {
+		for strategyId := range activeSubs {
+			err := th.strategyController.Unsubscribe(strategyId)
+			if err != nil {
+				logger.Error(err)
+			}
+		}
+	}()
 
 	wsWriteChan := make(chan dto.StrategyResponse, 1000)
 	defer close(wsWriteChan)
@@ -242,11 +258,23 @@ func (th *TradingHandler) subscribe(w http.ResponseWriter, r *http.Request) {
 
 		err := wsjson.Read(ctx, c, &msg)
 		if err != nil {
-			if websocket.CloseStatus(err) != -1 || ctx.Err() != nil {
-				logger.Information("WebSocket connection closed or context cancelled")
+			closeStatus := websocket.CloseStatus(err)
+			isValidCloseStatus := closeStatus == websocket.StatusNormalClosure ||
+				closeStatus == websocket.StatusGoingAway ||
+				closeStatus == websocket.StatusNoStatusRcvd
+
+			if isValidCloseStatus {
+				logger.Information(fmt.Sprintf("WebSocket closed normally (status: %s)", closeStatus.String()))
 				return
 			}
-			th.handleError(err, resp, c, ctx)
+
+			logger.Error("error whilst reading", err)
+			resp.Error = err.Error()
+			wsjson.Write(ctx, c, "err")
+			err := wsjson.Write(ctx, c, resp)
+			if err != nil {
+				logger.Error("error whilst trying to write to WS, error: " + err.Error())
+			}
 			return
 		}
 		fmt.Println(msg)
@@ -259,6 +287,7 @@ func (th *TradingHandler) subscribe(w http.ResponseWriter, r *http.Request) {
 				continue
 			}
 			subscribers <- *sub
+			activeSubs[sub.Sub_id] = *sub
 
 		case dto.Unsubscribe:
 			err := th.strategyController.Unsubscribe(msg.Id)
@@ -266,6 +295,7 @@ func (th *TradingHandler) subscribe(w http.ResponseWriter, r *http.Request) {
 				th.handleError(err, resp, c, ctx)
 				continue
 			}
+			delete(activeSubs, msg.Id)
 		}
 	}
 
@@ -279,19 +309,30 @@ func (th *TradingHandler) fanIn(subscribers <-chan strategy.Subscription, wsWrit
 
 func (th *TradingHandler) readFromSub(sub strategy.Subscription, wsWriteChan chan<- dto.StrategyResponse) {
 	for msg := range sub.SubChan {
-
-		mappedTask, err := mapper.MapTaskToReponseTask(msg.Task)
-		if err != nil {
-			logger.Error("failed to map task: ", err)
-		}
-
 		strategyResponse := dto.StrategyResponse{
 			StrategyMessage: dto.StrategyMessageResponse{
 				Id:    msg.Id,
 				Event: msg.Event,
-				Task:  *mappedTask,
 			},
 		}
+
+		if msg.Event == "TASK_CREATION" {
+			mappedTask, err := mapper.MapTaskToReponseTask(msg.Task)
+			if err != nil {
+				logger.Error("failed to map task: ", err)
+			}
+
+			strategyResponse.StrategyMessage.Task = mappedTask
+		}
+
+		if msg.Event == "STATUS_UPDATE" {
+			strategyResponse.StrategyMessage.State = msg.State
+		}
+
+		if msg.Event == "MESSAGE_UPDATE" {
+			strategyResponse.StrategyMessage.Message = msg.Message
+		}
+
 		select {
 		case wsWriteChan <- strategyResponse:
 		default:
