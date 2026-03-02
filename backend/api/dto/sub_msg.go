@@ -2,6 +2,7 @@ package dto
 
 import (
 	"personal_bot/internal/core/position"
+	"personal_bot/internal/core/strategies"
 	"personal_bot/internal/core/tasks"
 )
 
@@ -37,11 +38,11 @@ type StrategyResponse struct {
 }
 
 type StrategyMessageResponse struct {
-	Id      int64         `json:"id"`
-	Event   string        `json:"event"`
-	Task    *ResponseTask `json:"task,omitempty"`
-	State   *string       `json:"state,omitempty"`
-	Message *string       `json:"message,omitempty"`
+	Id      int64                `json:"id"`
+	Event   strategies.EventType `json:"event"`
+	Task    *ResponseTask        `json:"task,omitempty"`
+	State   *string              `json:"state,omitempty"`
+	Message *string              `json:"message,omitempty"`
 }
 
 type SubType string
