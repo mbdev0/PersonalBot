@@ -50,11 +50,10 @@ func (s *Strategy) Sell(tsk *strategies.Sell, ctxCancel context.Context) {
 func (s *Strategy) Buy(buyTask *strategies.Buy, ctx context.Context) {
 	err := s.taskService.StartTask(buyTask.BuyTaskId)
 	if err != nil {
-		//we should set the task error here
+		//TODO: when we're doing the PR for cleaning up WS messages - should set the task error here
 		logger.Error(err)
 	}
 
-	//need to track ctx in here?
 	go s.syncStateAndMessage(buyTask.BuyTaskId, buyTask, ctx)
 
 	if len(buyTask.SellStrategies) != 0 {

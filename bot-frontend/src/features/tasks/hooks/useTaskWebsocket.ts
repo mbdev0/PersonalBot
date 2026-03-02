@@ -53,6 +53,7 @@ export const useTaskWebsocket = () => {
         const childTask = strategyTask.children[childTaskIdx];
         const updatedChildRow: TaskDashboardRow = {
           ...childTask,
+          //TODO: in backend or frontend - when the state is Terminal, unsubscribe
           state: data.task_event.state.task_state,
           ws_message: data.task_event.message,
         };
