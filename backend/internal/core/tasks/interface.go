@@ -5,6 +5,8 @@ type Task interface {
 	GetStrategyId() *int64
 	SetStrategyId(id int64)
 	SetState(State)
+	SetMessage(string)
+	Message() string
 	Type() string
 	State() State
 	SetId(id int64)
