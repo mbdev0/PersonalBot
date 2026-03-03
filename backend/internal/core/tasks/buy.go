@@ -22,6 +22,7 @@ type BuyTask struct {
 	StrategyId   *int64
 	TimeCreated  int64
 	state        State
+	message      string
 	mu           *sync.RWMutex
 }
 
@@ -65,3 +66,11 @@ func (bt *BuyTask) SetSlippage(slippage float64) { bt.Slippage = slippage }
 func (bt *BuyTask) SetState(newState State)      { bt.mu.Lock(); defer bt.mu.Unlock(); bt.state = newState }
 func (bt *BuyTask) SetTime(t int64)              { bt.TimeCreated = t }
 func (bt *BuyTask) SetStrategyId(id int64)       { bt.mu.Lock(); defer bt.mu.Unlock(); bt.StrategyId = &id }
+
+func (bt *BuyTask) SetMessage(message string) {
+	bt.message = message
+}
+
+func (bt *BuyTask) Message() string {
+	return bt.message
+}

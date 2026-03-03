@@ -38,6 +38,7 @@ func mapBuyToResponseTask(t *tasks.BuyTask) *dto.ResponseTask {
 	responseTask.WalletPublicKey = t.Wallet.PublicKey().Short(constants.ShortPublicAddressInt)
 	responseTask.StrategyId = t.StrategyId
 	responseTask.TimeCreated = t.TimeCreated
+	responseTask.Message = t.Message()
 
 	return &responseTask
 }
@@ -61,6 +62,7 @@ func mapSellToResponseTask(t *tasks.SellTask) *dto.ResponseTask {
 	responseTask.WalletPublicKey = t.Wallet.PublicKey().Short(constants.ShortPublicAddressInt)
 	responseTask.TimeCreated = t.TimeCreated
 	responseTask.StrategyId = t.StrategyId
+	responseTask.Message = t.Message()
 
 	return &responseTask
 }

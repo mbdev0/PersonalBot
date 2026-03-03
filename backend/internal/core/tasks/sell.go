@@ -21,6 +21,7 @@ type SellTask struct {
 	ComputeUnits   uint32
 	TimeCreated    int64
 	state          State
+	message        string
 	StrategyId     *int64
 	mu             *sync.RWMutex
 }
@@ -66,3 +67,11 @@ func (st *SellTask) SetState(newState State) {
 }
 func (st *SellTask) SetTime(t int64)        { st.TimeCreated = t }
 func (st *SellTask) SetStrategyId(id int64) { st.mu.Lock(); defer st.mu.Unlock(); st.StrategyId = &id }
+
+func (st *SellTask) SetMessage(message string) {
+	st.message = message
+}
+
+func (st *SellTask) Message() string {
+	return st.message
+}
