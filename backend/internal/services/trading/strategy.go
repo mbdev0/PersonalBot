@@ -2,6 +2,7 @@ package trading
 
 import (
 	"context"
+	"fmt"
 	"personal_bot/infrastructure/solana_price"
 	"personal_bot/internal/core/position"
 	"personal_bot/internal/core/strategies"
@@ -106,7 +107,7 @@ func (s *Strategy) syncStateAndMessage(taskId int64, strategyTask strategies.Tas
 
 func (s *Strategy) processMessage(msg tasks.TaskEvent, strategyTask strategies.Task) error {
 	if msg.EventType == tasks.StateUpdate {
-		strategyTask.SetStrategyState(msg.State.TaskState.ToString())
+		strategyTask.SetStrategyState(msg.State.TaskState)
 		err := s.strategyHub.PublishStateUpdate(strategyTask.StrategyTaskId(), strategyTask.StrategyState())
 		if err != nil {
 			logger.Error(err)
@@ -140,9 +141,20 @@ func (s *Strategy) AfkSniping(afkTask *strategies.Afk, ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():
+			afkTask.SetStrategyState(string(strategies.CANCELLED))
+			err := s.strategyHub.PublishStateUpdate(afkTask.StrategyTaskId(), afkTask.StrategyState())
+			if err != nil {
+				logger.Error(err)
+			}
+
 			return
 		case coin, ok := <-coins:
 			if !ok {
+				afkTask.SetStrategyState(string(strategies.CANCELLED))
+				err := s.strategyHub.PublishStateUpdate(afkTask.StrategyTaskId(), afkTask.StrategyState())
+				if err != nil {
+					logger.Error(err)
+				}
 				return
 			}
 			logger.Information("found new coin: ", coin.CoinData.Name)
@@ -185,6 +197,7 @@ func (s *Strategy) createAndRunBuyTask(coin models.Coin, afkTask *strategies.Afk
 	}
 
 	s.strategyHub.PublishTakeCreation(afkTask.StrategyTaskId(), bt)
+	s.strategyHub.PublishProgressMessage(afkTask.StrategyTaskId(), fmt.Sprintf("created + running coin for %s", coin.CoinData.Symbol))
 
 	err = s.taskService.StartTask(bt.Id())
 	if err != nil {
