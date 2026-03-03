@@ -10,6 +10,7 @@ import (
 	"personal_bot/internal/core/tasks"
 	"personal_bot/internal/services/subscription_hub/strategy"
 	taskservice "personal_bot/internal/services/task_service"
+	"personal_bot/pkg/logger"
 	"slices"
 	"sync"
 	"time"
@@ -157,18 +158,6 @@ func (s *Service) Delete(id int64, ctx context.Context) error {
 		return fmt.Errorf(" unsuccessful delete from database")
 	}
 
-	if task.StrategyType() == strategies.BUY {
-		task, err := s.taskService.GetTaskWithStrategyId(id)
-		if err != nil {
-			return err
-		}
-
-		err = s.taskService.DeleteTask(task.Id())
-		if err != nil {
-			return err
-		}
-	}
-
 	if task.StrategyType() == strategies.SELL {
 		sell, ok := task.(*strategies.Sell)
 		if !ok {
@@ -176,6 +165,20 @@ func (s *Service) Delete(id int64, ctx context.Context) error {
 		}
 
 		err := s.taskService.DeleteTask(sell.SellTaskId)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	}
+
+	tasks, err := s.taskService.GetTaskWithStrategyId(id)
+	if err != nil {
+		return err
+	}
+
+	for _, task := range tasks {
+		err = s.taskService.DeleteTask(task.Id())
 		if err != nil {
 			return err
 		}
@@ -234,6 +237,7 @@ func (s *Service) Start(id int64) error {
 
 	ctxCancel, cancel := context.WithCancel(context.Background())
 	task.SetStrategyState(string(strategies.RUNNING))
+	s.strategy.strategyHub.PublishStateUpdate(task.StrategyTaskId(), task.StrategyState())
 
 	switch tsk := task.(type) {
 	case *strategies.Afk:
@@ -268,14 +272,16 @@ func (s *Service) Stop(id int64) error {
 		return fmt.Errorf("task not running with id: %d", id)
 	}
 
-	t, err := s.taskService.GetTaskWithStrategyId(strategyTask.StrategyTaskId())
+	childTasks, err := s.taskService.GetTaskWithStrategyId(strategyTask.StrategyTaskId())
 	if err != nil {
 		return err
 	}
 
-	err = s.taskService.StopTask(t.Id())
-	if err != nil {
-		return err
+	for _, child := range childTasks {
+		err = s.taskService.StopTask(child.Id())
+		if err != nil {
+			logger.Error(err)
+		}
 	}
 
 	taskCancel()
