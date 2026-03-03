@@ -1,11 +1,17 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useRef } from 'react';
-import type { Dashboard, DashboardRow, StrategyDashboardRow } from '../types/dashboard';
+import type {
+  Dashboard,
+  DashboardRow,
+  StrategyDashboardRow,
+  TaskDashboardRow,
+} from '../types/dashboard';
 import {
   StrategyEventType,
   type StrategySendWSMessage,
   type StrategyWSMessage,
 } from '../types/strategies/strategyWebsocket';
+import { mapTaskDtoToTask } from '../mapper/taskMapper';
 
 export const useStrategyWebsocket = () => {
   const client = useQueryClient();
@@ -51,13 +57,13 @@ export const useStrategyWebsocket = () => {
             return oldData;
           }
 
-          const updates: Partial<StrategyDashboardRow> = {};
+          const updatedStrategy: Partial<StrategyDashboardRow> = {};
 
           if (
             data.strategy_msg.event === StrategyEventType.STATUS_UPDATE &&
             data.strategy_msg.state
           ) {
-            updates.state = data.strategy_msg.state;
+            updatedStrategy.state = data.strategy_msg.state;
 
             if (isTerminalState(data.strategy_msg.state)) {
               subscribedTasks.current.delete(data.strategy_msg.id);
@@ -65,15 +71,31 @@ export const useStrategyWebsocket = () => {
           }
 
           if (
+            data.strategy_msg.event === StrategyEventType.TASK_CREATION &&
+            data.strategy_msg.task
+          ) {
+            const task = mapTaskDtoToTask(data.strategy_msg.task);
+            const taskRow: TaskDashboardRow = {
+              type: 'task',
+              data: task,
+              id: task.task_id,
+              ws_message: task.message,
+              state: task.state.task_state,
+            };
+
+            updatedStrategy.children = [...strategyTask.children, taskRow];
+          }
+
+          if (
             data.strategy_msg.event === StrategyEventType.MESSAGE_UPDATE &&
             data.strategy_msg.message
           ) {
-            updates.ws_message = data.strategy_msg.message;
+            updatedStrategy.ws_message = data.strategy_msg.message;
           }
 
           const updatedStrategyTask: DashboardRow = {
             ...strategyTask,
-            ...updates,
+            ...updatedStrategy,
           };
 
           const updatedDashboardRows: DashboardRow[] = [

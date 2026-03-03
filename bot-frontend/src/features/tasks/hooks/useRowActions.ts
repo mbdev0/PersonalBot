@@ -1,7 +1,6 @@
 import { useMemo } from 'react';
 import { useAddTask, useDeleteTask, useTransitionTask } from './useTasks';
 import type { RowActions } from '../types/rowActions';
-import { TaskType } from '../types/task';
 import { TaskRowType, type DisplayRow } from '../types/tableRows';
 import {
   useAddStrategy,
