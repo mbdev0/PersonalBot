@@ -53,10 +53,16 @@ export const useTaskWebsocket = () => {
         const childTask = strategyTask.children[childTaskIdx];
         const updatedChildRow: TaskDashboardRow = {
           ...childTask,
-          //TODO: in backend or frontend - when the state is Terminal, unsubscribe
-          state: data.task_event.state.task_state,
-          ws_message: data.task_event.message,
         };
+
+        switch (data.task_event.event_type) {
+          case 'StatusUpdate':
+            updatedChildRow.state = data.task_event.state.task_state;
+            break;
+          case 'ProgressMessage':
+            updatedChildRow.ws_message = data.task_event.message;
+            break;
+        }
 
         //we need to now update the child rows array
         const updatedChildRows: TaskDashboardRow[] = [

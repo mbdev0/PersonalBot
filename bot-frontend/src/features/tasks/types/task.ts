@@ -12,6 +12,7 @@ interface TaskDto {
   sell_posiiton_id: string | undefined;
   strategy_id: number | undefined;
   state: StateDto;
+  message: string;
 }
 
 interface StateDto {
@@ -33,6 +34,7 @@ interface Task {
   sell_posiiton_id: string | undefined;
   strategy_id: number | undefined;
   state: State;
+  message: string;
 }
 
 interface TaskPost {
