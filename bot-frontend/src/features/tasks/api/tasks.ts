@@ -83,7 +83,7 @@ export async function transitionTask(id: number, taskState: TaskAction): Promise
       Accept: 'application/json',
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ state: taskState }),
+    body: JSON.stringify({ action: taskState }),
   });
 
   if (!response.ok) {

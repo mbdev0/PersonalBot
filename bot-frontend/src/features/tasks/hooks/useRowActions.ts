@@ -24,14 +24,14 @@ export function useRowActions(setEditingRow: (row: DisplayRow | null) => void): 
     () => ({
       onStart: (row: DisplayRow) => {
         if (row.type === TaskRowType.Task) {
-          transitionMutation.mutate({ id: row.id, taskAction: TaskType.task_run });
+          transitionMutation.mutate({ id: row.id, taskAction: 'Run' });
         } else {
           startStrategy.mutate(row.id);
         }
       },
       onStop: (row: DisplayRow) => {
         if (row.type === TaskRowType.Task) {
-          transitionMutation.mutate({ id: row.id, taskAction: TaskType.task_cancel });
+          transitionMutation.mutate({ id: row.id, taskAction: 'Cancel' });
         } else {
           stopStrategy.mutate(row.id);
         }
