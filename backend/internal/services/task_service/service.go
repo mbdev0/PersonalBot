@@ -51,7 +51,9 @@ func (ts *TaskService) GetTaskWith(id int64) (tasks.Task, error) {
 	return task, nil
 }
 
-func (ts *TaskService) GetTaskWithStrategyId(id int64) (tasks.Task, error) {
+func (ts *TaskService) GetTaskWithStrategyId(id int64) ([]tasks.Task, error) {
+	tasksWithStrategyId := []tasks.Task{}
+
 	for _, v := range ts.tasks {
 		if v.Type() == "Sell" {
 			continue
@@ -63,12 +65,14 @@ func (ts *TaskService) GetTaskWithStrategyId(id int64) (tasks.Task, error) {
 		}
 
 		if *bt.StrategyId == id {
-			return bt, nil
+			tasksWithStrategyId = append(tasksWithStrategyId, bt)
 		}
-
+	}
+	if len(tasksWithStrategyId) == 0 {
+		return tasksWithStrategyId, fmt.Errorf("tasks not found with id: %d", id)
 	}
 
-	return nil, fmt.Errorf("task not found with id: %d", id)
+	return tasksWithStrategyId, nil
 }
 
 func (ts *TaskService) GetAllTasks() []tasks.Task {
