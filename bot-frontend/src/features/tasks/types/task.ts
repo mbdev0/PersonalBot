@@ -107,7 +107,7 @@ enum TaskType {
   tx_failed = 'TxFailed',
 }
 
-export type TaskAction = 'Run' | 'Cancel';
+export type TaskAction = 'Run' | 'Stop';
 
 export {
   type TaskDto,

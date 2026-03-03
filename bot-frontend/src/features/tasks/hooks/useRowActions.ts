@@ -30,7 +30,7 @@ export function useRowActions(setEditingRow: (row: DisplayRow | null) => void): 
       },
       onStop: (row: DisplayRow) => {
         if (row.type === TaskRowType.Task) {
-          transitionMutation.mutate({ id: row.id, taskAction: 'Cancel' });
+          transitionMutation.mutate({ id: row.id, taskAction: 'Stop' });
         } else {
           stopStrategy.mutate(row.id);
         }
