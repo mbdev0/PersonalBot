@@ -135,7 +135,7 @@ func (tc *TaskController) TransitionTask(id int64, action dto.ActionType) (err e
 			return err
 		}
 	default:
-		return fmt.Errorf("invalid state passed in - use either Run or Cancel")
+		return fmt.Errorf("invalid state passed in - use either Run or Stop")
 	}
 	return nil
 }
