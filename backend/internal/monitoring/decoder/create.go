@@ -56,8 +56,8 @@ func parseDecodedInstructionV2(data []byte) (*models.DecodedCreateInstruction, e
 	v2 := new(models.DecodedCreateInstructionV2)
 	logger.Information(data)
 	err := borsh.Deserialize(v2, data)
-	logger.Error("v2: ", err)
 	if err != nil {
+		logger.Error("v2: ", err)
 		return nil, err
 	}
 
