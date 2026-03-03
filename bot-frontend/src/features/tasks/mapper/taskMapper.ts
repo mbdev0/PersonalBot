@@ -22,24 +22,7 @@ export function mapTaskDtoToTask(src: TaskDto): Task {
     wallet_name: src.wallet_name,
     strategy_id: src.strategy_id,
     state: { error: src.state.error, task_state: src.state.task_state },
-  };
-}
-
-export function mapTaskToDto(src: Task): TaskDto {
-  return {
-    task_id: src.task_id,
-    type: src.type,
-    slippage: src.slippage,
-    compute_units: src.compute_units,
-    token_address: src.token_address,
-    buy_amount: src.buy_amount,
-    buy_fee: src.buy_fee,
-    sell_amount: src.sell_amount,
-    sell_posiiton_id: src.sell_posiiton_id,
-    sell_fee: src.sell_fee,
-    wallet_name: src.wallet_name,
-    strategy_id: src.strategy_id,
-    state: { error: src.state.error, task_state: src.state.task_state },
+    message: src.message,
   };
 }
 
