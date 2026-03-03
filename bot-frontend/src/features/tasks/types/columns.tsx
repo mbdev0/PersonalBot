@@ -4,6 +4,7 @@ import { TaskRowType, type DisplayRow } from './tableRows';
 import type { RowActions } from './rowActions';
 import { formatAddress } from '@/utils/crypto/address_shortner';
 import { ArrowRight, ArrowDown } from 'lucide-react';
+import { ChildRowActionButtons } from '../components/childRowActionButtons';
 
 //this extends the table meta to add a field called row actions so TS doesn't complain
 declare module '@tanstack/react-table' {
@@ -88,6 +89,9 @@ export const columns: ColumnDef<DisplayRow>[] = [
         <div className="flex justify-center">
           {row.original.type === TaskRowType.Strategy && (
             <ActionButtons row={row.original} rowActions={table.options.meta!.rowActions} />
+          )}
+          {row.original.type === TaskRowType.Task && (
+            <ChildRowActionButtons row={row.original} rowActions={table.options.meta!.rowActions} />
           )}
         </div>
       );
