@@ -7,6 +7,7 @@ import type {
   TaskDashboardRow,
 } from '../types/dashboard';
 import type { SendTaskWSMessage, TaskWSMessage } from '../types/taskWebsocket';
+import { TASK_WS } from '@/config/urls';
 
 // ONLY FOR CHILDREN
 export const useTaskWebsocket = () => {
@@ -15,7 +16,7 @@ export const useTaskWebsocket = () => {
   const subscribedTasks = useRef<Set<number>>(new Set<number>());
 
   useEffect(() => {
-    const ws = new WebSocket('ws://127.0.0.1:9090/api/tasks/subscribe');
+    const ws = new WebSocket(TASK_WS);
     websocket.current = ws;
 
     ws.onopen = () => {

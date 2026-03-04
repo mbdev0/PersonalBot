@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Chain } from '../types/wallet';
-import { postWalletMutation } from '../hooks/useWallets';
+import { usePostWallet } from '../hooks/useWallets';
 import {
   getPubkeyFromPrivateKey,
   isValidSolanaPrivateKey,
@@ -21,7 +21,7 @@ function WalletEntry({ onCompletion }: { onCompletion: () => void }) {
   const [public_key, setPublicKey] = useState('');
   const [chain, setChain] = useState(Chain.Solana);
   const [walletPrivateKey, setWalletPrivateKey] = useState('');
-  const mutation = postWalletMutation();
+  const mutation = usePostWallet();
 
   //temporary - how should we show errors? toaster (sonner - shadcn) + field errors -> validation only?
   const [error, setError] = useState('');

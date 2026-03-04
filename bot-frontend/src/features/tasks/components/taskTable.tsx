@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTaskDashboard } from '../hooks/useTaskDashboard';
 import { type DisplayRow } from '../types/tableRows';
 import { BotDialog } from '../../../components/botDialog';
@@ -11,6 +11,8 @@ export function TaskTable() {
   const { isPending, isError, data, error } = useTaskDashboard();
   const [editingRow, setEditingRow] = useState<DisplayRow | null>(null);
 
+  const rows = useMemo(() => data?.rows.map(mapDashboardRowToRow) ?? [], [data?.rows]);
+
   if (isPending) {
     return <div className="loading_tasks">Loading Tasks...</div>;
   }
@@ -18,8 +20,6 @@ export function TaskTable() {
   if (isError) {
     return <div className="loading_task_error">Error whilst loading tasks: {error.message}</div>;
   }
-
-  const rows = data.rows.map(mapDashboardRowToRow) ?? [];
 
   return (
     <div className="table-container">

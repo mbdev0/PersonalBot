@@ -12,6 +12,7 @@ import {
   type StrategyWSMessage,
 } from '../types/strategies/strategyWebsocket';
 import { mapTaskDtoToTask } from '../mapper/taskMapper';
+import { STRATEGY_WS } from '@/config/urls';
 
 export const useStrategyWebsocket = () => {
   const client = useQueryClient();
@@ -19,7 +20,7 @@ export const useStrategyWebsocket = () => {
   const subscribedTasks = useRef<Set<number>>(new Set<number>());
 
   useEffect(() => {
-    const ws = new WebSocket('ws://localhost:9090/api/trading/subscribe');
+    const ws = new WebSocket(STRATEGY_WS);
     websocket.current = ws;
 
     ws.onopen = () => {

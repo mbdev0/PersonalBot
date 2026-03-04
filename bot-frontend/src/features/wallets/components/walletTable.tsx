@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { deleteWalletMutation, useWallets } from '../hooks/useWallets';
+import { useDeleteWallet, useWallets } from '../hooks/useWallets';
 import WalletUpdate from './walletUpdate';
 import { type Wallet } from '../types/wallet';
 import { BotDialog } from '@/components/botDialog';
@@ -17,7 +17,7 @@ import { Pencil, Trash2 } from 'lucide-react';
 function WalletTable() {
   const { isPending, isError, data, error } = useWallets();
   const [editingWallet, setEditingWallet] = useState<Wallet | null>(null);
-  const deleteMutation = deleteWalletMutation();
+  const deleteMutation = useDeleteWallet();
 
   if (isPending) {
     return <div className="loading">Loading...</div>;
@@ -34,6 +34,7 @@ function WalletTable() {
 
         {editingWallet && (
           <WalletUpdate
+            key={editingWallet.id}
             wallet={editingWallet}
             onSuccess={() => setEditingWallet(null)}
             onCancel={() => setEditingWallet(null)}
