@@ -11,7 +11,7 @@ export function useWallets() {
   });
 }
 
-export function putWalletMutation() {
+export function usePutWallet() {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -22,7 +22,7 @@ export function putWalletMutation() {
   });
 }
 
-export function postWalletMutation() {
+export function usePostWallet() {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -33,7 +33,7 @@ export function postWalletMutation() {
   });
 }
 
-export function deleteWalletMutation() {
+export function useDeleteWallet() {
   const queryClient = useQueryClient();
 
   return useMutation({

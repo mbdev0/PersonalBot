@@ -1,6 +1,4 @@
 import { useState } from 'react';
-import type { Task } from '../../types/task';
-import { useUpdateTask } from '../../hooks/useTasks';
 import { useWallets } from '@/features/wallets/hooks/useWallets';
 import { SlippageEntry } from './fields/slippage';
 import { ComputeUnitsEntry } from './fields/computeUnits';

@@ -41,6 +41,6 @@ export function mapTaskToPostDto(src: TaskPost): TaskPostDto {
 }
 
 export function mapTaskToPutDto(src: TaskPut): TaskPutDto {
-  const { id, ...rest } = src;
+  const { ...rest } = src;
   return rest;
 }

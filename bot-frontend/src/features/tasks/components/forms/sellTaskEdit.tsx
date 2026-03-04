@@ -1,6 +1,4 @@
 import { useState } from 'react';
-import type { Task } from '../../types/task';
-import { useUpdateTask } from '../../hooks/useTasks';
 import { useWallets } from '@/features/wallets/hooks/useWallets';
 import { SlippageEntry } from './fields/slippage';
 import { ComputeUnitsEntry } from './fields/computeUnits';
@@ -22,6 +20,12 @@ interface SellTaskEditProps {
 export function SellTaskEdit({ task, onClose }: SellTaskEditProps) {
   const { isPending, isError, data, error } = useWallets();
   const putMutation = useUpdateStrategy();
+  const [slippage, setSlippage] = useState(task.slippage * 100);
+  const [computeUnits, setComputeUnits] = useState(task.compute_units);
+  const [tokenAddress, setTokenAddress] = useState(task.token_address);
+  const [sellAmount, setSellAmount] = useState(task.sell_amount * 100);
+  const [sellFee, setSellFee] = useState(task.sell_fee);
+  const [selectedWallet, setWallet] = useState(task.wallet_name);
 
   if (!task.sell_amount) {
     return (
@@ -30,13 +34,6 @@ export function SellTaskEdit({ task, onClose }: SellTaskEditProps) {
       </div>
     );
   }
-
-  const [slippage, setSlippage] = useState(task.slippage * 100);
-  const [computeUnits, setComputeUnits] = useState(task.compute_units);
-  const [tokenAddress, setTokenAddress] = useState(task.token_address);
-  const [sellAmount, setSellAmount] = useState(task.sell_amount * 100);
-  const [sellFee, setSellFee] = useState(task.sell_fee);
-  const [selectedWallet, setWallet] = useState(task.wallet_name);
 
   const wallet = data?.find((w) => w.wallet_name === selectedWallet) ?? null;
 

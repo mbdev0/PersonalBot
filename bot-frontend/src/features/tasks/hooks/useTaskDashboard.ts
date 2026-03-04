@@ -31,7 +31,7 @@ export function useTaskDashboard() {
         }
       }
     });
-  }, [query.data]);
+  }, [query.data, send, strategySend]);
 
   return query;
 }

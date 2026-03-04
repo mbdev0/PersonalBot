@@ -7,8 +7,11 @@ import { ArrowRight, ArrowDown } from 'lucide-react';
 import { ChildRowActionButtons } from '../components/childRowActionButtons';
 import { MessageCell } from '../components/messageCell';
 
-//this extends the table meta to add a field called row actions so TS doesn't complain
+// this extends the table meta to add a field called row actions so TS doesn't complain
+// eslint complaining compaining about no unused vars, but for the interface to work we must copy the same
+// interface signature
 declare module '@tanstack/react-table' {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   interface TableMeta<TData extends RowData = RowData> {
     rowActions: RowActions;
   }

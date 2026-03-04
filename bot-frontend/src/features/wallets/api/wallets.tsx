@@ -4,7 +4,7 @@ import { dtoToWallet, walletPostToDto, walletPutToDto } from '../mapper/walletMa
 
 //get wallets
 export async function getWallets(): Promise<Wallet[]> {
-  let resp = await fetch(API_BASE + '/wallet/wallets');
+  const resp = await fetch(API_BASE + '/wallet/wallets');
   if (!resp.ok) {
     throw new Error('Failed to fetch wallets: ' + resp.json());
   }
@@ -17,7 +17,7 @@ export async function getWallets(): Promise<Wallet[]> {
 
 //get wallet by id -> maybe have the id as the query key? -> Do we need this though?
 export async function getWalletsById(id: string): Promise<WalletDto> {
-  let resp = await fetch(API_BASE + `/wallet/wallets/${id}}`);
+  const resp = await fetch(API_BASE + `/wallet/wallets/${id}}`);
   if (!resp.ok) {
     throw new Error(`Failed to fetch wallet with ID: ${id} - Error: ${resp.json()}`);
   }
