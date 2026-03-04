@@ -125,6 +125,7 @@ func (bt *Transaction) ConfirmTransaction(ctx context.Context, publisher subscri
 
 	for msg := range stream {
 		if msg.Err != "" {
+			publisher.PublishMessage(bt.BuyTask, msg.Err)
 			return fmt.Errorf("%v", msg.Err)
 		}
 		publisher.PublishMessage(bt.BuyTask, msg.Message)
