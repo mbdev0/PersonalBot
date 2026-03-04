@@ -53,12 +53,13 @@ func (e *Executor) Execute(done chan struct{}, transaction transaction.Transacti
 		// if there is ctx error/ cancellation then we set
 		if err := ctx.Err(); err != nil {
 			e.setStateAndPublish(tasks.TaskCancel, t)
-			continue
+			return
 		}
 
 		if err := state.Fn(ctx, transaction); err != nil {
 			//transition to on error
 			e.setStateAndPublish(state.OnError, t)
+			return
 		}
 
 		e.setStateAndPublish(state.To, t)
