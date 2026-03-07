@@ -1,4 +1,4 @@
-import { Coins, Wallet, Bot } from 'lucide-react';
+import { Coins, Wallet, Bot, Settings, Router } from 'lucide-react';
 import { Link, useLocation } from 'react-router';
 import {
   SidebarHeader,
@@ -22,6 +22,19 @@ const navMain = [
     title: 'Wallets',
     url: '/wallets',
     icon: Wallet,
+  },
+  {
+    title: 'RPC Groups',
+    url: '/rpc_groups',
+    icon: Router,
+  },
+];
+
+const navFooter = [
+  {
+    title: 'Settings',
+    url: '/settings',
+    icon: Settings,
   },
 ];
 
@@ -77,7 +90,28 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter />
+      <SidebarFooter>
+        <SidebarMenu>
+          {navFooter.map((item) => (
+            <SidebarMenuItem key={item.title}>
+              <SidebarMenuButton
+                tooltip={{
+                  children: item.title,
+                  hidden: false,
+                }}
+                isActive={location.pathname === item.url}
+                asChild
+              >
+                <Link to={item.url}>
+                  {' '}
+                  <item.icon />
+                  <span>{item.title}</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          ))}
+        </SidebarMenu>
+      </SidebarFooter>
     </Sidebar>
   );
 }

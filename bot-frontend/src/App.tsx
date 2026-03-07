@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import WalletDashboard from './features/wallets/components/walletDashboard';
 import { AppSidebar } from './components/appSidebar';
 import { WebsocketProvider } from './context/websocketProvider';
+import { SettingsDashboard } from './features/settings/components/settingsDashboard';
 
 const queryClient = new QueryClient();
 
@@ -26,6 +27,7 @@ function App() {
                     <Routes>
                       <Route path="/" element={<TaskDashboard />} />
                       <Route path="/wallets" element={<WalletDashboard />} />
+                      <Route path="/settings" element={<SettingsDashboard />} />
                     </Routes>
                   </div>
                 </div>

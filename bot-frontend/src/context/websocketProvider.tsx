@@ -1,15 +1,13 @@
 import { useStrategyWebsocket } from '@/features/tasks/hooks/useStrategyWebsocket';
 import { useTaskWebsocket } from '@/features/tasks/hooks/useTaskWebsocket';
-import type { ReactNode } from 'react';
+import { useMemo, type ReactNode } from 'react';
 import { WebSocketContext } from './websocketContext';
 
 export function WebsocketProvider({ children }: { children: ReactNode }) {
   const { send } = useTaskWebsocket();
   const { sendStrategyWSMessage } = useStrategyWebsocket();
 
-  return (
-    <WebSocketContext.Provider value={{ send, sendStrategyWSMessage }}>
-      {children}
-    </WebSocketContext.Provider>
-  );
+  const value = useMemo(() => ({ send, sendStrategyWSMessage }), [send, sendStrategyWSMessage]);
+
+  return <WebSocketContext.Provider value={value}>{children}</WebSocketContext.Provider>;
 }
