@@ -12,6 +12,7 @@ import (
 	"personal_bot/infrastructure/persistence/repository"
 	cryptostates "personal_bot/internal/core/tasks/crypto_states"
 	"personal_bot/internal/services/position"
+	"personal_bot/internal/services/settings"
 	subscriptionhub "personal_bot/internal/services/subscription_hub"
 	positionhub "personal_bot/internal/services/subscription_hub/position"
 	"personal_bot/internal/services/subscription_hub/strategy"
@@ -79,6 +80,11 @@ func main() {
 	positionController := controller.PositionController{PositionService: positionService}
 	positionHandler := http.StripPrefix("/api/position", handler.NewPositionHandler(&positionController))
 
+	settingsRepo := repository.NewSettingRepository(db)
+	settingsService := settings.NewSettingsService(settingsRepo)
+	settingsController := controller.NewSettingsController(settingsService)
+	settingsHandler := http.StripPrefix("/api/settings", handler.NewSettingsHandler(settingsController))
+
 	dashboardHandler := http.StripPrefix("/api/dashboard", handler.NewDashboardHandler(tradingController, taskController))
 
 	mux := http.NewServeMux()
@@ -87,6 +93,7 @@ func main() {
 	mux.Handle("/api/position/", positionHandler)
 	mux.Handle("/api/wallet/", walletHandler)
 	mux.Handle("/api/dashboard/", dashboardHandler)
+	mux.Handle("/api/settings/", settingsHandler)
 
 	server := &http.Server{
 		Addr:    ":9090",
