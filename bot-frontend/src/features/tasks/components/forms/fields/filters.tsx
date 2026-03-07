@@ -1,6 +1,6 @@
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
-import type { Filters } from '@/features/tasks/types/strategyTask';
+import type { Filters } from '@/features/tasks/types/filters';
 import { Label } from '@radix-ui/react-label';
 
 interface FiltersEntryProps {
