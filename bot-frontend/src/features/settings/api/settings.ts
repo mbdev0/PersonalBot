@@ -6,7 +6,7 @@ import type { Settings } from '../types/settings';
 // 2. POST settings - we will call whenever anything changes
 // 3. GET settings
 
-const settingsUrl = API_BASE + 'settings';
+const settingsUrl = API_BASE + '/settings/';
 
 export async function testDiscordWebhook(discordWebhook: string) {
   const testDiscordWebhookBody = {
