@@ -11,6 +11,7 @@ import (
 	"personal_bot/infrastructure/persistence"
 	"personal_bot/infrastructure/persistence/repository"
 	cryptostates "personal_bot/internal/core/tasks/crypto_states"
+	"personal_bot/internal/services/notifier"
 	"personal_bot/internal/services/position"
 	"personal_bot/internal/services/settings"
 	subscriptionhub "personal_bot/internal/services/subscription_hub"
@@ -35,8 +36,18 @@ func main() {
 	app.Launch()
 
 	//TODO: move the init of api's into launch and return one mux back
-	taskSubhub := subscriptionhub.NewTaskSubscriptionHub()
 
+	settingsRepo := repository.NewSettingRepository(db)
+	settingsService := settings.NewSettingsService(settingsRepo)
+	settings, err := settingsService.GetSettings(context.Background())
+	if err != nil {
+		logger.Error(err)
+	}
+	discordNotifier := notifier.NewDiscordNotifier(settings)
+	settingsController := controller.NewSettingsController(settingsService, discordNotifier)
+	settingsHandler := http.StripPrefix("/api/settings", handler.NewSettingsHandler(settingsController))
+
+	taskSubhub := subscriptionhub.NewTaskSubscriptionHub()
 	posSubhub := positionhub.NewSubscriptionHub()
 	positionService := position.NewPositionService(posSubhub)
 
@@ -45,7 +56,9 @@ func main() {
 	deps := cryptostates.Dependencies{
 		Publisher:       taskSubhub,
 		PositionService: positionService,
+		Notifier:        discordNotifier,
 	}
+
 	fsmSteps := cryptostates.Build(&deps)
 	executor := transaction.NewExecutor(taskSubhub, positionService, fsmSteps)
 
@@ -56,6 +69,8 @@ func main() {
 	tradingStrategy := trading.NewTradingStrategy(taskService, posSubhub, positionService, strategySubHub, taskSubhub)
 	tradingTaskRepo := repository.NewTradingRepository(db)
 	tradingService := trading.NewTradingService(tradingStrategy, strategySubHub, tradingTaskRepo, taskService)
+	deps.TradingService = tradingService
+
 	err = tradingService.LoadFromDB(context.Background())
 	if err != nil {
 		logger.Error(err)
@@ -79,12 +94,6 @@ func main() {
 
 	positionController := controller.PositionController{PositionService: positionService}
 	positionHandler := http.StripPrefix("/api/position", handler.NewPositionHandler(&positionController))
-
-	settingsRepo := repository.NewSettingRepository(db)
-	settingsService := settings.NewSettingsService(settingsRepo)
-	settingsController := controller.NewSettingsController(settingsService)
-	settingsHandler := http.StripPrefix("/api/settings", handler.NewSettingsHandler(settingsController))
-
 	dashboardHandler := http.StripPrefix("/api/dashboard", handler.NewDashboardHandler(tradingController, taskController))
 
 	mux := http.NewServeMux()

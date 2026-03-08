@@ -3,16 +3,19 @@ package controller
 import (
 	"context"
 	models "personal_bot/internal/core/settings"
+	"personal_bot/internal/services/notifier"
 	"personal_bot/internal/services/settings"
 )
 
 type SettingsController struct {
-	service *settings.Service
+	service  *settings.Service
+	notifier *notifier.DiscordNotifier
 }
 
-func NewSettingsController(service *settings.Service) *SettingsController {
+func NewSettingsController(service *settings.Service, notifier *notifier.DiscordNotifier) *SettingsController {
 	return &SettingsController{
-		service: service,
+		service:  service,
+		notifier: notifier,
 	}
 }
 
@@ -21,8 +24,10 @@ func (sc *SettingsController) GetSettings(ctx context.Context) (models.Settings,
 }
 
 func (sc *SettingsController) PostSettings(ctx context.Context, settings models.Settings) error {
+	sc.notifier.Update(settings)
 	return sc.service.PostSettings(ctx, settings)
 }
 
-func (sc *SettingsController) TestDiscordEndpoint() {
+func (sc *SettingsController) TestDiscordEndpoint(discordWebhookUrl string) error {
+	return sc.notifier.TestDiscordEndpoint(discordWebhookUrl)
 }
