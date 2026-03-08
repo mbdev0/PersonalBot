@@ -104,8 +104,6 @@ func (sh *SubscriptionHub) PublishStateUpdate(id int64, state string) error {
 		State: &state,
 	}
 
-	logger.Information("publishing state update")
-
 	sh.last[id] = msg
 
 	sub, ok := sh.subscriptions[id]
@@ -125,8 +123,6 @@ func (sh *SubscriptionHub) PublishProgressMessage(id int64, message string) erro
 		Event:   strategies.MessageUpdate,
 		Message: &message,
 	}
-
-	logger.Information("publishing state update")
 
 	sh.last[id] = msg
 
