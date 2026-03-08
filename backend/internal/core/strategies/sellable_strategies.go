@@ -7,4 +7,5 @@ type SellableStrategy interface {
 	GetComputeUnits() uint32
 	GetSlippage() float64
 	GetSellFee() *float64
+	StrategyTaskId() int64
 }

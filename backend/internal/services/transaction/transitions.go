@@ -1,4 +1,4 @@
-package cryptostates
+package transaction
 
 import (
 	"context"
@@ -12,3 +12,5 @@ type State struct {
 	Fn      func(ctx context.Context, t transaction.Transaction) error
 	OnError tasks.TaskState
 }
+
+type Transitions map[tasks.TaskState]State

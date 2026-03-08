@@ -303,6 +303,7 @@ func (s *Strategy) createAndRunSellTask(sellableTask strategies.SellableStrategy
 		[]tasks.Option{
 			tasks.WithComputeUnits(uint32(sellableTask.GetComputeUnits())),
 			tasks.WithSlippage(sellableTask.GetSlippage()),
+			tasks.WithStrategyId(sellableTask.StrategyTaskId()),
 		},
 		[]tasks.SellOption{
 			tasks.WithSellAmount(sellAmount),
