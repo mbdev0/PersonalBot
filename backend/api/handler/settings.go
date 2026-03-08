@@ -64,6 +64,18 @@ func (s *SettingsHandler) PostSettings(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *SettingsHandler) TestDiscordEndpoint(w http.ResponseWriter, r *http.Request) {
-	//TODO: recieve a body with discord_webhook: "discordwebhook"
-	// then send a test notification to the discord webhook
+	decoder := json.NewDecoder(r.Body)
+	decoder.DisallowUnknownFields()
+	var testWebhook settings.TestWebhook
+	err := decoder.Decode(&testWebhook)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	err = s.settingsController.TestDiscordEndpoint(testWebhook.DiscordWebhook)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }
