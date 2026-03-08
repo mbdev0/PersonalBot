@@ -1,11 +1,6 @@
 import { API_BASE } from '@/config/urls';
 import type { Settings } from '../types/settings';
 
-//within this file there'' be 3 endpoints
-// 1. Test a discord webhook - send a test noti to the discord webhook entered
-// 2. POST settings - we will call whenever anything changes
-// 3. GET settings
-
 const settingsUrl = API_BASE + '/settings/';
 
 export async function testDiscordWebhook(discordWebhook: string) {
