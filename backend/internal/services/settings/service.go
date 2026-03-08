@@ -23,7 +23,3 @@ func (s *Service) GetSettings(ctx context.Context) (settings.Settings, error) {
 func (s *Service) PostSettings(ctx context.Context, settings settings.Settings) error {
 	return s.repo.PostSettings(ctx, settings)
 }
-
-func (s *Service) TestDiscordEndpoint(discordWebhook string) {
-
-}
