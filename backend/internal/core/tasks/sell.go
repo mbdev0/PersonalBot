@@ -75,3 +75,11 @@ func (st *SellTask) SetMessage(message string) {
 func (st *SellTask) Message() string {
 	return st.message
 }
+
+func (st *SellTask) GetWallet() solana.PublicKey {
+	return st.Wallet.PublicKey()
+}
+
+func (st *SellTask) GetToken() solana.PublicKey {
+	return st.Token
+}

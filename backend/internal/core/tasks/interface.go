@@ -1,5 +1,7 @@
 package tasks
 
+import "github.com/gagliardetto/solana-go"
+
 type Task interface {
 	Id() int64
 	GetStrategyId() *int64
@@ -13,4 +15,6 @@ type Task interface {
 	SetSlippage(slippage float64)
 	SetComputeUnit(cu uint32)
 	SetTime(t int64)
+	GetWallet() solana.PublicKey
+	GetToken() solana.PublicKey
 }
