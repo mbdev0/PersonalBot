@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"personal_bot/internal/core/tasks"
-	cryptostates "personal_bot/internal/core/tasks/crypto_states"
 	"personal_bot/internal/services/position"
 	subscriptionhub "personal_bot/internal/services/subscription_hub"
 	"personal_bot/internal/solana/programs/pumpfun/transaction/buy"
@@ -15,10 +14,10 @@ import (
 type Executor struct {
 	publisher       subscriptionhub.Publisher
 	positionService *position.Service
-	steps           cryptostates.Transitions
+	steps           Transitions
 }
 
-func NewExecutor(publisher subscriptionhub.Publisher, posService *position.Service, steps cryptostates.Transitions) *Executor {
+func NewExecutor(publisher subscriptionhub.Publisher, posService *position.Service, steps Transitions) *Executor {
 	return &Executor{
 		publisher:       publisher,
 		positionService: posService,
@@ -57,8 +56,11 @@ func (e *Executor) Execute(done chan struct{}, transaction transaction.Transacti
 		}
 
 		if err := state.Fn(ctx, transaction); err != nil {
-			//transition to on error
-			e.setStateAndPublish(state.OnError, t)
+			if ctx.Err() != nil {
+				e.setStateAndPublish(tasks.TaskCancel, t)
+			} else {
+				e.setStateAndPublish(state.OnError, t)
+			}
 			return
 		}
 

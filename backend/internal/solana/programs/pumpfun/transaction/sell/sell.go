@@ -122,6 +122,7 @@ func (st *Transaction) SendTransaction(ctx context.Context, publisher subscripti
 	txResp, err := rpcClient.SendTransaction(ctx, st.transaction)
 	if err != nil {
 		logger.Error(err)
+		publisher.PublishMessage(st.Task, "failure whilst sending transaction")
 		return err
 	}
 
@@ -204,8 +205,8 @@ func (st *Transaction) ExtractTokenAndSolFromTx(signature solana.Signature, ctx 
 		return tokenAmount, solAmount, fmt.Errorf("could not find user's wallet in account keys")
 	}
 
-	preBalance := int64(tx.Meta.PostBalances[walletIndex])
-	postBalance := int64(tx.Meta.PreBalances[walletIndex])
+	preBalance := int64(tx.Meta.PreBalances[walletIndex])
+	postBalance := int64(tx.Meta.PostBalances[walletIndex])
 
 	solAmountLamport := postBalance - preBalance
 	solAmount = float64(solAmountLamport)
@@ -234,6 +235,19 @@ func getAllInstructionsForSell(sellTask *tasks.SellTask, ctx context.Context, ps
 
 		pos = position
 	} else {
+		//report fake buy for positions
+		ata, err := client.GetATA(ctx, sellTask.Wallet.PublicKey(), sellTask.Token)
+		if err != nil {
+			return nil, err
+		}
+
+		tokenAmount, err := client.GetTokenAccountBalance(ata, ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		tokenAmountBig := new(big.Float).SetUint64(*tokenAmount)
+		ps.ReportBuy(ctx, sellTask.Id(), sellTask.Token, sellTask.Wallet.PublicKey(), tokenAmountBig, big.NewFloat(0))
 		pos = nil
 	}
 
