@@ -16,6 +16,11 @@ type Author struct {
 type Thumbnail struct {
 	URL string `json:"url"`
 }
+
+type Footer struct {
+	Text string `json:"text"`
+}
+
 type Embeds struct {
 	Title     string    `json:"title"`
 	URL       string    `json:"url"`
@@ -23,4 +28,5 @@ type Embeds struct {
 	Fields    []Fields  `json:"fields"`
 	Author    Author    `json:"author"`
 	Thumbnail Thumbnail `json:"thumbnail"`
+	Footer    Footer    `json:"footer"`
 }
