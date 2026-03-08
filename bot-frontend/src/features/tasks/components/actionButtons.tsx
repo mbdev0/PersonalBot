@@ -2,6 +2,7 @@ import type { RowActions } from '../types/rowActions';
 import { type DisplayRow } from '../types/tableRows';
 import { StrategyTaskState } from '../types/strategies/strategyTask';
 import { Play, Square, Pencil, Trash2, Copy } from 'lucide-react';
+import { isFailure } from '../types/taskState';
 
 export interface ActionButtonProps {
   row: DisplayRow;
@@ -11,6 +12,7 @@ export interface ActionButtonProps {
 export function ActionButtons({ row, rowActions }: ActionButtonProps) {
   const isDone = row.state === 'Done' || row.state === StrategyTaskState.success;
 
+  const isRerunnable = isFailure(row.state);
   const isFailed = row.state === 'Task Failed' || row.state === StrategyTaskState.failed;
 
   const isTerminal = isDone || isFailed;
@@ -23,7 +25,7 @@ export function ActionButtons({ row, rowActions }: ActionButtonProps) {
 
   return (
     <div className="flex gap-1.5">
-      {isRunning ? (
+      {isRunning && !isRerunnable ? (
         <button className="stop_task action-button-stop" onClick={() => rowActions.onStop(row)}>
           <Square className="action-icon" />
         </button>
