@@ -13,7 +13,7 @@ export async function testDiscordWebhook(discordWebhook: string) {
     discord_webhook: discordWebhook,
   };
 
-  const resp = await fetch(settingsUrl + '/test_webhook', {
+  const resp = await fetch(settingsUrl + 'test_webhook', {
     body: JSON.stringify(testDiscordWebhookBody),
     method: 'POST',
   });
