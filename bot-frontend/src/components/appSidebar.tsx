@@ -25,7 +25,7 @@ const navMain = [
   },
   {
     title: 'RPC Groups',
-    url: '/rpc_groups',
+    url: '/rpc',
     icon: Router,
   },
 ];

@@ -7,6 +7,7 @@ import WalletDashboard from './features/wallets/components/walletDashboard';
 import { AppSidebar } from './components/appSidebar';
 import { WebsocketProvider } from './context/websocketProvider';
 import { SettingsDashboard } from './features/settings/components/settingsDashboard';
+import { RPCGroupDashboard } from './features/rpc-groups/components/rpcGroupsDashboard';
 
 const queryClient = new QueryClient();
 
@@ -28,6 +29,7 @@ function App() {
                       <Route path="/" element={<TaskDashboard />} />
                       <Route path="/wallets" element={<WalletDashboard />} />
                       <Route path="/settings" element={<SettingsDashboard />} />
+                      <Route path="/rpc" element={<RPCGroupDashboard />} />
                     </Routes>
                   </div>
                 </div>
