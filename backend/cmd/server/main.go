@@ -13,6 +13,7 @@ import (
 	cryptostates "personal_bot/internal/core/tasks/crypto_states"
 	"personal_bot/internal/services/notifier"
 	"personal_bot/internal/services/position"
+	rpcgroups "personal_bot/internal/services/rpc_groups"
 	"personal_bot/internal/services/settings"
 	subscriptionhub "personal_bot/internal/services/subscription_hub"
 	positionhub "personal_bot/internal/services/subscription_hub/position"
@@ -50,6 +51,11 @@ func main() {
 	taskSubhub := subscriptionhub.NewTaskSubscriptionHub()
 	posSubhub := positionhub.NewSubscriptionHub()
 	positionService := position.NewPositionService(posSubhub)
+
+	rpcGroupRepo := repository.NewRPCGroupRepository(db)
+	rpcGroupService := rpcgroups.NewRPCGroupService(rpcGroupRepo)
+	rpcGroupController := controller.NewRPCGroupController(rpcGroupService)
+	rpcGroupHandler := http.StripPrefix("/api/rpc_groups", handler.NewRPCGroupHandler(rpcGroupController))
 
 	strategySubHub := strategy.NewSubscriptionHub()
 
@@ -103,6 +109,7 @@ func main() {
 	mux.Handle("/api/wallet/", walletHandler)
 	mux.Handle("/api/dashboard/", dashboardHandler)
 	mux.Handle("/api/settings/", settingsHandler)
+	mux.Handle("/api/rpc_groups/", rpcGroupHandler)
 
 	server := &http.Server{
 		Addr:    ":9090",
