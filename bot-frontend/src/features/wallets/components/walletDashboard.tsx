@@ -11,7 +11,7 @@ function WalletDashboard() {
   const [isAddModalShowing, setAddModal] = useState(false);
 
   return (
-    <div className="wallet_dashboard">
+    <div className="wallet_dashboard space-y-8">
       <div className="flex items-center justify-between">
         <PageHeader>Wallets</PageHeader>
 
@@ -19,7 +19,7 @@ function WalletDashboard() {
           className="h-9 px-4 text-[13px] text-accent-foreground font-medium bg-foreground/5 hover:bg-foreground/10 border-0 ring-1 ring-foreground/20 hover:ring-foreground/30 transition-all duration-200"
           onClick={() => setAddModal(true)}
         >
-          Add Task
+          Add Wallet
         </Button>
       </div>
       <WalletTable />
