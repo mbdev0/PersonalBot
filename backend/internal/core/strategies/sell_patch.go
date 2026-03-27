@@ -3,6 +3,7 @@ package strategies
 import (
 	"fmt"
 	"personal_bot/internal/core/models/wallets"
+	rpcgroups "personal_bot/internal/core/rpc_groups"
 
 	"github.com/gagliardetto/solana-go"
 )
@@ -14,6 +15,7 @@ type SellPatch struct {
 	ComputeUnits *float64
 	Token        *solana.PublicKey
 	Wallet       *wallets.SolanaWallet
+	RPCGroup     *rpcgroups.RPCGroup
 }
 
 func (sp *SellPatch) ApplyTo(task Task) error {
@@ -48,6 +50,10 @@ func (sp *SellPatch) ApplyTo(task Task) error {
 
 	if sp.SellFee != nil {
 		sell.SellFee = *sp.SellFee
+	}
+
+	if sp.RPCGroup != nil {
+		sell.RPCGroup = *sp.RPCGroup
 	}
 
 	return nil

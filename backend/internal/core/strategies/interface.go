@@ -8,4 +8,5 @@ type Task interface {
 	SetStrategyState(st string)
 	StrategyMessage() string
 	SetStrategyMessage(message string)
+	RPCGroupId() int64
 }

@@ -2,6 +2,7 @@ package strategies
 
 import (
 	"personal_bot/internal/core/models/wallets"
+	rpcgroups "personal_bot/internal/core/rpc_groups"
 
 	"github.com/gagliardetto/solana-go"
 )
@@ -19,6 +20,7 @@ type Sell struct {
 	Message      string
 	SellTaskId   int64
 	TimeCreated  int64
+	RPCGroup     rpcgroups.RPCGroup
 }
 
 func (s *Sell) New() {
@@ -50,6 +52,10 @@ func (s *Sell) StrategyMessage() string {
 
 func (s *Sell) SetStrategyMessage(message string) {
 	s.Message = message
+}
+
+func (s *Sell) RPCGroupId() int64 {
+	return s.RPCGroup.Id
 }
 
 func (s *Sell) GetWallet() wallets.SolanaWallet {
