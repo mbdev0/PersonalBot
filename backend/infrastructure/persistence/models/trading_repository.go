@@ -8,6 +8,7 @@ type TradingRow struct {
 	ComputeUnits    int    `db:"compute_units"`
 	Config          string `db:"config"`
 	TimeCreatedUnix int64  `db:"time_created"`
+	RpcGroupId      int64  `db:"rpc_group_id"`
 }
 
 type AfkConfig struct {

@@ -7,8 +7,8 @@ import (
 	"personal_bot/pkg/logger"
 )
 
-func MapRpcGroupPostToRepository(src rpcgroups.RPCGroupPost) (models.RpcGroupRow, error) {
-	dst := models.RpcGroupRow{}
+func MapRpcGroupPostToRepository(src rpcgroups.RPCGroupPost) (models.RpcGroupRepository, error) {
+	dst := models.RpcGroupRepository{}
 	dst.GroupName = src.Name
 	rpcGroups, err := json.Marshal(src.Group)
 	if err != nil {
@@ -21,8 +21,8 @@ func MapRpcGroupPostToRepository(src rpcgroups.RPCGroupPost) (models.RpcGroupRow
 	return dst, nil
 }
 
-func MapRpcGroupPutToRepository(src rpcgroups.RPCGroupPut) (models.RpcGroupRow, error) {
-	dst := models.RpcGroupRow{}
+func MapRpcGroupPutToRepository(src rpcgroups.RPCGroupPut) (models.RpcGroupRepository, error) {
+	dst := models.RpcGroupRepository{}
 	dst.GroupName = src.Name
 	rpcGroups, err := json.Marshal(src.Group)
 	if err != nil {
@@ -33,7 +33,7 @@ func MapRpcGroupPutToRepository(src rpcgroups.RPCGroupPut) (models.RpcGroupRow, 
 	return dst, nil
 }
 
-func MapRepositoryToRpcGroup(src models.RpcGroupRow) (rpcgroups.RPCGroup, error) {
+func MapRepositoryToRpcGroup(src models.RpcGroupRepository) (rpcgroups.RPCGroup, error) {
 	dst := rpcgroups.RPCGroup{}
 	dst.Name = src.GroupName
 	var groups rpcgroups.Group
