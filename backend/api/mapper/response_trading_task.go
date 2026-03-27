@@ -44,6 +44,7 @@ func mapBuyToBuyResponse(src *strategies.Buy) (dest *dto.TradingTaskResponse, er
 	dst.TokenAddress = &tokenAddress
 	dst.TimeCreated = src.TimeCreated
 	dst.Message = src.Message
+	dst.RPCGroup = src.RPCGroup.Name
 
 	return &dst, nil
 }
@@ -71,6 +72,7 @@ func mapAfkToAfkResponse(src *strategies.Afk) (dest *dto.TradingTaskResponse, er
 	dst.State = string(src.State)
 	dst.TimeCreated = src.TimeCreated
 	dst.Message = src.Message
+	dst.RPCGroup = src.RPCGroup.Name
 
 	return &dst, nil
 }
@@ -92,6 +94,7 @@ func mapSellToSellResponse(t *strategies.Sell) (dest *dto.TradingTaskResponse, e
 	dst.TokenAddress = &tokenAddress
 	dst.TimeCreated = t.TimeCreated
 	dst.Message = t.Message
+	dst.RPCGroup = t.RPCGroup.Name
 
 	return &dst, nil
 }

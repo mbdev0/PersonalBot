@@ -74,7 +74,7 @@ func main() {
 
 	tradingStrategy := trading.NewTradingStrategy(taskService, posSubhub, positionService, strategySubHub, taskSubhub)
 	tradingTaskRepo := repository.NewTradingRepository(db)
-	tradingService := trading.NewTradingService(tradingStrategy, strategySubHub, tradingTaskRepo, taskService)
+	tradingService := trading.NewTradingService(tradingStrategy, strategySubHub, tradingTaskRepo, taskService, rpcGroupService)
 	deps.TradingService = tradingService
 
 	err = tradingService.LoadFromDB(context.Background())
@@ -92,7 +92,7 @@ func main() {
 	walletController := controller.NewWalletController(walletService)
 	walletHandler := http.StripPrefix("/api/wallet", handler.NewWalletHandler(walletController))
 
-	tradingController := controller.NewStrategyController(tradingService, walletService)
+	tradingController := controller.NewStrategyController(tradingService, walletService, rpcGroupService)
 	tradingHandler := http.StripPrefix("/api/trading", handler.NewTradingHandler(tradingController))
 
 	taskController := controller.NewTaskController(taskService, walletService)

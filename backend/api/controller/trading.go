@@ -6,6 +6,10 @@ import (
 	"personal_bot/api/dto"
 	"personal_bot/api/mapper"
 	"personal_bot/internal/core/models/wallets"
+	rpcgroupsModel "personal_bot/internal/core/rpc_groups"
+	rpcgroups "personal_bot/internal/services/rpc_groups"
+	"personal_bot/pkg/logger"
+
 	"personal_bot/internal/services/subscription_hub/strategy"
 	"personal_bot/internal/services/trading"
 	"personal_bot/internal/services/wallet"
@@ -14,39 +18,46 @@ import (
 type StrategyController struct {
 	strategyService *trading.Service
 	walletService   *wallet.Service
+	rpcGroupService *rpcgroups.Service
 }
 
-func NewStrategyController(service *trading.Service, walletService *wallet.Service) *StrategyController {
+func NewStrategyController(service *trading.Service, walletService *wallet.Service, rpcGroup *rpcgroups.Service) *StrategyController {
 	return &StrategyController{
 		strategyService: service,
 		walletService:   walletService,
+		rpcGroupService: rpcGroup,
 	}
 }
 
-func (sc *StrategyController) Create(ctx context.Context, task dto.TradingTask) (*dto.TradingTaskResponse, error) {
-	err := task.Validate()
+func (sc *StrategyController) Create(ctx context.Context, task dto.TradingTask) (resp *dto.TradingTaskResponse, err error) {
+	err = task.Validate()
 	if err != nil {
-		return nil, err
+		return
 	}
 
 	wallet, err := sc.walletService.GetByName(ctx, task.WalletName)
 	if err != nil {
-		return nil, err
+		return
 	}
 
-	t, err := mapper.MapTradingTaskDtoToTradingTask(task, wallet)
+	rpcGroup, err := sc.rpcGroupService.GetBy(ctx, task.RPCGroupId)
 	if err != nil {
-		return nil, err
+		return
 	}
 
-	createdTask, err := sc.strategyService.Create(t)
+	t, err := mapper.MapTradingTaskDtoToTradingTask(task, wallet, rpcGroup)
 	if err != nil {
-		return nil, err
+		return
 	}
 
-	resp, err := mapper.MapTradingTaskToDto(createdTask)
+	createdTask, err := sc.strategyService.Create(ctx, t)
 	if err != nil {
-		return nil, err
+		return
+	}
+
+	resp, err = mapper.MapTradingTaskToDto(createdTask)
+	if err != nil {
+		return
 	}
 	return resp, nil
 }
@@ -107,7 +118,21 @@ func (sc *StrategyController) Update(ctx context.Context, id int64, tsk dto.Trad
 		wallet = &walletResp
 	}
 
-	patch, err := mapper.MapTradingTaskPatchDtoToTradingTaskPatch(tsk, dto.TradingType(task.StrategyType()), wallet)
+	var rpcGroup *rpcgroupsModel.RPCGroup
+	if tsk.RPCGroupId != nil {
+		logger.Information(*tsk.RPCGroupId)
+		rpcGroupResp, err := sc.rpcGroupService.GetBy(ctx, *tsk.RPCGroupId)
+		if err != nil {
+			logger.Error(err)
+			return nil, err
+		}
+
+		logger.Information(rpcGroupResp)
+		rpcGroup = &rpcGroupResp
+	}
+
+	logger.Information(rpcGroup != nil)
+	patch, err := mapper.MapTradingTaskPatchDtoToTradingTaskPatch(tsk, dto.TradingType(task.StrategyType()), wallet, rpcGroup)
 	if err != nil {
 		return nil, fmt.Errorf("error whilst mapping %w", err)
 	}
