@@ -2,6 +2,7 @@ package solana_price
 
 import (
 	"encoding/json"
+	"fmt"
 	"personal_bot/infrastructure/http"
 	"personal_bot/internal/core/constants"
 	"personal_bot/pkg/logger"
@@ -35,7 +36,7 @@ func GetSolPrice() (*float64, error) {
 }
 
 func fetchSolPriceFromEndpoint() (*float64, error) {
-	resp, err := http.Get(constants.PumpFunAPIEndPoint + "sol-price")
+	resp, err := http.Get(constants.RadyiumApiEndPoint + "price")
 	if err != nil {
 		return nil, err
 	}
@@ -47,7 +48,14 @@ func fetchSolPriceFromEndpoint() (*float64, error) {
 		return nil, err
 	}
 
-	return &response.SolPrice, nil
+	price, ok := response[constants.SolanaTokenAddress]
+	if !ok {
+		logger.Error("error whilst getting solana price")
+	}
+
+	logger.Information(fmt.Sprintf("SOLANA PRICE: %f", price))
+
+	return &price, nil
 }
 
 func startBackgroundUpdate() {

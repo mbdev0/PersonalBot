@@ -15,4 +15,5 @@ const (
 	UserVolumeAccumulatorPart = "3Rhd6YDYmUXARxTVuEN1G3ktixHYfyZs"
 	FeeConfig                 = "8Wf5TiAheLUqBrKXeYg2JtAFFMWtKdG2BSFgqUcPVwTt"
 	FeeProgram                = "pfeeUxB6jkeY1Hxd7CsFCAjcbHA9rWtchMGdZ6VojVZ"
+	SolanaTokenAddress        = "So11111111111111111111111111111111111111112"
 )
