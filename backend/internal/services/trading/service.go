@@ -318,7 +318,6 @@ func (s *Service) Unsubscribe(taskId int64) error {
 
 // loads tasks into memory
 func (s *Service) LoadFromDB(ctx context.Context) error {
-	logger.Information("load from db")
 	ttFromDb, err := s.repo.GetAllTasks(ctx)
 	if err != nil {
 		return err
@@ -328,8 +327,6 @@ func (s *Service) LoadFromDB(ctx context.Context) error {
 	s.iterable.SetIterable(maxId)
 
 	for _, tt := range ttFromDb {
-		logger.Information("loop")
-
 		s.tasks[tt.StrategyTaskId()] = tt
 		_, err = s.rpcGroupService.Load(ctx, tt.RPCGroupId())
 		if err != nil {

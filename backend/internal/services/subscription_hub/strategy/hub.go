@@ -108,7 +108,9 @@ func (sh *SubscriptionHub) PublishStateUpdate(id int64, state string) error {
 
 	sub, ok := sh.subscriptions[id]
 	if !ok {
-		return fmt.Errorf("task not found with id: %d", id)
+		//if there isnt a subscription, we can just set the last message - we dont need a sub to actually publish a message
+		// we can just keep the last message safe
+		return nil
 	}
 	sub.SubChan <- msg
 	return nil
