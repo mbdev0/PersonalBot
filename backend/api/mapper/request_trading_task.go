@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"personal_bot/api/dto"
 	"personal_bot/internal/core/models/wallets"
+	rpcgroups "personal_bot/internal/core/rpc_groups"
 	"personal_bot/internal/core/strategies"
 	"personal_bot/internal/monitoring/filters"
 	"personal_bot/internal/solana/utils"
@@ -12,20 +13,20 @@ import (
 	"github.com/gagliardetto/solana-go"
 )
 
-func MapTradingTaskDtoToTradingTask(src dto.TradingTask, wallet wallets.SolanaWallet) (strategies.Task, error) {
+func MapTradingTaskDtoToTradingTask(src dto.TradingTask, wallet wallets.SolanaWallet, rpcGroup rpcgroups.RPCGroup) (strategies.Task, error) {
 	switch src.Type {
 	case dto.AFK:
-		return mapAfkDtoToAfk(src, wallet)
+		return mapAfkDtoToAfk(src, wallet, rpcGroup)
 	case dto.BUY:
-		return mapBuyDtoToBuy(src, wallet)
+		return mapBuyDtoToBuy(src, wallet, rpcGroup)
 	case dto.SELL:
-		return mapSellDtoToSell(src, wallet)
+		return mapSellDtoToSell(src, wallet, rpcGroup)
 	default:
 		return nil, fmt.Errorf("task with type: %s - not found", src.Type)
 	}
 }
 
-func mapBuyDtoToBuy(src dto.TradingTask, wallet wallets.SolanaWallet) (dst *strategies.Buy, err error) {
+func mapBuyDtoToBuy(src dto.TradingTask, wallet wallets.SolanaWallet, rpcGroup rpcgroups.RPCGroup) (dst *strategies.Buy, err error) {
 	dest := strategies.Buy{}
 	dest.New()
 
@@ -45,12 +46,13 @@ func mapBuyDtoToBuy(src dto.TradingTask, wallet wallets.SolanaWallet) (dst *stra
 	}
 
 	dest.TimeCreated = time.Now().Unix()
+	dest.RPCGroup = rpcGroup
 
 	return &dest, nil
 
 }
 
-func mapAfkDtoToAfk(src dto.TradingTask, wallet wallets.SolanaWallet) (dst *strategies.Afk, err error) {
+func mapAfkDtoToAfk(src dto.TradingTask, wallet wallets.SolanaWallet, rpcGroup rpcgroups.RPCGroup) (dst *strategies.Afk, err error) {
 	dest := strategies.Afk{}
 	dest.New()
 
@@ -64,11 +66,12 @@ func mapAfkDtoToAfk(src dto.TradingTask, wallet wallets.SolanaWallet) (dst *stra
 	dest.SellFee = src.SellFee
 	dest.State = string(strategies.CREATED)
 	dest.TimeCreated = time.Now().Unix()
+	dest.RPCGroup = rpcGroup
 
 	return &dest, nil
 }
 
-func mapSellDtoToSell(src dto.TradingTask, wallet wallets.SolanaWallet) (dst strategies.Task, err error) {
+func mapSellDtoToSell(src dto.TradingTask, wallet wallets.SolanaWallet, rpcGroup rpcgroups.RPCGroup) (dst strategies.Task, err error) {
 	dest := strategies.Sell{}
 	dest.New()
 
@@ -84,6 +87,7 @@ func mapSellDtoToSell(src dto.TradingTask, wallet wallets.SolanaWallet) (dst str
 	if err != nil {
 		return nil, err
 	}
+	dest.RPCGroup = rpcGroup
 
 	return &dest, nil
 }

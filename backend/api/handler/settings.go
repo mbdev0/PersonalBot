@@ -53,7 +53,6 @@ func (s *SettingsHandler) PostSettings(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	// TODO:  update the notifier with the values
 	err = s.settingsController.PostSettings(r.Context(), reqSettings)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

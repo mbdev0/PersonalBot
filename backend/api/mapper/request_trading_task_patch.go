@@ -4,13 +4,14 @@ import (
 	"fmt"
 	"personal_bot/api/dto"
 	"personal_bot/internal/core/models/wallets"
+	rpcgroups "personal_bot/internal/core/rpc_groups"
 	"personal_bot/internal/core/strategies"
 	"personal_bot/internal/solana/utils"
 
 	"github.com/gagliardetto/solana-go"
 )
 
-func MapTradingTaskPatchDtoToTradingTaskPatch(src dto.TradingTaskPatch, tskType dto.TradingType, wallet *wallets.SolanaWallet) (strategies.Patch, error) {
+func MapTradingTaskPatchDtoToTradingTaskPatch(src dto.TradingTaskPatch, tskType dto.TradingType, wallet *wallets.SolanaWallet, rpcGroup *rpcgroups.RPCGroup) (strategies.Patch, error) {
 
 	var taskType dto.TradingType
 	if src.Type != nil {
@@ -21,18 +22,18 @@ func MapTradingTaskPatchDtoToTradingTaskPatch(src dto.TradingTaskPatch, tskType 
 
 	switch taskType {
 	case dto.AFK:
-		return createAfkPatch(src, wallet)
+		return createAfkPatch(src, wallet, rpcGroup)
 	case dto.BUY:
-		return createBuyPatch(src, wallet)
+		return createBuyPatch(src, wallet, rpcGroup)
 	case dto.SELL:
-		return createSellPatch(src, wallet)
+		return createSellPatch(src, wallet, rpcGroup)
 	default:
 		return nil, fmt.Errorf("task type hasn't been set up for the type: %s", taskType)
 	}
 
 }
 
-func createAfkPatch(src dto.TradingTaskPatch, wallet *wallets.SolanaWallet) (resp *strategies.AfkPatch, err error) {
+func createAfkPatch(src dto.TradingTaskPatch, wallet *wallets.SolanaWallet, rpcGroup *rpcgroups.RPCGroup) (resp *strategies.AfkPatch, err error) {
 	respPatch := strategies.AfkPatch{}
 	if src.BuyAmount != nil {
 		respPatch.BuyAmount = utils.ConvertSolToLamport(*src.BuyAmount)
@@ -58,6 +59,10 @@ func createAfkPatch(src dto.TradingTaskPatch, wallet *wallets.SolanaWallet) (res
 		respPatch.Wallet = wallet
 	}
 
+	if rpcGroup != nil {
+		respPatch.RPCGroup = rpcGroup
+	}
+
 	if src.Filters != nil {
 		filters := mapFiltersToDestFilters(*src.Filters)
 		respPatch.Filters = &filters
@@ -71,7 +76,7 @@ func createAfkPatch(src dto.TradingTaskPatch, wallet *wallets.SolanaWallet) (res
 	return &respPatch, nil
 }
 
-func createBuyPatch(src dto.TradingTaskPatch, wallet *wallets.SolanaWallet) (strategies.Patch, error) {
+func createBuyPatch(src dto.TradingTaskPatch, wallet *wallets.SolanaWallet, rpcGroup *rpcgroups.RPCGroup) (strategies.Patch, error) {
 	respPatch := strategies.BuyPatch{}
 	if src.BuyAmount != nil {
 		respPatch.BuyAmount = utils.ConvertSolToLamport(*src.BuyAmount)
@@ -90,6 +95,10 @@ func createBuyPatch(src dto.TradingTaskPatch, wallet *wallets.SolanaWallet) (str
 	}
 
 	respPatch.SellFee = src.SellFee
+
+	if rpcGroup != nil {
+		respPatch.RPCGroup = rpcGroup
+	}
 
 	//if the wallet was set in the patch, we get it in the controller and pass it down
 	//this is to stop mixing of services and keep them as top level as possible
@@ -113,7 +122,7 @@ func createBuyPatch(src dto.TradingTaskPatch, wallet *wallets.SolanaWallet) (str
 	return &respPatch, nil
 }
 
-func createSellPatch(src dto.TradingTaskPatch, wallet *wallets.SolanaWallet) (strategies.Patch, error) {
+func createSellPatch(src dto.TradingTaskPatch, wallet *wallets.SolanaWallet, rpcGroup *rpcgroups.RPCGroup) (strategies.Patch, error) {
 	respPatch := strategies.SellPatch{}
 	if src.SellAmount != nil {
 		respPatch.SellAmount = src.SellAmount
@@ -135,6 +144,10 @@ func createSellPatch(src dto.TradingTaskPatch, wallet *wallets.SolanaWallet) (st
 	//this is to stop mixing of services and keep them as top level as possible
 	if wallet != nil {
 		respPatch.Wallet = wallet
+	}
+
+	if rpcGroup != nil {
+		respPatch.RPCGroup = rpcGroup
 	}
 
 	if src.TokenAddress != nil {

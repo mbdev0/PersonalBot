@@ -15,6 +15,7 @@ type TradingTask struct {
 	ComputeUnits float64     `json:"compute_units" validate:"required,gt=0"`
 	WalletName   string      `json:"wallet_name" validate:"required"`
 	Slippage     float64     `json:"slippage" validate:"required,gte=0,lte=1"`
+	RPCGroupId   int64       `json:"rpc_group_id" validate:"required"`
 
 	Filters        *Filters           `json:"filters,omitempty" validate:"required_if=Type AFK"`
 	SellStrategies *[]SellStrategyDTO `json:"sell_strategies,omitempty" validate:"required_if=Type AFK,required_if=Type BUY"`
@@ -39,6 +40,7 @@ type TradingTaskResponse struct {
 	WalletAddress string      `json:"wallet_address"`
 	State         string      `json:"state"`
 	Message       string      `json:"message"`
+	RPCGroup      string      `json:"rpc_group"`
 
 	SellStrategies *[]SellStrategyDTO `json:"sell_strategies,omitempty"`
 	BuyAmount      *float64           `json:"buy_amount,omitempty"`
@@ -58,6 +60,7 @@ type TradingTaskPatch struct {
 	ComputeUnits *float64     `json:"compute_units" validate:"omitempty,gt=0"`
 	WalletName   *string      `json:"wallet_name" validate:"omitempty"`
 	Slippage     *float64     `json:"slippage" validate:"omitempty,gte=0,lte=1"`
+	RPCGroupId   *int64       `json:"rpc_group_id" validate:"omitempty"`
 
 	Filters        *Filters           `json:"filters,omitempty"`
 	SellStrategies *[]SellStrategyDTO `json:"sell_strategies,omitempty"`
