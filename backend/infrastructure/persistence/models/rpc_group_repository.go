@@ -1,6 +1,6 @@
 package models
 
-type RpcGroupRow struct {
+type RpcGroupRepository struct {
 	Id           int64  `db:"id"`
 	GroupName    string `db:"group_name"`
 	RpcGroups    string `db:"rpc_groups"`

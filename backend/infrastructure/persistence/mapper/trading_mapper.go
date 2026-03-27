@@ -47,6 +47,7 @@ func mapAfkToRepo(afk *strategies.Afk) (*models.TradingRow, error) {
 	}
 
 	taskRow.Config = string(json)
+	taskRow.RpcGroupId = afk.RPCGroup.Id
 
 	return &taskRow, nil
 }
@@ -91,6 +92,7 @@ func mapBuyToRepo(buy *strategies.Buy) (*models.TradingRow, error) {
 	}
 
 	taskRow.Config = string(json)
+	taskRow.RpcGroupId = buy.RPCGroup.Id
 
 	return &taskRow, nil
 
@@ -140,6 +142,7 @@ func mapSellToRepo(t *strategies.Sell) (*models.TradingRow, error) {
 	}
 
 	taskRow.Config = string(json)
+	taskRow.RpcGroupId = t.RPCGroup.Id
 
 	return &taskRow, nil
 }
@@ -194,20 +197,20 @@ func mapSellStratsToRepo(src []strategies.StrategyConfig) []models.SellStrategie
 	return dest
 }
 
-func MapRepoToTradingTask(src models.TradingRow, wallet models.WalletRepository) (strategies.Task, error) {
+func MapRepoToTradingTask(src models.TradingRow, wallet models.WalletRepository, rpcGroup models.RpcGroupRepository) (strategies.Task, error) {
 	switch src.TradingType {
 	case "AFK":
-		return mapAfkRepoToTradingTask(src, wallet)
+		return mapAfkRepoToTradingTask(src, wallet, rpcGroup)
 	case "BUY":
-		return mapBuyRepoToTradingTask(src, wallet)
+		return mapBuyRepoToTradingTask(src, wallet, rpcGroup)
 	case "SELL":
-		return mapSellRepoToTradingTask(src, wallet)
+		return mapSellRepoToTradingTask(src, wallet, rpcGroup)
 	default:
 		return nil, fmt.Errorf("unknown trading type: %s", src.TradingType)
 	}
 }
 
-func mapAfkRepoToTradingTask(src models.TradingRow, wallet models.WalletRepository) (*strategies.Afk, error) {
+func mapAfkRepoToTradingTask(src models.TradingRow, wallet models.WalletRepository, rpcGroup models.RpcGroupRepository) (*strategies.Afk, error) {
 	afkTask := strategies.Afk{}
 	afkTask.New()
 	afkTask.SetId(int64(src.Id))
@@ -246,10 +249,15 @@ func mapAfkRepoToTradingTask(src models.TradingRow, wallet models.WalletReposito
 	afkTask.SellStrategies = mapRepoToStrategyConfigs(config.SellStrategies)
 	afkTask.TimeCreated = src.TimeCreatedUnix
 
+	afkTask.RPCGroup, err = MapRepositoryToRpcGroup(rpcGroup)
+	if err != nil {
+		return nil, err
+	}
+
 	return &afkTask, nil
 }
 
-func mapBuyRepoToTradingTask(src models.TradingRow, wallet models.WalletRepository) (*strategies.Buy, error) {
+func mapBuyRepoToTradingTask(src models.TradingRow, wallet models.WalletRepository, rpcGroup models.RpcGroupRepository) (*strategies.Buy, error) {
 	buyTask := strategies.Buy{}
 	buyTask.New()
 	buyTask.SetId(int64(src.Id))
@@ -293,10 +301,15 @@ func mapBuyRepoToTradingTask(src models.TradingRow, wallet models.WalletReposito
 	buyTask.BuyTaskId = int64(config.BuyTaskId)
 	buyTask.TimeCreated = src.TimeCreatedUnix
 
+	buyTask.RPCGroup, err = MapRepositoryToRpcGroup(rpcGroup)
+	if err != nil {
+		return nil, err
+	}
+
 	return &buyTask, nil
 }
 
-func mapSellRepoToTradingTask(src models.TradingRow, wallet models.WalletRepository) (strategies.Task, error) {
+func mapSellRepoToTradingTask(src models.TradingRow, wallet models.WalletRepository, rpcGroup models.RpcGroupRepository) (strategies.Task, error) {
 	sellTask := strategies.Sell{}
 	sellTask.New()
 	sellTask.SetId(int64(src.Id))
@@ -333,6 +346,10 @@ func mapSellRepoToTradingTask(src models.TradingRow, wallet models.WalletReposit
 	}
 
 	sellTask.Token = token
+	sellTask.RPCGroup, err = MapRepositoryToRpcGroup(rpcGroup)
+	if err != nil {
+		return nil, err
+	}
 
 	return &sellTask, nil
 }
