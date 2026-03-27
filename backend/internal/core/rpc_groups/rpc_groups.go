@@ -7,6 +7,12 @@ type RPCGroup struct {
 	CreationTime string
 }
 
+type LoadedRPCGroup struct {
+	RPCGroup   RPCGroup
+	GroupIndex int
+	References int
+}
+
 type RPCGroupPost struct {
 	Name         string
 	Group        Group

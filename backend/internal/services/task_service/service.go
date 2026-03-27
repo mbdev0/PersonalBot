@@ -68,10 +68,6 @@ func (ts *TaskService) GetTaskWithStrategyId(id int64) ([]tasks.Task, error) {
 			tasksWithStrategyId = append(tasksWithStrategyId, bt)
 		}
 	}
-	if len(tasksWithStrategyId) == 0 {
-		return tasksWithStrategyId, fmt.Errorf("tasks not found with id: %d", id)
-	}
-
 	return tasksWithStrategyId, nil
 }
 

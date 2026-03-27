@@ -3,6 +3,7 @@ package strategies
 import (
 	"math/big"
 	"personal_bot/internal/core/models/wallets"
+	rpcgroups "personal_bot/internal/core/rpc_groups"
 	"personal_bot/internal/monitoring/filters"
 )
 
@@ -22,6 +23,7 @@ type Afk struct {
 	State          string
 	Message        string
 	TimeCreated    int64
+	RPCGroup       rpcgroups.RPCGroup
 }
 
 func (a *Afk) New() {
@@ -50,6 +52,10 @@ func (a *Afk) SetStrategyState(st string) {
 
 func (a *Afk) StrategyMessage() string {
 	return a.Message
+}
+
+func (a *Afk) RPCGroupId() int64 {
+	return a.RPCGroup.Id
 }
 
 func (a *Afk) SetStrategyMessage(message string) {

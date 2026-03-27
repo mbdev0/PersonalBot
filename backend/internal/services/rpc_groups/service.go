@@ -2,16 +2,20 @@ package rpcgroups
 
 import (
 	"context"
+	"fmt"
 	"personal_bot/infrastructure/persistence/repository"
 	rpcgroups "personal_bot/internal/core/rpc_groups"
+	"sync"
 )
 
 type Service struct {
-	repo *repository.RPCGroup
+	repo            *repository.RPCGroup
+	loadedRpcGroups map[int64]*rpcgroups.LoadedRPCGroup
+	mu              sync.Mutex
 }
 
 func NewRPCGroupService(repo *repository.RPCGroup) *Service {
-	return &Service{repo: repo}
+	return &Service{repo: repo, loadedRpcGroups: map[int64]*rpcgroups.LoadedRPCGroup{}}
 }
 
 func (s *Service) GetDashboard(ctx context.Context) (rpcgroups.RPCGroupDashboard, error) {
@@ -36,6 +40,11 @@ func (s *Service) GetBy(ctx context.Context, id int64) (rpcgroups.RPCGroup, erro
 	return rpcGroup, nil
 }
 
+// internal look up function
+func (s *Service) GetByName(ctx context.Context, name string) (rpcgroups.RPCGroup, error) {
+	return s.repo.GetByName(ctx, name)
+}
+
 func (s *Service) Delete(ctx context.Context, id int64) error {
 	return s.repo.Delete(ctx, id)
 }
@@ -44,16 +53,59 @@ func (s *Service) Update(ctx context.Context, id int64, rcpGroupPut rpcgroups.RP
 	return s.repo.Update(ctx, id, rcpGroupPut)
 }
 
-func (s *Service) Load() {
-	// so when we do a getby for a rpc group, if it doesn't exist in the rpc groups map, we load it into the service so we can quikcly call it
-	//TODO: Load RPC group in memory?? - do we load every one in memory? -> so when strategy tasks call GetNode it'll be a quicker call
+func (s *Service) Load(ctx context.Context, id int64) (rpcGroup rpcgroups.RPCGroup, err error) {
+	//a trading task will call this, load id
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	loadedGroup, ok := s.loadedRpcGroups[id]
+	if !ok {
+		rpcGroup, err = s.GetBy(ctx, id)
+		if err != nil {
+			return
+		}
+
+		s.loadedRpcGroups[id] = &rpcgroups.LoadedRPCGroup{
+			RPCGroup:   rpcGroup,
+			GroupIndex: 0,
+			References: 1,
+		}
+
+		return
+	}
+
+	loadedGroup.References++
+
+	return loadedGroup.RPCGroup, nil
 }
 
-func (s *Service) Unload() {
-	// when the map no longer has a specific group inside of it, we will unload it from memory
-	//TODO: Unload RPC group in memory -> when no more strategy tasks use the Node group, remove from memory
+func (s *Service) Unload(ctx context.Context, id int64) error {
+	// a trading task will call this, load id
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	loadedGroup, ok := s.loadedRpcGroups[id]
+	if !ok {
+		return fmt.Errorf("rpc group not found with id %d", id)
+	}
+
+	loadedGroup.References--
+	if loadedGroup.References == 0 {
+		delete(s.loadedRpcGroups, id)
+	}
+
+	return nil
 }
 
-func (s *Service) GetNode() {
-	//TODO: For a given node group, get the node group at index i + 1, i is the last accessed node and return it
+func (s *Service) GetNode(id int64) (rpcgroups.GroupItem, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	rpcGroup, ok := s.loadedRpcGroups[id]
+	if !ok {
+		return rpcgroups.GroupItem{}, fmt.Errorf("rpc group not loaded in app - double check logic")
+	}
+
+	node := rpcGroup.RPCGroup.Group[rpcGroup.GroupIndex]
+	rpcGroup.GroupIndex = (rpcGroup.GroupIndex + 1) % len(rpcGroup.RPCGroup.Group)
+	return node, nil
 }

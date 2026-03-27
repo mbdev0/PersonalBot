@@ -3,6 +3,7 @@ package strategies
 import (
 	"math/big"
 	"personal_bot/internal/core/models/wallets"
+	rpcgroups "personal_bot/internal/core/rpc_groups"
 
 	"github.com/gagliardetto/solana-go"
 )
@@ -23,6 +24,7 @@ type Buy struct {
 	State          string
 	Message        string
 	TimeCreated    int64
+	RPCGroup       rpcgroups.RPCGroup
 }
 
 func (b *Buy) New() {
@@ -50,6 +52,10 @@ func (b *Buy) SetStrategyState(st string) {
 
 func (b *Buy) StrategyMessage() string {
 	return b.Message
+}
+
+func (b *Buy) RPCGroupId() int64 {
+	return b.RPCGroup.Id
 }
 
 func (b *Buy) SetStrategyMessage(message string) {

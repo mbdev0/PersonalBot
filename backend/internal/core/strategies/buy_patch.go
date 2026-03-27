@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/big"
 	"personal_bot/internal/core/models/wallets"
+	rpcgroups "personal_bot/internal/core/rpc_groups"
 
 	"github.com/gagliardetto/solana-go"
 )
@@ -17,6 +18,7 @@ type BuyPatch struct {
 	Token          *solana.PublicKey
 	SellStrategies *[]StrategyConfig
 	SellFee        *float64
+	RPCGroup       *rpcgroups.RPCGroup
 }
 
 func (bp *BuyPatch) ApplyTo(task Task) error {
@@ -51,6 +53,10 @@ func (bp *BuyPatch) ApplyTo(task Task) error {
 
 	if bp.Token != nil {
 		buy.Token = *bp.Token
+	}
+
+	if bp.RPCGroup != nil {
+		buy.RPCGroup = *bp.RPCGroup
 	}
 
 	buy.SellFee = bp.SellFee

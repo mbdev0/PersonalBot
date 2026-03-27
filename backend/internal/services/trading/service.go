@@ -8,6 +8,7 @@ import (
 	"personal_bot/infrastructure/persistence/repository"
 	"personal_bot/internal/core/strategies"
 	"personal_bot/internal/core/tasks"
+	rpcgroups "personal_bot/internal/services/rpc_groups"
 	"personal_bot/internal/services/subscription_hub/strategy"
 	taskservice "personal_bot/internal/services/task_service"
 	"personal_bot/pkg/logger"
@@ -17,31 +18,33 @@ import (
 )
 
 type Service struct {
-	strategy    *Strategy
-	tasks       map[int64]strategies.Task
-	running     map[int64]context.CancelFunc
-	mu          *sync.Mutex
-	subhub      *strategy.SubscriptionHub
-	repo        *repository.TradingRepository
-	iterable    *iterable.Iterable
-	taskService *taskservice.TaskService
+	strategy        *Strategy
+	tasks           map[int64]strategies.Task
+	running         map[int64]context.CancelFunc
+	mu              *sync.Mutex
+	subhub          *strategy.SubscriptionHub
+	repo            *repository.TradingRepository
+	iterable        *iterable.Iterable
+	taskService     *taskservice.TaskService
+	rpcGroupService *rpcgroups.Service
 }
 
-func NewTradingService(strat *Strategy, sh *strategy.SubscriptionHub, tr *repository.TradingRepository, ts *taskservice.TaskService) *Service {
+func NewTradingService(strat *Strategy, sh *strategy.SubscriptionHub, tr *repository.TradingRepository, ts *taskservice.TaskService, rgs *rpcgroups.Service) *Service {
 
 	return &Service{
-		strategy:    strat,
-		tasks:       map[int64]strategies.Task{},
-		running:     map[int64]context.CancelFunc{},
-		mu:          &sync.Mutex{},
-		subhub:      sh,
-		repo:        tr,
-		iterable:    iterable.NewIterable(),
-		taskService: ts,
+		strategy:        strat,
+		tasks:           map[int64]strategies.Task{},
+		running:         map[int64]context.CancelFunc{},
+		mu:              &sync.Mutex{},
+		subhub:          sh,
+		repo:            tr,
+		iterable:        iterable.NewIterable(),
+		taskService:     ts,
+		rpcGroupService: rgs,
 	}
 }
 
-func (s *Service) Create(st strategies.Task) (task strategies.Task, err error) {
+func (s *Service) Create(ctx context.Context, st strategies.Task) (task strategies.Task, err error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -67,6 +70,11 @@ func (s *Service) Create(st strategies.Task) (task strategies.Task, err error) {
 	}
 
 	s.tasks[st.StrategyTaskId()] = st
+	_, err = s.rpcGroupService.Load(ctx, st.RPCGroupId())
+	if err != nil {
+		return nil, err
+	}
+
 	return st, nil
 }
 
@@ -143,6 +151,11 @@ func (s *Service) Delete(id int64, ctx context.Context) error {
 
 	task := s.tasks[id]
 	delete(s.tasks, id)
+
+	err := s.rpcGroupService.Unload(ctx, task.RPCGroupId())
+	if err != nil {
+		return err
+	}
 
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
@@ -305,6 +318,7 @@ func (s *Service) Unsubscribe(taskId int64) error {
 
 // loads tasks into memory
 func (s *Service) LoadFromDB(ctx context.Context) error {
+	logger.Information("load from db")
 	ttFromDb, err := s.repo.GetAllTasks(ctx)
 	if err != nil {
 		return err
@@ -314,7 +328,13 @@ func (s *Service) LoadFromDB(ctx context.Context) error {
 	s.iterable.SetIterable(maxId)
 
 	for _, tt := range ttFromDb {
+		logger.Information("loop")
+
 		s.tasks[tt.StrategyTaskId()] = tt
+		_, err = s.rpcGroupService.Load(ctx, tt.RPCGroupId())
+		if err != nil {
+			logger.Error(err)
+		}
 	}
 
 	return nil

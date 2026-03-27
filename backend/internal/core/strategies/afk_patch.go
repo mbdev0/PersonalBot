@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/big"
 	"personal_bot/internal/core/models/wallets"
+	rpcgroups "personal_bot/internal/core/rpc_groups"
 )
 
 type AfkPatch struct {
@@ -15,6 +16,7 @@ type AfkPatch struct {
 	Wallet         *wallets.SolanaWallet
 	SellStrategies *[]StrategyConfig
 	SellFee        *float64
+	RPCGroup       *rpcgroups.RPCGroup
 }
 
 func (ap *AfkPatch) ApplyTo(task Task) error {
@@ -49,6 +51,10 @@ func (ap *AfkPatch) ApplyTo(task Task) error {
 
 	if ap.SellStrategies != nil {
 		afk.SellStrategies = *ap.SellStrategies
+	}
+
+	if ap.RPCGroup != nil {
+		afk.RPCGroup = *ap.RPCGroup
 	}
 
 	afk.SellFee = ap.SellFee
