@@ -58,6 +58,24 @@ func MapRpcGroupPostDtoToRpcGroupPost(src dto.RPCGroupPush) (rpcgroups.RPCGroupP
 	return rpcgroup, nil
 }
 
+func MapRPCGroupToResponseDto(src rpcgroups.RPCGroup) dto.RPCGroupResponse {
+	returnVal := dto.RPCGroupResponse{
+		Name:         src.Name,
+		CreationTime: src.CreationTime,
+		Id:           src.Id,
+	}
+
+	groupString := ""
+	for _, group := range src.Group {
+		groupString += fmt.Sprintf("http:%s, ws:%s\n", group.Http, group.WS)
+	}
+
+	returnVal.Group = groupString
+
+	return returnVal
+
+}
+
 func parseGroupString(groupString string) (rpcgroups.Group, error) {
 	//group string will be formatted as "http:http://abc.com, ws:ws://abc.com\nhttp:http://abc.com, ws:ws://abc.com\n"
 	// we will need to return []rpcgroups.GroupItem

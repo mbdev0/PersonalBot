@@ -85,7 +85,7 @@ func (rg *RPCGroup) Add(ctx context.Context, rpcGroup rpcgroups.RPCGroupPost) (r
 
 	latestAddedRpcGroup, err := rg.GetById(ctx, lastInsertId)
 	if err != nil {
-		return rpcgroups.RPCGroup{}, fmt.Errorf("error whilst finding the row for RPC group we just added error: ", err)
+		return rpcgroups.RPCGroup{}, fmt.Errorf("error whilst finding the row for RPC group we just added error: %w", err)
 	}
 
 	return latestAddedRpcGroup, nil
