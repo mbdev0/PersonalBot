@@ -1,9 +1,15 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { getRPCDashboard, getRPCGroup, postRPCGroup } from '../api/rpcGroups';
-import type { RPCGroupPost } from '../types/rpcGroup';
+import {
+  deleteRPCGroup,
+  getRPCDashboard,
+  getRPCGroup,
+  postRPCGroup,
+  updateRPCGroup,
+} from '../api/rpcGroups';
+import type { RPCGroupPost, RPCGroupPut } from '../types/rpcGroup';
 
 export function useRpcGroupDashboard() {
-  useQuery({
+  return useQuery({
     queryKey: ['rpcGroupDashboard'],
     queryFn: getRPCDashboard,
   });
@@ -11,7 +17,7 @@ export function useRpcGroupDashboard() {
 
 export function usePostRPCGroup() {
   const client = useQueryClient();
-  useMutation({
+  return useMutation({
     mutationFn: (rpcGroup: RPCGroupPost) => postRPCGroup(rpcGroup),
     onSuccess: () => {
       client.invalidateQueries({ queryKey: ['rpcGroupDashboard'] });
@@ -20,8 +26,30 @@ export function usePostRPCGroup() {
 }
 
 export function useRpcGroup({ id }: { id: number }) {
-  useQuery({
+  return useQuery({
     queryKey: ['rpcGroup', id],
     queryFn: () => getRPCGroup(id),
+  });
+}
+
+export function useUpdateRPCGroup() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (rpcGroup: RPCGroupPut) => updateRPCGroup(rpcGroup),
+    onSuccess: (_, variables) => {
+      client.invalidateQueries({ queryKey: ['rpcGroupDashboard'] });
+      client.invalidateQueries({ queryKey: ['rpcGroup', variables.id] });
+    },
+  });
+}
+
+export function useDeleteRPCGroup() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => deleteRPCGroup(id),
+    onSuccess: (_, id) => {
+      client.invalidateQueries({ queryKey: ['rpcGroupDashboard'] });
+      client.removeQueries({ queryKey: ['rpcGroup', id] });
+    },
   });
 }

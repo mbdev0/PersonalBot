@@ -1,6 +1,8 @@
 export interface RPCGroup {
-  rpc_group_name: string;
-  rpcs: RPC[];
+  id: number;
+  name: string;
+  group: string;
+  creation_time: string;
 }
 
 export interface RPC {
@@ -8,16 +10,20 @@ export interface RPC {
   ws: string;
 }
 
-export interface RPCGroupDashboard {
-  rows: RPCGroupDashboardRow[];
-}
-
 export interface RPCGroupDashboardRow {
-  rpc_group_name: string;
-  num_of_rpcs: number;
+  id: number;
+  name: string;
+  number: number;
+  creation_time: string;
 }
 
 export interface RPCGroupPost {
-  rpc_group_name: string;
-  rpc: string[];
+  name: string;
+  group: string;
+}
+
+export interface RPCGroupPut {
+  id: number;
+  name: string;
+  group: string;
 }
