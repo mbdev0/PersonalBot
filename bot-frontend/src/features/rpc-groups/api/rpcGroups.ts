@@ -1,9 +1,9 @@
 import { API_BASE } from '@/config/urls';
-import type { RPCGroup, RPCGroupDashboard, RPCGroupPost } from '../types/rpcGroup';
+import type { RPCGroup, RPCGroupDashboardRow, RPCGroupPost, RPCGroupPut } from '../types/rpcGroup';
 
 const baseRPCUrl = API_BASE + '/rpc_groups/';
 
-export async function getRPCDashboard(): Promise<RPCGroupDashboard> {
+export async function getRPCDashboard(): Promise<RPCGroupDashboardRow[]> {
   const resp = await fetch(baseRPCUrl, {
     method: 'GET',
     headers: {
@@ -12,7 +12,7 @@ export async function getRPCDashboard(): Promise<RPCGroupDashboard> {
     },
   });
 
-  const data: RPCGroupDashboard = await resp.json();
+  const data: RPCGroupDashboardRow[] = await resp.json();
   return data;
 }
 
@@ -32,6 +32,21 @@ export async function postRPCGroup(rpcGroup: RPCGroupPost) {
   return resp.status;
 }
 
+export async function updateRPCGroup(rpcGroup: RPCGroupPut) {
+  const body = JSON.stringify(rpcGroup);
+
+  const resp = await fetch(baseRPCUrl + rpcGroup.id, {
+    method: 'PUT',
+    body: body,
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+    },
+  });
+
+  return resp.status;
+}
+
 export async function getRPCGroup(id: number) {
   const resp = await fetch(baseRPCUrl + id, {
     method: 'GET',
@@ -47,4 +62,15 @@ export async function getRPCGroup(id: number) {
 
   const data: RPCGroup = await resp.json();
   return data;
+}
+
+export async function deleteRPCGroup(id: number) {
+  const resp = await fetch(baseRPCUrl + id, {
+    method: 'DELETE',
+  });
+
+  if (!resp.ok) {
+    return;
+  }
+  return resp.status;
 }
