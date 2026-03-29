@@ -40,12 +40,12 @@ func (rgc *RPCGroupController) Post(ctx context.Context, rpcGroup dto.RPCGroupPu
 	return mapper.MapRPCGroupToDto(createdRpcGroup), nil
 }
 
-func (rgc *RPCGroupController) GetBy(ctx context.Context, id int64) (dto.RPCGroup, error) {
+func (rgc *RPCGroupController) GetBy(ctx context.Context, id int64) (dto.RPCGroupResponse, error) {
 	rpcGroup, err := rgc.service.GetBy(ctx, id)
 	if err != nil {
-		return dto.RPCGroup{}, err
+		return dto.RPCGroupResponse{}, err
 	}
-	return mapper.MapRPCGroupToDto(rpcGroup), nil
+	return mapper.MapRPCGroupToResponseDto(rpcGroup), nil
 }
 
 func (rgc *RPCGroupController) Delete(ctx context.Context, id int64) error {

@@ -34,8 +34,8 @@ type GroupItem struct {
 type RPCGroupDashboard []RPCGroupDashboardRow
 
 type RPCGroupDashboardRow struct {
-	Id           int64
-	Name         string
-	Number       int64
-	CreationTime string
+	Id           int64  `json:"id"`
+	Name         string `json:"name"`
+	Number       int64  `json:"number"`
+	CreationTime string `json:"creation_time"`
 }
