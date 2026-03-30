@@ -39,6 +39,8 @@ func mapBuyToResponseTask(t *tasks.BuyTask) *dto.ResponseTask {
 	responseTask.StrategyId = t.StrategyId
 	responseTask.TimeCreated = t.TimeCreated
 	responseTask.Message = t.Message()
+	responseTask.HTTPNode = t.HttpNode()
+	responseTask.WSNode = t.WSNode()
 
 	return &responseTask
 }
@@ -63,6 +65,8 @@ func mapSellToResponseTask(t *tasks.SellTask) *dto.ResponseTask {
 	responseTask.TimeCreated = t.TimeCreated
 	responseTask.StrategyId = t.StrategyId
 	responseTask.Message = t.Message()
+	responseTask.HTTPNode = t.HttpNode()
+	responseTask.WSNode = t.WSNode()
 
 	return &responseTask
 }

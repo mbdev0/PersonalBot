@@ -48,6 +48,8 @@ type ResponseTask struct {
 	State             State    `json:"state"`
 	Message           string   `json:"message"`
 	TimeCreated       int64    `json:"time_created"`
+	HTTPNode          string   `json:"http_node"`
+	WSNode            string   `json:"ws_node"`
 }
 
 type State struct {

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"personal_bot/api/dto"
 	rpcgroups "personal_bot/internal/core/rpc_groups"
-	"regexp"
 	"strings"
 	"time"
 )
@@ -65,37 +64,43 @@ func MapRPCGroupToResponseDto(src rpcgroups.RPCGroup) dto.RPCGroupResponse {
 		Id:           src.Id,
 	}
 
-	groupString := ""
+	var groupString strings.Builder
 	for _, group := range src.Group {
-		groupString += fmt.Sprintf("http:%s, ws:%s\n", group.Http, group.WS)
+		fmt.Fprintf(&groupString, "%s, %s\n", group.Http, group.WS)
 	}
 
-	returnVal.Group = groupString
+	returnVal.Group = groupString.String()
 
 	return returnVal
 
 }
 
 func parseGroupString(groupString string) (rpcgroups.Group, error) {
-	//group string will be formatted as "http:http://abc.com, ws:ws://abc.com\nhttp:http://abc.com, ws:ws://abc.com\n"
-	// we will need to return []rpcgroups.GroupItem
-	rpcLineRegex, err := regexp.Compile(`http:([^,]+),\s*ws:([^\n]+)`)
-	if err != nil {
-		return rpcgroups.Group{}, err
-	}
-	matches := rpcLineRegex.FindAllStringSubmatch(groupString, -1)
+	lines := strings.Split(strings.TrimSpace(groupString), "\n")
+	group := make(rpcgroups.Group, 0, len(lines))
 
-	group := rpcgroups.Group{}
-	for _, match := range matches {
-		http := strings.TrimSpace(match[1])
-		ws := strings.TrimSpace(match[2])
-
-		groupItem := rpcgroups.GroupItem{
-			Http: http,
-			WS:   ws,
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
 		}
 
-		group = append(group, groupItem)
+		parts := strings.SplitN(line, ",", 2)
+		if len(parts) != 2 {
+			return nil, fmt.Errorf("invalid rpc line format: %q", line)
+		}
+
+		http := strings.TrimSpace(parts[0])
+		ws := strings.TrimSpace(parts[1])
+
+		if !strings.HasPrefix(http, "http") {
+			return nil, fmt.Errorf("invalid http url: %q", http)
+		}
+		if !strings.HasPrefix(ws, "ws") {
+			return nil, fmt.Errorf("invalid ws url: %q", ws)
+		}
+
+		group = append(group, rpcgroups.GroupItem{Http: http, WS: ws})
 	}
 
 	return group, nil
