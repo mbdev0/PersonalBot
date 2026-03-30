@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"personal_bot/infrastructure/persistence/models"
 	rpcgroups "personal_bot/internal/core/rpc_groups"
-	"personal_bot/pkg/logger"
 )
 
 func MapRpcGroupPostToRepository(src rpcgroups.RPCGroupPost) (models.RpcGroupRepository, error) {
@@ -17,7 +16,6 @@ func MapRpcGroupPostToRepository(src rpcgroups.RPCGroupPost) (models.RpcGroupRep
 	dst.RpcGroups = string(rpcGroups)
 	dst.CreationTime = src.CreationTime
 
-	logger.Information("name:", dst.GroupName)
 	return dst, nil
 }
 

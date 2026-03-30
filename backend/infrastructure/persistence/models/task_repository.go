@@ -11,6 +11,7 @@ type TaskRow struct {
 	Token           string `db:"token"`
 	StrategyId      *int64 `db:"strategy_id"`
 	TimeCreatedUnix int64  `db:"time_created"`
+	NodeConfig      string `db:"node_config"`
 }
 
 // Stored as lamports
@@ -23,4 +24,9 @@ type BuyConfig struct {
 type SellConfig struct {
 	SellFee    int `json:"sell_fee"`
 	SellAmount int `json:"sell_percentage"`
+}
+
+type NodeConfig struct {
+	Http string `json:"http_node"`
+	Ws   string `json:"ws_node"`
 }

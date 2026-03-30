@@ -41,6 +41,7 @@ type TradingTaskResponse struct {
 	State         string      `json:"state"`
 	Message       string      `json:"message"`
 	RPCGroup      string      `json:"rpc_group"`
+	RPCGroupID    int64       `json:"rpc_group_id"`
 
 	SellStrategies *[]SellStrategyDTO `json:"sell_strategies,omitempty"`
 	BuyAmount      *float64           `json:"buy_amount,omitempty"`

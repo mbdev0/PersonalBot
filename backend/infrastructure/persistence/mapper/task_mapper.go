@@ -29,6 +29,11 @@ func createBuyTask(src models.TaskRow, wallet models.WalletRepository) (*tasks.B
 		return nil, err
 	}
 
+	nodeConfig := new(models.NodeConfig)
+	if err := json.Unmarshal([]byte(src.NodeConfig), nodeConfig); err != nil {
+		return nil, err
+	}
+
 	mappedWallet, err := WalletRepoToWallet(wallet)
 	if err != nil {
 		return nil, err
@@ -59,6 +64,8 @@ func createBuyTask(src models.TaskRow, wallet models.WalletRepository) (*tasks.B
 		tasks.WithSlippage(float64(src.Slippage) / 100.0),
 		tasks.WithComputeUnits(uint32(src.ComputeUnits)),
 		tasks.WithUnixTime(src.TimeCreatedUnix),
+		tasks.WithHttpNode(nodeConfig.Http),
+		tasks.WithWS(nodeConfig.Ws),
 	}
 
 	if src.StrategyId != nil {
@@ -76,6 +83,11 @@ func createBuyTask(src models.TaskRow, wallet models.WalletRepository) (*tasks.B
 func createSellTask(src models.TaskRow, wallet models.WalletRepository) (*tasks.SellTask, error) {
 	sellConfig := new(models.SellConfig)
 	if err := json.Unmarshal([]byte(src.Config), sellConfig); err != nil {
+		return nil, err
+	}
+
+	nodeConfig := new(models.NodeConfig)
+	if err := json.Unmarshal([]byte(src.NodeConfig), nodeConfig); err != nil {
 		return nil, err
 	}
 
@@ -97,6 +109,8 @@ func createSellTask(src models.TaskRow, wallet models.WalletRepository) (*tasks.
 		tasks.WithComputeUnits(uint32(src.ComputeUnits)),
 		tasks.WithSlippage(float64(src.Slippage) / 100.0),
 		tasks.WithUnixTime(src.TimeCreatedUnix),
+		tasks.WithHttpNode(nodeConfig.Http),
+		tasks.WithWS(nodeConfig.Ws),
 	}
 
 	if src.StrategyId != nil {
@@ -148,6 +162,13 @@ func MapTaskToRepo(src tasks.Task) (*models.TaskRow, error) {
 		taskRow.StrategyId = task.StrategyId
 		taskRow.TimeCreatedUnix = task.TimeCreated
 
+		nodeConfig := models.NodeConfig{
+			Http: task.HttpNode(),
+			Ws:   task.WSNode(),
+		}
+		nodeConfigJson, err := json.Marshal(nodeConfig)
+		taskRow.NodeConfig = string(nodeConfigJson)
+
 	case *tasks.SellTask:
 
 		sellFeeBig := utils.ConvertSolToLamport(task.Fee)
@@ -170,6 +191,13 @@ func MapTaskToRepo(src tasks.Task) (*models.TaskRow, error) {
 		taskRow.TimeCreatedUnix = task.TimeCreated
 		taskRow.Config = string(configJSON)
 		taskRow.StrategyId = task.StrategyId
+
+		nodeConfig := models.NodeConfig{
+			Http: task.HttpNode(),
+			Ws:   task.WSNode(),
+		}
+		nodeConfigJson, err := json.Marshal(nodeConfig)
+		taskRow.NodeConfig = string(nodeConfigJson)
 
 	default:
 		return nil, fmt.Errorf("unknown task type: %T", src)
