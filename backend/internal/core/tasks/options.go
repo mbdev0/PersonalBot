@@ -19,6 +19,14 @@ func WithStrategyId(id int64) Option {
 	return func(t Task) { t.SetStrategyId(id) }
 }
 
+func WithHttpNode(rpcNode string) Option {
+	return func(t Task) { t.SetHttpNode(rpcNode) }
+}
+
+func WithWS(ws string) Option {
+	return func(t Task) { t.SetWSNode(ws) }
+}
+
 type BuyOption func(*BuyTask)
 
 func WithBuyAmount(amnt *big.Int) BuyOption {

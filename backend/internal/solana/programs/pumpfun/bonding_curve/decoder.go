@@ -14,6 +14,7 @@ import (
 	"personal_bot/pkg/logger"
 
 	"github.com/gagliardetto/solana-go"
+	"github.com/gagliardetto/solana-go/rpc"
 	"github.com/near/borsh-go"
 )
 
@@ -40,17 +41,17 @@ func GetMarketCapFrom(bondingCurveValue string) (marketCapVal *big.Float, err er
 	return marketCap, nil, false
 }
 
-func GetMarketCapFromTokenAddress(tokenAddrress solana.PublicKey, ctx context.Context) (marketCapVal *big.Float, err error, hasCompleted bool) {
+func GetMarketCapFromTokenAddress(tokenAddrress solana.PublicKey, ctx context.Context, httpNode *rpc.Client) (marketCapVal *big.Float, err error, hasCompleted bool) {
 	bondingCurveAddress, err := pda.GetBondingCurveAddress(tokenAddrress.String())
 	if err != nil {
 		return nil, err, false
 	}
 
-	return GetMarketCapInitial(bondingCurveAddress, ctx)
+	return GetMarketCapInitial(bondingCurveAddress, ctx, httpNode)
 }
 
-func GetMarketCapInitial(bondingCurveAddress string, ctx context.Context) (marketCapVal *big.Float, err error, hasCompleted bool) {
-	bondingCurveResponse, err := client.GetAccountInfo(bondingCurveAddress, ctx)
+func GetMarketCapInitial(bondingCurveAddress string, ctx context.Context, httpNode *rpc.Client) (marketCapVal *big.Float, err error, hasCompleted bool) {
+	bondingCurveResponse, err := client.GetAccountInfo(bondingCurveAddress, ctx, httpNode)
 	if err != nil {
 		return nil, err, false
 	}
@@ -108,8 +109,8 @@ func GetSolanaTokenPrice(bondingCurve models.BondingCurve, tokenAmount uint64) *
 
 }
 
-func GetBondingCurveDataFromAddress(bondingCurveAddress string, ctx context.Context) (bondingCurveData *models.BondingCurve, err error, hasCompleted bool) {
-	bondingCurveResponse, err := client.GetAccountInfo(bondingCurveAddress, ctx)
+func GetBondingCurveDataFromAddress(bondingCurveAddress string, ctx context.Context, httpNode *rpc.Client) (bondingCurveData *models.BondingCurve, err error, hasCompleted bool) {
+	bondingCurveResponse, err := client.GetAccountInfo(bondingCurveAddress, ctx, httpNode)
 	if err != nil {
 		return nil, err, false
 	}

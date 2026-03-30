@@ -247,7 +247,11 @@ func getAllInstructionsForSell(sellTask *tasks.SellTask, ctx context.Context, ps
 		}
 
 		tokenAmountBig := new(big.Float).SetUint64(*tokenAmount)
-		ps.ReportBuy(ctx, sellTask.Id(), sellTask.Token, sellTask.Wallet.PublicKey(), tokenAmountBig, big.NewFloat(0))
+		err = ps.ReportBuy(ctx, sellTask.Id(), sellTask.Token, sellTask.Wallet.PublicKey(), tokenAmountBig, big.NewFloat(0))
+		if err != nil {
+			return nil, err
+		}
+
 		pos = nil
 	}
 

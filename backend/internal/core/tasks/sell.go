@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"github.com/gagliardetto/solana-go"
+	"github.com/gagliardetto/solana-go/rpc"
 )
 
 type SellTask struct {
@@ -24,6 +25,9 @@ type SellTask struct {
 	message        string
 	StrategyId     *int64
 	mu             *sync.RWMutex
+	rpcNode        *rpc.Client
+	rpcNodeString  string
+	ws             string
 }
 
 func NewSellTask(wallet wallets.SolanaWallet, token solana.PublicKey, common []Option, sellOpt []SellOption) *SellTask {
@@ -82,4 +86,24 @@ func (st *SellTask) GetWallet() solana.PublicKey {
 
 func (st *SellTask) GetToken() solana.PublicKey {
 	return st.Token
+}
+
+func (st *SellTask) HttpClient() *rpc.Client {
+	return st.rpcNode
+}
+
+func (st *SellTask) SetHttpNode(rpcNode string) {
+	st.rpcNodeString = rpcNode
+	st.rpcNode = rpc.New(rpcNode)
+}
+func (st *SellTask) HttpNode() string {
+	return st.rpcNodeString
+}
+
+func (st *SellTask) WSNode() string {
+	return st.ws
+}
+
+func (st *SellTask) SetWSNode(ws string) {
+	st.ws = ws
 }

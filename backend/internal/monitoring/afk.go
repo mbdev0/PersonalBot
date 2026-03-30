@@ -15,7 +15,7 @@ var startMonitoring = true
 var transactionChanSize = 1000
 var coinChanSize = 1000
 
-func StartAFKMonitor(filters filters.FilterPipeline, coins chan<- models.Coin, ctx context.Context) {
+func StartAFKMonitor(filters filters.FilterPipeline, coins chan<- models.Coin, ctx context.Context, wsUrl string) {
 	var wg sync.WaitGroup
 	if startMonitoring {
 		wg.Add(1)
@@ -26,7 +26,7 @@ func StartAFKMonitor(filters filters.FilterPipeline, coins chan<- models.Coin, c
 
 			var handlerWg sync.WaitGroup
 
-			go streamTransactions(transactionNotificationChan, ctx)
+			go streamTransactions(transactionNotificationChan, ctx, wsUrl)
 
 			go decryptAndFilterTransactions(filters, transactionNotificationChan, coinStructChan, ctx, &handlerWg)
 
@@ -51,8 +51,8 @@ func StartAFKMonitor(filters filters.FilterPipeline, coins chan<- models.Coin, c
 	wg.Wait()
 }
 
-func streamTransactions(transactionNotificationChan chan<- response.TransactionNotification, ctx context.Context) {
-	err := stream.StartGeyserTransactionStream(transactionNotificationChan, ctx)
+func streamTransactions(transactionNotificationChan chan<- response.TransactionNotification, ctx context.Context, wsUrl string) {
+	err := stream.StartGeyserTransactionStream(transactionNotificationChan, ctx, wsUrl)
 	if err != nil {
 		logger.Error("Error in Geyser_Stream_Transactions ", err)
 		return

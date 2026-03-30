@@ -49,7 +49,7 @@ func main() {
 	settingsHandler := http.StripPrefix("/api/settings", handler.NewSettingsHandler(settingsController))
 
 	taskSubhub := subscriptionhub.NewTaskSubscriptionHub()
-	posSubhub := positionhub.NewSubscriptionHub()
+	posSubhub := positionhub.NewSubscriptionHub(settingsService)
 	positionService := position.NewPositionService(posSubhub)
 
 	rpcGroupRepo := repository.NewRPCGroupRepository(db)
@@ -72,7 +72,7 @@ func main() {
 	taskManager := taskservice.NewTaskManager(taskSubhub, executor)
 	taskService := taskservice.NewTaskService(taskRepo, taskSubhub, taskManager)
 
-	tradingStrategy := trading.NewTradingStrategy(taskService, posSubhub, positionService, strategySubHub, taskSubhub)
+	tradingStrategy := trading.NewTradingStrategy(taskService, posSubhub, positionService, strategySubHub, taskSubhub, rpcGroupService)
 	tradingTaskRepo := repository.NewTradingRepository(db)
 	tradingService := trading.NewTradingService(tradingStrategy, strategySubHub, tradingTaskRepo, taskService, rpcGroupService)
 	deps.TradingService = tradingService

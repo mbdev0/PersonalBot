@@ -212,7 +212,7 @@ func (bt *Transaction) getAllInstructionsForBuy(buyTask *tasks.BuyTask, ctx cont
 
 	computeLimitInstruction := instructions.GetComputeUnitLimitInstruction(buyTask.ComputeUnits)
 	computeLimitBudgetInstruction := instructions.GetComputeUnitBudgetInstruction(buyTask.Fee, buyTask.ComputeUnits)
-	idEmponenetInstruction, err := instructions.GetIdempotentInstruction(buyTask.Wallet.PublicKey(), buyTask.Token, ctx)
+	idEmponenetInstruction, err := instructions.GetIdempotentInstruction(buyTask.Wallet.PublicKey(), buyTask.Token, ctx, buyTask.HttpClient())
 	if err != nil {
 		return nil, err
 	}
