@@ -1,5 +1,7 @@
 package rpcgroups
 
+import "github.com/gagliardetto/solana-go/rpc"
+
 type RPCGroup struct {
 	Id           int64
 	Name         string
@@ -25,6 +27,11 @@ type RPCGroupPut struct {
 }
 
 type Group []GroupItem
+
+type RPCNode struct {
+	Http *rpc.Client
+	WS   string
+}
 
 type GroupItem struct {
 	Http string `json:"http"`

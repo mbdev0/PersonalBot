@@ -13,6 +13,7 @@ import (
 	"personal_bot/internal/solana/utils"
 
 	"github.com/gagliardetto/solana-go"
+	"github.com/gagliardetto/solana-go/rpc"
 	"github.com/near/borsh-go"
 )
 
@@ -63,12 +64,12 @@ func setupAccountAddressSet(buyTask *tasks.BuyTask, ctx context.Context) (Accoun
 	}
 
 	// Get and Set bonding curve information
-	err := setBondingCurveInformation(accountAddressesSet, ctx)
+	err := setBondingCurveInformation(accountAddressesSet, ctx, buyTask.HttpClient())
 	if err != nil {
 		return *accountAddressesSet, err
 	}
 
-	isNewTokenProgram, err := instructions.IsTokenAccountNew(buyTask.Token, ctx)
+	isNewTokenProgram, err := instructions.IsTokenAccountNew(buyTask.Token, ctx, buyTask.HttpClient())
 	if err != nil {
 		return *accountAddressesSet, err
 	}
@@ -88,13 +89,13 @@ func setupAccountAddressSet(buyTask *tasks.BuyTask, ctx context.Context) (Accoun
 	return *accountAddressesSet, nil
 }
 
-func setBondingCurveInformation(accountAddressesSet *AccountAddressesSet, ctx context.Context) (err error) {
+func setBondingCurveInformation(accountAddressesSet *AccountAddressesSet, ctx context.Context, httpClient *rpc.Client) (err error) {
 	bondingCurveAddress, err := pda.GetBondingCurveAddress(accountAddressesSet.TokenAddress)
 	if err != nil {
 		return fmt.Errorf("error getting bonding curve address: %w", err)
 	}
 
-	bondingCurveData, err, _ := bondingcurve.GetBondingCurveDataFromAddress(bondingCurveAddress, ctx)
+	bondingCurveData, err, _ := bondingcurve.GetBondingCurveDataFromAddress(bondingCurveAddress, ctx, httpClient)
 	if err != nil {
 		return fmt.Errorf("error getting bonding curve data: %w", err)
 	}

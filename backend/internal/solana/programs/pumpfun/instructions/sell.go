@@ -14,6 +14,7 @@ import (
 	"personal_bot/pkg/logger"
 
 	"github.com/gagliardetto/solana-go"
+	"github.com/gagliardetto/solana-go/rpc"
 	"github.com/near/borsh-go"
 )
 
@@ -50,7 +51,7 @@ func getAccounts(sellTask *tasks.SellTask, ctx context.Context) ([]*solana.Accou
 		return nil, err
 	}
 
-	isNewTokenAddress, err := instructions.IsTokenAccountNew(sellTask.Token, ctx)
+	isNewTokenAddress, err := instructions.IsTokenAccountNew(sellTask.Token, ctx, sellTask.HttpClient())
 	if err != nil {
 		return nil, err
 	}
@@ -82,7 +83,7 @@ func getAccounts(sellTask *tasks.SellTask, ctx context.Context) ([]*solana.Accou
 	}
 	associatedTokenAddress = ata
 
-	creatorAddress, err := getCreatorVaultAddress(bondingCurveAddress, ctx)
+	creatorAddress, err := getCreatorVaultAddress(bondingCurveAddress, ctx, sellTask.HttpClient())
 	if err != nil {
 		logger.Error("Error getting creator vault address:", err)
 		return nil, err
@@ -114,8 +115,8 @@ func getAccounts(sellTask *tasks.SellTask, ctx context.Context) ([]*solana.Accou
 	return accounts, nil
 }
 
-func getCreatorVaultAddress(bondingCurveAddress string, ctx context.Context) (string, error) {
-	data, err, _ := bondingcurve.GetBondingCurveDataFromAddress(bondingCurveAddress, ctx)
+func getCreatorVaultAddress(bondingCurveAddress string, ctx context.Context, httpClient *rpc.Client) (string, error) {
+	data, err, _ := bondingcurve.GetBondingCurveDataFromAddress(bondingCurveAddress, ctx, httpClient)
 	if err != nil {
 		logger.Error("Error getting bonding curve data:", err)
 		return "", err

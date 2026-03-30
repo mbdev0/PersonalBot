@@ -3,27 +3,34 @@ package tasks
 import (
 	"math/big"
 	"personal_bot/internal/core/models/wallets"
+	"personal_bot/pkg/logger"
+
+	"github.com/gagliardetto/solana-go/rpc"
+
 	"sync"
 
 	"github.com/gagliardetto/solana-go"
 )
 
 type BuyTask struct {
-	taskType     string
-	id           int64
-	WalletName   string
-	Wallet       solana.PrivateKey `validate:"required"`
-	WalletId     string
-	Token        solana.PublicKey `validate:"required"`
-	BuyAmount    *big.Int         `validate:"required,gtZero"`
-	Fee          float64          `validate:"required,gt=0"`
-	Slippage     float64          `validate:"required,gt=0,lt=1"` // Slippage percentage (0.0 to 1.0)
-	ComputeUnits uint32           `validate:"required,min=1"`
-	StrategyId   *int64
-	TimeCreated  int64
-	state        State
-	message      string
-	mu           *sync.RWMutex
+	taskType      string
+	id            int64
+	WalletName    string
+	Wallet        solana.PrivateKey `validate:"required"`
+	WalletId      string
+	Token         solana.PublicKey `validate:"required"`
+	BuyAmount     *big.Int         `validate:"required,gtZero"`
+	Fee           float64          `validate:"required,gt=0"`
+	Slippage      float64          `validate:"required,gt=0,lt=1"` // Slippage percentage (0.0 to 1.0)
+	ComputeUnits  uint32           `validate:"required,min=1"`
+	StrategyId    *int64
+	TimeCreated   int64
+	state         State
+	message       string
+	mu            *sync.RWMutex
+	rpcNode       *rpc.Client
+	rpcNodeString string
+	ws            string
 }
 
 func NewBuyTask(wallet wallets.SolanaWallet, token solana.PublicKey, common []Option, buyOpts []BuyOption) *BuyTask {
@@ -78,4 +85,26 @@ func (bt *BuyTask) GetWallet() solana.PublicKey {
 
 func (bt *BuyTask) GetToken() solana.PublicKey {
 	return bt.Token
+}
+
+func (bt *BuyTask) HttpClient() *rpc.Client {
+	return bt.rpcNode
+}
+
+func (bt *BuyTask) HttpNode() string {
+	return bt.rpcNodeString
+}
+
+func (bt *BuyTask) SetHttpNode(rpcNode string) {
+	logger.Information("setting rpc node too: ", rpcNode)
+	bt.rpcNodeString = rpcNode
+	bt.rpcNode = rpc.New(rpcNode)
+}
+
+func (bt *BuyTask) WSNode() string {
+	return bt.ws
+}
+
+func (bt *BuyTask) SetWSNode(ws string) {
+	bt.ws = ws
 }

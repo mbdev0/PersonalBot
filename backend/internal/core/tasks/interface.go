@@ -1,6 +1,9 @@
 package tasks
 
-import "github.com/gagliardetto/solana-go"
+import (
+	"github.com/gagliardetto/solana-go"
+	"github.com/gagliardetto/solana-go/rpc"
+)
 
 type Task interface {
 	Id() int64
@@ -17,4 +20,9 @@ type Task interface {
 	SetTime(t int64)
 	GetWallet() solana.PublicKey
 	GetToken() solana.PublicKey
+	HttpClient() *rpc.Client
+	HttpNode() string
+	SetHttpNode(rpcNode string)
+	WSNode() string
+	SetWSNode(ws string)
 }

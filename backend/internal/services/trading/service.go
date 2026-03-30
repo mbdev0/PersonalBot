@@ -6,9 +6,11 @@ import (
 	"maps"
 	"personal_bot/app/iterable"
 	"personal_bot/infrastructure/persistence/repository"
+	rpcgroupsModel "personal_bot/internal/core/rpc_groups"
 	"personal_bot/internal/core/strategies"
 	"personal_bot/internal/core/tasks"
 	rpcgroups "personal_bot/internal/services/rpc_groups"
+
 	"personal_bot/internal/services/subscription_hub/strategy"
 	taskservice "personal_bot/internal/services/task_service"
 	"personal_bot/pkg/logger"
@@ -56,6 +58,11 @@ func (s *Service) Create(ctx context.Context, st strategies.Task) (task strategi
 		return nil, fmt.Errorf("task already exists with id: %d", st.StrategyTaskId())
 	}
 
+	_, err = s.rpcGroupService.Load(ctx, st.RPCGroupId())
+	if err != nil {
+		return nil, err
+	}
+
 	//if we get a buy/sell strategy we precreate the task to speed up running
 	if st.StrategyType() == strategies.BUY {
 		err := s.initBuyStrategy(st)
@@ -70,10 +77,6 @@ func (s *Service) Create(ctx context.Context, st strategies.Task) (task strategi
 	}
 
 	s.tasks[st.StrategyTaskId()] = st
-	_, err = s.rpcGroupService.Load(ctx, st.RPCGroupId())
-	if err != nil {
-		return nil, err
-	}
 
 	return st, nil
 }
@@ -84,7 +87,12 @@ func (s *Service) initBuyStrategy(st strategies.Task) (err error) {
 		return fmt.Errorf("expected strategy task to be a Buy Strategy - ended up getting a different type")
 	}
 
-	bt := s.createBuyTask(*buyStrategy)
+	node, err := s.rpcGroupService.GetNode(st.RPCGroupId())
+	if err != nil {
+		return err
+	}
+
+	bt := s.createBuyTask(*buyStrategy, node)
 	createdTask, err := s.taskService.Create(bt)
 	if err != nil {
 		return err
@@ -95,9 +103,18 @@ func (s *Service) initBuyStrategy(st strategies.Task) (err error) {
 	return nil
 }
 
-func (s *Service) createBuyTask(buyTask strategies.Buy) *tasks.BuyTask {
-	bt := tasks.NewBuyTask(buyTask.Wallet, buyTask.Token, []tasks.Option{tasks.WithSlippage(buyTask.Slippage), tasks.WithComputeUnits(uint32(buyTask.ComputeUnits)), tasks.WithStrategyId(buyTask.StrategyTaskId())},
-		[]tasks.BuyOption{tasks.WithBuyAmount(buyTask.BuyAmount), tasks.WithBuyFee(buyTask.BuyFee)},
+func (s *Service) createBuyTask(buyTask strategies.Buy, node rpcgroupsModel.GroupItem) *tasks.BuyTask {
+	bt := tasks.NewBuyTask(buyTask.Wallet, buyTask.Token,
+		[]tasks.Option{
+			tasks.WithSlippage(buyTask.Slippage),
+			tasks.WithComputeUnits(uint32(buyTask.ComputeUnits)),
+			tasks.WithStrategyId(buyTask.StrategyTaskId()),
+			tasks.WithHttpNode(node.Http),
+			tasks.WithWS(node.WS),
+		},
+		[]tasks.BuyOption{
+			tasks.WithBuyAmount(buyTask.BuyAmount),
+			tasks.WithBuyFee(buyTask.BuyFee)},
 	)
 
 	return bt
@@ -109,7 +126,12 @@ func (s *Service) initSellStrategy(st strategies.Task) (err error) {
 		return fmt.Errorf("expected strategy task to be a Sell Strategy - ended up getting a different type")
 	}
 
-	sellTask := s.createSellTask(*sellStrategy)
+	node, err := s.rpcGroupService.GetNode(sellStrategy.RPCGroupId())
+	if err != nil {
+		return err
+	}
+
+	sellTask := s.createSellTask(*sellStrategy, node)
 	createdTask, err := s.taskService.Create(sellTask)
 	if err != nil {
 		return err
@@ -119,7 +141,7 @@ func (s *Service) initSellStrategy(st strategies.Task) (err error) {
 	return nil
 }
 
-func (s *Service) createSellTask(sell strategies.Sell) *tasks.SellTask {
+func (s *Service) createSellTask(sell strategies.Sell, rpcGroup rpcgroupsModel.GroupItem) *tasks.SellTask {
 	st := tasks.NewSellTask(
 		sell.GetWallet(),
 		sell.Token,
@@ -127,6 +149,8 @@ func (s *Service) createSellTask(sell strategies.Sell) *tasks.SellTask {
 			tasks.WithComputeUnits(uint32(sell.GetComputeUnits())),
 			tasks.WithSlippage(sell.GetSlippage()),
 			tasks.WithStrategyId(sell.StrategyTaskId()),
+			tasks.WithHttpNode(rpcGroup.Http),
+			tasks.WithWS(rpcGroup.WS),
 		},
 		[]tasks.SellOption{
 			tasks.WithSellAmount(sell.SellAmount),
