@@ -3,6 +3,7 @@ package monitoring
 import (
 	"context"
 	"math/big"
+	rpcgroups "personal_bot/internal/core/rpc_groups"
 	"personal_bot/internal/monitoring/stream"
 	"personal_bot/internal/monitoring/stream/response"
 	bondingcurve "personal_bot/internal/solana/programs/pumpfun/bonding_curve"
@@ -29,19 +30,19 @@ Example usage:
 
 */
 
-func StartMarketCapMonitor(ctx context.Context, bondingCurveAddress string, marketCapChan chan<- *big.Float) {
+func StartMarketCapMonitor(ctx context.Context, bondingCurveAddress string, marketCapChan chan<- *big.Float, rpcGroup rpcgroups.RPCNode) {
 	for {
 		select {
 		case <-ctx.Done():
 			return
 		default:
 		}
-		marketCapMonitor(ctx, bondingCurveAddress, marketCapChan)
+		marketCapMonitor(ctx, bondingCurveAddress, marketCapChan, rpcGroup)
 	}
 }
 
-func marketCapMonitor(ctx context.Context, bondingCurveAddress string, marketCapChan chan<- *big.Float) {
-	marketCapInit, err, hasCompleted := bondingcurve.GetMarketCapInitial(bondingCurveAddress, ctx)
+func marketCapMonitor(ctx context.Context, bondingCurveAddress string, marketCapChan chan<- *big.Float, rpcGroup rpcgroups.RPCNode) {
+	marketCapInit, err, hasCompleted := bondingcurve.GetMarketCapInitial(bondingCurveAddress, ctx, rpcGroup.Http)
 
 	if err != nil {
 		logger.Error("Error getting initial market cap", err)
@@ -60,7 +61,7 @@ func marketCapMonitor(ctx context.Context, bondingCurveAddress string, marketCap
 	accountInfoChan := make(chan response.AccountSubscribeModel, 20)
 
 	go func(c context.Context) {
-		err := stream.GeyserStreamAccountInfo(c, bondingCurveAddress, accountInfoChan)
+		err := stream.GeyserStreamAccountInfo(c, bondingCurveAddress, accountInfoChan, rpcGroup.WS)
 		if err != nil {
 			logger.Error("Error getting account info", err)
 			close(accountInfoChan)

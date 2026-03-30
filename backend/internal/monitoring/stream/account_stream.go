@@ -11,7 +11,7 @@ import (
 	"github.com/coder/websocket/wsjson"
 )
 
-func GeyserStreamAccountInfo(ctx context.Context, address string, accountinfoChan chan response.AccountSubscribeModel) error {
+func GeyserStreamAccountInfo(ctx context.Context, address string, accountinfoChan chan response.AccountSubscribeModel, wsUrl string) error {
 
 	ws, err := retry.DoWithData(
 		func() (*websocket.Conn, error) {

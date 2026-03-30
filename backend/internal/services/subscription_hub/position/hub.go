@@ -7,12 +7,16 @@ import (
 	"personal_bot/infrastructure/solana_price"
 	"personal_bot/internal/core/constants"
 	"personal_bot/internal/core/position"
+	rpcgroups "personal_bot/internal/core/rpc_groups"
 	"personal_bot/internal/monitoring"
+	"personal_bot/internal/services/settings"
 	bondingcurve "personal_bot/internal/solana/programs/pumpfun/bonding_curve"
 	"personal_bot/internal/solana/programs/pumpfun/pda"
 	datastructures "personal_bot/pkg/data_structures"
 	"personal_bot/pkg/logger"
 	"sync"
+
+	"github.com/gagliardetto/solana-go/rpc"
 )
 
 type Subscription struct {
@@ -31,19 +35,21 @@ type SubscriptionHub struct {
 	last             map[int64]*position.PositionMessage
 	bufferSize       int
 	mu               *sync.Mutex
+	settings         *settings.Service
 }
 
-func NewSubscriptionHub() *SubscriptionHub {
+func NewSubscriptionHub(settings *settings.Service) *SubscriptionHub {
 	return &SubscriptionHub{
 		subscriptions:   map[int64]*Subscription{},
 		activePositions: datastructures.NewMap[int64, *position.Position](),
 		last:            map[int64]*position.PositionMessage{},
 		bufferSize:      1000,
 		mu:              &sync.Mutex{},
+		settings:        settings,
 	}
 }
 
-func (sh *SubscriptionHub) Subscribe(positionId int64, isInternalSub bool) (*Subscription, error) {
+func (sh *SubscriptionHub) Subscribe(positionId int64, isInternalSub bool, rpcGroup *rpcgroups.RPCNode) (*Subscription, error) {
 	sh.mu.Lock()
 	defer sh.mu.Unlock()
 	if _, ok := sh.subscriptions[positionId]; ok {
@@ -71,14 +77,23 @@ func (sh *SubscriptionHub) Subscribe(positionId int64, isInternalSub bool) (*Sub
 	}
 
 	go func(s *Subscription, c context.Context, pos *position.Position) {
+
 		marketCapChan := make(chan *big.Float, sh.bufferSize)
 
 		bondingCurveAddress, err := pda.GetBondingCurveAddress(pos.TokenAddress.String())
 		if err != nil {
 			logger.Error(err)
 		}
+
+		node, err := sh.resolveRPCNode(c, rpcGroup)
+		if err != nil {
+			logger.Error(err)
+			return
+		}
+
+		go monitoring.StartMarketCapMonitor(ctx, bondingCurveAddress, marketCapChan, node)
+
 		// start marketcap streaming
-		go monitoring.StartMarketCapMonitor(ctx, bondingCurveAddress, marketCapChan)
 
 		// then foreach in mcap
 		for mcap := range marketCapChan {
@@ -100,6 +115,22 @@ func (sh *SubscriptionHub) Subscribe(positionId int64, isInternalSub bool) (*Sub
 
 	sh.subscriptions[positionId] = sub
 	return sub, nil
+}
+
+func (sh *SubscriptionHub) resolveRPCNode(c context.Context, rpcGroup *rpcgroups.RPCNode) (rpcgroups.RPCNode, error) {
+	if rpcGroup != nil {
+		return *rpcGroup, nil
+	}
+
+	settings, err := sh.settings.GetSettings(c)
+	if err != nil {
+		return rpcgroups.RPCNode{}, err
+	}
+
+	return rpcgroups.RPCNode{
+		Http: rpc.New(settings.PositionNodes.HTTPNode),
+		WS:   settings.PositionNodes.WSNode,
+	}, nil
 }
 
 func (sh *SubscriptionHub) cancel(positionId int64) func() {
@@ -172,13 +203,17 @@ func (sh *SubscriptionHub) PublishPositionUpdate(pos *position.Position) error {
 	return nil
 }
 
-func (sh *SubscriptionHub) PublishPositionCreate(p *position.Position, ctx context.Context) {
+func (sh *SubscriptionHub) PublishPositionCreate(p *position.Position, ctx context.Context) error {
+	settings, err := sh.settings.GetSettings(ctx)
+	if err != nil {
+		logger.Error(err)
+	}
 
 	sh.mu.Lock()
 	sh.activePositions.Set(p.PositionId, p)
 	finalizedProfit := new(big.Float).Quo(p.FinalizedProfit, big.NewFloat(constants.LamportsConversion))
 	tokensRemaining := new(big.Float).Quo(p.TokenRemaining, big.NewFloat(constants.TokenAmountDecimals))
-	marketCap, err, hasCompleted := bondingcurve.GetMarketCapFromTokenAddress(p.TokenAddress, ctx)
+	marketCap, err, hasCompleted := bondingcurve.GetMarketCapFromTokenAddress(p.TokenAddress, ctx, rpc.New(settings.PositionNodes.HTTPNode))
 	if err != nil {
 		if hasCompleted {
 			logger.Information("coin is completed bonding curve")
@@ -202,6 +237,7 @@ func (sh *SubscriptionHub) PublishPositionCreate(p *position.Position, ctx conte
 	}
 
 	sh.publish(p.PositionId, &posMessage)
+	return nil
 }
 
 func (sh *SubscriptionHub) PublishPositionStop(pos *position.Position) error {

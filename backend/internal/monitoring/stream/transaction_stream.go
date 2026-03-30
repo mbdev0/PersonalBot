@@ -3,7 +3,6 @@ package stream
 import (
 	"context"
 	"fmt"
-	"personal_bot/infrastructure/config"
 	"personal_bot/internal/core/constants"
 	"personal_bot/internal/monitoring/stream/response"
 	"personal_bot/pkg/logger"
@@ -13,17 +12,13 @@ import (
 	"github.com/coder/websocket/wsjson"
 )
 
-var (
-	wsUrl = config.GetConfig().WsNode
-)
-
-func StartGeyserTransactionStream(transactionChan chan<- response.TransactionNotification, ctx context.Context) error {
+func StartGeyserTransactionStream(transactionChan chan<- response.TransactionNotification, ctx context.Context, wsUrl string) error {
 	for {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
 		default:
-			err := geyserStreamTransactions(transactionChan, ctx)
+			err := geyserStreamTransactions(transactionChan, ctx, wsUrl)
 			if err != nil {
 				return err
 			}
@@ -31,7 +26,7 @@ func StartGeyserTransactionStream(transactionChan chan<- response.TransactionNot
 	}
 }
 
-func geyserStreamTransactions(transactionChan chan<- response.TransactionNotification, ctx context.Context) error {
+func geyserStreamTransactions(transactionChan chan<- response.TransactionNotification, ctx context.Context, wsUrl string) error {
 	// ctx, cancel := context.WithTimeout(context.Background(), connection_timeout)
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()

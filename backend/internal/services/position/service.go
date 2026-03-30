@@ -35,7 +35,7 @@ func (s *Service) FindPositionIfExists(token solana.PublicKey, walletAddress sol
 	return nil, false
 }
 
-func (s *Service) ReportBuy(ctx context.Context, buytaskid int64, tokenaddress solana.PublicKey, walletAddress solana.PublicKey, tokenAmount *big.Float, solSpent *big.Float) {
+func (s *Service) ReportBuy(ctx context.Context, buytaskid int64, tokenaddress solana.PublicKey, walletAddress solana.PublicKey, tokenAmount *big.Float, solSpent *big.Float) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -56,7 +56,7 @@ func (s *Service) ReportBuy(ctx context.Context, buytaskid int64, tokenaddress s
 	s.positions[newPosition.PositionId] = &newPosition
 
 	//publish buy to positionhub -> handle ctx in there
-	s.subhub.PublishPositionCreate(&newPosition, ctx)
+	return s.subhub.PublishPositionCreate(&newPosition, ctx)
 }
 
 func (s *Service) ReportSell(buyTaskId int64, tokensSold *big.Float, solRecieved *big.Float) error {
@@ -124,7 +124,7 @@ func (s *Service) GetAll() []position.Position {
 }
 
 func (s *Service) Subscribe(id int64, isInternalSub bool) (*position_hub.Subscription, error) {
-	sub, err := s.subhub.Subscribe(id, isInternalSub)
+	sub, err := s.subhub.Subscribe(id, isInternalSub, nil)
 	if err != nil {
 		return nil, err
 	}

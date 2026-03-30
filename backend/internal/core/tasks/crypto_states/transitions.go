@@ -103,7 +103,11 @@ func updatePositionOnCompleted(task tasks.Task, transaction transaction.Transact
 
 	switch t := task.(type) {
 	case *tasks.BuyTask:
-		deps.PositionService.ReportBuy(ctx, t.Id(), t.Token, t.Wallet.PublicKey(), new(big.Float).SetFloat64(tokenAmount), new(big.Float).SetFloat64(solAmount))
+		err = deps.PositionService.ReportBuy(ctx, t.Id(), t.Token, t.Wallet.PublicKey(), new(big.Float).SetFloat64(tokenAmount), new(big.Float).SetFloat64(solAmount))
+		if err != nil {
+			return err
+		}
+
 		notifyBuy(t, transaction, tokenAmount, solAmount, deps)
 	case *tasks.SellTask:
 		return handleSellTaskReporting(t, transaction, tokenAmount, solAmount, deps)
