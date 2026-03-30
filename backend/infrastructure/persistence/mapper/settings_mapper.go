@@ -1,12 +1,13 @@
 package mapper
 
 import (
+	"encoding/json"
 	"fmt"
 	"personal_bot/infrastructure/persistence/models"
 	"personal_bot/internal/core/settings"
 )
 
-func MapSettingsToRepo(settings settings.Settings) (settingsRow models.SettingsRow) {
+func MapSettingsToRepo(settings settings.Settings) (settingsRow models.SettingsRow, err error) {
 	settingsRow.DiscordWebhook = settings.DiscordWebhook
 	if settings.SendOnFail {
 		settingsRow.SendOnFail = 1
@@ -20,21 +21,35 @@ func MapSettingsToRepo(settings settings.Settings) (settingsRow models.SettingsR
 		settingsRow.SendOnSuccess = 0
 	}
 
-	return settingsRow
+	posNodes, err := json.Marshal(settings.PositionNodes)
+	if err != nil {
+		return
+	}
+
+	settingsRow.PositionNodes = string(posNodes)
+
+	return settingsRow, nil
 }
 
-func MapRepoToSettings(settingsRow *models.SettingsRow) (settings settings.Settings, err error) {
-	settings.DiscordWebhook = settingsRow.DiscordWebhook
-	settings.SendOnFail, err = getBoolean(settingsRow.SendOnFail)
+func MapRepoToSettings(settingsRow *models.SettingsRow) (sttings settings.Settings, err error) {
+	sttings.DiscordWebhook = settingsRow.DiscordWebhook
+	sttings.SendOnFail, err = getBoolean(settingsRow.SendOnFail)
 	if err != nil {
-		return settings, err
+		return sttings, err
 	}
-	settings.SendOnSuccess, err = getBoolean(settingsRow.SendOnSuccess)
+	sttings.SendOnSuccess, err = getBoolean(settingsRow.SendOnSuccess)
 	if err != nil {
-		return settings, err
+		return sttings, err
 	}
 
-	return settings, nil
+	positionNodes := new(settings.PositionNodes)
+	err = json.Unmarshal([]byte(settingsRow.PositionNodes), positionNodes)
+	if err != nil {
+		return
+	}
+	sttings.PositionNodes = *positionNodes
+
+	return sttings, nil
 }
 
 func getBoolean(num int64) (bool, error) {
