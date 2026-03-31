@@ -15,6 +15,8 @@ export function mapStrategyTaskDtoToStrategyTask(src: StrategyTaskDto): Strategy
         sell_fee: src.sell_fee,
         filters: src.filters,
         sell_strategies: src.sell_strategies,
+        rpc_group: src.rpc_group,
+        rpc_group_id: src.rpc_group_id,
       };
 
     case 'BUY':
@@ -32,6 +34,8 @@ export function mapStrategyTaskDtoToStrategyTask(src: StrategyTaskDto): Strategy
         sell_strategies: src.sell_strategies,
         buy_task_id: src.buy_task_id,
         position_id: src.position_id,
+        rpc_group: src.rpc_group,
+        rpc_group_id: src.rpc_group_id,
       };
 
     case 'SELL':
@@ -46,6 +50,8 @@ export function mapStrategyTaskDtoToStrategyTask(src: StrategyTaskDto): Strategy
         sell_fee: src.sell_fee,
         token_address: src.token_address,
         sell_task_id: src.sell_task_id,
+        rpc_group: src.rpc_group,
+        rpc_group_id: src.rpc_group_id,
       };
   }
 }

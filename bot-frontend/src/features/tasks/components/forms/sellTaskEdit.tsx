@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useWallets } from '@/features/wallets/hooks/useWallets';
 import { SlippageEntry } from './fields/slippage';
 import { ComputeUnitsEntry } from './fields/computeUnits';
 import { WalletSelector } from './fields/walletSelector';
@@ -11,22 +10,17 @@ import { Card } from '@/components/ui/card';
 import { SellEntry } from './fields/sell';
 import type { SellStrategyTaskPut } from '../../types/strategies/strategyTaskPut';
 import { useUpdateStrategy } from '../../hooks/useStrategy';
+import { FormDataLoader } from './fields/formDataLoader';
+import type { RPCGroupDashboardRow } from '@/features/rpc-groups/types/rpcGroup';
+import { RPCGroupSelector } from './fields/rpcGroupSelector';
+import type { SellStrategyTask } from '../../types/strategies/strategyTask';
 
 interface SellTaskEditProps {
-  task: SellStrategyTaskPut;
+  task: SellStrategyTask;
   onClose: () => void;
 }
 
 export function SellTaskEdit({ task, onClose }: SellTaskEditProps) {
-  const { isPending, isError, data, error } = useWallets();
-  const putMutation = useUpdateStrategy();
-  const [slippage, setSlippage] = useState(task.slippage * 100);
-  const [computeUnits, setComputeUnits] = useState(task.compute_units);
-  const [tokenAddress, setTokenAddress] = useState(task.token_address);
-  const [sellAmount, setSellAmount] = useState(task.sell_amount * 100);
-  const [sellFee, setSellFee] = useState(task.sell_fee);
-  const [selectedWallet, setWallet] = useState(task.wallet_name);
-
   if (!task.sell_amount) {
     return (
       <div className="text-center py-8 text-red-600">
@@ -35,21 +29,40 @@ export function SellTaskEdit({ task, onClose }: SellTaskEditProps) {
     );
   }
 
-  const wallet = data?.find((w) => w.wallet_name === selectedWallet) ?? null;
+  return (
+    <FormDataLoader>
+      {(wallets, rpcGroups) => (
+        <SellEditForm task={task} onClose={onClose} wallets={wallets} rpcGroups={rpcGroups} />
+      )}
+    </FormDataLoader>
+  );
+}
 
-  const handleWalletChange = (wallet: Wallet | null) => {
-    if (wallet) {
-      setWallet(wallet.wallet_name);
-    }
-  };
+interface SellEditFormProps {
+  task: SellStrategyTask;
+  onClose: () => void;
+  wallets: Wallet[];
+  rpcGroups: RPCGroupDashboardRow[];
+}
+
+function SellEditForm({ task, onClose, wallets, rpcGroups }: SellEditFormProps) {
+  const putMutation = useUpdateStrategy();
+
+  const [slippage, setSlippage] = useState(task.slippage * 100);
+  const [computeUnits, setComputeUnits] = useState(task.compute_units);
+  const [tokenAddress, setTokenAddress] = useState(task.token_address);
+  const [sellAmount, setSellAmount] = useState(task.sell_amount * 100);
+  const [sellFee, setSellFee] = useState(task.sell_fee);
+  const [selectedWallet, setSelectedWallet] = useState<Wallet | null>(null);
+  const [selectedRpcGroup, setSelectedRpcGroup] = useState<RPCGroupDashboardRow | null>(null);
+
+  const wallet =
+    selectedWallet ?? wallets.find((w) => w.wallet_name === task.wallet_name) ?? wallets[0];
+  const rpcGroup =
+    selectedRpcGroup ?? rpcGroups.find((rg) => rg.name === task.rpc_group) ?? rpcGroups[0];
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!wallet) {
-      alert('Please select a wallet');
-      return;
-    }
 
     const taskBody: SellStrategyTaskPut = {
       id: task.id,
@@ -58,18 +71,13 @@ export function SellTaskEdit({ task, onClose }: SellTaskEditProps) {
       compute_units: computeUnits,
       wallet_name: wallet.wallet_name,
       token_address: tokenAddress,
-      sell_amount: (sellAmount ?? SELL_AMOUNT_DEFAULT) / 100, // Convert back to decimal
+      sell_amount: (sellAmount ?? SELL_AMOUNT_DEFAULT) / 100,
       sell_fee: sellFee ?? SELL_FEE_DEFAULT,
+      rpc_group_id: rpcGroup.id,
     };
 
-    putMutation.mutate({ ...taskBody, id: task.id });
-    onClose();
+    putMutation.mutate(taskBody, { onSuccess: onClose });
   };
-
-  if (isPending) return <div className="text-center py-8">Loading wallets...</div>;
-  if (isError) return <div className="text-center py-8 text-red-600">Error: {error.message}</div>;
-  if (data?.length === 0)
-    return <div className="text-center py-8">No wallets available. Create a wallet first!</div>;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -94,7 +102,8 @@ export function SellTaskEdit({ task, onClose }: SellTaskEditProps) {
           <div className="grid grid-cols-[120px_120px_130px] gap-4">
             <SlippageEntry slippage={slippage} onChange={setSlippage} />
             <ComputeUnitsEntry computeUnits={computeUnits} onChange={setComputeUnits} />
-            <WalletSelector selectedWallet={wallet} onChange={handleWalletChange} />
+            <WalletSelector selectedWallet={wallet} onChange={setSelectedWallet} />
+            <RPCGroupSelector selectedRpcGroup={rpcGroup} onChange={setSelectedRpcGroup} />
           </div>
         </Card>
       </div>

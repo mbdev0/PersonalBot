@@ -1,4 +1,3 @@
-import { useWallets } from '@/features/wallets/hooks/useWallets';
 import { useUpdateStrategy } from '../../hooks/useStrategy';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -15,14 +14,32 @@ import { SellStrategies } from './fields/sellStrategies/sellStrategies';
 import type { SellStrategy } from '../../types/sellStrategies';
 import type { AFKStrategyTask } from '../../types/strategies/strategyTask';
 import type { AFKStrategyTaskPut } from '../../types/strategies/strategyTaskPut';
+import type { RPCGroupDashboardRow } from '@/features/rpc-groups/types/rpcGroup';
+import { RPCGroupSelector } from './fields/rpcGroupSelector';
+import { FormDataLoader } from './fields/formDataLoader';
 
 interface AFKTaskEditProps {
   task: AFKStrategyTask;
   onClose: () => void;
 }
-
 export function AFKTaskEdit({ task, onClose }: AFKTaskEditProps) {
-  const { isPending, isError, data, error } = useWallets();
+  return (
+    <FormDataLoader>
+      {(wallets, rpcGroups) => (
+        <AFKEditForm task={task} onClose={onClose} wallets={wallets} rpcGroups={rpcGroups} />
+      )}
+    </FormDataLoader>
+  );
+}
+
+interface AFKEditFormProps {
+  task: AFKStrategyTask;
+  onClose: () => void;
+  wallets: Wallet[];
+  rpcGroups: RPCGroupDashboardRow[];
+}
+
+function AFKEditForm({ task, onClose, wallets, rpcGroups }: AFKEditFormProps) {
   const putMutation = useUpdateStrategy();
 
   const [slippage, setSlippage] = useState(task.slippage * 100);
@@ -32,23 +49,17 @@ export function AFKTaskEdit({ task, onClose }: AFKTaskEditProps) {
   const [sellFee, setSellFee] = useState(task.sell_fee);
   const [filters, setFilters] = useState(task.filters);
   const [selectedWallet, setSelectedWallet] = useState<Wallet | null>(null);
+  const [selectedRpcGroup, setSelectedRpcGroup] = useState<RPCGroupDashboardRow | null>(null);
   const [sellStrategies, setSellStrategies] = useState<SellStrategy[]>(task.sell_strategies);
 
-  const wallet = data?.find((w) => w.wallet_name === task.wallet_name) ?? null;
-
-  const handleWalletChange = (wallet: Wallet | null) => {
-    if (wallet) {
-      setSelectedWallet(wallet);
-    }
-  };
+  // derive current values from task — fall back to task's existing wallet/rpc
+  const wallet =
+    selectedWallet ?? wallets.find((w) => w.wallet_name === task.wallet_name) ?? wallets[0];
+  const rpcGroup =
+    selectedRpcGroup ?? rpcGroups.find((rg) => rg.name === task.rpc_group) ?? rpcGroups[0];
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!wallet) {
-      alert('Please select a wallet');
-      return;
-    }
 
     const taskBody: AFKStrategyTaskPut = {
       trading_type: 'AFK',
@@ -57,20 +68,15 @@ export function AFKTaskEdit({ task, onClose }: AFKTaskEditProps) {
       sell_fee: sellFee,
       slippage: slippage / 100,
       compute_units: computeUnits,
-      wallet_name: selectedWallet?.wallet_name ?? wallet.wallet_name,
-      filters: filters,
+      wallet_name: wallet.wallet_name,
+      filters,
       sell_strategies: sellStrategies,
       id: task.id,
+      rpc_group_id: rpcGroup.id,
     };
 
-    putMutation.mutate(taskBody);
-    onClose();
+    putMutation.mutate(taskBody, { onSuccess: onClose });
   };
-
-  if (isPending) return <div className="text-center py-8">Loading wallets...</div>;
-  if (isError) return <div className="text-center py-8 text-red-600">Error: {error.message}</div>;
-  if (data?.length === 0)
-    return <div className="text-center py-8">No wallets available. Create a wallet first!</div>;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -102,17 +108,14 @@ export function AFKTaskEdit({ task, onClose }: AFKTaskEditProps) {
           <div className="grid grid-cols-[120px_120px_130px] gap-4">
             <SlippageEntry slippage={slippage} onChange={setSlippage} />
             <ComputeUnitsEntry computeUnits={computeUnits} onChange={setComputeUnits} />
-            <WalletSelector
-              selectedWallet={selectedWallet ?? wallet}
-              onChange={handleWalletChange}
-            />
+            <WalletSelector selectedWallet={wallet} onChange={setSelectedWallet} />
+            <RPCGroupSelector selectedRpcGroup={rpcGroup} onChange={setSelectedRpcGroup} />
           </div>
         </Card>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <SellStrategies sellStrategies={sellStrategies} setSellStrategies={setSellStrategies} />
-
         <Card className="p-2">
           <h2>Filters</h2>
           <FiltersEntry filters={filters} onFiltersChange={setFilters} />

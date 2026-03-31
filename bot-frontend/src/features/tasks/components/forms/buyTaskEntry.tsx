@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import type { Wallet } from '../../../wallets/types/wallet';
-import { useWallets } from '../../../wallets/hooks/useWallets';
 import { SlippageEntry } from './fields/slippage';
 import { ComputeUnitsEntry } from './fields/computeUnits';
 import { WalletSelector } from './fields/walletSelector';
@@ -21,13 +20,32 @@ import type { SellStrategy } from '../../types/sellStrategies';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { SellStrategies } from './fields/sellStrategies/sellStrategies';
+import type { RPCGroupDashboardRow } from '@/features/rpc-groups/types/rpcGroup';
+import { RPCGroupSelector } from './fields/rpcGroupSelector';
+import { FormDataLoader } from './fields/formDataLoader';
 
 interface BuyTaskEntryProps {
   onClose: () => void;
 }
 
+// BuyTaskEntry.tsx
 export function BuyTaskEntry({ onClose }: BuyTaskEntryProps) {
-  const { isPending, isError, data, error } = useWallets();
+  return (
+    <FormDataLoader>
+      {(wallets, rpcGroups) => (
+        <BuyTaskForm onClose={onClose} wallets={wallets} rpcGroups={rpcGroups} />
+      )}
+    </FormDataLoader>
+  );
+}
+
+interface BuyTaskFormProps {
+  onClose: () => void;
+  wallets: Wallet[];
+  rpcGroups: RPCGroupDashboardRow[];
+}
+
+function BuyTaskForm({ onClose, wallets, rpcGroups }: BuyTaskFormProps) {
   const postMutation = useAddStrategy();
 
   const [slippage, setSlippage] = useState(SLIPPAGE_DEFAULT);
@@ -35,19 +53,16 @@ export function BuyTaskEntry({ onClose }: BuyTaskEntryProps) {
   const [tokenAddress, setTokenAddress] = useState('');
   const [buyAmount, setBuyAmount] = useState(BUY_AMOUNT_DEFAULT);
   const [buyFee, setBuyFee] = useState(BUY_FEE_DEFAULT);
-  const [selectedWallet, setSelectedWallet] = useState<Wallet | null>(null);
   const [sellFee, setSellFee] = useState<number | undefined>(SELL_FEE_DEFAULT);
+  const [selectedWallet, setSelectedWallet] = useState<Wallet | null>(null);
+  const [selectedRpcGroup, setSelectedRpcGroup] = useState<RPCGroupDashboardRow | null>(null);
   const [sellStrategies, setSellStrategies] = useState<SellStrategy[]>([]);
 
-  const wallet = selectedWallet ?? data?.[0] ?? null;
+  const wallet = selectedWallet ?? wallets[0];
+  const rpcGroup = selectedRpcGroup ?? rpcGroups[0];
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!wallet) {
-      alert('Please select a wallet');
-      return;
-    }
 
     const taskBody: BuyStrategyTaskPost = {
       trading_type: 'BUY',
@@ -59,16 +74,11 @@ export function BuyTaskEntry({ onClose }: BuyTaskEntryProps) {
       buy_fee: buyFee,
       sell_fee: sellFee,
       sell_strategies: sellStrategies,
+      rpc_group_id: rpcGroup?.id,
     };
 
-    postMutation.mutate(taskBody);
-    onClose();
+    postMutation.mutate(taskBody, { onSuccess: onClose });
   };
-
-  if (isPending) return <div className="text-center py-8">Loading wallets...</div>;
-  if (isError) return <div className="text-center py-8 text-red-600">Error: {error.message}</div>;
-  if (data?.length === 0)
-    return <div className="text-center py-8">No wallets available. Create a wallet first!</div>;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -83,7 +93,6 @@ export function BuyTaskEntry({ onClose }: BuyTaskEntryProps) {
                 buyFee={buyFee}
                 onBuyFeeChange={setBuyFee}
               />
-
               <div className="space-y-2">
                 <Label htmlFor="sell_fee">Sell Fee</Label>
                 <Input
@@ -105,6 +114,7 @@ export function BuyTaskEntry({ onClose }: BuyTaskEntryProps) {
             <SlippageEntry slippage={slippage} onChange={setSlippage} />
             <ComputeUnitsEntry computeUnits={computeUnits} onChange={setComputeUnits} />
             <WalletSelector selectedWallet={wallet} onChange={setSelectedWallet} />
+            <RPCGroupSelector selectedRpcGroup={rpcGroup} onChange={setSelectedRpcGroup} />
           </div>
         </Card>
       </div>
