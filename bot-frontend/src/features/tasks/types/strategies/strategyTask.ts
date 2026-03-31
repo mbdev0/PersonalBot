@@ -10,6 +10,8 @@ interface BaseStrategyTaskDto {
   wallet_address: string;
   compute_units: number;
   slippage: number;
+  rpc_group: string;
+  rpc_group_id: number;
 }
 
 export interface AFKStrategyTaskDto extends BaseStrategyTaskDto {
@@ -49,6 +51,8 @@ interface BaseStrategyTask {
   wallet_address: string;
   compute_units: number;
   slippage: number;
+  rpc_group: string;
+  rpc_group_id: number;
 }
 
 export interface AFKStrategyTask extends BaseStrategyTask {

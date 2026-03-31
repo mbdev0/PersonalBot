@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import type { Wallet } from '../../../wallets/types/wallet';
 import { useAddStrategy } from '../../hooks/useStrategy';
-import { useWallets } from '../../../wallets/hooks/useWallets';
 import { SlippageEntry } from './fields/slippage';
 import { ComputeUnitsEntry } from './fields/computeUnits';
 import { WalletSelector } from './fields/walletSelector';
@@ -22,13 +21,31 @@ import { SellStrategies } from './fields/sellStrategies/sellStrategies';
 import type { SellStrategy } from '../../types/sellStrategies';
 import type { Filters } from '../../types/filters';
 import type { AFKStrategyTaskPost } from '../../types/strategies/strategyTaskPost';
+import { RPCGroupSelector } from './fields/rpcGroupSelector';
+import type { RPCGroupDashboardRow } from '@/features/rpc-groups/types/rpcGroup';
+import { FormDataLoader } from './fields/formDataLoader';
 
 interface AFKTaskEntryProps {
   onClose: () => void;
 }
 
 export function AFKTaskEntry({ onClose }: AFKTaskEntryProps) {
-  const { isPending, isError, data, error } = useWallets();
+  return (
+    <FormDataLoader>
+      {(wallets, rpcGroups) => (
+        <AFKTaskForm onClose={onClose} wallets={wallets} rpcGroups={rpcGroups} />
+      )}
+    </FormDataLoader>
+  );
+}
+
+interface AFKTaskFormProps {
+  onClose: () => void;
+  wallets: Wallet[];
+  rpcGroups: RPCGroupDashboardRow[];
+}
+
+function AFKTaskForm({ onClose, wallets, rpcGroups }: AFKTaskFormProps) {
   const postMutation = useAddStrategy();
 
   const [slippage, setSlippage] = useState(SLIPPAGE_DEFAULT);
@@ -38,17 +55,14 @@ export function AFKTaskEntry({ onClose }: AFKTaskEntryProps) {
   const [sellFee, setSellFee] = useState(SELL_FEE_DEFAULT);
   const [filters, setFilters] = useState<Filters>({});
   const [selectedWallet, setSelectedWallet] = useState<Wallet | null>(null);
+  const [selectedRpcGroup, setSelectedRpcGroup] = useState<RPCGroupDashboardRow | null>(null);
   const [sellStrategies, setSellStrategies] = useState<SellStrategy[]>([]);
 
-  const wallet = selectedWallet ?? data?.[0] ?? null;
+  const wallet = selectedWallet ?? wallets[0]; // ← no optional chaining, guaranteed by FormDataLoader
+  const rpcGroup = selectedRpcGroup ?? rpcGroups[0];
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!wallet) {
-      alert('Please select a wallet');
-      return;
-    }
 
     const strategyBody: AFKStrategyTaskPost = {
       trading_type: 'AFK',
@@ -59,17 +73,12 @@ export function AFKTaskEntry({ onClose }: AFKTaskEntryProps) {
       buy_fee: buyFee,
       sell_fee: sellFee,
       sell_strategies: sellStrategies,
-      filters: filters,
+      filters,
+      rpc_group_id: rpcGroup?.id,
     };
 
-    postMutation.mutate(strategyBody);
-    onClose();
+    postMutation.mutate(strategyBody, { onSuccess: onClose }); // ← close only on success
   };
-
-  if (isPending) return <div className="text-center py-8">Loading wallets...</div>;
-  if (isError) return <div className="text-center py-8 text-red-600">Error: {error.message}</div>;
-  if (data?.length === 0)
-    return <div className="text-center py-8">No wallets available. Create a wallet first!</div>;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -103,6 +112,7 @@ export function AFKTaskEntry({ onClose }: AFKTaskEntryProps) {
             <SlippageEntry slippage={slippage} onChange={setSlippage} />
             <ComputeUnitsEntry computeUnits={computeUnits} onChange={setComputeUnits} />
             <WalletSelector selectedWallet={wallet} onChange={setSelectedWallet} />
+            <RPCGroupSelector selectedRpcGroup={rpcGroup} onChange={setSelectedRpcGroup} />
           </div>
         </Card>
       </div>

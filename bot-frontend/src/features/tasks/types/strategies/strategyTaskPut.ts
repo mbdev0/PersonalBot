@@ -7,6 +7,7 @@ interface BaseStrategyTaskPutDto {
   compute_units: number;
   slippage: number;
   wallet_name: string;
+  rpc_group_id: number;
 }
 
 export interface AFKStrategyTaskPutDto extends BaseStrategyTaskPutDto {
@@ -45,6 +46,7 @@ interface BaseStrategyTaskPut {
   compute_units: number;
   slippage: number;
   wallet_name: string;
+  rpc_group_id: number;
 }
 
 export interface AFKStrategyTaskPut extends BaseStrategyTaskPut {

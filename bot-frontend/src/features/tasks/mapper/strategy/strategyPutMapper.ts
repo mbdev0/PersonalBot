@@ -32,6 +32,7 @@ function mapAFKPutToDto(src: AFKStrategyTaskPut): AFKStrategyTaskPutDto {
     sell_fee: src.sell_fee,
     filters: src.filters,
     sell_strategies: src.sell_strategies.map(mapSellStrategyPostToDto),
+    rpc_group_id: src.rpc_group_id,
   };
 }
 
@@ -46,6 +47,7 @@ function mapBuyPutToDto(src: BuyStrategyTaskPut): BuyStrategyTaskPutDto {
     sell_fee: src.sell_fee ?? 0,
     token_address: src.token_address,
     sell_strategies: src.sell_strategies.map(mapSellStrategyPostToDto),
+    rpc_group_id: src.rpc_group_id,
   };
 }
 
@@ -58,6 +60,7 @@ function mapSellPutToDto(src: SellStrategyTaskPut): SellStrategyTaskPutDto {
     sell_amount: src.sell_amount,
     sell_fee: src.sell_fee,
     token_address: src.token_address,
+    rpc_group_id: src.rpc_group_id,
   };
 }
 
@@ -75,6 +78,7 @@ export function mapStrategyTaskPutDtoToPut(src: StrategyTaskPutDto, id: number):
         sell_fee: src.sell_fee,
         filters: src.filters,
         sell_strategies: src.sell_strategies.map(mapSellStrategyDtoToPost),
+        rpc_group_id: src.rpc_group_id,
       };
 
     case 'BUY':
@@ -89,6 +93,7 @@ export function mapStrategyTaskPutDtoToPut(src: StrategyTaskPutDto, id: number):
         sell_fee: src.sell_fee,
         token_address: src.token_address,
         sell_strategies: src.sell_strategies.map(mapSellStrategyDtoToPost),
+        rpc_group_id: src.rpc_group_id,
       };
 
     case 'SELL':
@@ -101,6 +106,7 @@ export function mapStrategyTaskPutDtoToPut(src: StrategyTaskPutDto, id: number):
         sell_amount: src.sell_amount,
         sell_fee: src.sell_fee,
         token_address: src.token_address,
+        rpc_group_id: src.rpc_group_id,
       };
   }
 }

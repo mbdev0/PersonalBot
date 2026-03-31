@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useWallets } from '../../../wallets/hooks/useWallets';
 import type { Wallet } from '../../../wallets/types/wallet';
 import { ComputeUnitsEntry } from './fields/computeUnits';
 import { SlippageEntry } from './fields/slippage';
@@ -16,14 +15,32 @@ import {
 } from '../../utils/constants';
 import { useAddStrategy } from '../../hooks/useStrategy';
 import type { SellStrategyTaskPost } from '../../types/strategies/strategyTaskPost';
+import { FormDataLoader } from './fields/formDataLoader';
+import type { RPCGroupDashboardRow } from '@/features/rpc-groups/types/rpcGroup';
+import { RPCGroupSelector } from './fields/rpcGroupSelector';
 
 interface SellTaskEntryProps {
   onClose: () => void;
 }
 
 export function SellTaskEntry({ onClose }: SellTaskEntryProps) {
+  return (
+    <FormDataLoader>
+      {(wallets, rpcGroups) => (
+        <SellTaskForm onClose={onClose} wallets={wallets} rpcGroups={rpcGroups} />
+      )}
+    </FormDataLoader>
+  );
+}
+
+interface SellTaskFormProps {
+  onClose: () => void;
+  wallets: Wallet[];
+  rpcGroups: RPCGroupDashboardRow[];
+}
+
+function SellTaskForm({ onClose, wallets, rpcGroups }: SellTaskFormProps) {
   const postMutation = useAddStrategy();
-  const { data: wallets } = useWallets();
 
   const [slippage, setSlippage] = useState(SLIPPAGE_DEFAULT);
   const [computeUnits, setComputeUnits] = useState(COMPUTE_UNITS_DEFAULT);
@@ -31,29 +48,26 @@ export function SellTaskEntry({ onClose }: SellTaskEntryProps) {
   const [sellAmount, setSellAmount] = useState(SELL_AMOUNT_DEFAULT);
   const [sellFee, setSellFee] = useState(SELL_FEE_DEFAULT);
   const [selectedWallet, setSelectedWallet] = useState<Wallet | null>(null);
+  const [selectedRpcGroup, setSelectedRpcGroup] = useState<RPCGroupDashboardRow | null>(null);
 
-  const effectiveWallet = selectedWallet ?? wallets?.[0] ?? null;
+  const wallet = selectedWallet ?? wallets[0];
+  const rpcGroup = selectedRpcGroup ?? rpcGroups[0];
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!effectiveWallet) {
-      alert('Please select a wallet');
-      return;
-    }
 
     const taskBody: SellStrategyTaskPost = {
       trading_type: 'SELL',
       slippage: slippage / 100,
       compute_units: computeUnits,
-      wallet_name: effectiveWallet.wallet_name,
+      wallet_name: wallet.wallet_name,
       token_address: tokenAddress,
       sell_amount: sellAmount / 100,
       sell_fee: sellFee,
+      rpc_group_id: rpcGroup?.id,
     };
 
-    postMutation.mutate(taskBody);
-    onClose();
+    postMutation.mutate(taskBody, { onSuccess: onClose });
   };
 
   return (
@@ -79,7 +93,8 @@ export function SellTaskEntry({ onClose }: SellTaskEntryProps) {
           <div className="grid grid-cols-[120px_120px_130px] gap-4">
             <SlippageEntry slippage={slippage} onChange={setSlippage} />
             <ComputeUnitsEntry computeUnits={computeUnits} onChange={setComputeUnits} />
-            <WalletSelector selectedWallet={effectiveWallet} onChange={setSelectedWallet} />
+            <WalletSelector selectedWallet={wallet} onChange={setSelectedWallet} />
+            <RPCGroupSelector selectedRpcGroup={rpcGroup} onChange={setSelectedRpcGroup} />
           </div>
         </Card>
       </div>
@@ -88,7 +103,7 @@ export function SellTaskEntry({ onClose }: SellTaskEntryProps) {
         <Button type="button" variant="outline" onClick={onClose}>
           Cancel
         </Button>
-        <Button type="submit" disabled={!effectiveWallet || !tokenAddress}>
+        <Button type="submit" disabled={!wallet || !tokenAddress}>
           Create Task
         </Button>
       </div>
