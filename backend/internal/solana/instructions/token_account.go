@@ -34,8 +34,14 @@ func getIdempotentInstructionIfExists(wallet solana.PublicKey, mintAddress solan
 
 	if isNewTokenProgram {
 		associatedTokenAddressPubkey, _, err = pda.FindToken2022AssociatedTokenAddress(wallet, mintAddress)
+		if err != nil {
+			return nil, err
+		}
 	} else {
 		associatedTokenAddressPubkey, _, err = pda.FindTokenAssociatedTokenAddress(wallet, mintAddress)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	_, err = client.GetAccountInfo(associatedTokenAddressPubkey.String(), ctx, httpNode)

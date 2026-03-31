@@ -167,6 +167,10 @@ func MapTaskToRepo(src tasks.Task) (*models.TaskRow, error) {
 			Ws:   task.WSNode(),
 		}
 		nodeConfigJson, err := json.Marshal(nodeConfig)
+		if err != nil {
+			return nil, err
+		}
+
 		taskRow.NodeConfig = string(nodeConfigJson)
 
 	case *tasks.SellTask:
@@ -197,6 +201,10 @@ func MapTaskToRepo(src tasks.Task) (*models.TaskRow, error) {
 			Ws:   task.WSNode(),
 		}
 		nodeConfigJson, err := json.Marshal(nodeConfig)
+		if err != nil {
+			return nil, err
+		}
+
 		taskRow.NodeConfig = string(nodeConfigJson)
 
 	default:

@@ -58,6 +58,9 @@ func (sr *SettingRepository) PostSettings(ctx context.Context, settings settings
 	}
 
 	rowsAffected, err := row.RowsAffected()
+	if err != nil {
+		return err
+	}
 	if rowsAffected == 1 {
 		return nil
 	} else {

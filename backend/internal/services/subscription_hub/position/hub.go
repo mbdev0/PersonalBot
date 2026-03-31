@@ -29,13 +29,12 @@ type Subscription struct {
 }
 
 type SubscriptionHub struct {
-	subscriptions    map[int64]*Subscription
-	activePositions  datastructures.Map[int64, *position.Position]
-	marketCapMonitor map[string]chan big.Float
-	last             map[int64]*position.PositionMessage
-	bufferSize       int
-	mu               *sync.Mutex
-	settings         *settings.Service
+	subscriptions   map[int64]*Subscription
+	activePositions datastructures.Map[int64, *position.Position]
+	last            map[int64]*position.PositionMessage
+	bufferSize      int
+	mu              *sync.Mutex
+	settings        *settings.Service
 }
 
 func NewSubscriptionHub(settings *settings.Service) *SubscriptionHub {

@@ -222,6 +222,9 @@ func (s *Strategy) createAndRunBuyTask(coin models.Coin, afkTask *strategies.Afk
 	}
 
 	node, err := s.rpcService.GetNode(afkTask.RPCGroupId())
+	if err != nil {
+		return nil, err
+	}
 
 	t := s.createBuyTask(afkTask, coinAddr, node)
 
