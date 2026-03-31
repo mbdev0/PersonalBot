@@ -3,7 +3,7 @@ import { type DisplayRow } from '../types/tableRows';
 import { Play, Square, Trash2 } from 'lucide-react';
 import { isFailure, TaskState, isRunning } from '../types/taskState';
 
-export interface ActionButtonProps {
+interface ActionButtonProps {
   row: DisplayRow;
   rowActions: RowActions;
 }

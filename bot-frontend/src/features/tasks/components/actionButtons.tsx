@@ -4,7 +4,7 @@ import { StrategyTaskState } from '../types/strategies/strategyTask';
 import { Play, Square, Pencil, Trash2, Copy } from 'lucide-react';
 import { isFailure } from '../types/taskState';
 
-export interface ActionButtonProps {
+interface ActionButtonProps {
   row: DisplayRow;
   rowActions: RowActions;
 }

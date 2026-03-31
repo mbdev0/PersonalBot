@@ -7,15 +7,6 @@ import {
   type WalletPutDTO,
 } from '../types/wallet';
 
-export function walletToDto(wallet: Wallet): WalletDto {
-  return {
-    id: wallet.id,
-    wallet_name: wallet.wallet_name,
-    chain: wallet.chain,
-    public_key: wallet.public_key,
-  };
-}
-
 export function dtoToWallet(dto: WalletDto): Wallet {
   return {
     id: dto.id,

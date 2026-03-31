@@ -8,7 +8,7 @@ import type {
   SellStrategyTaskPut,
   SellStrategyTaskPutDto,
 } from '../../types/strategies/strategyTaskPut';
-import { mapSellStrategyDtoToPost, mapSellStrategyPostToDto } from './sellStrategyMapper';
+import { mapSellStrategyPostToDto } from './sellStrategyMapper';
 
 export function mapStrategyTaskToPutDto(src: StrategyTaskPut): StrategyTaskPutDto {
   switch (src.trading_type) {
@@ -62,51 +62,4 @@ function mapSellPutToDto(src: SellStrategyTaskPut): SellStrategyTaskPutDto {
     token_address: src.token_address,
     rpc_group_id: src.rpc_group_id,
   };
-}
-
-export function mapStrategyTaskPutDtoToPut(src: StrategyTaskPutDto, id: number): StrategyTaskPut {
-  switch (src.trading_type) {
-    case 'AFK':
-      return {
-        id,
-        trading_type: 'AFK',
-        compute_units: src.compute_units,
-        slippage: src.slippage,
-        wallet_name: src.wallet_name,
-        buy_amount: src.buy_amount,
-        buy_fee: src.buy_fee,
-        sell_fee: src.sell_fee,
-        filters: src.filters,
-        sell_strategies: src.sell_strategies.map(mapSellStrategyDtoToPost),
-        rpc_group_id: src.rpc_group_id,
-      };
-
-    case 'BUY':
-      return {
-        id,
-        trading_type: 'BUY',
-        compute_units: src.compute_units,
-        slippage: src.slippage,
-        wallet_name: src.wallet_name,
-        buy_amount: src.buy_amount,
-        buy_fee: src.buy_fee,
-        sell_fee: src.sell_fee,
-        token_address: src.token_address,
-        sell_strategies: src.sell_strategies.map(mapSellStrategyDtoToPost),
-        rpc_group_id: src.rpc_group_id,
-      };
-
-    case 'SELL':
-      return {
-        id,
-        trading_type: 'SELL',
-        compute_units: src.compute_units,
-        slippage: src.slippage,
-        wallet_name: src.wallet_name,
-        sell_amount: src.sell_amount,
-        sell_fee: src.sell_fee,
-        token_address: src.token_address,
-        rpc_group_id: src.rpc_group_id,
-      };
-  }
 }

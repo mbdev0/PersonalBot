@@ -61,31 +61,6 @@ interface TaskPostDto {
   sell_fee: number | undefined;
 }
 
-interface TaskPut {
-  id: number;
-  type: string;
-  slippage: number;
-  compute_units: number;
-  token_address: string;
-  wallet_name: string;
-  buy_amount?: number;
-  buy_fee?: number;
-  sell_amount?: number;
-  sell_fee?: number;
-}
-
-interface TaskPutDto {
-  type: string;
-  slippage: number;
-  compute_units: number;
-  token_address: string;
-  wallet_name: string;
-  buy_amount?: number;
-  buy_fee?: number;
-  sell_amount?: number;
-  sell_fee?: number;
-}
-
 interface State {
   task_state: string;
   error: string;
@@ -109,15 +84,7 @@ enum TaskType {
 
 export type TaskAction = 'Run' | 'Stop';
 
-export {
-  type TaskDto,
-  type Task,
-  TaskType,
-  type TaskPostDto,
-  type TaskPost,
-  type TaskPut,
-  type TaskPutDto,
-};
+export { type TaskDto, type Task, type TaskPostDto, type TaskPost };
 
 export function isTerminal(state: string) {
   return state === TaskType.task_done || state === TaskType.tx_failed;

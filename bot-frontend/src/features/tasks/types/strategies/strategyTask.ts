@@ -87,7 +87,6 @@ export type StrategyTask = AFKStrategyTask | BuyStrategyTask | SellStrategyTask;
 
 export enum StrategyTaskState {
   create = 'CREATED',
-  running = 'RUNNING',
   failed = 'FAILED',
   success = 'SUCCESS',
   cancelled = 'CANCELLED',

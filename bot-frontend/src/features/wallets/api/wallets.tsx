@@ -15,16 +15,6 @@ export async function getWallets(): Promise<Wallet[]> {
   return wallets;
 }
 
-//get wallet by id -> maybe have the id as the query key? -> Do we need this though?
-export async function getWalletsById(id: string): Promise<WalletDto> {
-  const resp = await fetch(API_BASE + `/wallet/wallets/${id}}`);
-  if (!resp.ok) {
-    throw new Error(`Failed to fetch wallet with ID: ${id} - Error: ${resp.json()}`);
-  }
-
-  return resp.json();
-}
-
 //put for update
 export async function updateWallet(wallet: WalletPut): Promise<WalletDto> {
   const walletDto = walletPutToDto(wallet);
