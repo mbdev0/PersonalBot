@@ -45,6 +45,10 @@ func (tr *TaskRepository) GetAll(ctx context.Context) ([]tasks.Task, error) {
 		}
 
 		mappedTask, err := mapper.MapRepoToTask(task, wallet)
+		if err != nil {
+			return nil, err
+		}
+
 		dbTasks = append(dbTasks, mappedTask)
 	}
 

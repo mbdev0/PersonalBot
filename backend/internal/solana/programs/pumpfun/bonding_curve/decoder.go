@@ -117,7 +117,7 @@ func GetBondingCurveDataFromAddress(bondingCurveAddress string, ctx context.Cont
 
 	decodedBondingCurve := bondingCurveResponse.Value.Data.GetBinary()
 
-	bondingCurveModel, err, hasCompleted := getBondingCurveData(decodedBondingCurve)
+	bondingCurveModel, err, _ := getBondingCurveData(decodedBondingCurve)
 	if err != nil {
 		return nil, err, false
 	}
