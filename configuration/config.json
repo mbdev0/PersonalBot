@@ -1,5 +1,0 @@
-{
-    "webhook": "discord webhook here",
-    "http_node": "solana http node here",
-    "ws_node": "solana ws node here"   
-}
