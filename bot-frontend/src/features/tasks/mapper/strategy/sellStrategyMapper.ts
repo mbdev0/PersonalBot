@@ -8,11 +8,3 @@ export function mapSellStrategyPostToDto(src: SellStrategyPost): SellStrategyDto
     sell_amount: src.sell_amount,
   };
 }
-
-export function mapSellStrategyDtoToPost(src: SellStrategyDto): SellStrategyPost {
-  return {
-    type: src.type,
-    value: src.value,
-    sell_amount: src.sell_amount,
-  };
-}

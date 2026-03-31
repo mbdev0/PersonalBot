@@ -1,21 +1,7 @@
 import { API_BASE } from '../../../config/urls';
-import { mapTaskDtoToTask, mapTaskToPostDto, mapTaskToPutDto } from '../mapper/taskMapper';
-import type { Task, TaskAction, TaskDto, TaskPost, TaskPut } from '../types/task';
+import { mapTaskToPostDto } from '../mapper/taskMapper';
+import type { TaskAction, TaskPost } from '../types/task';
 const TASK_BASE = '/tasks/task';
-
-export async function getTasks(): Promise<Task[]> {
-  const url = API_BASE + '/tasks/task';
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error('Error whilst getting tasks');
-  }
-
-  const taskDtos: TaskDto[] = await response.json();
-
-  const mappedTasks = taskDtos.map(mapTaskDtoToTask);
-
-  return mappedTasks;
-}
 
 export async function postTask(task: TaskPost): Promise<number> {
   const mappedTasks = mapTaskToPostDto(task);
@@ -32,26 +18,6 @@ export async function postTask(task: TaskPost): Promise<number> {
 
   if (!response.ok) {
     throw new Error(`Failed to add new task: ${response.status}`);
-  }
-
-  return response.status;
-}
-
-export async function putTask(task: TaskPut): Promise<number> {
-  const mappedTasks = mapTaskToPutDto(task);
-  const url = API_BASE + TASK_BASE + `/${task.id}`;
-
-  const response = await fetch(url, {
-    method: 'PUT',
-    headers: {
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(mappedTasks),
-  });
-
-  if (!response.ok) {
-    throw new Error(`Updating task ${task.id} failed: ${response.status}`);
   }
 
   return response.status;

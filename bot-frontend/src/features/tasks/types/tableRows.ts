@@ -27,4 +27,4 @@ interface TaskRow {
 
 type DisplayRow = StrategyRow | TaskRow;
 
-export { type DisplayRow, type StrategyRow, type TaskRow, TaskRowType };
+export { type DisplayRow, TaskRowType };

@@ -5,11 +5,6 @@ export interface RPCGroup {
   creation_time: string;
 }
 
-export interface RPC {
-  http: string;
-  ws: string;
-}
-
 export interface RPCGroupDashboardRow {
   id: number;
   name: string;

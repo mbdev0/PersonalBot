@@ -32,7 +32,7 @@ interface RPCGroupUpdateFormProps {
   onCompletion: () => void;
 }
 
-export function RPCGroupUpdateForm({ data, onCompletion }: RPCGroupUpdateFormProps) {
+function RPCGroupUpdateForm({ data, onCompletion }: RPCGroupUpdateFormProps) {
   const updateMutation = useUpdateRPCGroup();
   const [groupName, SetGroupName] = useState(data.name);
   const textareaRef = useRef<HTMLTextAreaElement>(null);

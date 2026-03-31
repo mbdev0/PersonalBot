@@ -14,7 +14,7 @@ export interface SellStrategyDto {
   sell_amount: number;
 }
 
-export const SELL_STRATEGY_TYPES = {
+const SELL_STRATEGY_TYPES = {
   TAKE_PROFIT_PERCENTAGE: 'take_profit_percentage',
   TAKE_PROFIT_MARKETCAP: 'take_profit_marketcap',
   TAKE_PROFIT_PRICE: 'take_profit_price',

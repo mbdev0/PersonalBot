@@ -1,11 +1,4 @@
-import {
-  type Task,
-  type TaskDto,
-  type TaskPost,
-  type TaskPostDto,
-  type TaskPut,
-  type TaskPutDto,
-} from '../types/task';
+import { type Task, type TaskDto, type TaskPost, type TaskPostDto } from '../types/task';
 
 export function mapTaskDtoToTask(src: TaskDto): Task {
   return {
@@ -38,9 +31,4 @@ export function mapTaskToPostDto(src: TaskPost): TaskPostDto {
     sell_amount: src.sell_amount,
     sell_fee: src.sell_fee,
   };
-}
-
-export function mapTaskToPutDto(src: TaskPut): TaskPutDto {
-  const { ...rest } = src;
-  return rest;
 }

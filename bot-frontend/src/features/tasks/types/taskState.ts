@@ -20,18 +20,6 @@ export const TaskState = {
 
 export type TaskState = (typeof TaskState)[keyof typeof TaskState];
 
-const TERMINAL_STATES: Set<string> = new Set([
-  TaskState.TASK_DONE,
-  TaskState.TASK_CANCEL,
-  TaskState.TASK_FAIL,
-  TaskState.VALIDATION_FAIL,
-  TaskState.TX_INSTRUCTION_BUILD_FAIL,
-  TaskState.TX_BUILD_FAIL,
-  TaskState.TX_SEND_FAIL,
-  TaskState.TX_CONFIRM_FAIL,
-  TaskState.TASK_UPDATING_POSITION_FAIL,
-]);
-
 const RUNNING_STATES: Set<string> = new Set([
   TaskState.VALIDATING,
   TaskState.TX_INSTRUCTION_BUILD,
@@ -50,10 +38,6 @@ const FAILURE_STATES: Set<string> = new Set([
   TaskState.TASK_UPDATING_POSITION_FAIL,
   TaskState.TASK_FAIL,
 ]);
-
-export function isTerminal(state: string): boolean {
-  return TERMINAL_STATES.has(state);
-}
 
 export function isRunning(state: string): boolean {
   return RUNNING_STATES.has(state);
