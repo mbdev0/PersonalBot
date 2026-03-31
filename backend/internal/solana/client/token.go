@@ -16,10 +16,9 @@ var (
 	TokenProgramV2 = solana.MustPublicKeyFromBase58(constants.Token2022Program)
 )
 
-func GetTokenAccountBalance(associatedTokenAddress solana.PublicKey, ctx context.Context) (tokenAmount *uint64, err error) {
-	client := GetClient()
+func GetTokenAccountBalance(associatedTokenAddress solana.PublicKey, rpcClient *rpc.Client, ctx context.Context) (tokenAmount *uint64, err error) {
 
-	result, err := client.GetTokenAccountBalance(ctx, associatedTokenAddress, rpc.CommitmentConfirmed)
+	result, err := rpcClient.GetTokenAccountBalance(ctx, associatedTokenAddress, rpc.CommitmentConfirmed)
 	if err != nil {
 		return nil, err
 	}
@@ -34,10 +33,9 @@ func GetTokenAccountBalance(associatedTokenAddress solana.PublicKey, ctx context
 	return &uintAmount, nil
 }
 
-func GetTokenProgramForMint(ctx context.Context, mint solana.PublicKey) (solana.PublicKey, error) {
-	solClient := GetClient()
+func GetTokenProgramForMint(ctx context.Context, mint solana.PublicKey, rpcClient *rpc.Client) (solana.PublicKey, error) {
 
-	accountInfo, err := solClient.GetAccountInfo(ctx, mint)
+	accountInfo, err := rpcClient.GetAccountInfo(ctx, mint)
 	if err != nil {
 		return solana.PublicKey{}, err
 	}
@@ -54,8 +52,8 @@ func GetTokenProgramForMint(ctx context.Context, mint solana.PublicKey) (solana.
 	}
 }
 
-func GetATA(ctx context.Context, wallet solana.PublicKey, mint solana.PublicKey) (solana.PublicKey, error) {
-	tokenProgram, err := GetTokenProgramForMint(ctx, mint)
+func GetATA(ctx context.Context, wallet solana.PublicKey, mint solana.PublicKey, rpcClient *rpc.Client) (solana.PublicKey, error) {
+	tokenProgram, err := GetTokenProgramForMint(ctx, mint, rpcClient)
 	if err != nil {
 		return solana.PublicKey{}, err
 	}

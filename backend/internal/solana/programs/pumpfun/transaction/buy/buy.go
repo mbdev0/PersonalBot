@@ -54,18 +54,24 @@ func (bt *Transaction) BuildTransaction(ctx context.Context, publisher subscript
 		return fmt.Errorf("buy task was nil - make sure buy task is set")
 	}
 
-	latestHash, err := client.GetLatestBlockhash(ctx)
+	latestHash, err := client.GetLatestBlockhash(bt.GetTask().HttpClient(), ctx)
 	if err != nil {
 		logger.Error("Error getting latest blockhash", err)
 		return err
 	}
 
-	accountLookupMap := lookuptable.GetAddressLookupTable()
-	tx, err := solana.NewTransaction(*bt.instructions,
-		latestHash.Value.Blockhash,
+	opts := []solana.TransactionOption{
 		solana.TransactionPayer(bt.BuyTask.Wallet.PublicKey()),
-		solana.TransactionAddressTables(accountLookupMap))
+	}
 
+	accountLookupMap, err := lookuptable.GetAddressLookupTable(bt.GetTask().HttpClient())
+	if err != nil {
+		logger.Error("Error getting address lookup table, proceeding without it: ", err)
+	} else {
+		opts = append(opts, solana.TransactionAddressTables(accountLookupMap))
+	}
+
+	tx, err := solana.NewTransaction(*bt.instructions, latestHash.Value.Blockhash, opts...)
 	if err != nil {
 		logger.Error("Error creating transaction", err)
 		return err
@@ -84,7 +90,7 @@ func (bt *Transaction) BuildTransaction(ctx context.Context, publisher subscript
 }
 
 func (bt *Transaction) SendTransaction(ctx context.Context, publisher subscriptionhub.Publisher) error {
-	rpcClient := client.GetClient()
+	rpcClient := bt.GetTask().HttpClient()
 	// SIMULATE TRANSACTION
 	// txResp, err := rpcClient.SimulateTransaction(bt.BuyTask.Ctx(), bt.transaction)
 	// if err != nil {
@@ -116,11 +122,13 @@ func (bt *Transaction) SendTransaction(ctx context.Context, publisher subscripti
 }
 
 func (bt *Transaction) ConfirmTransaction(ctx context.Context, publisher subscriptionhub.Publisher) error {
+	rpcClient := bt.GetTask().HttpClient()
+
 	stream := make(chan client.ConfirmMessage, 100)
 
 	go func(stream chan client.ConfirmMessage) {
 		defer close(stream)
-		client.ConfirmTransactionWithStream(bt.signature, ctx, stream)
+		client.ConfirmTransactionWithStream(rpcClient, bt.signature, ctx, stream)
 	}(stream)
 
 	for msg := range stream {
@@ -150,7 +158,7 @@ func (bt *Transaction) GetSignature() solana.Signature {
 }
 
 func (bt *Transaction) ExtractTokenAndSolFromTx(signature solana.Signature, ctx context.Context) (tokenAmount float64, solAmount float64, err error) {
-	solClient := client.GetClient()
+	solClient := bt.GetTask().HttpClient()
 	tx, err := solClient.GetParsedTransaction(ctx, signature, &rpc.GetParsedTransactionOpts{Commitment: rpc.CommitmentConfirmed, MaxSupportedTransactionVersion: &rpc.MaxSupportedTransactionVersion0})
 	if err != nil {
 		return tokenAmount, solAmount, err
