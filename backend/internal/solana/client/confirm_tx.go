@@ -16,58 +16,6 @@ const (
 	maxConfirmations = 32
 )
 
-func ConfirmTransaction(rpcClient *rpc.Client, sig solana.Signature, ctx context.Context) (IsSuccess bool, err error) {
-	ctx, cancel := context.WithTimeout(ctx, contextTimeout)
-	defer cancel()
-
-	for {
-		select {
-		case <-ctx.Done():
-			return false, fmt.Errorf("transaction confirmation timeout")
-		default:
-		}
-
-		txResp, err := rpcClient.GetSignatureStatuses(ctx, true, sig)
-		if err != nil {
-			return false, err
-		}
-
-		if len(txResp.Value) == 0 || txResp.Value[0] == nil {
-			logger.Information("Transaction status unavailable. Retrying...")
-			time.Sleep(pollInterval)
-			continue
-		}
-
-		status := txResp.Value[0]
-		if status.Err != nil {
-			return false, fmt.Errorf("transaction failed: %v", status.Err)
-		}
-
-		switch status.ConfirmationStatus {
-		case rpc.ConfirmationStatusFinalized:
-			return true, nil
-		case rpc.ConfirmationStatusConfirmed:
-			confirmations := uint64(0)
-			if status.Confirmations != nil {
-				confirmations = *status.Confirmations
-			}
-
-			logger.Information(fmt.Sprintf("Transaction confirmed: %d/%d confirmations",
-				confirmations, maxConfirmations))
-
-			expired, err := IsBlockhashExpired(status.Slot, rpcClient, ctx)
-			if err != nil {
-				return false, fmt.Errorf("blockhash expiration check failed: %w", err)
-			}
-			if expired {
-				return false, fmt.Errorf("blockhash expired, re-send the tx")
-			}
-
-			time.Sleep(pollInterval)
-		}
-	}
-}
-
 type ConfirmMessage struct {
 	Message string
 	Err     string

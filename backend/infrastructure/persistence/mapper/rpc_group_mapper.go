@@ -46,9 +46,3 @@ func MapRepositoryToRpcGroup(src models.RpcGroupRepository) (rpcgroups.RPCGroup,
 
 	return dst, nil
 }
-
-// TODO
-func MapRepositoryToDashboard(src models.RpcGroupDashboard) rpcgroups.RPCGroupDashboard {
-	dst := rpcgroups.RPCGroupDashboard{}
-	return dst
-}

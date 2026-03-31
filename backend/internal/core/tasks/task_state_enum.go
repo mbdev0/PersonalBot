@@ -1,7 +1,5 @@
 package tasks
 
-import "fmt"
-
 type TaskState string
 
 const (
@@ -70,45 +68,6 @@ func (ts TaskState) ToString() string {
 		return "Unknown"
 	default:
 		return "Invalid State"
-	}
-}
-
-func ParseStateString(state string) (TaskState, error) {
-	switch state {
-	case "TaskCreate":
-		return TaskCreate, nil
-	case "TaskValidating":
-		return TaskValidating, nil
-	case "TaskValidationFail", "TaskValidationFailed":
-		return TaskValidationFail, nil
-	case "TxInstructionBuild":
-		return TxInstructionBuild, nil
-	case "TxInstructionBuildFail", "TxInstructionBuildFailed":
-		return TxInstructionBuildFail, nil
-	case "TxBuild":
-		return TxBuild, nil
-	case "TxBuildFail", "TxBuildFailed":
-		return TxBuildFail, nil
-	case "TxSend":
-		return TxSend, nil
-	case "TxSendFail", "TxSendFailed":
-		return TxSendFail, nil
-	case "TxConfirm":
-		return TxConfirm, nil
-	case "TxConfirmFail", "TxFailed":
-		return TxConfirmFail, nil
-	case "TaskUpdatingPosition":
-		return TaskUpdatingPosition, nil
-	case "TaskUpdatingPositionFail":
-		return TaskUpdatingPositionFail, nil
-	case "TaskDone", "Done":
-		return TaskDone, nil
-	case "TaskCancel":
-		return TaskCancel, nil
-	case "TaskFail":
-		return TaskFail, nil
-	default:
-		return TaskUnknown, fmt.Errorf("unknown task state: %s", state)
 	}
 }
 

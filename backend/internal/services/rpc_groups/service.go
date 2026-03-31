@@ -40,11 +40,6 @@ func (s *Service) GetBy(ctx context.Context, id int64) (rpcgroups.RPCGroup, erro
 	return rpcGroup, nil
 }
 
-// internal look up function
-func (s *Service) GetByName(ctx context.Context, name string) (rpcgroups.RPCGroup, error) {
-	return s.repo.GetByName(ctx, name)
-}
-
 func (s *Service) Delete(ctx context.Context, id int64) error {
 	return s.repo.Delete(ctx, id)
 }

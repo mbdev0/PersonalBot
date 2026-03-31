@@ -24,29 +24,3 @@ func GetAccountInfo(address string, ctx context.Context, httpClient *rpc.Client)
 
 	return accountInfo, nil
 }
-
-func GetAccountInfoLimited(address string) (*rpc.GetAccountInfoResult, error) {
-	client := GetRatelimtClient()
-
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
-	defer cancel()
-
-	accountInfo, err := client.GetAccountInfo(ctx, solana.MustPublicKeyFromBase58(address))
-
-	if err != nil {
-		return nil, err
-	}
-
-	return accountInfo, nil
-}
-
-// func GetAccountInfoUntilResponse(address string, ctx context.Context) (*rpc.GetAccountInfoResult, error) {
-// 	client := GetClient()
-// 	ctx, cancel := context.WithTimeout(ctx, timeout)
-// 	defer cancel()
-
-// 	for {
-// 		accountInfo, err
-// 	}
-
-// }
