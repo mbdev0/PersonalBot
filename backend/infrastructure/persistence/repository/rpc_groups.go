@@ -109,24 +109,6 @@ func (rg *RPCGroup) GetById(ctx context.Context, id int64) (rpcgroups.RPCGroup, 
 	return mappedRpcGroup, nil
 }
 
-func (rg *RPCGroup) GetByName(ctx context.Context, name string) (rpcgroups.RPCGroup, error) {
-	query := "SELECT * FROM rpc_groups where group_name=?"
-	rows := rg.db.QueryRowContext(ctx, query, name)
-
-	var rpcGroup models.RpcGroupRepository
-	err := rows.Scan(&rpcGroup.Id, &rpcGroup.GroupName, &rpcGroup.RpcGroups, &rpcGroup.CreationTime)
-	if err != nil {
-		return rpcgroups.RPCGroup{}, err
-	}
-
-	mappedRpcGroup, err := mapper.MapRepositoryToRpcGroup(rpcGroup)
-	if err != nil {
-		return rpcgroups.RPCGroup{}, err
-	}
-
-	return mappedRpcGroup, nil
-}
-
 func (rg *RPCGroup) Delete(ctx context.Context, id int64) error {
 	query := "DELETE FROM rpc_groups where id=?"
 

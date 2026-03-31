@@ -61,69 +61,6 @@ func (tr *TaskRepository) GetMaxId(ctx context.Context) int64 {
 	return id
 }
 
-func (tr *TaskRepository) GetById(ctx context.Context, id string) (tasks.Task, error) {
-	query := `
-	SELECT t.id, t.task_type, t.slippage_percentage, t.compute_units, t.config, t.state, t.token, t.strategy_id, t.node_config 
-		cw.id, cw.wallet_name, cw.chain, cw.private_key
-		FROM tasks t
-		INNER JOIN crypto_wallets cw WHERE cw.id = t.wallet_id AND t.id = ?
-	`
-	rows, err := tr.db.QueryContext(ctx, query, id)
-	if err != nil {
-		return nil, err
-	}
-
-	task := models.TaskRow{}
-	wallet := models.WalletRepository{}
-	err = rows.Scan(&task.Id, &task.TaskType, &task.Slippage, &task.ComputeUnits, &task.Config, &task.State, &task.Token, &task.StrategyId, &task.NodeConfig,
-		&wallet.Id, &wallet.WalletName, &wallet.Chain, &wallet.PrivateKey)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, fmt.Errorf("wallet not found: %s", id)
-		}
-		return nil, err
-	}
-
-	mappedTask, err := mapper.MapRepoToTask(task, wallet)
-	if err != nil {
-		return nil, err
-	}
-
-	return mappedTask, nil
-}
-
-func (tr *TaskRepository) AddTask(ctx context.Context, task tasks.Task) (bool, error) {
-
-	mappedTask, err := mapper.MapTaskToRepo(task)
-	if err != nil {
-		return false, err
-	}
-
-	query := "INSERT into tasks values (?,?,?,?,?,?,?,?,?,?,?)"
-	tx, err := tr.db.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable, ReadOnly: false})
-	if err != nil {
-		tx.Rollback()
-		return false, err
-	}
-
-	_, err = tx.ExecContext(ctx, query,
-		mappedTask.Id, mappedTask.TaskType, mappedTask.WalletId, mappedTask.Slippage,
-		mappedTask.ComputeUnits, mappedTask.Config, mappedTask.StrategyId, mappedTask.State,
-		mappedTask.Token, mappedTask.TimeCreatedUnix, mappedTask.NodeConfig)
-	if err != nil {
-		tx.Rollback()
-		return false, err
-	}
-
-	err = tx.Commit()
-	if err != nil {
-		return false, err
-	}
-
-	return true, nil
-
-}
-
 func (tr *TaskRepository) AddAllTasks(tasks []tasks.Task, ctx context.Context) (bool, error) {
 	if len(tasks) == 0 {
 		return true, nil
@@ -178,27 +115,6 @@ func (tr *TaskRepository) AddAllTasks(tasks []tasks.Task, ctx context.Context) (
 	return true, nil
 }
 
-func (tr *TaskRepository) Delete(ctx context.Context, id string) (bool, error) {
-	query := "delete from tasks where id = ?"
-	tx, err := tr.db.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable, ReadOnly: false})
-	if err != nil {
-		return false, err
-	}
-
-	_, err = tx.ExecContext(ctx, query, id)
-	if err != nil {
-		tx.Rollback()
-		return false, err
-	}
-
-	err = tx.Commit()
-	if err != nil {
-		return false, err
-	}
-
-	return true, nil
-}
-
 func (tr *TaskRepository) DeleteAll(ctx context.Context) (bool, error) {
 	query := `DELETE from tasks`
 
@@ -220,42 +136,5 @@ func (tr *TaskRepository) DeleteAll(ctx context.Context) (bool, error) {
 	}
 
 	return true, nil
-
-}
-
-func (tr *TaskRepository) Update(ctx context.Context, id string, task *models.TaskRow) (tasks.Task, error) {
-	query := `
-		UPDATE tasks t SET 
-			t.task_type=?, t.slippage_percentage=?, t.compute_units=?, t.config=?, t.state=?, t.token=?
-		WHERE t.id = ?
-	`
-
-	tx, err := tr.db.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable, ReadOnly: false})
-	if err != nil {
-		tx.Rollback()
-		return nil, err
-	}
-
-	sqlRes, err := tx.ExecContext(ctx, query, task.TaskType, task.Slippage, task.ComputeUnits, task.Config, task.State, task.Token, task.Id)
-
-	if rowsAffected, err := sqlRes.RowsAffected(); err != nil {
-		tx.Rollback()
-		if rowsAffected > 1 {
-			return nil, fmt.Errorf("more than 1 rows updated, no of rows: %d", rowsAffected)
-		}
-		return nil, err
-	}
-
-	err = tx.Commit()
-	if err != nil {
-		return nil, err
-	}
-
-	updatedTask, err := tr.GetById(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-
-	return updatedTask, nil
 
 }
