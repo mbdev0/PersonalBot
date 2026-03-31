@@ -16,8 +16,7 @@ const (
 	maxConfirmations = 32
 )
 
-func ConfirmTransaction(sig solana.Signature, ctx context.Context) (IsSuccess bool, err error) {
-	client := GetClient()
+func ConfirmTransaction(rpcClient *rpc.Client, sig solana.Signature, ctx context.Context) (IsSuccess bool, err error) {
 	ctx, cancel := context.WithTimeout(ctx, contextTimeout)
 	defer cancel()
 
@@ -28,7 +27,7 @@ func ConfirmTransaction(sig solana.Signature, ctx context.Context) (IsSuccess bo
 		default:
 		}
 
-		txResp, err := client.GetSignatureStatuses(ctx, true, sig)
+		txResp, err := rpcClient.GetSignatureStatuses(ctx, true, sig)
 		if err != nil {
 			return false, err
 		}
@@ -56,7 +55,7 @@ func ConfirmTransaction(sig solana.Signature, ctx context.Context) (IsSuccess bo
 			logger.Information(fmt.Sprintf("Transaction confirmed: %d/%d confirmations",
 				confirmations, maxConfirmations))
 
-			expired, err := IsBlockhashExpired(status.Slot, ctx)
+			expired, err := IsBlockhashExpired(status.Slot, rpcClient, ctx)
 			if err != nil {
 				return false, fmt.Errorf("blockhash expiration check failed: %w", err)
 			}
@@ -74,8 +73,7 @@ type ConfirmMessage struct {
 	Err     string
 }
 
-func ConfirmTransactionWithStream(sig solana.Signature, ctx context.Context, stream chan ConfirmMessage) {
-	client := GetClient()
+func ConfirmTransactionWithStream(rpcClient *rpc.Client, sig solana.Signature, ctx context.Context, stream chan ConfirmMessage) {
 	ctx, cancel := context.WithTimeout(ctx, contextTimeout)
 	defer cancel()
 
@@ -89,7 +87,7 @@ func ConfirmTransactionWithStream(sig solana.Signature, ctx context.Context, str
 		default:
 		}
 
-		txResp, err := client.GetSignatureStatuses(ctx, true, sig)
+		txResp, err := rpcClient.GetSignatureStatuses(ctx, true, sig)
 		if err != nil {
 			stream <- ConfirmMessage{
 				Err: fmt.Sprintf("failed to get signature status: %v", err),
@@ -140,7 +138,7 @@ func ConfirmTransactionWithStream(sig solana.Signature, ctx context.Context, str
 					confirmations, maxConfirmations),
 			}
 
-			expired, err := IsBlockhashExpired(status.Slot, ctx)
+			expired, err := IsBlockhashExpired(status.Slot, rpcClient, ctx)
 			if err != nil {
 				stream <- ConfirmMessage{
 					Err: fmt.Sprintf("blockhash expiration check failed: %v", err),

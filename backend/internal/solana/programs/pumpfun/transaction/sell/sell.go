@@ -69,18 +69,24 @@ func (st *Transaction) BuildTransaction(ctx context.Context, publisher subscript
 		return fmt.Errorf("sell task is null - check if sell task was set")
 	}
 
-	latestHash, err := client.GetLatestBlockhash(ctx)
+	latestHash, err := client.GetLatestBlockhash(st.GetTask().HttpClient(), ctx)
 	if err != nil {
 		logger.Error("Error getting latest blockhash", err)
 		return err
 	}
 
-	accountLookupMap := lookuptable.GetAddressLookupTable()
-	tx, err := solana.NewTransaction(st.instructions,
-		latestHash.Value.Blockhash,
+	opts := []solana.TransactionOption{
 		solana.TransactionPayer(st.Task.Wallet.PublicKey()),
-		solana.TransactionAddressTables(accountLookupMap))
+	}
 
+	accountLookupMap, err := lookuptable.GetAddressLookupTable(st.GetTask().HttpClient())
+	if err != nil {
+		logger.Error("Error getting address lookup table, proceeding without it: ", err)
+	} else {
+		opts = append(opts, solana.TransactionAddressTables(accountLookupMap))
+	}
+
+	tx, err := solana.NewTransaction(st.instructions, latestHash.Value.Blockhash, opts...)
 	if err != nil {
 		logger.Error("Error creating transaction", err)
 		return err
@@ -93,13 +99,12 @@ func (st *Transaction) BuildTransaction(ctx context.Context, publisher subscript
 
 	st.transaction = tx
 	publisher.PublishMessage(st.Task, "tx built")
-	// reporter.Report("Tx Built")
 
 	return nil
 }
 
 func (st *Transaction) SendTransaction(ctx context.Context, publisher subscriptionhub.Publisher) error {
-	rpcClient := client.GetClient()
+	rpcClient := st.GetTask().HttpClient()
 
 	// simulate the transaction
 	// txResp, err := rpcClient.SimulateTransaction(st.Task.Ctx(), st.transaction)
@@ -137,7 +142,7 @@ func (st *Transaction) ConfirmTransaction(ctx context.Context, publisher subscri
 
 	go func(stream chan client.ConfirmMessage) {
 		defer close(stream)
-		client.ConfirmTransactionWithStream(st.signature, ctx, stream)
+		client.ConfirmTransactionWithStream(st.GetTask().HttpClient(), st.signature, ctx, stream)
 	}(stream)
 
 	for msg := range stream {
@@ -156,8 +161,7 @@ func (st *Transaction) GetSignature() solana.Signature {
 }
 
 func (st *Transaction) ExtractTokenAndSolFromTx(signature solana.Signature, ctx context.Context) (tokenAmount float64, solAmount float64, err error) {
-	solClient := client.GetClient()
-	tx, err := solClient.GetParsedTransaction(ctx, signature, &rpc.GetParsedTransactionOpts{Commitment: rpc.CommitmentConfirmed, MaxSupportedTransactionVersion: &rpc.MaxSupportedTransactionVersion0})
+	tx, err := st.Task.HttpClient().GetParsedTransaction(ctx, signature, &rpc.GetParsedTransactionOpts{Commitment: rpc.CommitmentConfirmed, MaxSupportedTransactionVersion: &rpc.MaxSupportedTransactionVersion0})
 	if err != nil {
 		return tokenAmount, solAmount, err
 	}
@@ -236,12 +240,12 @@ func getAllInstructionsForSell(sellTask *tasks.SellTask, ctx context.Context, ps
 		pos = position
 	} else {
 		//report fake buy for positions
-		ata, err := client.GetATA(ctx, sellTask.Wallet.PublicKey(), sellTask.Token)
+		ata, err := client.GetATA(ctx, sellTask.Wallet.PublicKey(), sellTask.Token, sellTask.HttpClient())
 		if err != nil {
 			return nil, err
 		}
 
-		tokenAmount, err := client.GetTokenAccountBalance(ata, ctx)
+		tokenAmount, err := client.GetTokenAccountBalance(ata, sellTask.HttpClient(), ctx)
 		if err != nil {
 			return nil, err
 		}

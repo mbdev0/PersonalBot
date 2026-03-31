@@ -158,7 +158,7 @@ func getTokenAmountAndSolOutput(sellTask *tasks.SellTask, ctx context.Context, p
 		tokens, _ := position.TokenRemaining.Uint64()
 		tokenAmount = &tokens
 	} else {
-		tokenAmount, err = client.GetTokenAccountBalance(associatedTokenAddress, ctx)
+		tokenAmount, err = client.GetTokenAccountBalance(associatedTokenAddress, sellTask.HttpClient(), ctx)
 		if err != nil {
 			return nil, nil, err
 		}

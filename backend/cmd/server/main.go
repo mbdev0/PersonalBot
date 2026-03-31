@@ -26,6 +26,8 @@ import (
 	"personal_bot/internal/services/trading"
 	"personal_bot/internal/services/transaction"
 	"personal_bot/pkg/logger"
+
+	"github.com/gagliardetto/solana-go/rpc"
 )
 
 func main() {
@@ -33,8 +35,6 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-
-	app.Launch()
 
 	//TODO: move the init of api's into launch and return one mux back
 
@@ -44,6 +44,9 @@ func main() {
 	if err != nil {
 		logger.Error(err)
 	}
+
+	app.Launch(rpc.New(settings.PositionNodes.HTTPNode))
+
 	discordNotifier := notifier.NewDiscordNotifier(settings)
 	settingsController := controller.NewSettingsController(settingsService, discordNotifier)
 	settingsHandler := http.StripPrefix("/api/settings", handler.NewSettingsHandler(settingsController))
