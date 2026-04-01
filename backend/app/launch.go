@@ -11,10 +11,10 @@ import (
 
 func Launch(generalNode *rpc.Client) {
 	pumpfun_idl.GetIdlMap()
+	lookuptable.GetAddressLookupTable(generalNode)
+	validator.GetValidator()
 	_, err := solana_price.GetSolPrice()
 	if err != nil {
 		return
 	}
-	lookuptable.GetAddressLookupTable(generalNode)
-	validator.GetValidator()
 }
