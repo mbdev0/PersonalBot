@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"maps"
+	"math"
 	"personal_bot/app/iterable"
 	"personal_bot/infrastructure/persistence/repository"
 	rpcgroupsModel "personal_bot/internal/core/rpc_groups"
@@ -209,7 +210,7 @@ func (s *Service) Delete(id int64, ctx context.Context) error {
 		return nil
 	}
 
-	tasks, err := s.taskService.GetTaskWithStrategyId(id)
+	tasks, err := s.taskService.GetTasksWithStrategyId(id)
 	if err != nil {
 		return err
 	}
@@ -258,7 +259,95 @@ func (s *Service) Update(task strategies.Task, patch strategies.Patch) (strategi
 		return nil, err
 	}
 
+	if task.StrategyType() == strategies.BUY {
+		err = s.updateBuyTask(task.StrategyTaskId(), patch)
+	} else if task.StrategyType() == strategies.SELL {
+		err = s.updateSellTask(task.StrategyTaskId(), patch)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
 	return task, nil
+}
+
+func (s *Service) updateBuyTask(tradingTaskId int64, patch strategies.Patch) error {
+	allTasks, err := s.taskService.GetTasksWithStrategyId(tradingTaskId)
+	if err != nil {
+		return err
+	}
+
+	if len(allTasks) == 0 || len(allTasks) > 1 {
+		return nil
+	}
+
+	buyPatchPtr, ok := patch.(*strategies.BuyPatch)
+	if !ok {
+		return fmt.Errorf("invalid casting to buy patch, check if this is being called in the right place")
+	}
+
+	buyPatch := *buyPatchPtr
+
+	var cuPtr *uint32
+	if buyPatch.ComputeUnits != nil {
+		computeUnits := uint32(math.Round(*buyPatch.ComputeUnits))
+		cuPtr = &computeUnits
+	}
+
+	taskPatch := tasks.BuyPatch{
+		Wallet:      buyPatch.Wallet,
+		Token:       buyPatch.Token,
+		Amount:      buyPatch.BuyAmount,
+		Fee:         buyPatch.BuyFee,
+		Slippage:    buyPatch.Slippage,
+		ComputeUnit: cuPtr,
+	}
+
+	_, err = s.taskService.UpdateTask(allTasks[0], &taskPatch)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *Service) updateSellTask(tradingTaskId int64, patch strategies.Patch) error {
+	allTasks, err := s.taskService.GetTasksWithStrategyId(tradingTaskId)
+	if err != nil {
+		return err
+	}
+
+	if len(allTasks) == 0 || len(allTasks) > 1 {
+		return nil
+	}
+
+	sellPatchPtr, ok := patch.(*strategies.SellPatch)
+	if !ok {
+		return fmt.Errorf("invalid casting to sell patch, check if this is being called in the right place")
+	}
+
+	sellPatch := *sellPatchPtr
+
+	var cuPtr *uint32
+	if sellPatch.ComputeUnits != nil {
+		computeUnits := uint32(math.Round(*sellPatch.ComputeUnits))
+		cuPtr = &computeUnits
+	}
+
+	taskPatch := tasks.SellPatch{
+		Wallet:      sellPatch.Wallet,
+		Token:       sellPatch.Token,
+		Amount:      sellPatch.SellAmount,
+		Fee:         sellPatch.SellFee,
+		Slippage:    sellPatch.Slippage,
+		ComputeUnit: cuPtr,
+	}
+
+	_, err = s.taskService.UpdateTask(allTasks[0], &taskPatch)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (s *Service) Start(id int64) error {
@@ -309,7 +398,7 @@ func (s *Service) Stop(id int64) error {
 		return fmt.Errorf("task not running with id: %d", id)
 	}
 
-	childTasks, err := s.taskService.GetTaskWithStrategyId(strategyTask.StrategyTaskId())
+	childTasks, err := s.taskService.GetTasksWithStrategyId(strategyTask.StrategyTaskId())
 	if err != nil {
 		return err
 	}

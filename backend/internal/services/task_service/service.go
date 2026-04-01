@@ -51,21 +51,12 @@ func (ts *TaskService) GetTaskWith(id int64) (tasks.Task, error) {
 	return task, nil
 }
 
-func (ts *TaskService) GetTaskWithStrategyId(id int64) ([]tasks.Task, error) {
+func (ts *TaskService) GetTasksWithStrategyId(id int64) ([]tasks.Task, error) {
 	tasksWithStrategyId := []tasks.Task{}
 
 	for _, v := range ts.tasks {
-		if v.Type() == "Sell" {
-			continue
-		}
-
-		bt, ok := v.(*tasks.BuyTask)
-		if !ok {
-			return nil, fmt.Errorf("error whilst casting task: %d to buy task", id)
-		}
-
-		if *bt.StrategyId == id {
-			tasksWithStrategyId = append(tasksWithStrategyId, bt)
+		if *v.GetStrategyId() == id {
+			tasksWithStrategyId = append(tasksWithStrategyId, v)
 		}
 	}
 	return tasksWithStrategyId, nil
