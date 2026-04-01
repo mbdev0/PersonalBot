@@ -45,12 +45,12 @@ func (sc *StrategyController) Create(ctx context.Context, task dto.TradingTask) 
 		return
 	}
 
-	t, err := mapper.MapTradingTaskDtoToTradingTask(task, wallet, rpcGroup)
+	mappedTask, err := mapper.MapTradingTaskDtoToTradingTask(task, wallet, rpcGroup)
 	if err != nil {
 		return
 	}
 
-	createdTask, err := sc.strategyService.Create(ctx, t)
+	createdTask, err := sc.strategyService.Create(ctx, mappedTask)
 	if err != nil {
 		return
 	}
@@ -104,10 +104,6 @@ func (sc *StrategyController) Update(ctx context.Context, id int64, tsk dto.Trad
 		return nil, fmt.Errorf("task not found with the id %d", id)
 	}
 
-	//if the user has passed in a wallet into the patch - we will get it
-	//this will then be passed into the mapper
-	//if the wallet is nil (which it will be if the user didn't pass in the wallet in the patch)
-	//we will not update the wallet inside the mapper
 	var wallet *wallets.SolanaWallet
 	if tsk.WalletName != nil {
 		walletResp, err := sc.walletService.GetByName(ctx, *tsk.WalletName)
@@ -120,18 +116,15 @@ func (sc *StrategyController) Update(ctx context.Context, id int64, tsk dto.Trad
 
 	var rpcGroup *rpcgroupsModel.RPCGroup
 	if tsk.RPCGroupId != nil {
-		logger.Information(*tsk.RPCGroupId)
 		rpcGroupResp, err := sc.rpcGroupService.GetBy(ctx, *tsk.RPCGroupId)
 		if err != nil {
 			logger.Error(err)
 			return nil, err
 		}
 
-		logger.Information(rpcGroupResp)
 		rpcGroup = &rpcGroupResp
 	}
 
-	logger.Information(rpcGroup != nil)
 	patch, err := mapper.MapTradingTaskPatchDtoToTradingTaskPatch(tsk, dto.TradingType(task.StrategyType()), wallet, rpcGroup)
 	if err != nil {
 		return nil, fmt.Errorf("error whilst mapping %w", err)

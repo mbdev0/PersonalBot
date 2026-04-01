@@ -116,20 +116,21 @@ func (st *Transaction) SendTransaction(ctx context.Context, publisher subscripti
 
 	// SEND TRANSACTION WITH OPTIONS
 	// maxRetries := uint(5)
-	// txResp, err := rpcClient.SendTransactionWithOpts(st.Task.Ctx(), st.transaction, rpc.TransactionOpts{Encoding: solana.EncodingBase64, SkipPreflight: true, MaxRetries: &maxRetries})
-	// if err != nil {
-	// 	logger.Error("Error sending transaction", err)
-	// 	return
-	// }
-	// fmt.Println(txResp.String())
-
-	// SEND TRANSACTION WITH NO OPTS
-	txResp, err := rpcClient.SendTransaction(ctx, st.transaction)
+	txResp, err := rpcClient.SendTransactionWithOpts(ctx, st.transaction, rpc.TransactionOpts{Encoding: solana.EncodingBase64, SkipPreflight: true})
 	if err != nil {
-		logger.Error(err)
+		logger.Error("Error sending transaction", err)
 		publisher.PublishMessage(st.Task, "failure whilst sending transaction")
 		return err
 	}
+	fmt.Println(txResp.String())
+
+	// SEND TRANSACTION WITH NO OPTS
+	// txResp, err := rpcClient.SendTransaction(ctx, st.transaction)
+	// if err != nil {
+	// 	logger.Error(err)
+	// 	publisher.PublishMessage(st.Task, "failure whilst sending transaction")
+	// 	return err
+	// }
 
 	st.signature = txResp
 	// reporter.Report(fmt.Sprintf("Tx Sent: %s", txResp))

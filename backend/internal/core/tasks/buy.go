@@ -3,7 +3,6 @@ package tasks
 import (
 	"math/big"
 	"personal_bot/internal/core/models/wallets"
-	"personal_bot/pkg/logger"
 
 	"github.com/gagliardetto/solana-go/rpc"
 
@@ -96,7 +95,6 @@ func (bt *BuyTask) HttpNode() string {
 }
 
 func (bt *BuyTask) SetHttpNode(rpcNode string) {
-	logger.Information("setting rpc node too: ", rpcNode)
 	bt.rpcNodeString = rpcNode
 	bt.rpcNode = rpc.New(rpcNode)
 }
