@@ -32,7 +32,7 @@ type Transaction struct {
 
 func (st *Transaction) BuildInstructionsWithPosition(ctx context.Context, publisher subscriptionhub.Publisher, ps *position.Service) error {
 
-	sellInstructions, err := getAllInstructionsForSell(st.Task, ctx, ps)
+	sellInstructions, err := getAllInstructionsForSell(ctx, st.Task, ps)
 	if err != nil {
 		logger.Error("Error getting instructions for sell task", err)
 		return err
@@ -69,7 +69,7 @@ func (st *Transaction) BuildTransaction(ctx context.Context, publisher subscript
 		return fmt.Errorf("sell task is null - check if sell task was set")
 	}
 
-	latestHash, err := client.GetLatestBlockhash(st.GetTask().HttpClient(), ctx)
+	latestHash, err := client.GetLatestBlockhash(ctx, st.GetTask().HttpClient())
 	if err != nil {
 		logger.Error("Error getting latest blockhash", err)
 		return err
@@ -143,7 +143,7 @@ func (st *Transaction) ConfirmTransaction(ctx context.Context, publisher subscri
 
 	go func(stream chan client.ConfirmMessage) {
 		defer close(stream)
-		client.ConfirmTransactionWithStream(st.GetTask().HttpClient(), st.signature, ctx, stream)
+		client.ConfirmTransactionWithStream(ctx, st.GetTask().HttpClient(), st.signature, stream)
 	}(stream)
 
 	for msg := range stream {
@@ -161,7 +161,7 @@ func (st *Transaction) GetSignature() solana.Signature {
 	return st.signature
 }
 
-func (st *Transaction) ExtractTokenAndSolFromTx(signature solana.Signature, ctx context.Context) (tokenAmount float64, solAmount float64, err error) {
+func (st *Transaction) ExtractTokenAndSolFromTx(ctx context.Context, signature solana.Signature) (tokenAmount float64, solAmount float64, err error) {
 	tx, err := st.Task.HttpClient().GetParsedTransaction(ctx, signature, &rpc.GetParsedTransactionOpts{Commitment: rpc.CommitmentConfirmed, MaxSupportedTransactionVersion: &rpc.MaxSupportedTransactionVersion0})
 	if err != nil {
 		return tokenAmount, solAmount, err
@@ -223,7 +223,7 @@ func (st *Transaction) GetTask() tasks.Task {
 	return st.Task
 }
 
-func getAllInstructionsForSell(sellTask *tasks.SellTask, ctx context.Context, ps *position.Service) ([]solana.Instruction, error) {
+func getAllInstructionsForSell(ctx context.Context, sellTask *tasks.SellTask, ps *position.Service) ([]solana.Instruction, error) {
 	// we need to check if the user passed a positionId -> if so position == nil
 	// else we retrieve the positonId
 	var pos *positionmodel.Position
@@ -246,7 +246,7 @@ func getAllInstructionsForSell(sellTask *tasks.SellTask, ctx context.Context, ps
 			return nil, err
 		}
 
-		tokenAmount, err := client.GetTokenAccountBalance(ata, sellTask.HttpClient(), ctx)
+		tokenAmount, err := client.GetTokenAccountBalance(ctx, ata, sellTask.HttpClient())
 		if err != nil {
 			return nil, err
 		}
@@ -263,7 +263,7 @@ func getAllInstructionsForSell(sellTask *tasks.SellTask, ctx context.Context, ps
 	computeLimitInstruction := instructions.GetComputeUnitLimitInstruction(sellTask.ComputeUnits)
 	computeLimitBudgetInstruction := instructions.GetComputeUnitBudgetInstruction(sellTask.Fee, sellTask.ComputeUnits)
 
-	sellInstructions, err := pumpInstructions.GetSellInstruction(sellTask, ctx, pos)
+	sellInstructions, err := pumpInstructions.GetSellInstruction(ctx, sellTask, pos)
 	if err != nil {
 		logger.Error("Error getting sell instruction", err)
 		return nil, err

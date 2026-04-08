@@ -162,7 +162,7 @@ func (th *TradingHandler) deleteTask(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Errorf("invalid id passed").Error(), http.StatusBadRequest)
 		return
 	}
-	err = th.strategyController.Delete(int64(convertedId), r.Context())
+	err = th.strategyController.Delete(r.Context(), int64(convertedId))
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
@@ -250,7 +250,7 @@ func (th *TradingHandler) subscribe(w http.ResponseWriter, r *http.Request) {
 	defer cancel()
 
 	//ws write loop
-	go th.writeToWs(wsWriteChan, c, ctx)
+	go th.writeToWs(ctx, wsWriteChan, c)
 
 	for {
 		var msg dto.StrategySubscribe
@@ -283,7 +283,7 @@ func (th *TradingHandler) subscribe(w http.ResponseWriter, r *http.Request) {
 		case dto.Subscribe:
 			sub, err := th.strategyController.Subscribe(msg.Id)
 			if err != nil {
-				th.handleError(err, resp, c, ctx)
+				th.handleError(ctx, err, resp, c)
 				continue
 			}
 			subscribers <- *sub
@@ -292,7 +292,7 @@ func (th *TradingHandler) subscribe(w http.ResponseWriter, r *http.Request) {
 		case dto.Unsubscribe:
 			err := th.strategyController.Unsubscribe(msg.Id)
 			if err != nil {
-				th.handleError(err, resp, c, ctx)
+				th.handleError(ctx, err, resp, c)
 				continue
 			}
 			delete(activeSubs, msg.Id)
@@ -339,7 +339,7 @@ func (th *TradingHandler) readFromSub(sub strategy.Subscription, wsWriteChan cha
 	}
 }
 
-func (th *TradingHandler) writeToWs(ws <-chan dto.StrategyResponse, c *websocket.Conn, ctx context.Context) {
+func (th *TradingHandler) writeToWs(ctx context.Context, ws <-chan dto.StrategyResponse, c *websocket.Conn) {
 	for msg := range ws {
 		err := wsjson.Write(ctx, c, msg)
 		if err != nil {
@@ -348,7 +348,7 @@ func (th *TradingHandler) writeToWs(ws <-chan dto.StrategyResponse, c *websocket
 	}
 }
 
-func (th *TradingHandler) handleError(err error, resp dto.StrategyResponse, c *websocket.Conn, ctx context.Context) {
+func (th *TradingHandler) handleError(ctx context.Context, err error, resp dto.StrategyResponse, c *websocket.Conn) {
 	logger.Error(err.Error())
 	resp.Error = err.Error()
 	wsErr := wsjson.Write(ctx, c, resp)

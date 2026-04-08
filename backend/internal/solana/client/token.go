@@ -16,7 +16,7 @@ var (
 	TokenProgramV2 = solana.MustPublicKeyFromBase58(constants.Token2022Program)
 )
 
-func GetTokenAccountBalance(associatedTokenAddress solana.PublicKey, rpcClient *rpc.Client, ctx context.Context) (tokenAmount *uint64, err error) {
+func GetTokenAccountBalance(ctx context.Context, associatedTokenAddress solana.PublicKey, rpcClient *rpc.Client) (tokenAmount *uint64, err error) {
 
 	result, err := rpcClient.GetTokenAccountBalance(ctx, associatedTokenAddress, rpc.CommitmentConfirmed)
 	if err != nil {

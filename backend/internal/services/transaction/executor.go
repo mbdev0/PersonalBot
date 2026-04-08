@@ -36,7 +36,7 @@ func (e *Executor) GetImplementation(task tasks.Task) (transaction.Transaction, 
 	return nil, fmt.Errorf("no transaction found for the task: %s", task.Type())
 }
 
-func (e *Executor) Execute(done chan struct{}, transaction transaction.Transaction, ctx context.Context) {
+func (e *Executor) Execute(ctx context.Context, done chan struct{}, transaction transaction.Transaction) {
 	defer close(done)
 
 	t := transaction.GetTask()

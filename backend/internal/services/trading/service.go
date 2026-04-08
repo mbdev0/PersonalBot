@@ -162,7 +162,7 @@ func (s *Service) createSellTask(sell strategies.Sell, rpcGroup rpcgroupsModel.G
 	return st
 }
 
-func (s *Service) Delete(id int64, ctx context.Context) error {
+func (s *Service) Delete(ctx context.Context, id int64) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if _, ok := s.tasks[id]; !ok {
@@ -367,11 +367,11 @@ func (s *Service) Start(id int64) error {
 
 	switch tsk := task.(type) {
 	case *strategies.Afk:
-		go s.strategy.AfkSniping(tsk, ctxCancel)
+		go s.strategy.AfkSniping(ctxCancel, tsk)
 	case *strategies.Buy:
-		go s.strategy.Buy(tsk, ctxCancel)
+		go s.strategy.Buy(ctxCancel, tsk)
 	case *strategies.Sell:
-		go s.strategy.Sell(tsk, ctxCancel)
+		go s.strategy.Sell(ctxCancel, tsk)
 	default:
 		//if the task matches no type
 		cancel()
@@ -466,7 +466,7 @@ func (s *Service) Shutdown(ctx context.Context) error {
 
 	tasksToSave := slices.Collect(maps.Values(s.tasks))
 
-	success, err := s.repo.AddAllTasks(tasksToSave, ctx)
+	success, err := s.repo.AddAllTasks(ctx, tasksToSave)
 	if err != nil {
 		return fmt.Errorf("error whilst shutting down: %w", err)
 	}

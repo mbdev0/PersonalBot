@@ -21,7 +21,7 @@ type ConfirmMessage struct {
 	Err     string
 }
 
-func ConfirmTransactionWithStream(rpcClient *rpc.Client, sig solana.Signature, ctx context.Context, stream chan ConfirmMessage) {
+func ConfirmTransactionWithStream(ctx context.Context, rpcClient *rpc.Client, sig solana.Signature, stream chan ConfirmMessage) {
 	ctx, cancel := context.WithTimeout(ctx, contextTimeout)
 	defer cancel()
 
@@ -86,7 +86,7 @@ func ConfirmTransactionWithStream(rpcClient *rpc.Client, sig solana.Signature, c
 					confirmations, maxConfirmations),
 			}
 
-			expired, err := IsBlockhashExpired(status.Slot, rpcClient, ctx)
+			expired, err := IsBlockhashExpired(ctx, status.Slot, rpcClient)
 			if err != nil {
 				stream <- ConfirmMessage{
 					Err: fmt.Sprintf("blockhash expiration check failed: %v", err),

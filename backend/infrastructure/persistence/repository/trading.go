@@ -62,7 +62,7 @@ func (tr *TradingRepository) GetMaxId(ctx context.Context) int64 {
 	return id
 }
 
-func (tr *TradingRepository) AddAllTasks(tasks []strategies.Task, ctx context.Context) (bool, error) {
+func (tr *TradingRepository) AddAllTasks(ctx context.Context, tasks []strategies.Task) (bool, error) {
 	if len(tasks) == 0 {
 		return true, nil
 	}

@@ -26,14 +26,14 @@ type SellArgs struct {
 var bondingCurveData *models.BondingCurve
 var associatedTokenAddress solana.PublicKey
 
-func GetSellInstruction(sellTask *tasks.SellTask, ctx context.Context, position *position.Position) (*solana.GenericInstruction, error) {
-	accounts, err := getAccounts(sellTask, ctx)
+func GetSellInstruction(ctx context.Context, sellTask *tasks.SellTask, position *position.Position) (*solana.GenericInstruction, error) {
+	accounts, err := getAccounts(ctx, sellTask)
 	if err != nil {
 		logger.Error("Error getting accounts for sell instruction", err)
 		return nil, err
 	}
 
-	instructionData, err := getInstructionData(sellTask, ctx, position)
+	instructionData, err := getInstructionData(ctx, sellTask, position)
 
 	if err != nil {
 		logger.Error("Error getting instruction data for sell instruction", err)
@@ -44,14 +44,14 @@ func GetSellInstruction(sellTask *tasks.SellTask, ctx context.Context, position 
 	return sellInstructions, nil
 }
 
-func getAccounts(sellTask *tasks.SellTask, ctx context.Context) ([]*solana.AccountMeta, error) {
+func getAccounts(ctx context.Context, sellTask *tasks.SellTask) ([]*solana.AccountMeta, error) {
 	bondingCurveAddress, err := pda.GetBondingCurveAddress(sellTask.Token.String())
 	if err != nil {
 		logger.Error("Error getting bonding curve address:", err)
 		return nil, err
 	}
 
-	isNewTokenAddress, err := instructions.IsTokenAccountNew(sellTask.Token, ctx, sellTask.HttpClient())
+	isNewTokenAddress, err := instructions.IsTokenAccountNew(ctx, sellTask.Token, sellTask.HttpClient())
 	if err != nil {
 		return nil, err
 	}
@@ -83,7 +83,7 @@ func getAccounts(sellTask *tasks.SellTask, ctx context.Context) ([]*solana.Accou
 	}
 	associatedTokenAddress = ata
 
-	creatorAddress, err := getCreatorVaultAddress(bondingCurveAddress, ctx, sellTask.HttpClient())
+	creatorAddress, err := getCreatorVaultAddress(ctx, bondingCurveAddress, sellTask.HttpClient())
 	if err != nil {
 		logger.Error("Error getting creator vault address:", err)
 		return nil, err
@@ -115,8 +115,8 @@ func getAccounts(sellTask *tasks.SellTask, ctx context.Context) ([]*solana.Accou
 	return accounts, nil
 }
 
-func getCreatorVaultAddress(bondingCurveAddress string, ctx context.Context, httpClient *rpc.Client) (string, error) {
-	data, err, _ := bondingcurve.GetBondingCurveDataFromAddress(bondingCurveAddress, ctx, httpClient)
+func getCreatorVaultAddress(ctx context.Context, bondingCurveAddress string, httpClient *rpc.Client) (string, error) {
+	data, err, _ := bondingcurve.GetBondingCurveDataFromAddress(ctx, bondingCurveAddress, httpClient)
 	if err != nil {
 		logger.Error("Error getting bonding curve data:", err)
 		return "", err
@@ -133,9 +133,9 @@ func getCreatorVaultAddress(bondingCurveAddress string, ctx context.Context, htt
 	return creatorAddress, nil
 }
 
-func getInstructionData(sellTask *tasks.SellTask, ctx context.Context, position *position.Position) ([]byte, error) {
+func getInstructionData(ctx context.Context, sellTask *tasks.SellTask, position *position.Position) ([]byte, error) {
 
-	tokenAmount, solOutput, err := getTokenAmountAndSolOutput(sellTask, ctx, position)
+	tokenAmount, solOutput, err := getTokenAmountAndSolOutput(ctx, sellTask, position)
 	if err != nil {
 		return nil, err
 	}
@@ -153,12 +153,12 @@ func getInstructionData(sellTask *tasks.SellTask, ctx context.Context, position 
 	return append(constants.SellInstructionDiscriminator[:], data...), nil
 }
 
-func getTokenAmountAndSolOutput(sellTask *tasks.SellTask, ctx context.Context, position *position.Position) (tokenAmount *uint64, solOutput *uint64, err error) {
+func getTokenAmountAndSolOutput(ctx context.Context, sellTask *tasks.SellTask, position *position.Position) (tokenAmount *uint64, solOutput *uint64, err error) {
 	if position != nil {
 		tokens, _ := position.TokenRemaining.Uint64()
 		tokenAmount = &tokens
 	} else {
-		tokenAmount, err = client.GetTokenAccountBalance(associatedTokenAddress, sellTask.HttpClient(), ctx)
+		tokenAmount, err = client.GetTokenAccountBalance(ctx, associatedTokenAddress, sellTask.HttpClient())
 		if err != nil {
 			return nil, nil, err
 		}

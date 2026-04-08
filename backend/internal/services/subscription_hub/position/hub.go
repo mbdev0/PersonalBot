@@ -75,7 +75,7 @@ func (sh *SubscriptionHub) Subscribe(positionId int64, isInternalSub bool, rpcGr
 		return nil, fmt.Errorf("position has not been created yet")
 	}
 
-	go func(s *Subscription, c context.Context, pos *position.Position) {
+	go func(c context.Context, s *Subscription, pos *position.Position) {
 
 		marketCapChan := make(chan *big.Float, sh.bufferSize)
 
@@ -102,7 +102,7 @@ func (sh *SubscriptionHub) Subscribe(positionId int64, isInternalSub bool, rpcGr
 			//publish the profit, mcap, position
 			sh.publish(s.sub_id, &positionMessage)
 		}
-	}(sub, ctx, p)
+	}(ctx, sub, p)
 
 	if last, ok := sh.last[positionId]; ok {
 		select {
@@ -202,7 +202,7 @@ func (sh *SubscriptionHub) PublishPositionUpdate(pos *position.Position) error {
 	return nil
 }
 
-func (sh *SubscriptionHub) PublishPositionCreate(p *position.Position, ctx context.Context) error {
+func (sh *SubscriptionHub) PublishPositionCreate(ctx context.Context, p *position.Position) error {
 	settings, err := sh.settings.GetSettings(ctx)
 	if err != nil {
 		logger.Error(err)
@@ -212,7 +212,7 @@ func (sh *SubscriptionHub) PublishPositionCreate(p *position.Position, ctx conte
 	sh.activePositions.Set(p.PositionId, p)
 	finalizedProfit := new(big.Float).Quo(p.FinalizedProfit, big.NewFloat(constants.LamportsConversion))
 	tokensRemaining := new(big.Float).Quo(p.TokenRemaining, big.NewFloat(constants.TokenAmountDecimals))
-	marketCap, err, hasCompleted := bondingcurve.GetMarketCapFromTokenAddress(p.TokenAddress, ctx, rpc.New(settings.PositionNodes.HTTPNode))
+	marketCap, err, hasCompleted := bondingcurve.GetMarketCapFromTokenAddress(ctx, p.TokenAddress, rpc.New(settings.PositionNodes.HTTPNode))
 	if err != nil {
 		if hasCompleted {
 			logger.Information("coin is completed bonding curve")

@@ -15,7 +15,7 @@ var startMonitoring = true
 var transactionChanSize = 1000
 var coinChanSize = 1000
 
-func StartAFKMonitor(filters filters.FilterPipeline, coins chan<- models.Coin, ctx context.Context, wsUrl string) {
+func StartAFKMonitor(ctx context.Context, filters filters.FilterPipeline, coins chan<- models.Coin, wsUrl string) {
 	var wg sync.WaitGroup
 	if startMonitoring {
 		wg.Add(1)
@@ -26,9 +26,9 @@ func StartAFKMonitor(filters filters.FilterPipeline, coins chan<- models.Coin, c
 
 			var handlerWg sync.WaitGroup
 
-			go streamTransactions(transactionNotificationChan, ctx, wsUrl)
+			go streamTransactions(ctx, transactionNotificationChan, wsUrl)
 
-			go decryptAndFilterTransactions(filters, transactionNotificationChan, coinStructChan, ctx, &handlerWg)
+			go decryptAndFilterTransactions(ctx, filters, transactionNotificationChan, coinStructChan, &handlerWg)
 
 			for {
 				select {
@@ -51,15 +51,15 @@ func StartAFKMonitor(filters filters.FilterPipeline, coins chan<- models.Coin, c
 	wg.Wait()
 }
 
-func streamTransactions(transactionNotificationChan chan<- response.TransactionNotification, ctx context.Context, wsUrl string) {
-	err := stream.StartGeyserTransactionStream(transactionNotificationChan, ctx, wsUrl)
+func streamTransactions(ctx context.Context, transactionNotificationChan chan<- response.TransactionNotification, wsUrl string) {
+	err := stream.StartGeyserTransactionStream(ctx, transactionNotificationChan, wsUrl)
 	if err != nil {
 		logger.Error("Error in Geyser_Stream_Transactions ", err)
 		return
 	}
 }
 
-func decryptAndFilterTransactions(filters filters.FilterPipeline, transactionNotificationChan <-chan response.TransactionNotification, coinStructChan chan<- models.Coin, ctx context.Context, wg *sync.WaitGroup) {
+func decryptAndFilterTransactions(ctx context.Context, filters filters.FilterPipeline, transactionNotificationChan <-chan response.TransactionNotification, coinStructChan chan<- models.Coin, wg *sync.WaitGroup) {
 	for {
 		select {
 		case <-ctx.Done():

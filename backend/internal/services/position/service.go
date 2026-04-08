@@ -56,7 +56,7 @@ func (s *Service) ReportBuy(ctx context.Context, buytaskid int64, tokenaddress s
 	s.positions[newPosition.PositionId] = &newPosition
 
 	//publish buy to positionhub -> handle ctx in there
-	return s.subhub.PublishPositionCreate(&newPosition, ctx)
+	return s.subhub.PublishPositionCreate(ctx, &newPosition)
 }
 
 func (s *Service) ReportSell(buyTaskId int64, tokensSold *big.Float, solRecieved *big.Float) error {

@@ -62,8 +62,8 @@ func (sc *StrategyController) Create(ctx context.Context, task dto.TradingTask) 
 	return resp, nil
 }
 
-func (sc *StrategyController) Delete(id int64, ctx context.Context) error {
-	err := sc.strategyService.Delete(id, ctx)
+func (sc *StrategyController) Delete(ctx context.Context, id int64) error {
+	err := sc.strategyService.Delete(ctx, id)
 	if err != nil {
 		return err
 	}
