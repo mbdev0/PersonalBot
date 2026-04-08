@@ -110,7 +110,7 @@ func (ph *PositionHandler) subscribe(w http.ResponseWriter, r *http.Request) {
 	defer cancel()
 
 	//ws write loop
-	go ph.writeToWs(wsWriteChan, c, ctx)
+	go ph.writeToWs(ctx, wsWriteChan, c)
 
 	for {
 		var msg *dto.PositionSubscribe
@@ -122,7 +122,7 @@ func (ph *PositionHandler) subscribe(w http.ResponseWriter, r *http.Request) {
 				logger.Information("WebSocket connection closed or context cancelled")
 				return // Clean exit
 			}
-			ph.handleError(err, resp, c, ctx)
+			ph.handleError(ctx, err, resp, c)
 			return
 		}
 		fmt.Println(msg)
@@ -131,7 +131,7 @@ func (ph *PositionHandler) subscribe(w http.ResponseWriter, r *http.Request) {
 		case dto.Subscribe:
 			sub, err := ph.controller.Subscribe(msg.Id, false)
 			if err != nil {
-				ph.handleError(err, resp, c, ctx)
+				ph.handleError(ctx, err, resp, c)
 				continue
 			}
 			subscribers <- *sub
@@ -139,7 +139,7 @@ func (ph *PositionHandler) subscribe(w http.ResponseWriter, r *http.Request) {
 		case dto.Unsubscribe:
 			err := ph.controller.Unsubscribe(msg.Id, false)
 			if err != nil {
-				ph.handleError(err, resp, c, ctx)
+				ph.handleError(ctx, err, resp, c)
 				continue
 			}
 		}
@@ -166,7 +166,7 @@ func (ph *PositionHandler) readFromSub(sub position.Subscription, wsWriteChan ch
 	}
 }
 
-func (ph *PositionHandler) writeToWs(ws <-chan dto.PositionResponse, c *websocket.Conn, ctx context.Context) {
+func (ph *PositionHandler) writeToWs(ctx context.Context, ws <-chan dto.PositionResponse, c *websocket.Conn) {
 	for msg := range ws {
 		err := wsjson.Write(ctx, c, msg)
 		if err != nil {
@@ -175,7 +175,7 @@ func (ph *PositionHandler) writeToWs(ws <-chan dto.PositionResponse, c *websocke
 	}
 }
 
-func (ph *PositionHandler) handleError(err error, resp dto.PositionResponse, c *websocket.Conn, ctx context.Context) {
+func (ph *PositionHandler) handleError(ctx context.Context, err error, resp dto.PositionResponse, c *websocket.Conn) {
 	resp.Error = err.Error()
 	wsErr := wsjson.Write(ctx, c, resp)
 	if wsErr != nil {

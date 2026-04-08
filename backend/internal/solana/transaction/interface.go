@@ -15,7 +15,7 @@ type Transaction interface {
 	BuildTransaction(ctx context.Context, publisher subscriptionhub.Publisher) error
 	SendTransaction(ctx context.Context, publisher subscriptionhub.Publisher) error
 	ConfirmTransaction(ctx context.Context, publisher subscriptionhub.Publisher) error
-	ExtractTokenAndSolFromTx(signature solana.Signature, ctx context.Context) (tokenAmount float64, solAmount float64, err error)
+	ExtractTokenAndSolFromTx(ctx context.Context, signature solana.Signature) (tokenAmount float64, solAmount float64, err error)
 	GetTask() tasks.Task
 	GetSignature() solana.Signature
 }

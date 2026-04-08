@@ -7,7 +7,7 @@ import (
 	"github.com/gagliardetto/solana-go/rpc"
 )
 
-func IsBlockhashExpired(lastValidBlockheight uint64, rpcClient *rpc.Client, ctx context.Context) (bool, error) {
+func IsBlockhashExpired(ctx context.Context, lastValidBlockheight uint64, rpcClient *rpc.Client) (bool, error) {
 	resp, err := rpcClient.GetBlockHeight(ctx, rpc.CommitmentFinalized)
 	if err != nil {
 		return false, err
@@ -15,7 +15,7 @@ func IsBlockhashExpired(lastValidBlockheight uint64, rpcClient *rpc.Client, ctx 
 	return resp > lastValidBlockheight-150, nil
 }
 
-func GetLatestBlockhash(rpcClient *rpc.Client, ctx context.Context) (*rpc.GetLatestBlockhashResult, error) {
+func GetLatestBlockhash(ctx context.Context, rpcClient *rpc.Client) (*rpc.GetLatestBlockhashResult, error) {
 
 	ctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()

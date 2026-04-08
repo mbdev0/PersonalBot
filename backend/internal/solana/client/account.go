@@ -10,7 +10,7 @@ import (
 
 var timeout = 10 * time.Second
 
-func GetAccountInfo(address string, ctx context.Context, httpClient *rpc.Client) (*rpc.GetAccountInfoResult, error) {
+func GetAccountInfo(ctx context.Context, address string, httpClient *rpc.Client) (*rpc.GetAccountInfoResult, error) {
 
 	ctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()

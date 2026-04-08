@@ -37,7 +37,7 @@ func (bt *Transaction) buildInstructions(ctx context.Context, publisher subscrip
 		return fmt.Errorf("buy task was nil - make sure buy task is set")
 	}
 
-	buyInstructions, err := bt.getAllInstructionsForBuy(bt.BuyTask, ctx)
+	buyInstructions, err := bt.getAllInstructionsForBuy(ctx, bt.BuyTask)
 	if buyInstructions == nil || err != nil {
 		logger.Error("Error creating buy instructions - no instructions created")
 		return err
@@ -54,7 +54,7 @@ func (bt *Transaction) BuildTransaction(ctx context.Context, publisher subscript
 		return fmt.Errorf("buy task was nil - make sure buy task is set")
 	}
 
-	latestHash, err := client.GetLatestBlockhash(bt.GetTask().HttpClient(), ctx)
+	latestHash, err := client.GetLatestBlockhash(ctx, bt.GetTask().HttpClient())
 	if err != nil {
 		logger.Error("Error getting latest blockhash", err)
 		return err
@@ -128,7 +128,7 @@ func (bt *Transaction) ConfirmTransaction(ctx context.Context, publisher subscri
 
 	go func(stream chan client.ConfirmMessage) {
 		defer close(stream)
-		client.ConfirmTransactionWithStream(rpcClient, bt.signature, ctx, stream)
+		client.ConfirmTransactionWithStream(ctx, rpcClient, bt.signature, stream)
 	}(stream)
 
 	for msg := range stream {
@@ -139,7 +139,7 @@ func (bt *Transaction) ConfirmTransaction(ctx context.Context, publisher subscri
 		publisher.PublishMessage(bt.BuyTask, msg.Message)
 	}
 
-	tokenAmnt, solAmnt, err := bt.ExtractTokenAndSolFromTx(bt.signature, ctx)
+	tokenAmnt, solAmnt, err := bt.ExtractTokenAndSolFromTx(ctx, bt.signature)
 	if err != nil {
 		return err
 	}
@@ -157,7 +157,7 @@ func (bt *Transaction) GetSignature() solana.Signature {
 	return bt.signature
 }
 
-func (bt *Transaction) ExtractTokenAndSolFromTx(signature solana.Signature, ctx context.Context) (tokenAmount float64, solAmount float64, err error) {
+func (bt *Transaction) ExtractTokenAndSolFromTx(ctx context.Context, signature solana.Signature) (tokenAmount float64, solAmount float64, err error) {
 	solClient := bt.GetTask().HttpClient()
 	tx, err := solClient.GetParsedTransaction(ctx, signature, &rpc.GetParsedTransactionOpts{Commitment: rpc.CommitmentConfirmed, MaxSupportedTransactionVersion: &rpc.MaxSupportedTransactionVersion0})
 	if err != nil {
@@ -216,16 +216,16 @@ func (bt *Transaction) ExtractTokenAndSolFromTx(signature solana.Signature, ctx 
 	return tokenAmount, solAmount, nil
 }
 
-func (bt *Transaction) getAllInstructionsForBuy(buyTask *tasks.BuyTask, ctx context.Context) (buyInstructions []solana.Instruction, err error) {
+func (bt *Transaction) getAllInstructionsForBuy(ctx context.Context, buyTask *tasks.BuyTask) (buyInstructions []solana.Instruction, err error) {
 
 	computeLimitInstruction := instructions.GetComputeUnitLimitInstruction(buyTask.ComputeUnits)
 	computeLimitBudgetInstruction := instructions.GetComputeUnitBudgetInstruction(buyTask.Fee, buyTask.ComputeUnits)
-	idEmponenetInstruction, err := instructions.GetIdempotentInstruction(buyTask.Wallet.PublicKey(), buyTask.Token, ctx, buyTask.HttpClient())
+	idEmponenetInstruction, err := instructions.GetIdempotentInstruction(ctx, buyTask.Wallet.PublicKey(), buyTask.Token, buyTask.HttpClient())
 	if err != nil {
 		return nil, err
 	}
 
-	buyInstruction, err := pumpInstructions.GetBuyInstruction(buyTask, ctx)
+	buyInstruction, err := pumpInstructions.GetBuyInstruction(ctx, buyTask)
 
 	if err != nil {
 		logger.Error("Error creating buy instruction", err)

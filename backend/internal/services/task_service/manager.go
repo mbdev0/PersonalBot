@@ -44,7 +44,7 @@ func (m *Manager) RunTask(task tasks.Task) error {
 	go func() {
 
 		done := make(chan struct{})
-		m.executor.Execute(done, transactionImpl, cancelCtx)
+		m.executor.Execute(cancelCtx, done, transactionImpl)
 
 		//wait for the channel to close to continue
 		<-done

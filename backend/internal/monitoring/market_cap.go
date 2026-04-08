@@ -42,7 +42,7 @@ func StartMarketCapMonitor(ctx context.Context, bondingCurveAddress string, mark
 }
 
 func marketCapMonitor(ctx context.Context, bondingCurveAddress string, marketCapChan chan<- *big.Float, rpcGroup rpcgroups.RPCNode) {
-	marketCapInit, err, hasCompleted := bondingcurve.GetMarketCapInitial(bondingCurveAddress, ctx, rpcGroup.Http)
+	marketCapInit, err, hasCompleted := bondingcurve.GetMarketCapInitial(ctx, bondingCurveAddress, rpcGroup.Http)
 
 	if err != nil {
 		logger.Error("Error getting initial market cap", err)

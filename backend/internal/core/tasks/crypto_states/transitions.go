@@ -78,7 +78,7 @@ func Build(deps *Dependencies) transactionModel.Transitions {
 			OnError: tasks.TaskUpdatingPositionFail,
 			Fn: func(ctx context.Context, t transaction.Transaction) error {
 				return withNotify(ctx, deps, func() error {
-					return updatePositionOnCompleted(t.GetTask(), t, ctx, deps)
+					return updatePositionOnCompleted(ctx, t.GetTask(), t, deps)
 				}, t.GetTask(), t)
 			},
 		},
@@ -95,8 +95,8 @@ func withNotify(ctx context.Context, deps *Dependencies, fn func() error, task t
 	return err
 }
 
-func updatePositionOnCompleted(task tasks.Task, transaction transaction.Transaction, ctx context.Context, deps *Dependencies) error {
-	tokenAmount, solAmount, err := transaction.ExtractTokenAndSolFromTx(transaction.GetSignature(), ctx)
+func updatePositionOnCompleted(ctx context.Context, task tasks.Task, transaction transaction.Transaction, deps *Dependencies) error {
+	tokenAmount, solAmount, err := transaction.ExtractTokenAndSolFromTx(ctx, transaction.GetSignature())
 	if err != nil {
 		return err
 	}

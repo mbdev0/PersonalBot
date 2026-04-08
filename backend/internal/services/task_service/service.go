@@ -188,7 +188,7 @@ func (ts *TaskService) Shutdown(ctx context.Context) error {
 		}
 	}
 
-	success, err := ts.repo.AddAllTasks(tasksToSave, ctx)
+	success, err := ts.repo.AddAllTasks(ctx, tasksToSave)
 	if err != nil {
 		return fmt.Errorf("error whilst shutting down: %w", err)
 	}

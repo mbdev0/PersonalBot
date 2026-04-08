@@ -36,9 +36,9 @@ type BuyArgs struct {
 	track_volume *bool
 }
 
-func GetBuyInstruction(buyTask *tasks.BuyTask, ctx context.Context) (instruction *solana.GenericInstruction, err error) {
+func GetBuyInstruction(ctx context.Context, buyTask *tasks.BuyTask) (instruction *solana.GenericInstruction, err error) {
 
-	accountAddressesSet, err := setupAccountAddressSet(buyTask, ctx)
+	accountAddressesSet, err := setupAccountAddressSet(ctx, buyTask)
 	if err != nil {
 		return nil, fmt.Errorf("error setting up account address set: %w", err)
 	}
@@ -57,7 +57,7 @@ func GetBuyInstruction(buyTask *tasks.BuyTask, ctx context.Context) (instruction
 
 }
 
-func setupAccountAddressSet(buyTask *tasks.BuyTask, ctx context.Context) (AccountAddressesSet, error) {
+func setupAccountAddressSet(ctx context.Context, buyTask *tasks.BuyTask) (AccountAddressesSet, error) {
 	accountAddressesSet := &AccountAddressesSet{
 		TokenAddress:  buyTask.Token.String(),
 		WalletAddress: buyTask.Wallet.PublicKey().String(),
@@ -69,7 +69,7 @@ func setupAccountAddressSet(buyTask *tasks.BuyTask, ctx context.Context) (Accoun
 		return *accountAddressesSet, err
 	}
 
-	isNewTokenProgram, err := instructions.IsTokenAccountNew(buyTask.Token, ctx, buyTask.HttpClient())
+	isNewTokenProgram, err := instructions.IsTokenAccountNew(ctx, buyTask.Token, buyTask.HttpClient())
 	if err != nil {
 		return *accountAddressesSet, err
 	}
@@ -95,7 +95,7 @@ func setBondingCurveInformation(accountAddressesSet *AccountAddressesSet, ctx co
 		return fmt.Errorf("error getting bonding curve address: %w", err)
 	}
 
-	bondingCurveData, err, _ := bondingcurve.GetBondingCurveDataFromAddress(bondingCurveAddress, ctx, httpClient)
+	bondingCurveData, err, _ := bondingcurve.GetBondingCurveDataFromAddress(ctx, bondingCurveAddress, httpClient)
 	if err != nil {
 		return fmt.Errorf("error getting bonding curve data: %w", err)
 	}

@@ -45,23 +45,23 @@ func NewTradingStrategy(ts *taskservice.TaskService, ph *positionhub.Subscriptio
 	}
 }
 
-func (s *Strategy) Sell(tsk *strategies.Sell, ctxCancel context.Context) {
+func (s *Strategy) Sell(ctxCancel context.Context, tsk *strategies.Sell) {
 	if err := s.taskService.StartTask(tsk.SellTaskId); err != nil {
 		logger.Error(err)
 	}
 
-	go s.syncStateAndMessage(tsk.SellTaskId, tsk, ctxCancel)
+	go s.syncStateAndMessage(ctxCancel, tsk.SellTaskId, tsk)
 
 }
 
-func (s *Strategy) Buy(buyTask *strategies.Buy, ctx context.Context) {
+func (s *Strategy) Buy(ctx context.Context, buyTask *strategies.Buy) {
 	err := s.taskService.StartTask(buyTask.BuyTaskId)
 	if err != nil {
 		//TODO: when we're doing the PR for cleaning up WS messages - should set the task error here
 		logger.Error(err)
 	}
 
-	go s.syncStateAndMessage(buyTask.BuyTaskId, buyTask, ctx)
+	go s.syncStateAndMessage(ctx, buyTask.BuyTaskId, buyTask)
 
 	if len(buyTask.SellStrategies) != 0 {
 		pos, ok := s.positionHub.WaitForCreate(buyTask.PositionId)
@@ -70,7 +70,7 @@ func (s *Strategy) Buy(buyTask *strategies.Buy, ctx context.Context) {
 			return
 		}
 
-		sellStrats := s.ResolveStrategyConfig(buyTask.SellStrategies, pos, ctx)
+		sellStrats := s.ResolveStrategyConfig(ctx, buyTask.SellStrategies, pos)
 
 		node, err := s.rpcService.GetNode(buyTask.RPCGroupId())
 		if err != nil {
@@ -78,7 +78,7 @@ func (s *Strategy) Buy(buyTask *strategies.Buy, ctx context.Context) {
 			return
 		}
 
-		err = s.monitorPositionForSellStrategies(*pos, buyTask, sellStrats, ctx, node)
+		err = s.monitorPositionForSellStrategies(ctx, *pos, buyTask, sellStrats, node)
 		if err != nil {
 			return
 		}
@@ -86,7 +86,7 @@ func (s *Strategy) Buy(buyTask *strategies.Buy, ctx context.Context) {
 
 }
 
-func (s *Strategy) syncStateAndMessage(taskId int64, strategyTask strategies.Task, ctx context.Context) error {
+func (s *Strategy) syncStateAndMessage(ctx context.Context, taskId int64, strategyTask strategies.Task) error {
 	task, err := s.taskService.GetTaskWith(taskId)
 	if err != nil {
 		logger.Error(err)
@@ -142,7 +142,7 @@ func (s *Strategy) processMessage(msg tasks.TaskEvent, strategyTask strategies.T
 	return nil
 }
 
-func (s *Strategy) AfkSniping(afkTask *strategies.Afk, ctx context.Context) {
+func (s *Strategy) AfkSniping(ctx context.Context, afkTask *strategies.Afk) {
 	coins := make(chan models.Coin, 100)
 	defer close(coins)
 
@@ -157,7 +157,7 @@ func (s *Strategy) AfkSniping(afkTask *strategies.Afk, ctx context.Context) {
 		return
 	}
 
-	go monitoring.StartAFKMonitor(filterPipeline, coins, ctx, node.WS)
+	go monitoring.StartAFKMonitor(ctx, filterPipeline, coins, node.WS)
 	logger.Information("started afk monitor")
 
 	for {
@@ -180,12 +180,12 @@ func (s *Strategy) AfkSniping(afkTask *strategies.Afk, ctx context.Context) {
 				return
 			}
 			logger.Information("found new coin: ", coin.CoinData.Name)
-			s.handleNewCoin(afkTask, ctx, coin)
+			s.handleNewCoin(ctx, afkTask, coin)
 		}
 	}
 }
 
-func (s *Strategy) handleNewCoin(afkTask *strategies.Afk, ctx context.Context, coin models.Coin) {
+func (s *Strategy) handleNewCoin(ctx context.Context, afkTask *strategies.Afk, coin models.Coin) {
 	bt, err := s.createAndRunBuyTask(coin, afkTask)
 	if err != nil {
 		logger.Error(err)
@@ -199,14 +199,14 @@ func (s *Strategy) handleNewCoin(afkTask *strategies.Afk, ctx context.Context, c
 			return
 		}
 
-		sellStrats := s.ResolveStrategyConfig(afkTask.SellStrategies, pos, ctx)
+		sellStrats := s.ResolveStrategyConfig(ctx, afkTask.SellStrategies, pos)
 		node, err := s.rpcService.GetNode(afkTask.RPCGroupId())
 		if err != nil {
 			logger.Error(err)
 			return
 		}
 
-		err = s.monitorPositionForSellStrategies(*pos, afkTask, sellStrats, ctx, node)
+		err = s.monitorPositionForSellStrategies(ctx, *pos, afkTask, sellStrats, node)
 		if err != nil {
 			return
 		}
@@ -260,7 +260,7 @@ func (s *Strategy) createBuyTask(afkTask *strategies.Afk, tokenAddr solana.Publi
 	return bt
 }
 
-func (s *Strategy) ResolveStrategyConfig(sellStratsConfig []strategies.StrategyConfig, position *position.Position, ctx context.Context) []sell.Strategy {
+func (s *Strategy) ResolveStrategyConfig(ctx context.Context, sellStratsConfig []strategies.StrategyConfig, position *position.Position) []sell.Strategy {
 	strats := []sell.Strategy{}
 	entryPrice, _ := position.EntryPrice.Float64()
 	solPrice, err := solana_price.GetSolPrice()
@@ -292,7 +292,7 @@ func (s *Strategy) ResolveStrategyConfig(sellStratsConfig []strategies.StrategyC
 	return strats
 }
 
-func (s *Strategy) monitorPositionForSellStrategies(pos position.Position, sellableTask strategies.SellableStrategy, strats []sell.Strategy, ctx context.Context, rpcNode rpcgroupsModel.GroupItem) error {
+func (s *Strategy) monitorPositionForSellStrategies(ctx context.Context, pos position.Position, sellableTask strategies.SellableStrategy, strats []sell.Strategy, rpcNode rpcgroupsModel.GroupItem) error {
 	rpc := rpcgroupsModel.RPCNode{
 		Http: rpc.New(rpcNode.Http),
 		WS:   rpcNode.WS,
@@ -326,14 +326,14 @@ func (s *Strategy) monitorPositionForSellStrategies(pos position.Position, sella
 			return nil
 		}
 
-		hasHit := s.handleSellStrategy(&msg, sellableTask, pos, strats, ctx, rpcNode)
+		hasHit := s.handleSellStrategy(ctx, &msg, sellableTask, pos, strats, rpcNode)
 		if hasHit {
 			return nil
 		}
 	}
 }
 
-func (s *Strategy) handleSellStrategy(posMessage *position.PositionMessage, sellableTask strategies.SellableStrategy, pos position.Position, sellStrats []sell.Strategy, ctx context.Context, rpcNode rpcgroupsModel.GroupItem) bool {
+func (s *Strategy) handleSellStrategy(ctx context.Context, posMessage *position.PositionMessage, sellableTask strategies.SellableStrategy, pos position.Position, sellStrats []sell.Strategy, rpcNode rpcgroupsModel.GroupItem) bool {
 	for _, strategy := range sellStrats {
 		hasHit := strategy.CheckIfPositionHasHit(posMessage)
 		if hasHit && ctx.Err() == nil {

@@ -65,7 +65,7 @@ func (tr *TaskRepository) GetMaxId(ctx context.Context) int64 {
 	return id
 }
 
-func (tr *TaskRepository) AddAllTasks(tasks []tasks.Task, ctx context.Context) (bool, error) {
+func (tr *TaskRepository) AddAllTasks(ctx context.Context, tasks []tasks.Task) (bool, error) {
 	if len(tasks) == 0 {
 		return true, nil
 	}

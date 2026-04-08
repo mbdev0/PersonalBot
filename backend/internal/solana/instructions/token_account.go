@@ -12,8 +12,8 @@ import (
 	"github.com/gagliardetto/solana-go/rpc"
 )
 
-func GetIdempotentInstruction(wallet solana.PublicKey, mintAddress solana.PublicKey, ctx context.Context, httpNode *rpc.Client) (*solana.GenericInstruction, error) {
-	idEmponentInstruction, err := getIdempotentInstructionIfExists(wallet, mintAddress, ctx, httpNode)
+func GetIdempotentInstruction(ctx context.Context, wallet solana.PublicKey, mintAddress solana.PublicKey, httpNode *rpc.Client) (*solana.GenericInstruction, error) {
+	idEmponentInstruction, err := getIdempotentInstructionIfExists(ctx, wallet, mintAddress, httpNode)
 
 	if err != nil {
 		logger.Error("Error getting IdempotentInstruction: ", err)
@@ -23,11 +23,11 @@ func GetIdempotentInstruction(wallet solana.PublicKey, mintAddress solana.Public
 	return idEmponentInstruction, nil
 }
 
-func getIdempotentInstructionIfExists(wallet solana.PublicKey, mintAddress solana.PublicKey, ctx context.Context, httpNode *rpc.Client) (*solana.GenericInstruction, error) {
+func getIdempotentInstructionIfExists(ctx context.Context, wallet solana.PublicKey, mintAddress solana.PublicKey, httpNode *rpc.Client) (*solana.GenericInstruction, error) {
 	var associatedTokenAddressPubkey solana.PublicKey
 	var err error
 
-	isNewTokenProgram, err := IsTokenAccountNew(mintAddress, ctx, httpNode)
+	isNewTokenProgram, err := IsTokenAccountNew(ctx, mintAddress, httpNode)
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +44,7 @@ func getIdempotentInstructionIfExists(wallet solana.PublicKey, mintAddress solan
 		}
 	}
 
-	_, err = client.GetAccountInfo(associatedTokenAddressPubkey.String(), ctx, httpNode)
+	_, err = client.GetAccountInfo(ctx, associatedTokenAddressPubkey.String(), httpNode)
 
 	if err != nil {
 		if err.Error() == "not found" {
@@ -91,8 +91,8 @@ func makeAssociatedTokenAccountInstruction(payer solana.PublicKey, walletAddress
 	return inst, nil
 }
 
-func IsTokenAccountNew(mintAddress solana.PublicKey, ctx context.Context, httpNode *rpc.Client) (bool, error) {
-	accountInfo, err := client.GetAccountInfo(mintAddress.String(), ctx, httpNode)
+func IsTokenAccountNew(ctx context.Context, mintAddress solana.PublicKey, httpNode *rpc.Client) (bool, error) {
+	accountInfo, err := client.GetAccountInfo(ctx, mintAddress.String(), httpNode)
 	if err != nil {
 		return false, err
 	}

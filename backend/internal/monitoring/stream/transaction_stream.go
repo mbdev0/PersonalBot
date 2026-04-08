@@ -12,13 +12,13 @@ import (
 	"github.com/coder/websocket/wsjson"
 )
 
-func StartGeyserTransactionStream(transactionChan chan<- response.TransactionNotification, ctx context.Context, wsUrl string) error {
+func StartGeyserTransactionStream(ctx context.Context, transactionChan chan<- response.TransactionNotification, wsUrl string) error {
 	for {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
 		default:
-			err := geyserStreamTransactions(transactionChan, ctx, wsUrl)
+			err := geyserStreamTransactions(ctx, transactionChan, wsUrl)
 			if err != nil {
 				return err
 			}
@@ -26,7 +26,7 @@ func StartGeyserTransactionStream(transactionChan chan<- response.TransactionNot
 	}
 }
 
-func geyserStreamTransactions(transactionChan chan<- response.TransactionNotification, ctx context.Context, wsUrl string) error {
+func geyserStreamTransactions(ctx context.Context, transactionChan chan<- response.TransactionNotification, wsUrl string) error {
 	// ctx, cancel := context.WithTimeout(context.Background(), connection_timeout)
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
