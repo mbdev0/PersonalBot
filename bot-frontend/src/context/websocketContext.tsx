@@ -5,4 +5,5 @@ import { createContext } from 'react';
 export const WebSocketContext = createContext<{
   send: (msg: SendTaskWSMessage) => void;
   sendStrategyWSMessage: (msg: StrategySendWSMessage) => void;
+  websocketOpen: boolean;
 } | null>(null);

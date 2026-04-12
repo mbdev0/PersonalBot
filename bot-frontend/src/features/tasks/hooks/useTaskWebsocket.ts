@@ -1,5 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type {
   Dashboard,
   DashboardRow,
@@ -14,6 +14,7 @@ export const useTaskWebsocket = () => {
   const client = useQueryClient();
   const websocket = useRef<WebSocket | undefined>(undefined);
   const subscribedTasks = useRef<Set<number>>(new Set<number>());
+  const [websocketOpen, setWebsocketStatus] = useState(false);
 
   useEffect(() => {
     const ws = new WebSocket(TASK_WS);
@@ -21,6 +22,7 @@ export const useTaskWebsocket = () => {
 
     ws.onopen = () => {
       console.log('connected');
+      setWebsocketStatus(true);
     };
 
     ws.onmessage = (event) => {
@@ -28,6 +30,10 @@ export const useTaskWebsocket = () => {
       const data: TaskWSMessage = JSON.parse(event.data);
       client.setQueryData(['dashboard'], (oldData: Dashboard | undefined) => {
         if (!oldData) return oldData;
+
+        if (data.error) {
+          return oldData;
+        }
 
         const strategyTaskIdx = oldData.rows.findIndex((v) => v.id === data.task_event.strategy_id);
 
@@ -92,6 +98,7 @@ export const useTaskWebsocket = () => {
 
     ws.onclose = () => {
       console.log('disconnected');
+      setWebsocketStatus(false);
     };
 
     return () => {
@@ -120,5 +127,6 @@ export const useTaskWebsocket = () => {
 
   return {
     send,
+    taskWebsocketOpen: websocketOpen,
   };
 };

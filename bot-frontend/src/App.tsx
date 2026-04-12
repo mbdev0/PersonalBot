@@ -8,6 +8,7 @@ import { AppSidebar } from './components/appSidebar';
 import { WebsocketProvider } from './context/websocketProvider';
 import { SettingsDashboard } from './features/settings/components/settingsDashboard';
 import { RPCGroupDashboard } from './features/rpc-groups/components/rpcGroupsDashboard';
+import { TopBar } from './components/appTopBar';
 
 const queryClient = new QueryClient();
 
@@ -19,12 +20,10 @@ function App() {
           <BrowserRouter>
             <SidebarProvider defaultOpen={false}>
               <AppSidebar />
-              <SidebarInset className="h-svh overflow-hidden">
+              <SidebarInset className="h-svh overflow-hidden flex flex-col">
+                <TopBar />
                 <div className="flex justify-center w-full h-full overflow-y-auto">
-                  <div className="max-w-11/12 w-full py-8">
-                    <header className="mb-8">
-                      <h1 className="text-3xl font-bold">Trading Bot</h1>
-                    </header>
+                  <div className="max-w-11/12 w-full">
                     <Routes>
                       <Route path="/" element={<TaskDashboard />} />
                       <Route path="/wallets" element={<WalletDashboard />} />
