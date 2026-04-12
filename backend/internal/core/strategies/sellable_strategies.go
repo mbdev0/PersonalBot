@@ -1,6 +1,6 @@
 package strategies
 
-import "personal_bot/internal/core/models/wallets"
+import "personal_bot/internal/core/wallets"
 
 type SellableStrategy interface {
 	GetWallet() wallets.SolanaWallet

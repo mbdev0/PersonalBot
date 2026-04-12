@@ -3,9 +3,9 @@ package mapper
 import (
 	"fmt"
 	"personal_bot/api/dto"
-	"personal_bot/internal/core/models/wallets"
 	rpcgroups "personal_bot/internal/core/rpc_groups"
 	"personal_bot/internal/core/strategies"
+	"personal_bot/internal/core/wallets"
 	"personal_bot/internal/solana/utils"
 
 	"github.com/gagliardetto/solana-go"

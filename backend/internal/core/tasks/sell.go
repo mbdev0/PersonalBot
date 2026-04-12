@@ -1,7 +1,7 @@
 package tasks
 
 import (
-	"personal_bot/internal/core/models/wallets"
+	"personal_bot/internal/core/wallets"
 	"sync"
 
 	"github.com/gagliardetto/solana-go"

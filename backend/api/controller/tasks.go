@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"personal_bot/api/dto"
 	"personal_bot/api/mapper"
-	"personal_bot/internal/core/models/wallets"
+	"personal_bot/internal/core/wallets"
 	subscriptionhub "personal_bot/internal/services/subscription_hub"
 	taskservice "personal_bot/internal/services/task_service"
 	"personal_bot/internal/services/wallet"

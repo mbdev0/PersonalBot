@@ -2,8 +2,8 @@ package strategies
 
 import (
 	"math/big"
-	"personal_bot/internal/core/models/wallets"
 	rpcgroups "personal_bot/internal/core/rpc_groups"
+	"personal_bot/internal/core/wallets"
 
 	"github.com/gagliardetto/solana-go"
 )

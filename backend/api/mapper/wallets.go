@@ -2,7 +2,7 @@ package mapper
 
 import (
 	"personal_bot/api/dto"
-	"personal_bot/internal/core/models/wallets"
+	"personal_bot/internal/core/wallets"
 
 	"github.com/gagliardetto/solana-go"
 	"github.com/google/uuid"

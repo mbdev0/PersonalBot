@@ -3,8 +3,8 @@ package validator_test
 import (
 	"errors"
 	"personal_bot/app/validator"
-	"personal_bot/internal/core/models/wallets"
 	"personal_bot/internal/core/tasks"
+	"personal_bot/internal/core/wallets"
 	"personal_bot/internal/solana/utils"
 	"reflect"
 	"strings"
