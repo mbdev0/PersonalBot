@@ -10,7 +10,7 @@ import (
 	"personal_bot/app"
 	"personal_bot/infrastructure/persistence"
 	"personal_bot/infrastructure/persistence/repository"
-	cryptostates "personal_bot/internal/core/tasks/crypto_states"
+	cryptostates "personal_bot/internal/services/crypto_states"
 	"personal_bot/internal/services/notifier"
 	"personal_bot/internal/services/position"
 	rpcgroups "personal_bot/internal/services/rpc_groups"

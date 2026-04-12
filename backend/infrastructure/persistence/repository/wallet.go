@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"personal_bot/infrastructure/persistence/mapper"
 	"personal_bot/infrastructure/persistence/models"
-	"personal_bot/internal/core/models/wallets"
+	"personal_bot/internal/core/wallets"
 )
 
 type Wallet struct {

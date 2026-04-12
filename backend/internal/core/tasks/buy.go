@@ -2,7 +2,7 @@ package tasks
 
 import (
 	"math/big"
-	"personal_bot/internal/core/models/wallets"
+	"personal_bot/internal/core/wallets"
 
 	"github.com/gagliardetto/solana-go/rpc"
 

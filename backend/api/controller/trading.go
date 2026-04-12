@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"personal_bot/api/dto"
 	"personal_bot/api/mapper"
-	"personal_bot/internal/core/models/wallets"
 	rpcgroupsModel "personal_bot/internal/core/rpc_groups"
+	"personal_bot/internal/core/wallets"
 	rpcgroups "personal_bot/internal/services/rpc_groups"
 	"personal_bot/pkg/logger"
 

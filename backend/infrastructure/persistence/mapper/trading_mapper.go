@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"math/big"
 	"personal_bot/infrastructure/persistence/models"
-	"personal_bot/internal/core/models/wallets"
 	"personal_bot/internal/core/strategies"
+	"personal_bot/internal/core/wallets"
 	"personal_bot/internal/monitoring/filters"
 	"personal_bot/internal/solana/utils"
 

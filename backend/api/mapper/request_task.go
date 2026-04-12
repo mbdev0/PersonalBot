@@ -5,8 +5,8 @@ import (
 	"math/big"
 	"personal_bot/api/dto"
 	"personal_bot/internal/core/constants"
-	"personal_bot/internal/core/models/wallets"
 	"personal_bot/internal/core/tasks"
+	"personal_bot/internal/core/wallets"
 	"time"
 
 	"github.com/gagliardetto/solana-go"
