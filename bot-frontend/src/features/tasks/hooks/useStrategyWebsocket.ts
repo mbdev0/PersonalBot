@@ -1,5 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type {
   Dashboard,
   DashboardRow,
@@ -18,6 +18,7 @@ export const useStrategyWebsocket = () => {
   const client = useQueryClient();
   const websocket = useRef<WebSocket | undefined>(undefined);
   const subscribedTasks = useRef<Set<number>>(new Set<number>());
+  const [isWebsocketOpen, setWebsocketStatus] = useState(false);
 
   useEffect(() => {
     const ws = new WebSocket(STRATEGY_WS);
@@ -25,6 +26,7 @@ export const useStrategyWebsocket = () => {
 
     ws.onopen = () => {
       console.log('Strategy WebSocket connected');
+      setWebsocketStatus(true);
     };
 
     ws.onmessage = (event) => {
@@ -117,6 +119,7 @@ export const useStrategyWebsocket = () => {
 
     ws.onclose = (event) => {
       console.log('Strategy WebSocket closed:', event.code);
+      setWebsocketStatus(false);
     };
 
     ws.onerror = (error) => {
@@ -152,6 +155,7 @@ export const useStrategyWebsocket = () => {
 
   return {
     sendStrategyWSMessage,
+    isStrategyWebsocketOpen: isWebsocketOpen,
   };
 };
 

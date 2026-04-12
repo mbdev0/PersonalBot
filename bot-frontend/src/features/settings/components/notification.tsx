@@ -21,7 +21,7 @@ export function Notifcation({ data }: NotifcationProps) {
   };
 
   return (
-    <div className="rounded-lg border border-foreground/10 bg-foreground/3 p-6 space-y-6 w-140">
+    <div className="rounded-lg border border-foreground/10 bg-foreground/3 p-6 space-y-6 flex-1">
       <p className="text-sm font-semibold text-foreground/50 uppercase">Notifications</p>
 
       <div className="space-y-2">
