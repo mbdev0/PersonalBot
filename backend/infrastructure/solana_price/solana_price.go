@@ -13,7 +13,7 @@ import (
 var (
 	lock             = &sync.Mutex{}
 	solPrice         *float64
-	priceRefreshTime = 30 * time.Minute
+	priceRefreshTime = 30 * time.Second
 )
 
 func GetSolPrice() (*float64, error) {
