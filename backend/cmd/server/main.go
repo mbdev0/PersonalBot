@@ -104,6 +104,7 @@ func main() {
 	positionController := controller.PositionController{PositionService: positionService}
 	positionHandler := http.StripPrefix("/api/position", handler.NewPositionHandler(&positionController))
 	dashboardHandler := http.StripPrefix("/api/dashboard", handler.NewDashboardHandler(tradingController, taskController))
+	marketHandler := http.StripPrefix("/api/market", handler.NewMarketHandler())
 
 	mux := http.NewServeMux()
 	mux.Handle("/api/tasks/", taskHandler)
@@ -113,6 +114,7 @@ func main() {
 	mux.Handle("/api/dashboard/", dashboardHandler)
 	mux.Handle("/api/settings/", settingsHandler)
 	mux.Handle("/api/rpc_groups/", rpcGroupHandler)
+	mux.Handle("/api/market/", marketHandler)
 
 	server := &http.Server{
 		Addr:    ":9090",
