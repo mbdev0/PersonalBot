@@ -286,7 +286,6 @@ func (th *TaskHandler) subscribe(w http.ResponseWriter, r *http.Request) {
 
 			logger.Error("error whilst reading", err)
 			resp.Error = err.Error()
-			wsjson.Write(ctx, c, "err")
 			err := wsjson.Write(ctx, c, resp)
 			if err != nil {
 				logger.Error("error whilst trying to write to WS, error: " + err.Error())

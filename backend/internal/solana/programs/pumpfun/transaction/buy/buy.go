@@ -151,6 +151,9 @@ func (bt *Transaction) getHttpClient() *rpc.Client {
 
 func (bt *Transaction) UpdatePosition(ctx context.Context, publisher subscriptionhub.Publisher) (tokenAmount, solAmount float64, pos *positionmodels.Position, err error) {
 	tokenAmnt, solAmnt, err := bt.extractTokenAndSolFromTx(ctx, bt.signature)
+	if err != nil {
+		return
+	}
 
 	err = bt.PositionService.ReportBuy(ctx, bt.BuyTask.Id(), bt.BuyTask.Token, bt.BuyTask.Wallet.PublicKey(), new(big.Float).SetFloat64(tokenAmnt), new(big.Float).SetFloat64(solAmnt))
 	if err != nil {
@@ -201,7 +204,7 @@ func (bt *Transaction) extractTokenAndSolFromTx(ctx context.Context, signature s
 
 	//extract sol amount
 	walletPubkey := bt.BuyTask.Wallet.PublicKey()
-	var walletIndex int = -1
+	walletIndex := -1
 
 	for i, account := range transactionMessage.AccountKeys {
 		if account.PublicKey == walletPubkey {
