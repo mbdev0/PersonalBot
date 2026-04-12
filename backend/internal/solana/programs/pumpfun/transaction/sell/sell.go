@@ -219,7 +219,7 @@ func (st *Transaction) extractTokenAndSolFromTx(ctx context.Context, signature s
 
 	//extract sol amount
 	walletPubkey := st.Task.Wallet.PublicKey()
-	var walletIndex int = -1
+	walletIndex := -1
 
 	for i, account := range transactionMessage.AccountKeys {
 		if account.PublicKey == walletPubkey {

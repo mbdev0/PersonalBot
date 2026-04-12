@@ -50,7 +50,11 @@ func (rgh *RPCGroupHandler) PostRPCGroup(w http.ResponseWriter, r *http.Request)
 	decoder.DisallowUnknownFields()
 
 	var rpcGroup dto.RPCGroupPush
-	decoder.Decode(&rpcGroup)
+	err := decoder.Decode(&rpcGroup)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
 	createdGroup, err := rgh.controller.Post(r.Context(), rpcGroup)
 	if err != nil {

@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"personal_bot/api/controller"
 	"personal_bot/api/dto"
+	"personal_bot/pkg/logger"
 	"slices"
 )
 
@@ -40,7 +41,10 @@ func (dh *DashboardHandler) GetDashboard(w http.ResponseWriter, r *http.Request)
 
 	dashboardResp := dh.generateDashboardResponse(strategies, allTasks)
 
-	json.NewEncoder(w).Encode(dashboardResp)
+	err = json.NewEncoder(w).Encode(dashboardResp)
+	if err != nil {
+		logger.Error(err)
+	}
 }
 
 func (dh *DashboardHandler) generateDashboardResponse(strategies []dto.TradingTaskResponse, allTasks []dto.ResponseTask) dto.DashboardResponseDto {
