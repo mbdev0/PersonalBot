@@ -78,12 +78,12 @@ func (bt *BuyTask) SetMessage(message string) {
 func (bt *BuyTask) Message() string {
 	return bt.message
 }
-func (bt *BuyTask) GetWallet() solana.PublicKey {
-	return bt.Wallet.PublicKey()
+func (bt *BuyTask) GetWallet() string {
+	return bt.Wallet.PublicKey().String()
 }
 
-func (bt *BuyTask) GetToken() solana.PublicKey {
-	return bt.Token
+func (bt *BuyTask) GetToken() string {
+	return bt.Token.String()
 }
 
 func (bt *BuyTask) HttpClient() *rpc.Client {

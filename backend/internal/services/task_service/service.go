@@ -31,7 +31,7 @@ func NewTaskService(repo *repository.TaskRepository, hub *subscriptionhub.Hub, t
 	}
 }
 
-func (ts *TaskService) Create(task tasks.Task) (tasks.Task, error) {
+func (ts *TaskService) Create(task tasks.ConfigurableTask) (tasks.Task, error) {
 	ts.mu.Lock()
 	defer ts.mu.Unlock()
 	task.SetId(ts.iter.ID())

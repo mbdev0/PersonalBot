@@ -28,9 +28,9 @@ func NewExecutor(publisher subscriptionhub.Publisher, posService *position.Servi
 func (e *Executor) GetImplementation(task tasks.Task) (transaction.Transaction, error) {
 	switch t := task.(type) {
 	case *tasks.BuyTask:
-		return &buy.Transaction{BuyTask: t}, nil
+		return &buy.Transaction{BuyTask: t, PositionService: e.positionService}, nil
 	case *tasks.SellTask:
-		return &sell.Transaction{Task: t}, nil
+		return &sell.Transaction{Task: t, PositionService: e.positionService}, nil
 	}
 
 	return nil, fmt.Errorf("no transaction found for the task: %s", task.Type())

@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"math/big"
 	lookuptable "personal_bot/app/lookup_table"
 	"personal_bot/internal/core/constants"
+	positionmodels "personal_bot/internal/core/position"
 	"personal_bot/internal/core/tasks"
 	"personal_bot/internal/monitoring/decoder"
 	"personal_bot/internal/services/position"
@@ -22,17 +24,14 @@ import (
 )
 
 type Transaction struct {
-	BuyTask      *tasks.BuyTask
-	instructions *[]solana.Instruction
-	transaction  *solana.Transaction
-	signature    solana.Signature
+	BuyTask         *tasks.BuyTask
+	instructions    *[]solana.Instruction
+	transaction     *solana.Transaction
+	signature       solana.Signature
+	PositionService *position.Service
 }
 
-func (bt *Transaction) BuildInstructionsWithPosition(ctx context.Context, publisher subscriptionhub.Publisher, ps *position.Service) error {
-	return bt.buildInstructions(ctx, publisher)
-}
-
-func (bt *Transaction) buildInstructions(ctx context.Context, publisher subscriptionhub.Publisher) error {
+func (bt *Transaction) BuildInstructions(ctx context.Context, publisher subscriptionhub.Publisher) error {
 	if bt.BuyTask == nil {
 		return fmt.Errorf("buy task was nil - make sure buy task is set")
 	}
@@ -54,7 +53,7 @@ func (bt *Transaction) BuildTransaction(ctx context.Context, publisher subscript
 		return fmt.Errorf("buy task was nil - make sure buy task is set")
 	}
 
-	latestHash, err := client.GetLatestBlockhash(ctx, bt.GetTask().HttpClient())
+	latestHash, err := client.GetLatestBlockhash(ctx, bt.getHttpClient())
 	if err != nil {
 		logger.Error("Error getting latest blockhash", err)
 		return err
@@ -64,7 +63,7 @@ func (bt *Transaction) BuildTransaction(ctx context.Context, publisher subscript
 		solana.TransactionPayer(bt.BuyTask.Wallet.PublicKey()),
 	}
 
-	accountLookupMap, err := lookuptable.GetAddressLookupTable(bt.GetTask().HttpClient())
+	accountLookupMap, err := lookuptable.GetAddressLookupTable(bt.getHttpClient())
 	if err != nil {
 		logger.Error("Error getting address lookup table, proceeding without it: ", err)
 	} else {
@@ -90,7 +89,7 @@ func (bt *Transaction) BuildTransaction(ctx context.Context, publisher subscript
 }
 
 func (bt *Transaction) SendTransaction(ctx context.Context, publisher subscriptionhub.Publisher) error {
-	rpcClient := bt.GetTask().HttpClient()
+	rpcClient := bt.getHttpClient()
 	// SIMULATE TRANSACTION
 	// txResp, err := rpcClient.SimulateTransaction(bt.BuyTask.Ctx(), bt.transaction)
 	// if err != nil {
@@ -122,7 +121,7 @@ func (bt *Transaction) SendTransaction(ctx context.Context, publisher subscripti
 }
 
 func (bt *Transaction) ConfirmTransaction(ctx context.Context, publisher subscriptionhub.Publisher) error {
-	rpcClient := bt.GetTask().HttpClient()
+	rpcClient := bt.getHttpClient()
 
 	stream := make(chan client.ConfirmMessage, 100)
 
@@ -139,13 +138,6 @@ func (bt *Transaction) ConfirmTransaction(ctx context.Context, publisher subscri
 		publisher.PublishMessage(bt.BuyTask, msg.Message)
 	}
 
-	tokenAmnt, solAmnt, err := bt.ExtractTokenAndSolFromTx(ctx, bt.signature)
-	if err != nil {
-		return err
-	}
-
-	fmt.Println(tokenAmnt, solAmnt)
-
 	return nil
 }
 
@@ -153,12 +145,23 @@ func (bt *Transaction) GetTask() tasks.Task {
 	return bt.BuyTask
 }
 
-func (bt *Transaction) GetSignature() solana.Signature {
-	return bt.signature
+func (bt *Transaction) getHttpClient() *rpc.Client {
+	return bt.BuyTask.HttpClient()
 }
 
-func (bt *Transaction) ExtractTokenAndSolFromTx(ctx context.Context, signature solana.Signature) (tokenAmount float64, solAmount float64, err error) {
-	solClient := bt.GetTask().HttpClient()
+func (bt *Transaction) UpdatePosition(ctx context.Context, publisher subscriptionhub.Publisher) (tokenAmount, solAmount float64, pos *positionmodels.Position, err error) {
+	tokenAmnt, solAmnt, err := bt.extractTokenAndSolFromTx(ctx, bt.signature)
+
+	err = bt.PositionService.ReportBuy(ctx, bt.BuyTask.Id(), bt.BuyTask.Token, bt.BuyTask.Wallet.PublicKey(), new(big.Float).SetFloat64(tokenAmnt), new(big.Float).SetFloat64(solAmnt))
+	if err != nil {
+		return
+	}
+
+	return tokenAmnt, solAmnt, nil, nil
+}
+
+func (bt *Transaction) extractTokenAndSolFromTx(ctx context.Context, signature solana.Signature) (tokenAmount float64, solAmount float64, err error) {
+	solClient := bt.getHttpClient()
 	tx, err := solClient.GetParsedTransaction(ctx, signature, &rpc.GetParsedTransactionOpts{Commitment: rpc.CommitmentConfirmed, MaxSupportedTransactionVersion: &rpc.MaxSupportedTransactionVersion0})
 	if err != nil {
 		return tokenAmount, solAmount, err
@@ -214,6 +217,10 @@ func (bt *Transaction) ExtractTokenAndSolFromTx(ctx context.Context, signature s
 	solAmount = float64(solAmountLamport)
 
 	return tokenAmount, solAmount, nil
+}
+
+func (bt *Transaction) GetSignature() string {
+	return bt.signature.String()
 }
 
 func (bt *Transaction) getAllInstructionsForBuy(ctx context.Context, buyTask *tasks.BuyTask) (buyInstructions []solana.Instruction, err error) {
