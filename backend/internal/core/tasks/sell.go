@@ -80,12 +80,12 @@ func (st *SellTask) Message() string {
 	return st.message
 }
 
-func (st *SellTask) GetWallet() solana.PublicKey {
-	return st.Wallet.PublicKey()
+func (st *SellTask) GetWallet() string {
+	return st.Wallet.PublicKey().String()
 }
 
-func (st *SellTask) GetToken() solana.PublicKey {
-	return st.Token
+func (st *SellTask) GetToken() string {
+	return st.Token.String()
 }
 
 func (st *SellTask) HttpClient() *rpc.Client {

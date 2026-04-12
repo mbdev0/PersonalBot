@@ -2,8 +2,6 @@ package cryptostates
 
 import (
 	"context"
-	"fmt"
-	"math/big"
 	"personal_bot/internal/core/constants"
 	notifierModel "personal_bot/internal/core/notifier"
 	positionModel "personal_bot/internal/core/position"
@@ -42,7 +40,7 @@ func Build(deps *Dependencies) transactionModel.Transitions {
 			OnError: tasks.TxInstructionBuildFail,
 			Fn: func(ctx context.Context, t transaction.Transaction) error {
 				return withNotify(ctx, deps, func() error {
-					return t.BuildInstructionsWithPosition(ctx, deps.Publisher, deps.PositionService)
+					return t.BuildInstructions(ctx, deps.Publisher)
 				}, t.GetTask(), t)
 			},
 		},
@@ -78,7 +76,9 @@ func Build(deps *Dependencies) transactionModel.Transitions {
 			OnError: tasks.TaskUpdatingPositionFail,
 			Fn: func(ctx context.Context, t transaction.Transaction) error {
 				return withNotify(ctx, deps, func() error {
-					return updatePositionOnCompleted(ctx, t.GetTask(), t, deps)
+					tokenAmount, solAmount, pos, err := t.UpdatePosition(ctx, deps.Publisher)
+					notifyCompletion(t.GetTask(), t, tokenAmount, solAmount, pos, deps)
+					return err
 				}, t.GetTask(), t)
 			},
 		},
@@ -95,60 +95,13 @@ func withNotify(ctx context.Context, deps *Dependencies, fn func() error, task t
 	return err
 }
 
-func updatePositionOnCompleted(ctx context.Context, task tasks.Task, transaction transaction.Transaction, deps *Dependencies) error {
-	tokenAmount, solAmount, err := transaction.ExtractTokenAndSolFromTx(ctx, transaction.GetSignature())
-	if err != nil {
-		return err
-	}
-
+func notifyCompletion(task tasks.Task, transaction transaction.Transaction, tokenAmount, solAmount float64, pos *positionModel.Position, deps *Dependencies) {
 	switch t := task.(type) {
 	case *tasks.BuyTask:
-		err = deps.PositionService.ReportBuy(ctx, t.Id(), t.Token, t.Wallet.PublicKey(), new(big.Float).SetFloat64(tokenAmount), new(big.Float).SetFloat64(solAmount))
-		if err != nil {
-			return err
-		}
-
 		notifyBuy(t, transaction, tokenAmount, solAmount, deps)
 	case *tasks.SellTask:
-		return handleSellTaskReporting(t, transaction, tokenAmount, solAmount, deps)
-
+		notifySell(t, transaction, pos, tokenAmount, solAmount, deps)
 	}
-
-	return nil
-}
-
-func handleSellTaskReporting(t *tasks.SellTask, transaction transaction.Transaction, tokenAmount float64, solAmount float64, deps *Dependencies) error {
-	tokensSold := new(big.Float).SetFloat64(tokenAmount)
-	solReceived := new(big.Float).SetFloat64(solAmount)
-	tokenSoldFloat, _ := tokensSold.Float64()
-	solReceivedFloat, _ := solReceived.Float64()
-
-	if t.Position_id == nil {
-		pos, exists := deps.PositionService.FindPositionIfExists(t.Token, t.Wallet.PublicKey())
-		if !exists {
-			return fmt.Errorf("position not found for sell task %d: ", t.Id())
-		}
-
-		err := deps.PositionService.ReportSell(pos.PositionId, tokensSold, solReceived)
-		if err != nil {
-			return err
-		}
-
-		notifySell(t, transaction, *pos, tokenSoldFloat, solReceivedFloat, deps)
-	} else {
-		err := deps.PositionService.ReportSell(*t.Position_id, tokensSold, solReceived)
-		if err != nil {
-			return err
-		}
-
-		pos, err := deps.PositionService.GetById(*t.Position_id)
-		if err != nil {
-			return fmt.Errorf("position not found for sell task %d: ", t.Id())
-		}
-		notifySell(t, transaction, *pos, tokenSoldFloat, solReceivedFloat, deps)
-
-	}
-	return nil
 }
 
 func notifyBuy(t *tasks.BuyTask, transaction transaction.Transaction, tokenAmount float64, solAmount float64, deps *Dependencies) {
@@ -169,7 +122,7 @@ func notifyBuy(t *tasks.BuyTask, transaction transaction.Transaction, tokenAmoun
 		StrategyId:    t.StrategyId,
 		TokensBought:  tokenAmount / constants.TokenAmountDecimals,
 		AmountPaid:    solAmount / constants.LamportsConversion,
-		TxHash:        transaction.GetSignature().String(),
+		TxHash:        transaction.GetSignature(),
 		WalletAddress: t.Wallet.PublicKey().String(),
 		TokenAddress:  t.Token.String(),
 		BondingCurve:  bondingCurve,
@@ -179,7 +132,7 @@ func notifyBuy(t *tasks.BuyTask, transaction transaction.Transaction, tokenAmoun
 	}
 }
 
-func notifySell(t *tasks.SellTask, transaction transaction.Transaction, pos positionModel.Position, tokensSold float64, solReceived float64, deps *Dependencies) {
+func notifySell(t *tasks.SellTask, transaction transaction.Transaction, pos *positionModel.Position, tokensSold float64, solReceived float64, deps *Dependencies) {
 	bondingCurve, err := pda.GetBondingCurveAddress(t.Token.String())
 	if err != nil {
 		logger.Error(err)
@@ -198,7 +151,7 @@ func notifySell(t *tasks.SellTask, transaction transaction.Transaction, pos posi
 		TaskType:        string(strategyTask.StrategyType()),
 		TaskId:          t.Id(),
 		StrategyId:      t.StrategyId,
-		TxHash:          transaction.GetSignature().String(),
+		TxHash:          transaction.GetSignature(),
 		TokensSold:      tokensSold / constants.TokenAmountDecimals,
 		TokensRemaining: tokensRemainingRaw / constants.TokenAmountDecimals,
 		CurrentProfit:   currentProfitRaw / constants.LamportsConversion,
@@ -222,7 +175,7 @@ func notifyError(errorMessage string, deps *Dependencies, task tasks.Task, trans
 		return err
 	}
 
-	bondingCurve, err := pda.GetBondingCurveAddress(task.GetToken().String())
+	bondingCurve, err := pda.GetBondingCurveAddress(task.GetToken())
 	if err != nil {
 		return err
 	}
@@ -232,9 +185,9 @@ func notifyError(errorMessage string, deps *Dependencies, task tasks.Task, trans
 		TaskId:        task.Id(),
 		StrategyId:    task.GetStrategyId(),
 		Error:         errorMessage,
-		TxHash:        transaction.GetSignature().String(),
-		WalletAddress: task.GetWallet().String(),
-		TokenAddress:  task.GetToken().String(),
+		TxHash:        transaction.GetSignature(),
+		WalletAddress: task.GetWallet(),
+		TokenAddress:  task.GetToken(),
 		BondingCurve:  bondingCurve,
 	})
 

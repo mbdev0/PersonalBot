@@ -2,29 +2,29 @@ package tasks
 
 import "math/big"
 
-type Option func(Task)
+type Option func(Configurable)
 
 func WithSlippage(s float64) Option {
-	return func(t Task) { t.SetSlippage(s) }
+	return func(t Configurable) { t.SetSlippage(s) }
 }
 func WithComputeUnits(cu uint32) Option {
-	return func(t Task) { t.SetComputeUnit(cu) }
+	return func(t Configurable) { t.SetComputeUnit(cu) }
 }
 
 func WithUnixTime(time int64) Option {
-	return func(t Task) { t.SetTime(time) }
+	return func(t Configurable) { t.SetTime(time) }
 }
 
 func WithStrategyId(id int64) Option {
-	return func(t Task) { t.SetStrategyId(id) }
+	return func(t Configurable) { t.SetStrategyId(id) }
 }
 
 func WithHttpNode(rpcNode string) Option {
-	return func(t Task) { t.SetHttpNode(rpcNode) }
+	return func(t Configurable) { t.SetHttpNode(rpcNode) }
 }
 
 func WithWS(ws string) Option {
-	return func(t Task) { t.SetWSNode(ws) }
+	return func(t Configurable) { t.SetWSNode(ws) }
 }
 
 type BuyOption func(*BuyTask)

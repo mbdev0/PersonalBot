@@ -12,7 +12,7 @@ import (
 	"github.com/gagliardetto/solana-go"
 )
 
-func MapRequestTaskToTask(reqTask *dto.RequestTask, wallet wallets.SolanaWallet) (tasks.Task, error) {
+func MapRequestTaskToTask(reqTask *dto.RequestTask, wallet wallets.SolanaWallet) (tasks.ConfigurableTask, error) {
 	switch reqTask.Type {
 	case dto.Buy:
 		buyTask, err := createBuyTask(reqTask, wallet)
