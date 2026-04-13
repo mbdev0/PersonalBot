@@ -3,6 +3,7 @@ package client
 import (
 	"context"
 	"fmt"
+	"personal_bot/internal/solana/solanerrors"
 	"personal_bot/pkg/logger"
 	"time"
 
@@ -57,7 +58,7 @@ func ConfirmTransactionWithStream(ctx context.Context, rpcClient *rpc.Client, si
 			logger.Error(status.Err)
 			logger.Information(status)
 			stream <- ConfirmMessage{
-				Err: fmt.Sprintf("transaction failed: %v", status.Err),
+				Err: solanerrors.MapTransactionError(status.Err),
 			}
 			return
 		}
