@@ -105,11 +105,7 @@ func (s *Strategy) syncStateAndMessage(ctx context.Context, taskId int64, strate
 		case <-ctx.Done():
 			logger.Information("strategy task stopped")
 			strategyTask.SetStrategyState(string(strategies.CANCELLED))
-			err := s.strategyHub.PublishStateUpdate(strategyTask.StrategyTaskId(), strategyTask.StrategyState())
-			if err != nil {
-				logger.Error(err)
-				return err
-			}
+			s.strategyHub.PublishStateUpdate(strategyTask.StrategyTaskId(), strategyTask.StrategyState())
 			return ctx.Err()
 		case msg, ok := <-sub.Chan():
 			if !ok {
@@ -121,25 +117,16 @@ func (s *Strategy) syncStateAndMessage(ctx context.Context, taskId int64, strate
 	}
 }
 
-func (s *Strategy) processMessage(msg tasks.TaskEvent, strategyTask strategies.Task) error {
+func (s *Strategy) processMessage(msg tasks.TaskEvent, strategyTask strategies.Task) {
 	if msg.EventType == tasks.StateUpdate {
 		strategyTask.SetStrategyState(msg.State.TaskState)
-		err := s.strategyHub.PublishStateUpdate(strategyTask.StrategyTaskId(), strategyTask.StrategyState())
-		if err != nil {
-			logger.Error(err)
-			return err
-		}
+		s.strategyHub.PublishStateUpdate(strategyTask.StrategyTaskId(), strategyTask.StrategyState())
 	}
 
 	if msg.EventType == tasks.ProgressMessage {
 		strategyTask.SetStrategyMessage(msg.Message)
-		err := s.strategyHub.PublishProgressMessage(strategyTask.StrategyTaskId(), strategyTask.StrategyMessage())
-		if err != nil {
-			logger.Error(err)
-			return err
-		}
+		s.strategyHub.PublishProgressMessage(strategyTask.StrategyTaskId(), strategyTask.StrategyMessage())
 	}
-	return nil
 }
 
 func (s *Strategy) AfkSniping(ctx context.Context, afkTask *strategies.Afk) {
@@ -164,19 +151,13 @@ func (s *Strategy) AfkSniping(ctx context.Context, afkTask *strategies.Afk) {
 		select {
 		case <-ctx.Done():
 			afkTask.SetStrategyState(string(strategies.CANCELLED))
-			err := s.strategyHub.PublishStateUpdate(afkTask.StrategyTaskId(), afkTask.StrategyState())
-			if err != nil {
-				logger.Error(err)
-			}
+			s.strategyHub.PublishStateUpdate(afkTask.StrategyTaskId(), afkTask.StrategyState())
 
 			return
 		case coin, ok := <-coins:
 			if !ok {
 				afkTask.SetStrategyState(string(strategies.CANCELLED))
-				err := s.strategyHub.PublishStateUpdate(afkTask.StrategyTaskId(), afkTask.StrategyState())
-				if err != nil {
-					logger.Error(err)
-				}
+				s.strategyHub.PublishStateUpdate(afkTask.StrategyTaskId(), afkTask.StrategyState())
 				return
 			}
 			logger.Information("found new coin: ", coin.CoinData.Name)

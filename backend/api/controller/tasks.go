@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"context"
 	"fmt"
 	"personal_bot/api/dto"
 	"personal_bot/api/mapper"
@@ -8,8 +9,6 @@ import (
 	subscriptionhub "personal_bot/internal/services/subscription_hub"
 	taskservice "personal_bot/internal/services/task_service"
 	"personal_bot/internal/services/wallet"
-
-	"golang.org/x/net/context"
 )
 
 type TaskController struct {
