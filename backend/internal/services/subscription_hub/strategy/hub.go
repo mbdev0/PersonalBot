@@ -72,7 +72,7 @@ func (sh *SubscriptionHub) cancel(id int64) func() {
 	}
 }
 
-func (sh *SubscriptionHub) PublishTakeCreation(id int64, task tasks.Task) error {
+func (sh *SubscriptionHub) PublishTakeCreation(id int64, task tasks.Task) {
 	sh.mu.Lock()
 	defer sh.mu.Unlock()
 
@@ -88,13 +88,12 @@ func (sh *SubscriptionHub) PublishTakeCreation(id int64, task tasks.Task) error 
 
 	sub, ok := sh.subscriptions[id]
 	if !ok {
-		return fmt.Errorf("task not found with id: %d", id)
+		return
 	}
 	sub.SubChan <- msg
-	return nil
 }
 
-func (sh *SubscriptionHub) PublishStateUpdate(id int64, state string) error {
+func (sh *SubscriptionHub) PublishStateUpdate(id int64, state string) {
 	sh.mu.Lock()
 	defer sh.mu.Unlock()
 
@@ -110,13 +109,12 @@ func (sh *SubscriptionHub) PublishStateUpdate(id int64, state string) error {
 	if !ok {
 		//if there isnt a subscription, we can just set the last message - we dont need a sub to actually publish a message
 		// we can just keep the last message safe
-		return nil
+		return
 	}
 	sub.SubChan <- msg
-	return nil
 }
 
-func (sh *SubscriptionHub) PublishProgressMessage(id int64, message string) error {
+func (sh *SubscriptionHub) PublishProgressMessage(id int64, message string) {
 	sh.mu.Lock()
 	defer sh.mu.Unlock()
 
@@ -130,8 +128,8 @@ func (sh *SubscriptionHub) PublishProgressMessage(id int64, message string) erro
 
 	sub, ok := sh.subscriptions[id]
 	if !ok {
-		return fmt.Errorf("task not found with id: %d", id)
+		return
+		// return fmt.Errorf("task not found with id: %d", id)
 	}
 	sub.SubChan <- msg
-	return nil
 }

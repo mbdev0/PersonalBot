@@ -32,19 +32,18 @@ func (e *Executor) GetImplementation(task tasks.Task) (transaction.Transaction, 
 	case *tasks.SellTask:
 		return &sell.Transaction{Task: t, PositionService: e.positionService}, nil
 	}
-
-	return nil, fmt.Errorf("no transaction found for the task: %s", task.Type())
+	return nil, fmt.Errorf("no transaction found for task: %s", task.Type())
 }
 
-func (e *Executor) Execute(ctx context.Context, done chan struct{}, transaction transaction.Transaction) {
+func (e *Executor) Execute(ctx context.Context, done chan struct{}, tx transaction.Transaction) {
 	defer close(done)
 
-	t := transaction.GetTask()
+	t := tx.GetTask()
 
 	for {
 		state, ok := e.steps[t.State().TaskState]
 
-		//terminal state
+		// terminal state
 		if !ok {
 			return
 		}
@@ -55,21 +54,24 @@ func (e *Executor) Execute(ctx context.Context, done chan struct{}, transaction 
 			return
 		}
 
-		if err := state.Fn(ctx, transaction); err != nil {
+		if err := state.Fn(ctx, tx); err != nil {
 			if ctx.Err() != nil {
 				e.setStateAndPublish(tasks.TaskCancel, t)
 			} else {
-				e.setStateAndPublish(state.OnError, t)
+				e.setStateAndPublish(state.OnError, t, err.Error())
 			}
 			return
 		}
 
 		e.setStateAndPublish(state.To, t)
-
 	}
 }
-
-func (e *Executor) setStateAndPublish(newState tasks.TaskState, t tasks.Task) {
-	t.SetState(tasks.State{TaskState: newState})
+func (e *Executor) setStateAndPublish(newState tasks.TaskState, t tasks.Task, errMsg ...string) {
+	state := tasks.State{TaskState: newState}
+	if len(errMsg) > 0 && errMsg[0] != "" {
+		state.Error = errMsg[0]
+		t.SetMessage(errMsg[0])
+	}
+	t.SetState(state)
 	e.publisher.PublishStateChange(t)
 }
