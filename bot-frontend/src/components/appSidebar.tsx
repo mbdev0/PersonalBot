@@ -1,4 +1,4 @@
-import { Coins, Wallet, Bot, Settings, Router } from 'lucide-react';
+import { Bot } from 'lucide-react';
 import { Link, useLocation } from 'react-router';
 import {
   SidebarHeader,
@@ -11,32 +11,7 @@ import {
   SidebarFooter,
   Sidebar,
 } from './ui/sidebar';
-
-const navMain = [
-  {
-    title: 'Task Dashboard',
-    url: '/',
-    icon: Coins,
-  },
-  {
-    title: 'Wallets',
-    url: '/wallets',
-    icon: Wallet,
-  },
-  {
-    title: 'RPC Groups',
-    url: '/rpc',
-    icon: Router,
-  },
-];
-
-const navFooter = [
-  {
-    title: 'Settings',
-    url: '/settings',
-    icon: Settings,
-  },
-];
+import { NavFooter, NavMain } from '@/app/routes';
 
 export function AppSidebar() {
   const location = useLocation();
@@ -68,7 +43,7 @@ export function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupContent className="px-1.5 md:px-0">
             <SidebarMenu>
-              {navMain.map((item) => (
+              {NavMain.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     tooltip={{
@@ -92,7 +67,7 @@ export function AppSidebar() {
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>
-          {navFooter.map((item) => (
+          {NavFooter.map((item) => (
             <SidebarMenuItem key={item.title}>
               <SidebarMenuButton
                 tooltip={{

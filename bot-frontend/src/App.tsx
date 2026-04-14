@@ -1,15 +1,12 @@
 import { ThemeProvider } from './components/themeProvider';
 import { SidebarInset, SidebarProvider } from './components/ui/sidebar';
-import { TaskDashboard } from './features/tasks/components/taskDashboard';
-import { BrowserRouter, Route, Routes } from 'react-router';
+import { BrowserRouter } from 'react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import WalletDashboard from './features/wallets/components/walletDashboard';
 import { AppSidebar } from './components/appSidebar';
 import { WebsocketProvider } from './context/websocketProvider';
-import { SettingsDashboard } from './features/settings/components/settingsDashboard';
-import { RPCGroupDashboard } from './features/rpc-groups/components/rpcGroupsDashboard';
 import { TopBar } from './components/appTopBar';
 import { Toaster } from 'sonner';
+import { AppRoutes } from './app/appRoutes';
 
 const queryClient = new QueryClient();
 
@@ -26,12 +23,7 @@ function App() {
                 <Toaster position="bottom-right" />
                 <div className="flex justify-center w-full h-full overflow-y-auto">
                   <div className="max-w-11/12 w-full">
-                    <Routes>
-                      <Route path="/" element={<TaskDashboard />} />
-                      <Route path="/wallets" element={<WalletDashboard />} />
-                      <Route path="/settings" element={<SettingsDashboard />} />
-                      <Route path="/rpc" element={<RPCGroupDashboard />} />
-                    </Routes>
+                    <AppRoutes />
                   </div>
                 </div>
               </SidebarInset>

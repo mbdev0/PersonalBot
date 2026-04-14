@@ -1,11 +1,11 @@
 import { useLocation } from 'react-router';
 import { cn } from '@/lib/utils';
-import { PAGE_LABELS } from '@/config/constants';
 import { useSolanaPrice } from '@/hooks/useMarket';
 import type { Market } from '@/types/market';
 import { useContext } from 'react';
 import { WebSocketContext } from '@/context/websocketContext';
 import { toast } from 'sonner';
+import { PAGE_LABELS } from '@/app/routes';
 
 export function TopBar() {
   const { pathname } = useLocation();
@@ -19,7 +19,7 @@ export function TopBar() {
   return (
     <header className="relative flex h-12 items-center px-4 border-b-2 border-foreground/5">
       <span className="absolute left-1/2 -translate-x-1/2 text-sm font-semibold">
-        {PAGE_LABELS[pathname]}
+        {PAGE_LABELS(pathname)}
       </span>
 
       <div className="ml-auto flex items-center gap-8">
