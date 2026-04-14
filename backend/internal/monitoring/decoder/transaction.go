@@ -18,7 +18,7 @@ import (
 	"personal_bot/pkg/logger"
 )
 
-func DecryptTransactionNotificationForCoin(transaction response.TransactionNotification) *models.Coin {
+func DecryptTransactionNotificationForCoin(transaction response.TransactionNotification, sendIPFSRequest bool) *models.Coin {
 
 	coin, err := getCreatedCoinWithBuyData(transaction)
 
@@ -26,16 +26,16 @@ func DecryptTransactionNotificationForCoin(transaction response.TransactionNotif
 		return nil
 	}
 
-	// we always get the IPFS data even when it's slow to get a response
-	// TODO: ideally we should return basic information to the monitor first - access ipfs url if needed
-	ipfsData, err := getIPFSData(coin.CoinData.IpfsUrl)
-	if err != nil {
-		logger.Error("Error getting IPFS data - IpfsUrl: ", coin.CoinData.IpfsUrl, " ", err)
-		return nil
+	if sendIPFSRequest {
+		ipfsData, err := getIPFSData(coin.CoinData.IpfsUrl)
+		if err != nil {
+			logger.Error("Error getting IPFS data - IpfsUrl: ", coin.CoinData.IpfsUrl, " ", err)
+			return nil
+		}
+		coin.IPFSData = *ipfsData
 	}
 
 	coin.CoinData.Signature = transaction.Params.Result.Signature
-	coin.IPFSData = *ipfsData
 
 	return &coin
 }

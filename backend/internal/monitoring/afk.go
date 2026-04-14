@@ -78,7 +78,7 @@ func decryptAndFilterTransactions(ctx context.Context, filters filters.FilterPip
 }
 
 func handleTransactionNotification(filters filters.FilterPipeline, transaction response.TransactionNotification, coinStructChan chan<- models.Coin) {
-	coin := decoder.DecryptTransactionNotificationForCoin(transaction)
+	coin := decoder.DecryptTransactionNotificationForCoin(transaction, filters.ShouldAccessIPFS())
 	if coin != nil {
 		coin = filters.ApplyFilters(coin)
 	}

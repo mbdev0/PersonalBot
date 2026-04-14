@@ -2,12 +2,14 @@ package filters
 
 import (
 	"personal_bot/internal/monitoring/models"
+	"slices"
 )
 
 type FilterInfo struct {
-	Name  string
-	Fn    Filter
-	Value string
+	Name      string
+	Fn        Filter
+	Value     string
+	NeedsIPFS bool
 }
 
 type Filter func(*models.Coin) *models.Coin
@@ -36,6 +38,12 @@ func (p *FilterPipeline) ApplyFilters(coin *models.Coin) *models.Coin {
 	return data
 }
 
+func (p *FilterPipeline) ShouldAccessIPFS() bool {
+	return slices.ContainsFunc(p.filters, func(filters FilterInfo) bool {
+		return filters.NeedsIPFS
+	})
+}
+
 func HasWebsite() FilterInfo {
 	return FilterInfo{
 		Name: HasWebsiteFilter,
@@ -45,6 +53,7 @@ func HasWebsite() FilterInfo {
 			}
 			return coin
 		},
+		NeedsIPFS: true,
 	}
 
 }
@@ -58,6 +67,7 @@ func HasTwitter() FilterInfo {
 			}
 			return coin
 		},
+		NeedsIPFS: true,
 	}
 
 }
@@ -71,6 +81,7 @@ func HasTelegram() FilterInfo {
 			}
 			return coin
 		},
+		NeedsIPFS: true,
 	}
 }
 
@@ -83,6 +94,7 @@ func DevWallet(devWallet string) FilterInfo {
 			}
 			return coin
 		},
-		Value: devWallet,
+		Value:     devWallet,
+		NeedsIPFS: false,
 	}
 }
