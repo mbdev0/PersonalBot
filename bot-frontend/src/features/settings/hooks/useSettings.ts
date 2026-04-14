@@ -25,6 +25,6 @@ export function useSettings() {
 export function useTestDiscordWebhook() {
   return useMutation({
     mutationFn: (discordWebhook: string) => testDiscordWebhook(discordWebhook),
-    onError: (e) => toast.error('Failure to push settings', { description: e.message }),
+    onError: (e) => toast.error('Failure to test discord webhook', { description: e.message }),
   });
 }

@@ -129,7 +129,6 @@ func (sh *SubscriptionHub) PublishProgressMessage(id int64, message string) {
 	sub, ok := sh.subscriptions[id]
 	if !ok {
 		return
-		// return fmt.Errorf("task not found with id: %d", id)
 	}
 	sub.SubChan <- msg
 }
