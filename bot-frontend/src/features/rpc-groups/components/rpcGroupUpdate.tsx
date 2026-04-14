@@ -67,6 +67,10 @@ function RPCGroupUpdateForm({ data, onCompletion }: RPCGroupUpdateFormProps) {
           </Field>
         </FieldGroup>
 
+        {updateMutation.isError && (
+          <p className="text-sm text-destructive">{updateMutation.error.message}</p>
+        )}
+
         <div className="space-x-2 flex justify-end">
           <Button
             onClick={() => {

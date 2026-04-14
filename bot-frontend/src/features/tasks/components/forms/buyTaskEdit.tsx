@@ -121,6 +121,10 @@ function BuyEditForm({ task, onClose, wallets, rpcGroups }: BuyEditFormProps) {
         <SellStrategies sellStrategies={sellStrategies} setSellStrategies={setSellStrategies} />
       </div>
 
+      {putMutation.isError && (
+        <p className="text-sm text-destructive">{putMutation.error.message}</p>
+      )}
+
       <div className="flex justify-end gap-3 pt-4">
         <Button type="button" variant="outline" onClick={onClose}>
           Cancel

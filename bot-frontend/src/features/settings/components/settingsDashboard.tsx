@@ -1,9 +1,15 @@
+import { toast } from 'sonner';
 import { useSettings } from '../hooks/useSettings';
 import { Notifcation } from './notification';
 import { PositionNode } from './positionNodes';
 
 export function SettingsDashboard() {
-  const { data } = useSettings();
+  const { data, isError, error } = useSettings();
+
+  if (isError) {
+    toast.error(`error whilst loading settings dashboard: ${error}`);
+    return;
+  }
 
   return (
     <div className="space-y-6 py-4">

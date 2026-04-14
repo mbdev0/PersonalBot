@@ -9,6 +9,7 @@ import { WebsocketProvider } from './context/websocketProvider';
 import { SettingsDashboard } from './features/settings/components/settingsDashboard';
 import { RPCGroupDashboard } from './features/rpc-groups/components/rpcGroupsDashboard';
 import { TopBar } from './components/appTopBar';
+import { Toaster } from 'sonner';
 
 const queryClient = new QueryClient();
 
@@ -22,6 +23,7 @@ function App() {
               <AppSidebar />
               <SidebarInset className="h-svh overflow-hidden flex flex-col">
                 <TopBar />
+                <Toaster position="bottom-right" />
                 <div className="flex justify-center w-full h-full overflow-y-auto">
                   <div className="max-w-11/12 w-full">
                     <Routes>

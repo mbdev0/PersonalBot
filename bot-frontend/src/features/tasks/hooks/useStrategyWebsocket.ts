@@ -13,6 +13,7 @@ import {
 } from '../types/strategies/strategyWebsocket';
 import { mapTaskDtoToTask } from '../mapper/taskMapper';
 import { STRATEGY_WS } from '@/config/urls';
+import { toast } from 'sonner';
 
 export const useStrategyWebsocket = () => {
   const client = useQueryClient();
@@ -35,6 +36,7 @@ export const useStrategyWebsocket = () => {
 
         if (data.error) {
           console.error('WebSocket error:', data.error);
+          toast.error(`websocket error: ${data.error}`);
           return;
         }
 
@@ -43,6 +45,7 @@ export const useStrategyWebsocket = () => {
 
           if (!data.strategy_msg) {
             console.error('No strategy message in WebSocket response');
+
             return oldData;
           }
 
@@ -114,16 +117,19 @@ export const useStrategyWebsocket = () => {
         });
       } catch (error) {
         console.error('Failed to process WebSocket message:', error);
+        toast.error(`failed to process websocket message: ${error}`);
       }
     };
 
     ws.onclose = (event) => {
       console.log('Strategy WebSocket closed:', event.code);
+      toast.info('Disconnected from strategy websocket');
       setWebsocketStatus(false);
     };
 
     ws.onerror = (error) => {
       console.error('Strategy WebSocket error:', error);
+      toast.error(`Strategy websocket error`);
     };
 
     return () => {
@@ -137,8 +143,6 @@ export const useStrategyWebsocket = () => {
     if (msg.type === 'Subscribe' && subscribedTasks.current.has(msg.id)) {
       return;
     }
-    console.log(subscribedTasks.current);
-    console.log('sending subscription for task: ', msg.id);
 
     if (websocket.current?.readyState === WebSocket.OPEN) {
       websocket.current.send(JSON.stringify(msg));
@@ -150,6 +154,7 @@ export const useStrategyWebsocket = () => {
       }
     } else {
       console.warn('WebSocket not open, cannot send message');
+      toast.error('WebSocket not open, cannot send message');
     }
   }, []);
 

@@ -123,6 +123,10 @@ function BuyTaskForm({ onClose, wallets, rpcGroups }: BuyTaskFormProps) {
         <SellStrategies sellStrategies={sellStrategies} setSellStrategies={setSellStrategies} />
       </div>
 
+      {postMutation.isError && (
+        <p className="text-sm text-destructive">{postMutation.error.message}</p>
+      )}
+
       <div className="flex justify-end gap-3 pt-4">
         <Button type="button" variant="outline" onClick={onClose}>
           Cancel
