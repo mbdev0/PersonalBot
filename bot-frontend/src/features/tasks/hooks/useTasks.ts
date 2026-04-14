@@ -33,6 +33,6 @@ export function useTransitionTask() {
   return useMutation({
     mutationFn: ({ id, taskAction }: { id: number; taskAction: TaskAction }) =>
       transitionTask(id, taskAction),
-    onError: (e) => toast.error('Failure to delete task', { description: e.message }),
+    onError: (e) => toast.error('Failure to transition task', { description: e.message }),
   });
 }

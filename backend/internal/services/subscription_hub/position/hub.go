@@ -260,7 +260,6 @@ func (sh *SubscriptionHub) PublishPositionStop(pos *position.Position) error {
 	//when the position is closed
 	sh.mu.Lock()
 	sh.activePositions.Delete(pos.PositionId)
-	// delete(sh.activePositions, pos.PositionId)
 	sh.mu.Unlock()
 
 	sh.publish(pos.PositionId, &message)
