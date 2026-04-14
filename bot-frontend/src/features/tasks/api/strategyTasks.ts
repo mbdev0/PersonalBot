@@ -87,7 +87,7 @@ export async function stopStrategy(id: number) {
   });
 
   if (!response.ok) {
-    throw new Error(`starting task ${id} failed: ${response.status}`);
+    throw new Error(`stopping task ${id} failed: ${response.status}`);
   }
 
   return response.status;

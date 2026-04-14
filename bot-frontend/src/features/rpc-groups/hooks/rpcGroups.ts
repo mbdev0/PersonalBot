@@ -7,6 +7,7 @@ import {
   updateRPCGroup,
 } from '../api/rpcGroups';
 import type { RPCGroupPost, RPCGroupPut } from '../types/rpcGroup';
+import { toast } from 'sonner';
 
 export function useRpcGroupDashboard() {
   return useQuery({
@@ -51,5 +52,6 @@ export function useDeleteRPCGroup() {
       client.invalidateQueries({ queryKey: ['rpcGroupDashboard'] });
       client.removeQueries({ queryKey: ['rpcGroup', id] });
     },
+    onError: (e) => toast.error('Failure to delete RPC Group', { description: e.message }),
   });
 }

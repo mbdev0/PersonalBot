@@ -120,10 +120,12 @@ function WalletUpdate({
       </div>
 
       {!!error && (
-        <div className="error">
-          <h4>Error: {error}</h4>
+        <div className="text-red-700">
+          <Label>Error: {error}</Label>
         </div>
       )}
+
+      {mutation.isError && <p className="text-sm text-destructive">{mutation.error.message}</p>}
 
       <div className="flex justify-end gap-2">
         <Button

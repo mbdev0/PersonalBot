@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { deleteWallet, getWallets, postWallet, updateWallet } from '../api/wallets';
 import type { WalletPost, WalletPut } from '../types/wallet';
+import { toast } from 'sonner';
 
 export function useWallets() {
   return useQuery({
@@ -41,5 +42,6 @@ export function useDeleteWallet() {
     onSuccess() {
       queryClient.invalidateQueries({ queryKey: ['wallets'] });
     },
+    onError: (e) => toast.error('Failure to delete wallet', { description: e.message }),
   });
 }

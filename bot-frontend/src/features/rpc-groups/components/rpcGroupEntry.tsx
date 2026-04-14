@@ -40,6 +40,10 @@ export function RpcGroupEntry({ onCompletion }: RPCGroupEntryProps) {
         </Field>
       </FieldGroup>
 
+      {postRPCGroupMutation.isError && (
+        <p className="text-sm text-destructive">{postRPCGroupMutation.error.message}</p>
+      )}
+
       <div className="space-x-2 flex justify-end">
         <Button
           onClick={() => {

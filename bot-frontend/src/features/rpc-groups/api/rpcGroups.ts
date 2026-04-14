@@ -12,6 +12,11 @@ export async function getRPCDashboard(): Promise<RPCGroupDashboardRow[]> {
     },
   });
 
+  if (!resp.ok) {
+    const text = await resp.text();
+    throw new Error(text || `Request failed (${resp.status})`);
+  }
+
   const data: RPCGroupDashboardRow[] = await resp.json();
   return data;
 }
@@ -28,7 +33,11 @@ export async function postRPCGroup(rpcGroup: RPCGroupPost) {
     },
   });
 
-  // const data = await resp.json();
+  if (!resp.ok) {
+    const text = await resp.text();
+    throw new Error(text || `Request failed (${resp.status})`);
+  }
+
   return resp.status;
 }
 
@@ -43,6 +52,11 @@ export async function updateRPCGroup(rpcGroup: RPCGroupPut) {
       'Content-Type': 'application/json',
     },
   });
+
+  if (!resp.ok) {
+    const text = await resp.text();
+    throw new Error(text || `Request failed (${resp.status})`);
+  }
 
   return resp.status;
 }
@@ -60,6 +74,11 @@ export async function getRPCGroup(id: number) {
     return;
   }
 
+  if (!resp.ok) {
+    const text = await resp.text();
+    throw new Error(text || `Request failed (${resp.status})`);
+  }
+
   const data: RPCGroup = await resp.json();
   return data;
 }
@@ -70,7 +89,9 @@ export async function deleteRPCGroup(id: number) {
   });
 
   if (!resp.ok) {
-    return;
+    const text = await resp.text();
+    throw new Error(text || `Request failed (${resp.status})`);
   }
+
   return resp.status;
 }

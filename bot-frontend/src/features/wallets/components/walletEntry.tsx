@@ -117,6 +117,8 @@ function WalletEntry({ onCompletion }: { onCompletion: () => void }) {
         </div>
       )}
 
+      {mutation.isError && <p className="text-sm text-destructive">{mutation.error.message}</p>}
+
       <div className="space-x-2 flex justify-end">
         <Button
           onClick={() => {
@@ -141,9 +143,6 @@ function WalletEntry({ onCompletion }: { onCompletion: () => void }) {
               {
                 onSuccess: () => {
                   onCompletion();
-                },
-                onError: (error) => {
-                  console.log(error);
                 },
               }
             );

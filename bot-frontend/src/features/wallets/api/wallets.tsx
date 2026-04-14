@@ -30,7 +30,8 @@ export async function updateWallet(wallet: WalletPut): Promise<WalletDto> {
   });
 
   if (!response.ok) {
-    throw new Error(`Failed to update wallet: ${response.json()}`);
+    const text = await response.text();
+    throw new Error(text || `Request failed (${response.status})`);
   }
 
   return response.json();
@@ -51,7 +52,8 @@ export async function postWallet(wallet: WalletPost) {
   });
 
   if (!response.ok) {
-    throw new Error(`Failed to add new wallet: ${response.json()}`);
+    const text = await response.text();
+    throw new Error(text || `Request failed (${response.status})`);
   }
 
   return response.status;
@@ -70,7 +72,8 @@ export async function deleteWallet(id: string) {
   });
 
   if (!response.ok) {
-    throw new Error(`Failed to add new wallet: ${response.json()}`);
+    const text = await response.text();
+    throw new Error(text || `Request failed (${response.status})`);
   }
 
   return response.status;
