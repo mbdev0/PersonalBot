@@ -11,6 +11,12 @@ type PositionController struct {
 	PositionService *position.Service
 }
 
+func NewPositionController(ps *position.Service) PositionController {
+	return PositionController{
+		PositionService: ps,
+	}
+}
+
 func (pc *PositionController) GetAll() []dto.PositionDto {
 	allPositions := pc.PositionService.GetAll()
 
