@@ -14,6 +14,7 @@ var (
 	BuyInstructionDiscriminator      = [8]byte{102, 6, 61, 18, 1, 218, 235, 234}
 	SellInstructionDiscriminator     = [8]byte{51, 230, 133, 164, 1, 127, 131, 173}
 	BondingCurveDiscriminator        = [8]byte{23, 183, 248, 55, 96, 216, 172, 96}
+	TradeEventDiscrimnator           = [8]byte{189, 219, 127, 211, 78, 230, 97, 238}
 )
 
 const (

@@ -6,20 +6,23 @@ import (
 	"personal_bot/api/dto"
 	"personal_bot/api/mapper"
 	"personal_bot/internal/core/wallets"
+	rpcgroups "personal_bot/internal/services/rpc_groups"
 	subscriptionhub "personal_bot/internal/services/subscription_hub"
 	taskservice "personal_bot/internal/services/task_service"
 	"personal_bot/internal/services/wallet"
 )
 
 type TaskController struct {
-	TaskService   *taskservice.TaskService
-	WalletService *wallet.Service
+	TaskService     *taskservice.TaskService
+	WalletService   *wallet.Service
+	RPCGroupService *rpcgroups.Service
 }
 
-func NewTaskController(ts *taskservice.TaskService, walletService *wallet.Service) *TaskController {
+func NewTaskController(ts *taskservice.TaskService, walletService *wallet.Service, rpcGroupService *rpcgroups.Service) *TaskController {
 	return &TaskController{
-		TaskService:   ts,
-		WalletService: walletService,
+		TaskService:     ts,
+		WalletService:   walletService,
+		RPCGroupService: rpcGroupService,
 	}
 }
 
@@ -32,8 +35,18 @@ func (tc *TaskController) CreateTask(ctx context.Context, requestTask dto.Reques
 		return nil, err
 	}
 
+	_, err = tc.RPCGroupService.Load(ctx, requestTask.RPCGroupId)
+	if err != nil {
+		return nil, err
+	}
+
+	rpcGroup, err := tc.RPCGroupService.GetNode(requestTask.RPCGroupId)
+	if err != nil {
+		return nil, err
+	}
+
 	//we should check if the position exists if it occurs in the request task (selling)
-	newTask, err := mapper.MapRequestTaskToTask(&requestTask, wallet)
+	newTask, err := mapper.MapRequestTaskToTask(&requestTask, wallet, rpcGroup)
 	if err != nil {
 		return nil, err
 	}
@@ -115,6 +128,7 @@ func (tc *TaskController) UpdateTask(ctx context.Context, id int64, reqTask dto.
 }
 
 func (tc *TaskController) DeleteTask(id int64) (err error) {
+	//TODO: unload the rpc group on deletion
 	err = tc.TaskService.DeleteTask(id)
 	if err != nil {
 		return err
