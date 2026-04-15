@@ -5,6 +5,7 @@ import (
 	"math/big"
 	"personal_bot/api/dto"
 	"personal_bot/internal/core/constants"
+	rpcgroups "personal_bot/internal/core/rpc_groups"
 	"personal_bot/internal/core/tasks"
 	"personal_bot/internal/core/wallets"
 	"time"
@@ -12,16 +13,16 @@ import (
 	"github.com/gagliardetto/solana-go"
 )
 
-func MapRequestTaskToTask(reqTask *dto.RequestTask, wallet wallets.SolanaWallet) (tasks.ConfigurableTask, error) {
+func MapRequestTaskToTask(reqTask *dto.RequestTask, wallet wallets.SolanaWallet, rpcGroup rpcgroups.GroupItem) (tasks.ConfigurableTask, error) {
 	switch reqTask.Type {
 	case dto.Buy:
-		buyTask, err := createBuyTask(reqTask, wallet)
+		buyTask, err := createBuyTask(reqTask, wallet, rpcGroup)
 		if err != nil {
 			return nil, err
 		}
 		return buyTask, nil
 	case dto.Sell:
-		sellTask, err := createSellTask(reqTask, wallet)
+		sellTask, err := createSellTask(reqTask, wallet, rpcGroup)
 		if err != nil {
 			return nil, err
 		}
@@ -31,7 +32,7 @@ func MapRequestTaskToTask(reqTask *dto.RequestTask, wallet wallets.SolanaWallet)
 	return nil, fmt.Errorf("type of transaction was wrong")
 }
 
-func createBuyTask(req *dto.RequestTask, wallet wallets.SolanaWallet) (task *tasks.BuyTask, err error) {
+func createBuyTask(req *dto.RequestTask, wallet wallets.SolanaWallet, rpcGroup rpcgroups.GroupItem) (task *tasks.BuyTask, err error) {
 	if req.BuyAmount == nil {
 		return nil, fmt.Errorf("buy amount not filled in")
 	}
@@ -52,6 +53,8 @@ func createBuyTask(req *dto.RequestTask, wallet wallets.SolanaWallet) (task *tas
 			tasks.WithComputeUnits(req.ComputeUnits),
 			tasks.WithSlippage(req.Slippage),
 			tasks.WithUnixTime(time.Now().Unix()),
+			tasks.WithHttpNode(rpcGroup.Http),
+			tasks.WithWS(rpcGroup.WS),
 		},
 		[]tasks.BuyOption{
 			tasks.WithBuyAmount(bigBuyAmount),
@@ -62,7 +65,7 @@ func createBuyTask(req *dto.RequestTask, wallet wallets.SolanaWallet) (task *tas
 	return bt, nil
 }
 
-func createSellTask(reqTask *dto.RequestTask, wallet wallets.SolanaWallet) (task *tasks.SellTask, err error) {
+func createSellTask(reqTask *dto.RequestTask, wallet wallets.SolanaWallet, rpcGroup rpcgroups.GroupItem) (task *tasks.SellTask, err error) {
 	if reqTask.SellAmount == nil {
 		return nil, fmt.Errorf("sell amount is empty")
 	}
@@ -91,6 +94,8 @@ func createSellTask(reqTask *dto.RequestTask, wallet wallets.SolanaWallet) (task
 			tasks.WithComputeUnits(reqTask.ComputeUnits),
 			tasks.WithSlippage(reqTask.Slippage),
 			tasks.WithUnixTime(time.Now().Unix()),
+			tasks.WithHttpNode(rpcGroup.Http),
+			tasks.WithWS(rpcGroup.WS),
 		},
 		sellOptions,
 	)

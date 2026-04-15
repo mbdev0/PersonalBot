@@ -10,6 +10,7 @@ import (
 	"personal_bot/internal/services/notifier"
 	"personal_bot/internal/services/position"
 	subscriptionhub "personal_bot/internal/services/subscription_hub"
+	taskservice "personal_bot/internal/services/task_service"
 	"personal_bot/internal/services/trading"
 	transactionModel "personal_bot/internal/services/transaction"
 	"personal_bot/internal/solana/programs/pumpfun/pda"
@@ -22,6 +23,7 @@ type Dependencies struct {
 	PositionService *position.Service
 	Notifier        *notifier.DiscordNotifier
 	TradingService  *trading.Service
+	TaskService     *taskservice.TaskService
 }
 
 func Build(deps *Dependencies) transactionModel.Transitions {
@@ -138,17 +140,10 @@ func notifySell(t *tasks.SellTask, transaction transaction.Transaction, pos *pos
 		logger.Error(err)
 	}
 
-	strategyTask, err := deps.TradingService.GetBy(*t.StrategyId)
-	if err != nil {
-		logger.Error(err)
-		return
-	}
-
 	tokensRemainingRaw, _ := pos.TokenRemaining.Float64()
 	currentProfitRaw, _ := pos.FinalizedProfit.Float64()
 
-	err = deps.Notifier.SendSuccessSell(notifierModel.SellNotifierPayload{
-		TaskType:        string(strategyTask.StrategyType()),
+	payload := notifierModel.SellNotifierPayload{
 		TaskId:          t.Id(),
 		StrategyId:      t.StrategyId,
 		TxHash:          transaction.GetSignature(),
@@ -159,7 +154,21 @@ func notifySell(t *tasks.SellTask, transaction transaction.Transaction, pos *pos
 		WalletAddress:   t.Wallet.PublicKey().String(),
 		TokenAddress:    t.Token.String(),
 		BondingCurve:    bondingCurve,
-	})
+	}
+
+	if t.StrategyId != nil {
+		strategyTask, err := deps.TradingService.GetBy(*t.StrategyId)
+		if err != nil {
+			logger.Error(err)
+			return
+		}
+		payload.TaskType = string(strategyTask.StrategyType())
+	} else {
+		payload.TaskType = "SellTask"
+	}
+
+	err = deps.Notifier.SendSuccessSell(payload)
+
 	if err != nil {
 		logger.Error(err)
 	}
@@ -170,9 +179,20 @@ func notifyError(errorMessage string, deps *Dependencies, task tasks.Task, trans
 		return nil
 	}
 
-	strategy, err := deps.TradingService.GetBy(*task.GetStrategyId())
-	if err != nil {
-		return err
+	var task_type string
+
+	if task.GetStrategyId() != nil {
+		strategy, err := deps.TradingService.GetBy(*task.GetStrategyId())
+		if err != nil {
+			return err
+		}
+		task_type = string(strategy.StrategyType())
+	} else {
+		task, err := deps.TaskService.GetTaskWith(task.Id())
+		if err != nil {
+			return err
+		}
+		task_type = task.Type()
 	}
 
 	bondingCurve, err := pda.GetBondingCurveAddress(task.GetToken())
@@ -181,7 +201,7 @@ func notifyError(errorMessage string, deps *Dependencies, task tasks.Task, trans
 	}
 
 	err = deps.Notifier.SendFailure(notifierModel.ErrorNotifierPayload{
-		TaskType:      string(strategy.StrategyType()),
+		TaskType:      task_type,
 		TaskId:        task.Id(),
 		StrategyId:    task.GetStrategyId(),
 		Error:         errorMessage,

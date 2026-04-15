@@ -120,11 +120,14 @@ func (h *Hub) PublishStateChange(task tasks.Task) {
 	}
 
 	taskEvent := tasks.TaskEvent{
-		TaskId:     task.Id(),
-		StrategyId: *task.GetStrategyId(),
-		State:      wsState,
-		Time:       time.Now().Local().String(),
-		EventType:  tasks.StateUpdate,
+		TaskId:    task.Id(),
+		State:     wsState,
+		Time:      time.Now().Local().String(),
+		EventType: tasks.StateUpdate,
+	}
+
+	if task.GetStrategyId() != nil {
+		taskEvent.StrategyId = *task.GetStrategyId()
 	}
 
 	h.publish(task, taskEvent)
@@ -137,12 +140,15 @@ func (h *Hub) PublishMessage(task tasks.Task, message string) {
 	}
 
 	taskEvent := tasks.TaskEvent{
-		TaskId:     task.Id(),
-		StrategyId: *task.GetStrategyId(),
-		State:      wsState,
-		Time:       time.Now().Local().String(),
-		Message:    message,
-		EventType:  tasks.ProgressMessage,
+		TaskId:    task.Id(),
+		State:     wsState,
+		Time:      time.Now().Local().String(),
+		Message:   message,
+		EventType: tasks.ProgressMessage,
+	}
+
+	if task.GetStrategyId() != nil {
+		taskEvent.StrategyId = *task.GetStrategyId()
 	}
 
 	task.SetMessage(message)
