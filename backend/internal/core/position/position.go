@@ -7,15 +7,19 @@ import (
 )
 
 type Position struct {
-	PositionId          int64
-	TokenAddress        solana.PublicKey
-	WalletAddress       solana.PublicKey
-	InitialTokenAmount  *big.Float
-	TokenRemaining      *big.Float
-	RemainingCostBasis  *big.Float
-	FinalizedProfit     *big.Float
-	InitialSolanaAmount *big.Float
-	EntryPrice          *big.Float
+	PositionId           int64
+	TokenAddress         solana.PublicKey
+	WalletAddress        solana.PublicKey
+	InitialTokenAmount   *big.Float
+	TokenRemaining       *big.Float
+	RemainingCostBasis   *big.Float
+	FinalizedProfit      *big.Float
+	InitialSolanaAmount  *big.Float
+	EntryPrice           *big.Float
+	MarketCapEntry       *big.Float
+	AverageMarketCapExit *big.Float
+	TotalMarketCapExit   *big.Float
+	NumberOfSells        int
 }
 
 // we keep floats as strings to preserve some sort of accuracy
@@ -39,3 +43,12 @@ const (
 	Stopped MessageType = "PositionStopped"
 	Update  MessageType = "PositionUpdate"
 )
+
+type ReportBuyPayload struct {
+	BuyTaskId     int64
+	TokenAddress  solana.PublicKey
+	WalletAddress solana.PublicKey
+	TokenAmount   *big.Float
+	SolSpent      *big.Float
+	MarketCap     *big.Float
+}

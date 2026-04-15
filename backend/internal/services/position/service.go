@@ -35,22 +35,26 @@ func (s *Service) FindPositionIfExists(token solana.PublicKey, walletAddress sol
 	return nil, false
 }
 
-func (s *Service) ReportBuy(ctx context.Context, buytaskid int64, tokenaddress solana.PublicKey, walletAddress solana.PublicKey, tokenAmount *big.Float, solSpent *big.Float) error {
+func (s *Service) ReportBuy(ctx context.Context, buyReportPayload position.ReportBuyPayload) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	entryPrice := new(big.Float).Quo(solSpent, tokenAmount)
+	entryPrice := new(big.Float).Quo(buyReportPayload.SolSpent, buyReportPayload.TokenAmount)
 
 	newPosition := position.Position{
-		PositionId:          buytaskid,
-		TokenAddress:        tokenaddress,
-		WalletAddress:       walletAddress,
-		InitialTokenAmount:  tokenAmount,
-		TokenRemaining:      tokenAmount,
-		RemainingCostBasis:  solSpent,
-		FinalizedProfit:     big.NewFloat(0),
-		InitialSolanaAmount: solSpent,
-		EntryPrice:          entryPrice,
+		PositionId:           buyReportPayload.BuyTaskId,
+		TokenAddress:         buyReportPayload.TokenAddress,
+		WalletAddress:        buyReportPayload.WalletAddress,
+		InitialTokenAmount:   buyReportPayload.TokenAmount,
+		TokenRemaining:       buyReportPayload.TokenAmount,
+		RemainingCostBasis:   buyReportPayload.SolSpent,
+		FinalizedProfit:      big.NewFloat(0),
+		InitialSolanaAmount:  buyReportPayload.SolSpent,
+		EntryPrice:           entryPrice,
+		MarketCapEntry:       buyReportPayload.MarketCap,
+		TotalMarketCapExit:   big.NewFloat(0),
+		NumberOfSells:        0,
+		AverageMarketCapExit: big.NewFloat(0),
 	}
 
 	s.positions[newPosition.PositionId] = &newPosition
@@ -59,7 +63,7 @@ func (s *Service) ReportBuy(ctx context.Context, buytaskid int64, tokenaddress s
 	return s.subhub.PublishPositionCreate(ctx, &newPosition)
 }
 
-func (s *Service) ReportSell(buyTaskId int64, tokensSold *big.Float, solRecieved *big.Float) error {
+func (s *Service) ReportSell(buyTaskId int64, tokensSold *big.Float, solRecieved *big.Float, marketCapSale *big.Float) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -83,7 +87,9 @@ func (s *Service) ReportSell(buyTaskId int64, tokensSold *big.Float, solRecieved
 	pos.RemainingCostBasis = new(big.Float).Sub(pos.RemainingCostBasis, costBasisofSoldTokens)
 	pos.FinalizedProfit = new(big.Float).Add(pos.FinalizedProfit, realizedBasisFromSale)
 	pos.TokenRemaining = new(big.Float).Sub(pos.TokenRemaining, tokensSold)
-
+	pos.NumberOfSells++
+	pos.TotalMarketCapExit = new(big.Float).Add(pos.TotalMarketCapExit, marketCapSale)
+	pos.AverageMarketCapExit = new(big.Float).Quo(pos.TotalMarketCapExit, new(big.Float).SetInt64(int64(pos.NumberOfSells)))
 	//publish sell
 	err := s.subhub.PublishPositionUpdate(pos)
 	if err != nil {

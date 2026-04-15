@@ -21,6 +21,8 @@ func MapPositionToPositionDto(src position.Position) (dest dto.PositionDto) {
 	dest.TokenAddress = src.TokenAddress.String()
 	dest.WalletAddress = src.WalletAddress.String()
 	dest.TokenRemaining = tokensRemaining.Text('f', 9)
+	dest.MarketCapEntry = src.MarketCapEntry.Text('f', 9)
+	dest.AverageMarketCapExit = src.AverageMarketCapExit.Text('f', 9)
 
 	return dest
 }

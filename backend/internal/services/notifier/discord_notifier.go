@@ -130,6 +130,8 @@ func (dn *DiscordNotifier) setupSuccessSellMessage(payload notifier.SellNotifier
 	switch payload.TaskType {
 	case "SELL":
 		title = fmt.Sprintf("[QS] - %s", payload.TokenAddress)
+	case "SellTask":
+		title = fmt.Sprintf("[SELL] - %s", payload.TokenAddress)
 	default:
 		title = fmt.Sprintf("%s %d - Task %s [SELL]", payload.TaskType, *payload.StrategyId, shortAddress(payload.TokenAddress))
 	}

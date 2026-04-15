@@ -10,7 +10,6 @@ import (
 	rpcgroups "personal_bot/internal/core/rpc_groups"
 	"personal_bot/internal/monitoring"
 	"personal_bot/internal/services/settings"
-	bondingcurve "personal_bot/internal/solana/programs/pumpfun/bonding_curve"
 	"personal_bot/internal/solana/programs/pumpfun/pda"
 	datastructures "personal_bot/pkg/data_structures"
 	"personal_bot/pkg/logger"
@@ -203,23 +202,11 @@ func (sh *SubscriptionHub) PublishPositionUpdate(pos *position.Position) error {
 }
 
 func (sh *SubscriptionHub) PublishPositionCreate(ctx context.Context, p *position.Position) error {
-	settings, err := sh.settings.GetSettings(ctx)
-	if err != nil {
-		logger.Error(err)
-	}
-
 	sh.mu.Lock()
 	sh.activePositions.Set(p.PositionId, p)
 	finalizedProfit := new(big.Float).Quo(p.FinalizedProfit, big.NewFloat(constants.LamportsConversion))
 	tokensRemaining := new(big.Float).Quo(p.TokenRemaining, big.NewFloat(constants.TokenAmountDecimals))
-	marketCap, err, hasCompleted := bondingcurve.GetMarketCapFromTokenAddress(ctx, p.TokenAddress, rpc.New(settings.PositionNodes.HTTPNode))
-	if err != nil {
-		if hasCompleted {
-			logger.Information("coin is completed bonding curve")
-		}
-		logger.Error(err)
-	}
-	totalPnl, unrealizedPnl, currentPrice := sh.getProfitValues(p, marketCap)
+	totalPnl, unrealizedPnl, currentPrice := sh.getProfitValues(p, p.MarketCapEntry)
 	sh.mu.Unlock()
 
 	posMessage := position.PositionMessage{
@@ -228,7 +215,7 @@ func (sh *SubscriptionHub) PublishPositionCreate(ctx context.Context, p *positio
 		UnrealizedProfit:    unrealizedPnl,
 		RealizedProfit:      finalizedProfit,
 		RemainingTokens:     tokensRemaining,
-		MarketCap:           marketCap,
+		MarketCap:           p.MarketCapEntry,
 		InitialSolanaAmount: p.InitialSolanaAmount,
 		CurrentPrice:        currentPrice,
 		TotalPnL:            totalPnl,

@@ -1,26 +1,27 @@
 package buy
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"math/big"
 	lookuptable "personal_bot/app/lookup_table"
+	"personal_bot/infrastructure/solana_price"
 	"personal_bot/internal/core/constants"
 	positionmodels "personal_bot/internal/core/position"
 	"personal_bot/internal/core/tasks"
-	"personal_bot/internal/monitoring/decoder"
 	"personal_bot/internal/services/position"
 	subscriptionhub "personal_bot/internal/services/subscription_hub"
 	"personal_bot/internal/solana/client"
 	"personal_bot/internal/solana/instructions"
 	pumpInstructions "personal_bot/internal/solana/programs/pumpfun/instructions"
+	pumpfunmodels "personal_bot/internal/solana/programs/pumpfun/models"
+	transactiondecoder "personal_bot/internal/solana/programs/pumpfun/transaction_decoder"
+
 	wallets "personal_bot/internal/solana/wallet"
 	"personal_bot/pkg/logger"
 
 	"github.com/gagliardetto/solana-go"
 	"github.com/gagliardetto/solana-go/rpc"
-	"github.com/mr-tron/base58/base58"
 )
 
 type Transaction struct {
@@ -150,76 +151,60 @@ func (bt *Transaction) getHttpClient() *rpc.Client {
 }
 
 func (bt *Transaction) UpdatePosition(ctx context.Context, publisher subscriptionhub.Publisher) (tokenAmount, solAmount float64, pos *positionmodels.Position, err error) {
-	tokenAmnt, solAmnt, err := bt.extractTokenAndSolFromTx(ctx, bt.signature)
+	solAmnt, tradeEvent, err := bt.extractTokenAndSolFromTx(ctx, bt.signature)
 	if err != nil {
 		return
 	}
 
-	err = bt.PositionService.ReportBuy(ctx, bt.BuyTask.Id(), bt.BuyTask.Token, bt.BuyTask.Wallet.PublicKey(), new(big.Float).SetFloat64(tokenAmnt), new(big.Float).SetFloat64(solAmnt))
+	solPrice, err := solana_price.GetSolPrice()
 	if err != nil {
 		return
 	}
 
-	return tokenAmnt, solAmnt, nil, nil
+	pricePerToken := (float64(tradeEvent.VirtualSolReserves) / constants.LamportsConversion) /
+		(float64(tradeEvent.VirtualTokenReserves) / constants.TokenAmountDecimals)
+
+	marketCapUSD := new(big.Float).SetFloat64((pricePerToken * 1_000_000_000) * *solPrice)
+
+	payload := positionmodels.ReportBuyPayload{
+		BuyTaskId:     bt.BuyTask.Id(),
+		TokenAddress:  bt.BuyTask.Token,
+		WalletAddress: bt.BuyTask.Wallet.PublicKey(),
+		TokenAmount:   new(big.Float).SetFloat64(float64(tradeEvent.TokenAmount)),
+		SolSpent:      new(big.Float).SetFloat64(solAmnt),
+		MarketCap:     marketCapUSD,
+	}
+
+	err = bt.PositionService.ReportBuy(ctx, payload)
+	if err != nil {
+		return
+	}
+
+	return float64(tradeEvent.TokenAmount), solAmnt, nil, nil
 }
 
-func (bt *Transaction) extractTokenAndSolFromTx(ctx context.Context, signature solana.Signature) (tokenAmount float64, solAmount float64, err error) {
+func (bt *Transaction) extractTokenAndSolFromTx(ctx context.Context, signature solana.Signature) (solAmount float64, tradeEvent pumpfunmodels.TradeEvent, err error) {
 	solClient := bt.getHttpClient()
 	tx, err := solClient.GetParsedTransaction(ctx, signature, &rpc.GetParsedTransactionOpts{Commitment: rpc.CommitmentConfirmed, MaxSupportedTransactionVersion: &rpc.MaxSupportedTransactionVersion0})
 	if err != nil {
-		return tokenAmount, solAmount, err
+		return
 	}
 
 	if tx.Meta.Err != nil {
-		return tokenAmount, solAmount, fmt.Errorf("error in transaction whilst extracting token amount + sol amount")
+		return solAmount, tradeEvent, fmt.Errorf("error in transaction whilst extracting token amount + sol amount")
 	}
 
-	transactionMessage := tx.Transaction.Message
-
-	instructions := transactionMessage.Instructions
-	//extract token amount
-	for _, instruction := range instructions {
-		instructionData, err := base58.Decode(instruction.Data.String())
-		if err != nil {
-			if len(instructionData) == 0 {
-				continue
-			}
-			return tokenAmount, solAmount, err
-		}
-		if len(instructionData) < 8 {
-			continue
-		}
-
-		if !bytes.HasPrefix(instructionData, constants.BuyInstructionDiscriminator[:]) {
-			continue
-		}
-
-		tokenAmountInt, err := decoder.ExtractTokenAmountFromPfInstruction(instructionData)
-		if err != nil {
-			return tokenAmount, solAmount, err
-		}
-
-		tokenAmount = float64(tokenAmountInt)
+	tradeEvent, err = transactiondecoder.GetTradeEvent(tx)
+	if err != nil {
+		return
 	}
 
-	//extract sol amount
-	walletPubkey := bt.BuyTask.Wallet.PublicKey()
-	walletIndex := -1
-
-	for i, account := range transactionMessage.AccountKeys {
-		if account.PublicKey == walletPubkey {
-			walletIndex = i
-		}
+	solAmount, err = transactiondecoder.ExtractTotalSolSpent(tx, bt.BuyTask.Wallet.PublicKey())
+	if err != nil {
+		return
 	}
 
-	if walletIndex == -1 {
-		return tokenAmount, solAmount, fmt.Errorf("could not find user's wallet in account keys")
-	}
-
-	solAmountLamport := tx.Meta.PreBalances[walletIndex] - tx.Meta.PostBalances[walletIndex]
-	solAmount = float64(solAmountLamport)
-
-	return tokenAmount, solAmount, nil
+	return solAmount, tradeEvent, nil
 }
 
 func (bt *Transaction) GetSignature() string {

@@ -29,6 +29,7 @@ type RequestTask struct {
 	SellAmount        *float64        `json:"sell_amount,omitempty"`
 	SellFee           *float64        `json:"sell_fee,omitempty"`
 	SellPositionId    *int64          `json:"sell_position_id,omitempty"`
+	RPCGroupId        int64           `json:"rpc_group_id"`
 }
 
 type ResponseTask struct {
