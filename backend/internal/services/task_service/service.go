@@ -55,7 +55,7 @@ func (ts *TaskService) GetTasksWithStrategyId(id int64) ([]tasks.Task, error) {
 	tasksWithStrategyId := []tasks.Task{}
 
 	for _, v := range ts.tasks {
-		if *v.GetStrategyId() == id {
+		if v.GetStrategyId() != nil && *v.GetStrategyId() == id {
 			tasksWithStrategyId = append(tasksWithStrategyId, v)
 		}
 	}

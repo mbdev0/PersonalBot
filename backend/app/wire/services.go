@@ -57,13 +57,13 @@ func WireServicesAndLaunchServer(db *sql.DB) (*http.Server, ShutdownServices) {
 		PositionService: positionService,
 		Notifier:        discordNotifier,
 	}
-
 	fsmSteps := cryptostates.Build(&deps)
 	executor := transaction.NewExecutor(taskSubhub, positionService, fsmSteps)
 
 	taskRepo := repository.NewTaskRepository(db)
 	taskManager := taskservice.NewTaskManager(taskSubhub, executor)
 	taskService := taskservice.NewTaskService(taskRepo, taskSubhub, taskManager)
+	deps.TaskService = taskService
 
 	tradingStrategy := trading.NewTradingStrategy(taskService, posSubhub, positionService, strategySubHub, taskSubhub, rpcGroupService)
 	tradingTaskRepo := repository.NewTradingRepository(db)
@@ -75,7 +75,7 @@ func WireServicesAndLaunchServer(db *sql.DB) (*http.Server, ShutdownServices) {
 
 	walletController := controller.NewWalletController(walletService)
 	tradingController := controller.NewStrategyController(tradingService, walletService, rpcGroupService)
-	taskController := controller.NewTaskController(taskService, walletService)
+	taskController := controller.NewTaskController(taskService, walletService, rpcGroupService)
 	positionController := controller.NewPositionController(positionService)
 
 	tradingHandler := http.StripPrefix("/api/trading", handler.NewTradingHandler(tradingController))
