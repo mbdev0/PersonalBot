@@ -19,5 +19,5 @@ type PositionDashboardRow struct {
 	AverageMarketCapEntry string `json:"average_market_cap_entry"`
 	AverageMarketCapExit  string `json:"average_market_cap_exit"`
 	Coin                  string `json:"coin"`
-	BondingCurve          string `json:"bonding_curve"`
+	AddressForUrl         string `json:"address_for_url"`
 }

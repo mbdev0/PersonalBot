@@ -77,18 +77,13 @@ func MapPositionsToDashboard(src []position.Position) dto.PositionDashboard {
 			Coin:                  coin,
 		}
 
+		if len(posGroup) > 0 {
+			posRow.AddressForUrl = posGroup[0].AddressForUrl
+		}
+
 		resp = append(resp, posRow)
 
 	}
 
 	return resp
-}
-
-func MapPositionDtoToDashboardRow(src dto.PositionDto) dto.PositionDashboardRow {
-	return dto.PositionDashboardRow{
-		TotalPNL:              src.FinalizedProfit,
-		Coin:                  src.TokenAddress,
-		AverageMarketCapEntry: src.MarketCapEntry,
-		AverageMarketCapExit:  src.AverageMarketCapExit,
-	}
 }

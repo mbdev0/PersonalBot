@@ -16,6 +16,7 @@ import (
 	bondingcurve "personal_bot/internal/solana/programs/pumpfun/bonding_curve"
 	pumpInstructions "personal_bot/internal/solana/programs/pumpfun/instructions"
 	pumpmodels "personal_bot/internal/solana/programs/pumpfun/models"
+	"personal_bot/internal/solana/programs/pumpfun/pda"
 	transactiondecoder "personal_bot/internal/solana/programs/pumpfun/transaction_decoder"
 
 	wallets "personal_bot/internal/solana/wallet"
@@ -255,6 +256,11 @@ func (st *Transaction) getAllInstructionsForSell(ctx context.Context, sellTask *
 			return nil, err
 		}
 
+		bondingCurve, err := pda.GetBondingCurveAddress(st.Task.GetToken())
+		if err != nil {
+			return nil, err
+		}
+
 		payload := positionmodel.ReportBuyPayload{
 			BuyTaskId:     st.Task.Id(),
 			TokenAddress:  st.Task.Token,
@@ -262,6 +268,7 @@ func (st *Transaction) getAllInstructionsForSell(ctx context.Context, sellTask *
 			TokenAmount:   tokenAmountBig,
 			SolSpent:      new(big.Float).SetFloat64(0),
 			MarketCap:     marketCap,
+			AddressForUrl: bondingCurve,
 		}
 
 		err = st.PositionService.ReportBuy(ctx, payload)
