@@ -26,3 +26,62 @@ func MapPositionToPositionDto(src position.Position) (dest dto.PositionDto) {
 
 	return dest
 }
+
+func MapPositionsToDashboard(src []position.Position) dto.PositionDashboard {
+	//first we group
+	grouped := map[string][]position.Position{}
+	for _, pos := range src {
+		key := pos.TokenAddress.String()
+		grouped[key] = append(grouped[key], pos)
+	}
+
+	//then we loop through the values
+	//make rows for each loop through the values
+	resp := dto.PositionDashboard{}
+	for coin, posGroup := range grouped {
+		totalMarketCapEntry := big.NewFloat(0)
+		totalMarketCapExit := big.NewFloat(0)
+		totalFinalizedProfit := big.NewFloat(0)
+		validMarketCapEntry := 0
+		validMarketCapExit := 0
+
+		for _, pos := range posGroup {
+			//if greater than 0
+			if pos.AverageMarketCapExit.Cmp(big.NewFloat(0)) == 1 {
+				validMarketCapExit++
+			}
+
+			if pos.MarketCapEntry.Cmp(big.NewFloat(0)) == 1 {
+				validMarketCapEntry++
+			}
+			totalMarketCapEntry.Add(totalMarketCapEntry, pos.MarketCapEntry)
+			totalMarketCapExit.Add(totalMarketCapExit, pos.AverageMarketCapExit)
+			totalFinalizedProfit.Add(totalFinalizedProfit, pos.FinalizedProfit)
+		}
+
+		averageMarketCapEntry := new(big.Float).Quo(totalMarketCapEntry, big.NewFloat(float64(validMarketCapEntry)))
+		averageMarketCapExit := new(big.Float).Quo(totalMarketCapExit, big.NewFloat(float64(validMarketCapExit)))
+		finalizedProfit := new(big.Float).Quo(totalFinalizedProfit, big.NewFloat(constants.LamportsConversion))
+
+		posRow := dto.PositionDashboardRow{
+			TotalPNL:              finalizedProfit.Text('f', 9),
+			AverageMarketCapEntry: averageMarketCapEntry.Text('f', 9),
+			AverageMarketCapExit:  averageMarketCapExit.Text('f', 9),
+			Coin:                  coin,
+		}
+
+		resp = append(resp, posRow)
+
+	}
+
+	return resp
+}
+
+func MapPositionDtoToDashboardRow(src dto.PositionDto) dto.PositionDashboardRow {
+	return dto.PositionDashboardRow{
+		TotalPNL:              src.FinalizedProfit,
+		Coin:                  src.TokenAddress,
+		AverageMarketCapEntry: src.MarketCapEntry,
+		AverageMarketCapExit:  src.AverageMarketCapExit,
+	}
+}

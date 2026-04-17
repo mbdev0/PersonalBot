@@ -79,8 +79,11 @@ func Build(deps *Dependencies) transactionModel.Transitions {
 			Fn: func(ctx context.Context, t transaction.Transaction) error {
 				return withNotify(ctx, deps, func() error {
 					tokenAmount, solAmount, pos, err := t.UpdatePosition(ctx, deps.Publisher)
+					if err != nil {
+						return err
+					}
 					notifyCompletion(t.GetTask(), t, tokenAmount, solAmount, pos, deps)
-					return err
+					return nil
 				}, t.GetTask(), t)
 			},
 		},
@@ -138,6 +141,11 @@ func notifySell(t *tasks.SellTask, transaction transaction.Transaction, pos *pos
 	bondingCurve, err := pda.GetBondingCurveAddress(t.Token.String())
 	if err != nil {
 		logger.Error(err)
+	}
+
+	if pos.TokenRemaining == nil {
+		logger.Information("tokens remaning is nil")
+		logger.Information(*pos)
 	}
 
 	tokensRemainingRaw, _ := pos.TokenRemaining.Float64()

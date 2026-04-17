@@ -16,6 +16,7 @@ func ExtractTotalSolSpent(tx *rpc.GetParsedTransactionResult, wallet solana.Publ
 	for i, account := range transactionMessage.AccountKeys {
 		if account.PublicKey == wallet {
 			walletIndex = i
+			break
 		}
 	}
 
@@ -23,6 +24,6 @@ func ExtractTotalSolSpent(tx *rpc.GetParsedTransactionResult, wallet solana.Publ
 		return 0, fmt.Errorf("could not find user's wallet in account keys")
 	}
 
-	solAmountLamport := tx.Meta.PreBalances[walletIndex] - tx.Meta.PostBalances[walletIndex]
+	solAmountLamport := int64(tx.Meta.PostBalances[walletIndex]) - int64(tx.Meta.PreBalances[walletIndex])
 	return float64(solAmountLamport), nil
 }
