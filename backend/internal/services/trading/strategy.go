@@ -97,19 +97,16 @@ func (s *Strategy) syncStateAndMessage(ctx context.Context, taskId int64, strate
 		logger.Error(err)
 		return err
 	}
-	logger.Information("subscribed to task successfully")
 	defer s.taskHub.Unsubcribe(task)
 
 	for {
 		select {
 		case <-ctx.Done():
-			logger.Information("strategy task stopped")
 			strategyTask.SetStrategyState(string(strategies.CANCELLED))
 			s.strategyHub.PublishStateUpdate(strategyTask.StrategyTaskId(), strategyTask.StrategyState())
 			return ctx.Err()
 		case msg, ok := <-sub.Chan():
 			if !ok {
-				logger.Information("sub chan closed")
 				return nil
 			}
 			s.processMessage(msg, strategyTask)

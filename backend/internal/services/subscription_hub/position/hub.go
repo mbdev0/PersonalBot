@@ -97,7 +97,6 @@ func (sh *SubscriptionHub) Subscribe(positionId int64, isInternalSub bool, rpcGr
 		for mcap := range marketCapChan {
 			positionMessage := sh.generatePositionMessage(pos, mcap)
 			positionMessage.MessageType = position.Update
-			fmt.Println(positionMessage)
 			//publish the profit, mcap, position
 			sh.publish(s.sub_id, &positionMessage)
 		}

@@ -55,7 +55,6 @@ func marketCapMonitor(ctx context.Context, bondingCurveAddress string, marketCap
 		return
 	}
 
-	logger.Information("Initial market cap: ", marketCapInit.String())
 	marketCapChan <- marketCapInit
 
 	accountInfoChan := make(chan response.AccountSubscribeModel, 20)

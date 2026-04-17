@@ -24,11 +24,9 @@ func decodeCreateInstruction(data []byte) (*models.DecodedCreateInstruction, err
 
 	if isCreateV1 {
 		decoded, err := parseDecodedInstructionV1(data[8:])
-		logger.Information("in v1")
 		return decoded, err
 	} else if isCreateV2 {
 		decoded, err := parseDecodedInstructionV2(data[8:])
-		logger.Information("in v2")
 		return decoded, err
 	} else {
 		return nil, fmt.Errorf("error whilst parsing data for create: %v", data)
@@ -38,7 +36,6 @@ func decodeCreateInstruction(data []byte) (*models.DecodedCreateInstruction, err
 
 func parseDecodedInstructionV1(data []byte) (*models.DecodedCreateInstruction, error) {
 	v1 := new(models.DecodedCreateInstructionV1)
-	logger.Information(data)
 	err := borsh.Deserialize(v1, data)
 	logger.Error(err)
 	if err != nil {
@@ -54,7 +51,6 @@ func parseDecodedInstructionV1(data []byte) (*models.DecodedCreateInstruction, e
 
 func parseDecodedInstructionV2(data []byte) (*models.DecodedCreateInstruction, error) {
 	v2 := new(models.DecodedCreateInstructionV2)
-	logger.Information(data)
 	err := borsh.Deserialize(v2, data)
 	if err != nil {
 		logger.Error("v2: ", err)

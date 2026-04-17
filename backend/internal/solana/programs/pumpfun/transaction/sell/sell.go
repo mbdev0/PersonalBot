@@ -108,7 +108,6 @@ func (st *Transaction) SendTransaction(ctx context.Context, publisher subscripti
 		publisher.PublishMessage(st.Task, "failure whilst sending transaction")
 		return err
 	}
-	fmt.Println(txResp.String())
 
 	// SEND TRANSACTION WITH NO OPTS
 	// txResp, err := rpcClient.SendTransaction(ctx, st.transaction)
@@ -153,6 +152,7 @@ func (st *Transaction) UpdatePosition(ctx context.Context, publisher subscriptio
 	}
 
 	tokenAmount = float64(tradeEvent.TokenAmount)
+	logger.Information("token amount: ", tokenAmount)
 
 	solPrice, err := solana_price.GetSolPrice()
 	if err != nil {

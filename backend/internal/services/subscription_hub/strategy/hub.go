@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"personal_bot/internal/core/strategies"
 	"personal_bot/internal/core/tasks"
-	"personal_bot/pkg/logger"
 	"sync"
 )
 
@@ -81,8 +80,6 @@ func (sh *SubscriptionHub) PublishTakeCreation(id int64, task tasks.Task) {
 		Event: strategies.TaskCreation,
 		Task:  task,
 	}
-
-	logger.Information("publishing task creation")
 
 	sh.last[id] = msg
 

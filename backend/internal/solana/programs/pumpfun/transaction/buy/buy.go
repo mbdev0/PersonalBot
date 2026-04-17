@@ -106,7 +106,6 @@ func (bt *Transaction) SendTransaction(ctx context.Context, publisher subscripti
 		logger.Error(err)
 		return err
 	}
-	fmt.Println(txResp.String())
 
 	// SEND TRANSACTION WITH NO OPTS
 	// fmt.Println(bt.transaction.String())
@@ -204,7 +203,7 @@ func (bt *Transaction) extractTokenAndSolFromTx(ctx context.Context, signature s
 		return
 	}
 
-	return solAmount, tradeEvent, nil
+	return -solAmount, tradeEvent, nil
 }
 
 func (bt *Transaction) GetSignature() string {

@@ -45,7 +45,6 @@ func (rgh *RPCGroupHandler) GetRPCGroupDashboard(w http.ResponseWriter, r *http.
 }
 
 func (rgh *RPCGroupHandler) PostRPCGroup(w http.ResponseWriter, r *http.Request) {
-	logger.Information("in post")
 	decoder := json.NewDecoder(r.Body)
 	decoder.DisallowUnknownFields()
 

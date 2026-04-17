@@ -7,7 +7,6 @@ import (
 	"personal_bot/infrastructure/persistence/models"
 	"personal_bot/internal/core/tasks"
 	"personal_bot/internal/solana/utils"
-	"personal_bot/pkg/logger"
 
 	"github.com/gagliardetto/solana-go"
 )
@@ -51,9 +50,6 @@ func createBuyTask(src models.TaskRow, wallet models.WalletRepository) (*tasks.B
 	buyAmnt := new(big.Int).SetInt64(int64(buyConfig.BuyAmount))
 	buyFeeLamport := new(big.Int).SetInt64(int64(buyConfig.BuyFee))
 	buyFee := utils.ConvertLamportToSol(buyFeeLamport)
-
-	logger.Information(buyFeeLamport)
-	logger.Information(buyFee)
 
 	buyOpts := []tasks.BuyOption{
 		tasks.WithBuyAmount(buyAmnt),

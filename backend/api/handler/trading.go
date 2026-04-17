@@ -219,7 +219,6 @@ func (th *TradingHandler) subscribe(w http.ResponseWriter, r *http.Request) {
 	c, err := websocket.Accept(w, r, opts)
 
 	if err != nil {
-		fmt.Println(err)
 		http.Error(w, "error whilst trying to transition to WS", http.StatusInternalServerError)
 		return
 	}
@@ -276,7 +275,6 @@ func (th *TradingHandler) subscribe(w http.ResponseWriter, r *http.Request) {
 			}
 			return
 		}
-		fmt.Println(msg)
 
 		switch msg.Type {
 		case dto.Subscribe:
