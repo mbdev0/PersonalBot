@@ -2,7 +2,6 @@ package solana_price
 
 import (
 	"encoding/json"
-	"fmt"
 	"personal_bot/infrastructure/http"
 	"personal_bot/internal/core/constants"
 	"personal_bot/pkg/logger"
@@ -53,7 +52,7 @@ func fetchSolPriceFromEndpoint() (*float64, error) {
 		logger.Error("error whilst getting solana price")
 	}
 
-	logger.Information(fmt.Sprintf("SOLANA PRICE: %f", price))
+	// logger.Information(fmt.Sprintf("SOLANA PRICE: %f", price))
 
 	return &price, nil
 }

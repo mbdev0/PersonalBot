@@ -7,7 +7,6 @@ import (
 	"personal_bot/infrastructure/persistence/repository"
 	"personal_bot/internal/core/tasks"
 	subscriptionhub "personal_bot/internal/services/subscription_hub"
-	"personal_bot/pkg/logger"
 	"sync"
 	"time"
 )
@@ -157,8 +156,6 @@ func (ts *TaskService) LoadFromDB(ctx context.Context) error {
 
 	maxId := ts.repo.GetMaxId(ctx)
 	ts.iter.SetIterable(maxId)
-
-	logger.Information(tasksFromDb)
 
 	for _, tdb := range tasksFromDb {
 		ts.tasks[tdb.Id()] = tdb

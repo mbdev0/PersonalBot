@@ -7,7 +7,6 @@ import (
 	"personal_bot/infrastructure/persistence/mapper"
 	"personal_bot/infrastructure/persistence/models"
 	rpcgroups "personal_bot/internal/core/rpc_groups"
-	"personal_bot/pkg/logger"
 )
 
 type RPCGroup struct {
@@ -80,8 +79,6 @@ func (rg *RPCGroup) Add(ctx context.Context, rpcGroup rpcgroups.RPCGroupPost) (r
 	if err != nil {
 		return rpcgroups.RPCGroup{}, fmt.Errorf("error whilst getting last insert id: %d", lastInsertId)
 	}
-
-	logger.Information(lastInsertId)
 
 	latestAddedRpcGroup, err := rg.GetById(ctx, lastInsertId)
 	if err != nil {
