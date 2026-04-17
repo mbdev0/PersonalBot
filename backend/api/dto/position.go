@@ -15,8 +15,9 @@ type PositionDto struct {
 type PositionDashboard []PositionDashboardRow
 
 type PositionDashboardRow struct {
-	TotalPNL              string //we can get
-	AverageMarketCapEntry string //we can get 
-	AverageMarketCapExit  string //we can get
-	Coin                  string //we can get
+	TotalPNL              string `json:"total_pnl"`
+	AverageMarketCapEntry string `json:"average_market_cap_entry"`
+	AverageMarketCapExit  string `json:"average_market_cap_exit"`
+	Coin                  string `json:"coin"`
+	BondingCurve          string `json:"bonding_curve"`
 }
