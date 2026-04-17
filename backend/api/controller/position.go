@@ -17,6 +17,10 @@ func NewPositionController(ps *position.Service) PositionController {
 	}
 }
 
+func (pc *PositionController) GetDashboard() dto.PositionDashboard {
+	return mapper.MapPositionsToDashboard(pc.PositionService.GetAll())
+}
+
 func (pc *PositionController) GetAll() []dto.PositionDto {
 	allPositions := pc.PositionService.GetAll()
 

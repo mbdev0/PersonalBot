@@ -32,6 +32,17 @@ func (ph *PositionHandler) registerRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /position/{id}", ph.getPositionById)
 	mux.HandleFunc("GET /positions", ph.getPositions)
 	mux.HandleFunc("/subscribe", ph.subscribe)
+	mux.HandleFunc("GET /dashboard", ph.positionDashboard)
+}
+
+func (ph *PositionHandler) positionDashboard(w http.ResponseWriter, r *http.Request) {
+	dashboard := ph.controller.GetDashboard()
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	err := json.NewEncoder(w).Encode(dashboard)
+	if err != nil {
+		logger.Error(err)
+	}
 }
 
 func (ph *PositionHandler) getPositionById(w http.ResponseWriter, r *http.Request) {
@@ -88,7 +99,6 @@ func (ph *PositionHandler) subscribe(w http.ResponseWriter, r *http.Request) {
 	c, err := websocket.Accept(w, r, nil)
 
 	if err != nil {
-		fmt.Println(err)
 		http.Error(w, "error whilst trying to transition to WS", http.StatusInternalServerError)
 		return
 	}
@@ -125,7 +135,6 @@ func (ph *PositionHandler) subscribe(w http.ResponseWriter, r *http.Request) {
 			ph.handleError(ctx, err, resp, c)
 			return
 		}
-		fmt.Println(msg)
 
 		switch msg.Type {
 		case dto.Subscribe:
