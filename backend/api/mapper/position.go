@@ -59,14 +59,21 @@ func MapPositionsToDashboard(src []position.Position) dto.PositionDashboard {
 			totalFinalizedProfit.Add(totalFinalizedProfit, pos.FinalizedProfit)
 		}
 
+		if validMarketCapEntry == 0 {
+			validMarketCapEntry = 1
+		}
+		if validMarketCapExit == 0 {
+			validMarketCapExit = 1
+		}
+
 		averageMarketCapEntry := new(big.Float).Quo(totalMarketCapEntry, big.NewFloat(float64(validMarketCapEntry)))
 		averageMarketCapExit := new(big.Float).Quo(totalMarketCapExit, big.NewFloat(float64(validMarketCapExit)))
 		finalizedProfit := new(big.Float).Quo(totalFinalizedProfit, big.NewFloat(constants.LamportsConversion))
 
 		posRow := dto.PositionDashboardRow{
-			TotalPNL:              finalizedProfit.Text('f', 9),
-			AverageMarketCapEntry: averageMarketCapEntry.Text('f', 9),
-			AverageMarketCapExit:  averageMarketCapExit.Text('f', 9),
+			TotalPNL:              finalizedProfit.Text('f', 2),
+			AverageMarketCapEntry: averageMarketCapEntry.Text('f', 2),
+			AverageMarketCapExit:  averageMarketCapExit.Text('f', 2),
 			Coin:                  coin,
 		}
 
