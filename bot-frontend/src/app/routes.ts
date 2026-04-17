@@ -1,3 +1,4 @@
+import { PositionDashboard } from '@/features/positions/components/positionDashboard';
 import { RPCGroupDashboard } from '@/features/rpc-groups/components/rpcGroupsDashboard';
 import { SettingsDashboard } from '@/features/settings/components/settingsDashboard';
 import { TaskDashboard } from '@/features/tasks/components/taskDashboard';
@@ -39,7 +40,7 @@ export const RouteData: Record<string, RouteConfig> = {
   '/positions': {
     title: 'Positions',
     icon: ChartLine,
-    element: RPCGroupDashboard,
+    element: PositionDashboard,
     nav: 'main',
   },
 };

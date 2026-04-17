@@ -1,5 +1,6 @@
 import { API_BASE } from '@/config/urls';
 import type { Market } from '@/types/market';
+import { toast } from 'sonner';
 
 export async function GetSolanaPrice() {
   const url = API_BASE + '/market/sol-price';
@@ -7,7 +8,8 @@ export async function GetSolanaPrice() {
 
   if (!resp.ok) {
     const text = await resp.text();
-    throw new Error(text || `Request failed (${resp.status})`);
+    toast.error(text || `Request failed (${resp.status})`);
+    return;
   }
 
   const data: Market = await resp.json();
