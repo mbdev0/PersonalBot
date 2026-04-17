@@ -15,6 +15,7 @@ import (
 	"personal_bot/internal/solana/instructions"
 	pumpInstructions "personal_bot/internal/solana/programs/pumpfun/instructions"
 	pumpfunmodels "personal_bot/internal/solana/programs/pumpfun/models"
+	"personal_bot/internal/solana/programs/pumpfun/pda"
 	transactiondecoder "personal_bot/internal/solana/programs/pumpfun/transaction_decoder"
 
 	wallets "personal_bot/internal/solana/wallet"
@@ -165,6 +166,11 @@ func (bt *Transaction) UpdatePosition(ctx context.Context, publisher subscriptio
 
 	marketCapUSD := new(big.Float).SetFloat64((pricePerToken * 1_000_000_000) * *solPrice)
 
+	bondingCurve, err := pda.GetBondingCurveAddress(bt.BuyTask.GetToken())
+	if err != nil {
+		return
+	}
+
 	payload := positionmodels.ReportBuyPayload{
 		BuyTaskId:     bt.BuyTask.Id(),
 		TokenAddress:  bt.BuyTask.Token,
@@ -172,6 +178,7 @@ func (bt *Transaction) UpdatePosition(ctx context.Context, publisher subscriptio
 		TokenAmount:   new(big.Float).SetFloat64(float64(tradeEvent.TokenAmount)),
 		SolSpent:      new(big.Float).SetFloat64(solAmnt),
 		MarketCap:     marketCapUSD,
+		AddressForUrl: bondingCurve,
 	}
 
 	err = bt.PositionService.ReportBuy(ctx, payload)

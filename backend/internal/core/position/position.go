@@ -20,6 +20,7 @@ type Position struct {
 	AverageMarketCapExit *big.Float
 	TotalMarketCapExit   *big.Float
 	NumberOfSells        int
+	AddressForUrl        string
 }
 
 // we keep floats as strings to preserve some sort of accuracy
@@ -51,4 +52,5 @@ type ReportBuyPayload struct {
 	TokenAmount   *big.Float
 	SolSpent      *big.Float
 	MarketCap     *big.Float
+	AddressForUrl string
 }
