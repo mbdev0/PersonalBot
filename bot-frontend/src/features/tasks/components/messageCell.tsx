@@ -29,7 +29,7 @@ export function MessageCell({ message }: { message: string }) {
 
   return (
     <div
-      title={message} // native tooltip, zero overhead
+      title={message}
       className="font-mono text-[11px] bg-foreground/5 border border-foreground/10 
                  rounded px-2 py-1 truncate cursor-default "
     >

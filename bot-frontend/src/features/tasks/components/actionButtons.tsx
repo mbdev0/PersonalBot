@@ -1,13 +1,16 @@
 import type { RowActions } from '../types/rowActions';
 import { type DisplayRow } from '../types/tableRows';
 import { StrategyTaskState } from '../types/strategies/strategyTask';
-import { Play, Square, Pencil, Trash2, Copy } from 'lucide-react';
+import { Play, Square, Pencil, Trash2, Copy, ExternalLink } from 'lucide-react';
 import { isFailure } from '../types/taskState';
 
 interface ActionButtonProps {
   row: DisplayRow;
   rowActions: RowActions;
 }
+
+const TX_HASH_REGEX = /[1-9A-HJ-NP-Za-km-z]{87,88}/g;
+const SOLSCAN_TX_URL = 'https://solscan.io/tx/';
 
 export function ActionButtons({ row, rowActions }: ActionButtonProps) {
   const isDone = row.state === 'Done' || row.state === StrategyTaskState.success;
@@ -22,6 +25,13 @@ export function ActionButtons({ row, rowActions }: ActionButtonProps) {
     !isFailed &&
     row.state != StrategyTaskState.create &&
     row.state != StrategyTaskState.cancelled;
+
+  const solscanLink = (r: DisplayRow) => {
+    for (const match of r.ws_message.matchAll(TX_HASH_REGEX)) {
+      return SOLSCAN_TX_URL + match;
+    }
+    return '';
+  };
 
   return (
     <div className="flex gap-1.5">
@@ -55,6 +65,15 @@ export function ActionButtons({ row, rowActions }: ActionButtonProps) {
       >
         <Copy className="action-icon" />
       </button>
+
+      {isDone && solscanLink(row) && (
+        <button
+          className="link action-button-link"
+          onClick={() => window.open(solscanLink(row), '_blank', 'noopener,noreferrer')}
+        >
+          <ExternalLink className="action-icon" />
+        </button>
+      )}
     </div>
   );
 }
