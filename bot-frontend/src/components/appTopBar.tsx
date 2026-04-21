@@ -4,17 +4,11 @@ import { useSolanaPrice } from '@/hooks/useMarket';
 import type { Market } from '@/types/market';
 import { useContext } from 'react';
 import { WebSocketContext } from '@/context/websocketContext';
-import { toast } from 'sonner';
 import { PAGE_LABELS } from '@/app/routes';
 
 export function TopBar() {
   const { pathname } = useLocation();
-  const { data, isError, error } = useSolanaPrice();
-
-  if (isError) {
-    toast.error(`failure to get solana price`, { description: error.message });
-    return;
-  }
+  const { data } = useSolanaPrice();
 
   return (
     <header className="relative flex h-12 items-center px-4 border-b-2 border-foreground/5">
