@@ -14,12 +14,14 @@ import {
 import { mapTaskDtoToTask } from '../mapper/taskMapper';
 import { STRATEGY_WS } from '@/config/urls';
 import { toast } from 'sonner';
+import { usePositionWebsocket } from './usePositionWebsocket';
 
 export const useStrategyWebsocket = () => {
   const client = useQueryClient();
   const websocket = useRef<WebSocket | undefined>(undefined);
   const subscribedTasks = useRef<Set<number>>(new Set<number>());
   const [isWebsocketOpen, setWebsocketStatus] = useState(false);
+  const { sendPositionWsMessage } = usePositionWebsocket();
 
   useEffect(() => {
     const ws = new WebSocket(STRATEGY_WS);
@@ -110,6 +112,22 @@ export const useStrategyWebsocket = () => {
             ...oldData.rows.slice(strategyTaskIdx + 1),
           ];
 
+          if (
+            updatedStrategyTask.data.trading_type === 'BUY' &&
+            updatedStrategyTask.state === 'Done'
+          ) {
+            updatedStrategyTask.tx_message = updatedStrategyTask.ws_message;
+            sendPositionWsMessage({ id: updatedStrategyTask.data.buy_task_id, type: 'Subscribe' });
+          }
+
+          if (
+            updatedStrategyTask.data.trading_type === 'SELL' &&
+            updatedStrategyTask.state === 'Done'
+          ) {
+            updatedStrategyTask.tx_message = updatedStrategyTask.ws_message;
+            sendPositionWsMessage({ id: updatedStrategyTask.data.sell_task_id, type: 'Subscribe' });
+          }
+
           return {
             ...oldData,
             rows: updatedDashboardRows,
@@ -137,7 +155,7 @@ export const useStrategyWebsocket = () => {
         ws.close(1000, 'Component unmounting');
       }
     };
-  }, [client]);
+  }, [client, sendPositionWsMessage]);
 
   const sendStrategyWSMessage = useCallback((msg: StrategySendWSMessage) => {
     if (msg.type === 'Subscribe' && subscribedTasks.current.has(msg.id)) {

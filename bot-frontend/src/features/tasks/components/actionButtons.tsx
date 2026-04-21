@@ -27,7 +27,8 @@ export function ActionButtons({ row, rowActions }: ActionButtonProps) {
     row.state != StrategyTaskState.cancelled;
 
   const solscanLink = (r: DisplayRow) => {
-    for (const match of r.ws_message.matchAll(TX_HASH_REGEX)) {
+    const source = r.tx_message ?? r.ws_message;
+    for (const match of source.matchAll(TX_HASH_REGEX)) {
       return SOLSCAN_TX_URL + match;
     }
     return '';
