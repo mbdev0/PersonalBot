@@ -30,6 +30,7 @@ interface BaseDashboardRow {
   type: string;
   id: number;
   ws_message: string;
+  tx_message? : string
   state: string;
 }
 

@@ -10,6 +10,7 @@ import type { StrategyTaskPost } from '../types/strategies/strategyTaskPost';
 import type { StrategyTaskPut } from '../types/strategies/strategyTaskPut';
 import { useStrategyWebsocketSend } from '@/hooks/useWebsocketSend';
 import { toast } from 'sonner';
+import type { Dashboard } from '../types/dashboard';
 
 export function useAddStrategy() {
   const client = useQueryClient();
@@ -43,8 +44,11 @@ export function useDeleteStrategy() {
 
   return useMutation({
     mutationFn: (id: number) => deleteStrategy(id),
-    onSuccess() {
-      client.invalidateQueries({ queryKey: ['dashboard'] });
+    onSuccess(_, id) {
+      client.setQueryData(['dashboard'], (old: Dashboard | undefined) => {
+        if (!old) return old;
+        return { ...old, rows: old.rows.filter((row) => row.id !== id) };
+      });
     },
     onError: (e) => {
       toast.error(`Failure to delete strategy task: ${e.message}`);

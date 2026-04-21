@@ -11,6 +11,7 @@ interface StrategyRow {
   type: TaskRowType.Strategy;
   state: string;
   ws_message: string;
+  tx_message?: string;
   data: StrategyTask;
   subRows: TaskRow[];
 }
@@ -20,6 +21,7 @@ interface TaskRow {
   type: TaskRowType.Task;
   state: string;
   ws_message: string;
+  tx_message?: string;
   data: Task;
   strategyId?: number;
   subRows?: never;
