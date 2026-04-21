@@ -19,7 +19,7 @@ import (
 )
 
 type Subscription struct {
-	sub_id         int64
+	Sub_id         int64
 	SubChan        chan position.PositionMessage
 	cancel         func()
 	cancelCtx      context.CancelFunc
@@ -57,7 +57,7 @@ func (sh *SubscriptionHub) Subscribe(positionId int64, isInternalSub bool, rpcGr
 	ctx, cancel := context.WithCancel(context.Background())
 
 	sub := &Subscription{
-		sub_id:    positionId,
+		Sub_id:    positionId,
 		SubChan:   make(chan position.PositionMessage, sh.bufferSize),
 		cancel:    sh.cancel(positionId),
 		cancelCtx: cancel,
@@ -98,7 +98,7 @@ func (sh *SubscriptionHub) Subscribe(positionId int64, isInternalSub bool, rpcGr
 			positionMessage := sh.generatePositionMessage(pos, mcap)
 			positionMessage.MessageType = position.Update
 			//publish the profit, mcap, position
-			sh.publish(s.sub_id, &positionMessage)
+			sh.publish(s.Sub_id, &positionMessage)
 		}
 	}(ctx, sub, p)
 
@@ -106,7 +106,7 @@ func (sh *SubscriptionHub) Subscribe(positionId int64, isInternalSub bool, rpcGr
 		select {
 		case sub.SubChan <- *last:
 		default:
-			logger.Error("not able to push message onto channel - id: ", sub.sub_id)
+			logger.Error("not able to push message onto channel - id: ", sub.Sub_id)
 		}
 	}
 
@@ -133,8 +133,8 @@ func (sh *SubscriptionHub) resolveRPCNode(c context.Context, rpcGroup *rpcgroups
 func (sh *SubscriptionHub) cancel(positionId int64) func() {
 	return func() {
 		sub := sh.subscriptions[positionId]
-		close(sub.SubChan)
 		sub.cancelCtx()
+		// close(sub.SubChan)
 		delete(sh.subscriptions, positionId)
 		delete(sh.last, positionId)
 	}
@@ -203,25 +203,13 @@ func (sh *SubscriptionHub) PublishPositionUpdate(pos *position.Position) error {
 func (sh *SubscriptionHub) PublishPositionCreate(ctx context.Context, p *position.Position) error {
 	sh.mu.Lock()
 	sh.activePositions.Set(p.PositionId, p)
-	finalizedProfit := new(big.Float).Quo(p.FinalizedProfit, big.NewFloat(constants.LamportsConversion))
-	tokensRemaining := new(big.Float).Quo(p.TokenRemaining, big.NewFloat(constants.TokenAmountDecimals))
-	totalPnl, unrealizedPnl, currentPrice := sh.getProfitValues(p, p.MarketCapEntry)
 	sh.mu.Unlock()
 
-	posMessage := position.PositionMessage{
-		MessageType:         position.Created,
-		BuyTaskId:           p.PositionId,
-		UnrealizedProfit:    unrealizedPnl,
-		RealizedProfit:      finalizedProfit,
-		RemainingTokens:     tokensRemaining,
-		MarketCap:           p.MarketCapEntry,
-		InitialSolanaAmount: p.InitialSolanaAmount,
-		CurrentPrice:        currentPrice,
-		TotalPnL:            totalPnl,
-		Message:             "Position Created",
-	}
+	posMsg := sh.generatePositionMessage(p, p.MarketCapEntry)
+	posMsg.MessageType = position.Created
+	posMsg.Message = "Position Created"
 
-	sh.publish(p.PositionId, &posMessage)
+	sh.publish(p.PositionId, &posMsg)
 	return nil
 }
 
@@ -234,6 +222,7 @@ func (sh *SubscriptionHub) PublishPositionStop(pos *position.Position) error {
 
 	message := position.PositionMessage{
 		MessageType:         position.Stopped,
+		StrategyId:          pos.StrategyId,
 		BuyTaskId:           pos.PositionId,
 		UnrealizedProfit:    posMessage.UnrealizedProfit,
 		RealizedProfit:      posMessage.RealizedProfit,
@@ -263,6 +252,7 @@ func (sh *SubscriptionHub) generatePositionMessage(pos *position.Position, marke
 
 	posMessage := position.PositionMessage{
 		BuyTaskId:           pos.PositionId,
+		StrategyId:          pos.StrategyId,
 		UnrealizedProfit:    unrealizedPnl,
 		RealizedProfit:      finalizedProfit,
 		TotalPnL:            totalPnl,
