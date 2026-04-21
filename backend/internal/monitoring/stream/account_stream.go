@@ -2,9 +2,12 @@ package stream
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"personal_bot/internal/core/constants"
 	"personal_bot/internal/monitoring/stream/response"
 	"personal_bot/pkg/logger"
+	"time"
 
 	"github.com/avast/retry-go/v4"
 	"github.com/coder/websocket"
@@ -45,19 +48,38 @@ func GeyserStreamAccountInfo(ctx context.Context, address string, accountinfoCha
 		return err
 	}
 
-	var firstMessage interface{}
+	var firstMessage any
 	err = wsjson.Read(ctx, ws, &firstMessage)
 	if err != nil {
 		return err
 	}
 
-	for {
-		out := response.AccountSubscribeModel{}
-		err = wsjson.Read(ctx, ws, &out)
+	ticker := time.NewTicker(10 * time.Second)
+	go func(ctx context.Context) {
+		defer ticker.Stop()
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-ticker.C:
+				ws.Ping(ctx)
+			}
+		}
+	}(ctx)
 
+	for {
+		_, raw, err := ws.Read(ctx)
 		if err != nil {
 			logger.Error("Error reading from websocket", err)
 			return err
+		}
+
+		logger.Information(fmt.Sprintf("raw message: %s", string(raw)))
+
+		out := response.AccountSubscribeModel{}
+		if err := json.Unmarshal(raw, &out); err != nil {
+			logger.Error("Error unmarshalling message", err, string(raw))
+			continue
 		}
 
 		accountinfoChan <- out
