@@ -173,6 +173,7 @@ func (bt *Transaction) UpdatePosition(ctx context.Context, publisher subscriptio
 
 	payload := positionmodels.ReportBuyPayload{
 		BuyTaskId:     bt.BuyTask.Id(),
+		StrategyId:    bt.BuyTask.StrategyId,
 		TokenAddress:  bt.BuyTask.Token,
 		WalletAddress: bt.BuyTask.Wallet.PublicKey(),
 		TokenAmount:   new(big.Float).SetFloat64(float64(tradeEvent.TokenAmount)),

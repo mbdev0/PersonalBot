@@ -263,6 +263,7 @@ func (st *Transaction) getAllInstructionsForSell(ctx context.Context, sellTask *
 
 		payload := positionmodel.ReportBuyPayload{
 			BuyTaskId:     st.Task.Id(),
+			StrategyId:    st.Task.StrategyId,
 			TokenAddress:  st.Task.Token,
 			WalletAddress: st.Task.Wallet.PublicKey(),
 			TokenAmount:   tokenAmountBig,

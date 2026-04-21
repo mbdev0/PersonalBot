@@ -8,6 +8,7 @@ import (
 
 type Position struct {
 	PositionId           int64
+	StrategyId           *int64
 	TokenAddress         solana.PublicKey
 	WalletAddress        solana.PublicKey
 	InitialTokenAmount   *big.Float
@@ -27,6 +28,7 @@ type Position struct {
 type PositionMessage struct {
 	MessageType         MessageType `json:"message_type"`
 	BuyTaskId           int64       `json:"buy_task_id"`
+	StrategyId          *int64      `json:"strategy_id,omitempty"`
 	UnrealizedProfit    *big.Float  `json:"unrealized_profit"`
 	RealizedProfit      *big.Float  `json:"realized_profit"`
 	TotalPnL            *big.Float  `json:"total_pnl"`
@@ -46,6 +48,7 @@ const (
 )
 
 type ReportBuyPayload struct {
+	StrategyId    *int64
 	BuyTaskId     int64
 	TokenAddress  solana.PublicKey
 	WalletAddress solana.PublicKey

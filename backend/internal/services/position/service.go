@@ -43,6 +43,7 @@ func (s *Service) ReportBuy(ctx context.Context, buyReportPayload position.Repor
 
 	newPosition := position.Position{
 		PositionId:           buyReportPayload.BuyTaskId,
+		StrategyId:           buyReportPayload.StrategyId,
 		TokenAddress:         buyReportPayload.TokenAddress,
 		WalletAddress:        buyReportPayload.WalletAddress,
 		InitialTokenAmount:   buyReportPayload.TokenAmount,

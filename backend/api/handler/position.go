@@ -3,8 +3,9 @@ package handler
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
-	"log"
+	"net"
 	"net/http"
 	"personal_bot/api/controller"
 	"personal_bot/api/dto"
@@ -89,14 +90,15 @@ func (ph *PositionHandler) getPositions(w http.ResponseWriter, r *http.Request) 
 
 func (ph *PositionHandler) subscribe(w http.ResponseWriter, r *http.Request) {
 	subscribers := make(chan position.Subscription, 1000)
-	defer close(subscribers)
+	activeSubs := map[int64]position.Subscription{}
 
-	for k, v := range r.Header {
-		log.Printf("Header: %s = %v", k, v)
+	defer close(subscribers)
+	opts := &websocket.AcceptOptions{
+		OriginPatterns: []string{"localhost:5173"},
 	}
 
 	//upgrade to ws
-	c, err := websocket.Accept(w, r, nil)
+	c, err := websocket.Accept(w, r, opts)
 
 	if err != nil {
 		http.Error(w, "error whilst trying to transition to WS", http.StatusInternalServerError)
@@ -105,10 +107,19 @@ func (ph *PositionHandler) subscribe(w http.ResponseWriter, r *http.Request) {
 
 	defer func(c *websocket.Conn) {
 		err := c.CloseNow()
-		if err != nil {
+		if err != nil && !errors.Is(err, net.ErrClosed) {
 			logger.Error(err.Error())
 		}
 	}(c)
+
+	defer func() {
+		for strategyId := range activeSubs {
+			err := ph.controller.Unsubscribe(strategyId, false)
+			if err != nil {
+				logger.Error(err)
+			}
+		}
+	}()
 
 	wsWriteChan := make(chan dto.PositionResponse, 1000)
 	defer close(wsWriteChan)
@@ -128,11 +139,22 @@ func (ph *PositionHandler) subscribe(w http.ResponseWriter, r *http.Request) {
 
 		err := wsjson.Read(ctx, c, &msg)
 		if err != nil {
-			if websocket.CloseStatus(err) != -1 || ctx.Err() != nil {
-				logger.Information("WebSocket connection closed or context cancelled")
-				return // Clean exit
+			closeStatus := websocket.CloseStatus(err)
+			isValidCloseStatus := closeStatus == websocket.StatusNormalClosure ||
+				closeStatus == websocket.StatusGoingAway ||
+				closeStatus == websocket.StatusNoStatusRcvd
+
+			if isValidCloseStatus {
+				logger.Information(fmt.Sprintf("WebSocket closed normally (status: %s)", closeStatus.String()))
+				return
 			}
-			ph.handleError(ctx, err, resp, c)
+
+			logger.Error("error whilst reading", err)
+			resp.Error = err.Error()
+			err := wsjson.Write(ctx, c, resp)
+			if err != nil {
+				logger.Error("error whilst trying to write to WS, error: " + err.Error())
+			}
 			return
 		}
 
@@ -144,6 +166,7 @@ func (ph *PositionHandler) subscribe(w http.ResponseWriter, r *http.Request) {
 				continue
 			}
 			subscribers <- *sub
+			activeSubs[sub.Sub_id] = *sub
 
 		case dto.Unsubscribe:
 			err := ph.controller.Unsubscribe(msg.Id, false)
@@ -151,6 +174,7 @@ func (ph *PositionHandler) subscribe(w http.ResponseWriter, r *http.Request) {
 				ph.handleError(ctx, err, resp, c)
 				continue
 			}
+			delete(activeSubs, msg.Id)
 		}
 	}
 
