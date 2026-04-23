@@ -14,14 +14,15 @@ import {
 import { mapTaskDtoToTask } from '../mapper/taskMapper';
 import { STRATEGY_WS } from '@/config/urls';
 import { toast } from 'sonner';
-import { usePositionWebsocket } from './usePositionWebsocket';
+import type { SendPositionWSMessage } from '../types/positionWebsocket';
 
-export const useStrategyWebsocket = () => {
+export const useStrategyWebsocket = (
+  sendPositionWsMessage: (msg: SendPositionWSMessage) => void
+) => {
   const client = useQueryClient();
   const websocket = useRef<WebSocket | undefined>(undefined);
   const subscribedTasks = useRef<Set<number>>(new Set<number>());
   const [isWebsocketOpen, setWebsocketStatus] = useState(false);
-  const { sendPositionWsMessage } = usePositionWebsocket();
 
   useEffect(() => {
     const ws = new WebSocket(STRATEGY_WS);

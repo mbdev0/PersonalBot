@@ -8,9 +8,10 @@ import type {
 } from '../types/dashboard';
 import type { SendTaskWSMessage, TaskWSMessage } from '../types/taskWebsocket';
 import { TASK_WS } from '@/config/urls';
+import type { SendPositionWSMessage } from '../types/positionWebsocket';
 
 // ONLY FOR CHILDREN
-export const useTaskWebsocket = () => {
+export const useTaskWebsocket = (sendPositionWsMessage: (msg: SendPositionWSMessage) => void) => {
   const client = useQueryClient();
   const websocket = useRef<WebSocket | undefined>(undefined);
   const subscribedTasks = useRef<Set<number>>(new Set<number>());
@@ -88,6 +89,11 @@ export const useTaskWebsocket = () => {
           updatedDashboardRow,
           ...oldData.rows.slice(strategyTaskIdx + 1),
         ];
+
+        if (updatedChildRow.state === 'Done') {
+          updatedChildRow.tx_message = updatedChildRow.ws_message;
+          sendPositionWsMessage({ id: updatedChildRow.id, type: 'Subscribe' });
+        }
 
         return {
           ...oldData,
