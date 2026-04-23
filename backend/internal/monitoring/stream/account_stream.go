@@ -3,7 +3,6 @@ package stream
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"personal_bot/internal/core/constants"
 	"personal_bot/internal/monitoring/stream/response"
 	"personal_bot/pkg/logger"
@@ -73,8 +72,6 @@ func GeyserStreamAccountInfo(ctx context.Context, address string, accountinfoCha
 			logger.Error("Error reading from websocket", err)
 			return err
 		}
-
-		logger.Information(fmt.Sprintf("raw message: %s", string(raw)))
 
 		out := response.AccountSubscribeModel{}
 		if err := json.Unmarshal(raw, &out); err != nil {
