@@ -2,7 +2,6 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { deleteTask, postTask, transitionTask } from '../api/tasks';
 import type { TaskAction, TaskPost } from '../types/task';
 import { toast } from 'sonner';
-import type { Dashboard } from '../types/dashboard';
 
 export function useAddTask() {
   const client = useQueryClient();
@@ -23,11 +22,8 @@ export function useDeleteTask() {
 
   return useMutation({
     mutationFn: (id: number) => deleteTask(id),
-    onSuccess(_, id) {
-      client.setQueryData(['dashboard'], (old: Dashboard | undefined) => {
-        if (!old) return old;
-        return { ...old, rows: old.rows.filter((row) => row.id !== id) };
-      });
+    onSuccess() {
+      client.invalidateQueries({ queryKey: ['dashboard'] });
     },
     onError: (e) => toast.error('Failure to delete task', { description: e.message }),
   });
