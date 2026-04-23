@@ -1,13 +1,9 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type {
-  Dashboard,
-  DashboardRow,
-  StrategyDashboardRow,
-  TaskDashboardRow,
-} from '../types/dashboard';
+
 import { POSITION_WS } from '@/config/urls';
 import type { PositionWebsocketMessage, SendPositionWSMessage } from '../types/positionWebsocket';
+import { key, positionStore } from '@/stores/positionStore';
 
 // ONLY FOR CHILDREN
 export const usePositionWebsocket = () => {
@@ -28,79 +24,11 @@ export const usePositionWebsocket = () => {
     ws.onmessage = (event) => {
       // on every message we want to update the dashboard - this is for just task states/messages though
       const data: PositionWebsocketMessage = JSON.parse(event.data);
-      client.setQueryData(['dashboard'], (oldData: Dashboard | undefined) => {
-        if (!oldData) return oldData;
 
-        if (!data) {
-          return oldData;
-        }
-
-        // we basically want to update the message's for buy/sell strategy tasks or child tasks
-        // to do this we need strategy_id in position, otherwise we'd have to search through every single strategy task to find our position_id
-        // search for row with strategy id,
-        const strategyRowIdx = oldData.rows.findIndex(
-          (row) => row.type === 'strategy' && row.id === data.position_msg.strategy_id
-        );
-
-        if (strategyRowIdx === -1) {
-          return oldData;
-        }
-
-        const strategyRow = oldData.rows[strategyRowIdx];
-
-        if (!strategyRow || strategyRow == undefined) {
-          return oldData;
-        }
-
-        if (strategyRow.type !== 'strategy') {
-          return oldData;
-        }
-
-        const updatedRow: DashboardRow = ((strategyRow: DashboardRow) => {
-          if (
-            strategyRow.type === 'strategy' &&
-            (strategyRow.data.trading_type === 'BUY' || strategyRow.data.trading_type === 'SELL')
-          ) {
-            return { ...strategyRow, ws_message: prettifyWsMessage(data) };
-          } else {
-            if (!strategyRow.children || strategyRow.children.length == 0) {
-              return { ...strategyRow };
-            }
-
-            const childRow = strategyRow.children.find((child) => {
-              return child.id === data.position_msg.buy_task_id;
-            });
-
-            if (!childRow) {
-              return { ...strategyRow };
-            }
-
-            const updatedChildRow: TaskDashboardRow = {
-              ...childRow,
-              ws_message: prettifyWsMessage(data),
-            };
-            const updatedStrategyRow: StrategyDashboardRow = {
-              ...strategyRow,
-              children: strategyRow.children.map((child) =>
-                child.id === data.position_msg.buy_task_id ? updatedChildRow : child
-              ),
-            };
-
-            return updatedStrategyRow;
-          }
-        })(strategyRow);
-
-        const updatedDashboardRows: DashboardRow[] = [
-          ...oldData.rows.slice(0, strategyRowIdx),
-          updatedRow,
-          ...oldData.rows.slice(strategyRowIdx + 1),
-        ];
-
-        return {
-          ...oldData,
-          rows: updatedDashboardRows,
-        };
-      });
+      positionStore.setWsMessage(
+        key(data.position_msg.strategy_id, data.position_msg.buy_task_id),
+        prettifyWsMessage(data)
+      );
     };
 
     ws.onclose = () => {

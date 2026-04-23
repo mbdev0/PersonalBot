@@ -5,9 +5,10 @@ import { WebSocketContext } from './websocketContext';
 import { usePositionWebsocket } from '@/features/tasks/hooks/usePositionWebsocket';
 
 export function WebsocketProvider({ children }: { children: ReactNode }) {
-  const { send, taskWebsocketOpen } = useTaskWebsocket();
-  const { sendStrategyWSMessage, isStrategyWebsocketOpen } = useStrategyWebsocket();
   const { sendPositionWsMessage, isPositionWsOpen } = usePositionWebsocket();
+  const { send, taskWebsocketOpen } = useTaskWebsocket(sendPositionWsMessage);
+  const { sendStrategyWSMessage, isStrategyWebsocketOpen } =
+    useStrategyWebsocket(sendPositionWsMessage);
 
   const value = useMemo(() => {
     const websocketOpen = taskWebsocketOpen && isStrategyWebsocketOpen && isPositionWsOpen;
