@@ -22,6 +22,7 @@ export function TaskTable() {
         if (row.data.trading_type === 'BUY') {
           return mapDashboardRowToRow({
             ...row,
+            tx_message: row.tx_message ?? row.ws_message,
             ws_message: positionStore.get(key(row.id, row.data.buy_task_id)) ?? row.ws_message,
           });
         }
@@ -29,6 +30,7 @@ export function TaskTable() {
         if (row.data.trading_type === 'SELL') {
           return mapDashboardRowToRow({
             ...row,
+            tx_message: row.tx_message ?? row.ws_message,
             ws_message: positionStore.get(key(row.id, row.data.sell_task_id)) ?? row.ws_message,
           });
         }
@@ -37,6 +39,7 @@ export function TaskTable() {
           ...row,
           children: row.children.map((child) => ({
             ...child,
+            tx_message: child.tx_message ?? child.ws_message,
             ws_message: positionStore.get(key(row.id, child.id)) ?? child.ws_message,
           })),
         });
