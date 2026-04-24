@@ -18,34 +18,28 @@ var coinChanSize = 1000
 func StartAFKMonitor(ctx context.Context, filters filters.FilterPipeline, coins chan<- models.Coin, wsUrl string) {
 	var wg sync.WaitGroup
 	if startMonitoring {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 			transactionNotificationChan := make(chan response.TransactionNotification, transactionChanSize)
 			coinStructChan := make(chan models.Coin, coinChanSize)
 
 			var handlerWg sync.WaitGroup
 
-			go streamTransactions(ctx, transactionNotificationChan, wsUrl)
+			go func() {
+				defer close(transactionNotificationChan)
+				streamTransactions(ctx, transactionNotificationChan, wsUrl)
+			}()
 
-			go decryptAndFilterTransactions(ctx, filters, transactionNotificationChan, coinStructChan, &handlerWg)
+			go func() {
+				defer close(coinStructChan)
+				handlerWg.Wait()
+				decryptAndFilterTransactions(ctx, filters, transactionNotificationChan, coinStructChan, &handlerWg)
+			}()
 
-			for {
-				select {
-				case <-ctx.Done():
-					handlerWg.Wait()
-					close(transactionNotificationChan)
-					close(coinStructChan)
-					return
-				case coin, ok := <-coinStructChan:
-					if !ok {
-						return
-					}
-					coins <- coin
-				}
+			for coin := range coinStructChan {
+				coins <- coin
 			}
 
-		}()
+		})
 	}
 
 	wg.Wait()
