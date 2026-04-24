@@ -32,8 +32,10 @@ type BondingCurveV1 struct {
 	TokenTotalSupply     uint64
 	Complete             bool
 	Creator              solana.PublicKey
+	IsMayhemMode         bool
 }
 
+// TODO: when we care about cashback coins only, expand v2
 type BondingCurveV2 struct {
 	VirtualTokenReserves uint64
 	VirtualSolReserves   uint64

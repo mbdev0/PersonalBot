@@ -211,7 +211,7 @@ func parseV1(data []byte) (*models.BondingCurve, error) {
 	v1 := new(models.BondingCurveV1)
 	err := borsh.Deserialize(v1, data[8:])
 	if err != nil {
-		logger.Error("err whilst doing new way: ", err)
+		logger.Error("err whilst doing new way in V1: ", err)
 		return nil, err
 	}
 
@@ -223,6 +223,7 @@ func parseV1(data []byte) (*models.BondingCurve, error) {
 		TokenTotalSupply:     v1.TokenTotalSupply,
 		Complete:             v1.Complete,
 		Creator:              v1.Creator.ToPointer(),
+		IsMayhemMode:         v1.IsMayhemMode,
 	}, nil
 }
 
