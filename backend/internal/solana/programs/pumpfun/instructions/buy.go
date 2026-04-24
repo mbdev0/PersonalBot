@@ -28,6 +28,7 @@ type AccountAddressesSet struct {
 	WalletAddress                 string
 	UserVolumeAccumulator         string
 	BondingCurveV2Address         string
+	FeeRecpient                   string
 }
 
 type BuyArgs struct {
@@ -84,6 +85,12 @@ func setupAccountAddressSet(ctx context.Context, buyTask *tasks.BuyTask) (Accoun
 	err = resolvePDAs(accountAddressesSet, isNewTokenProgram)
 	if err != nil {
 		return *accountAddressesSet, err
+	}
+
+	if accountAddressesSet.BondingCurveData.IsMayhemMode == true {
+		accountAddressesSet.FeeRecpient = constants.ReservedFeeRecipient
+	} else {
+		accountAddressesSet.FeeRecpient = constants.FeeRecipient
 	}
 
 	return *accountAddressesSet, nil
@@ -147,7 +154,7 @@ func resolvePDAs(accountAddressesSet *AccountAddressesSet, isNewTokenAddress boo
 func buildAccounts(accountAddressesSet AccountAddressesSet) (accounts []*solana.AccountMeta) {
 	accounts = []*solana.AccountMeta{
 		utils.GetAccountMeta(constants.GlobalAccount, true, false),
-		utils.GetAccountMeta(constants.FeeRecipient, true, false),
+		utils.GetAccountMeta(accountAddressesSet.FeeRecpient, true, false),
 		utils.GetAccountMeta(accountAddressesSet.TokenAddress, false, false),
 		utils.GetAccountMeta(accountAddressesSet.BondingCurveAddress, true, false),
 		utils.GetAccountMeta(accountAddressesSet.AssociatedBondingCurveAddress, true, false),

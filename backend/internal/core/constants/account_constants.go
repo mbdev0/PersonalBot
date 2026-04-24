@@ -3,6 +3,7 @@ package constants
 const (
 	GlobalAccount             = "4wTV1YmiEkRvAtNtsSGPtUrqRYQMe5SKy2uB4Jjaxnjf"
 	FeeRecipient              = "CebN5WGQ4jvEPvsVU4EoHEpgzq1VV7AbicfhtW4xC9iM"
+	ReservedFeeRecipient      = "GesfTA3X2arioaHp8bbKdjG9vJtskViWACZoYvxp4twS"
 	SystemProgram             = "11111111111111111111111111111111"
 	TokenProgram              = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
 	Token2022Program          = "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
