@@ -90,7 +90,10 @@ export const useTaskWebsocket = (sendPositionWsMessage: (msg: SendPositionWSMess
           ...oldData.rows.slice(strategyTaskIdx + 1),
         ];
 
-        if (updatedChildRow.state === 'Done') {
+        if (
+          updatedChildRow.state === 'Done' &&
+          updatedChildRow.ws_message.includes('successfully confirmed transaction')
+        ) {
           updatedChildRow.tx_message = updatedChildRow.ws_message;
           sendPositionWsMessage({ id: updatedChildRow.id, type: 'Subscribe' });
         }
