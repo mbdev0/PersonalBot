@@ -1,6 +1,6 @@
 module personal_bot
 
-go 1.25
+go 1.26
 
 require (
 	filippo.io/edwards25519 v1.1.0
