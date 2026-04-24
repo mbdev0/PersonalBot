@@ -65,19 +65,22 @@ func decryptAndFilterTransactions(ctx context.Context, filters filters.FilterPip
 			wg.Add(1)
 			go func(transaction response.TransactionNotification) {
 				defer wg.Done()
-				handleTransactionNotification(filters, transaction, coinStructChan)
+				handleTransactionNotification(ctx, filters, transaction, coinStructChan)
 			}(transaction)
 		}
 	}
 }
 
-func handleTransactionNotification(filters filters.FilterPipeline, transaction response.TransactionNotification, coinStructChan chan<- models.Coin) {
+func handleTransactionNotification(ctx context.Context, filters filters.FilterPipeline, transaction response.TransactionNotification, coinStructChan chan<- models.Coin) {
 	coin := decoder.DecryptTransactionNotificationForCoin(transaction, filters.ShouldAccessIPFS())
 	if coin != nil {
 		coin = filters.ApplyFilters(coin)
 	}
 
 	if coin != nil {
-		coinStructChan <- *coin
+		select {
+		case coinStructChan <- *coin:
+		case <-ctx.Done():
+		}
 	}
 }
