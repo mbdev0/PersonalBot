@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"math/big"
+	"personal_bot/infrastructure/persistence/repository"
 	"personal_bot/internal/core/position"
 	position_hub "personal_bot/internal/services/subscription_hub/position"
 	"sync"
@@ -15,13 +16,15 @@ type Service struct {
 	positions map[int64]*position.Position
 	mu        *sync.Mutex
 	subhub    *position_hub.SubscriptionHub
+	repo      *repository.PositionsRepository
 }
 
-func NewPositionService(subhub *position_hub.SubscriptionHub) *Service {
+func NewPositionService(subhub *position_hub.SubscriptionHub, positionRepo *repository.PositionsRepository) *Service {
 	return &Service{
 		positions: map[int64]*position.Position{},
 		mu:        &sync.Mutex{},
 		subhub:    subhub,
+		repo:      positionRepo,
 	}
 }
 
@@ -61,11 +64,16 @@ func (s *Service) ReportBuy(ctx context.Context, buyReportPayload position.Repor
 
 	s.positions[newPosition.PositionId] = &newPosition
 
+	var wg sync.WaitGroup
+	wg.Go(func() {
+		s.repo.Add(ctx, newPosition)
+	})
+
 	//publish buy to positionhub -> handle ctx in there
 	return s.subhub.PublishPositionCreate(ctx, &newPosition)
 }
 
-func (s *Service) ReportSell(buyTaskId int64, tokensSold *big.Float, solRecieved *big.Float, marketCapSale *big.Float) error {
+func (s *Service) ReportSell(ctx context.Context, buyTaskId int64, tokensSold *big.Float, solRecieved *big.Float, marketCapSale *big.Float) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -107,6 +115,11 @@ func (s *Service) ReportSell(buyTaskId int64, tokensSold *big.Float, solRecieved
 		}
 	}
 
+	var wg sync.WaitGroup
+	wg.Go(func() {
+		s.repo.Update(ctx, *pos)
+	})
+
 	return nil
 }
 
@@ -129,6 +142,19 @@ func (s *Service) GetAll() []position.Position {
 	}
 
 	return allPos
+}
+
+func (s *Service) LoadFromDB(ctx context.Context) error {
+	positions, err := s.repo.GetAll(ctx)
+	if err != nil {
+		return err
+	}
+
+	for _, pos := range positions {
+		s.positions[pos.PositionId] = &pos
+	}
+
+	return nil
 }
 
 func (s *Service) Subscribe(id int64, isInternalSub bool) (*position_hub.Subscription, error) {
