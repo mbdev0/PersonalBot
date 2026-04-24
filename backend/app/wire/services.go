@@ -44,7 +44,8 @@ func WireServicesAndLaunchServer(db *sql.DB) (*http.Server, ShutdownServices) {
 
 	taskSubhub := subscriptionhub.NewTaskSubscriptionHub()
 	posSubhub := positionhub.NewSubscriptionHub(settingsService)
-	positionService := position.NewPositionService(posSubhub)
+	posRepo := repository.NewPositionRepository(db)
+	positionService := position.NewPositionService(posSubhub, posRepo)
 
 	rpcGroupRepo := repository.NewRPCGroupRepository(db)
 	rpcGroupService := rpcgroups.NewRPCGroupService(rpcGroupRepo)
@@ -97,7 +98,7 @@ func WireServicesAndLaunchServer(db *sql.DB) (*http.Server, ShutdownServices) {
 	mux.Handle("/api/rpc_groups/", rpcGroupHandler)
 	mux.Handle("/api/market/", marketHandler)
 
-	loadFromDB(tradingService, taskService)
+	loadFromDB(tradingService, taskService, positionService)
 	app.Launch(rpc.New(settings.PositionNodes.HTTPNode))
 
 	server := &http.Server{
@@ -129,13 +130,18 @@ func CORS(next http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
-func loadFromDB(tradingService *trading.Service, taskService *taskservice.TaskService) {
+func loadFromDB(tradingService *trading.Service, taskService *taskservice.TaskService, positionService *position.Service) {
 	err := tradingService.LoadFromDB(context.Background())
 	if err != nil {
 		logger.Error(err)
 	}
 
 	err = taskService.LoadFromDB(context.Background())
+	if err != nil {
+		logger.Error("error whilst loading from db: ", err)
+	}
+
+	err = positionService.LoadFromDB(context.Background())
 	if err != nil {
 		logger.Error("error whilst loading from db: ", err)
 	}
