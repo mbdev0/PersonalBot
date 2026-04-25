@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"context"
 	"personal_bot/api/dto"
 	"personal_bot/api/mapper"
 	"personal_bot/internal/services/position"
@@ -60,4 +61,8 @@ func (pc *PositionController) Unsubscribe(id int64, isInternalSub bool) error {
 	}
 
 	return nil
+}
+
+func (pc *PositionController) Delete(ctx context.Context, id int64) error {
+	return pc.PositionService.Delete(ctx, id)
 }
