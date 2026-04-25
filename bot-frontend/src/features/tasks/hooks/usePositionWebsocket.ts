@@ -5,7 +5,6 @@ import { POSITION_WS } from '@/config/urls';
 import type { PositionWebsocketMessage, SendPositionWSMessage } from '../types/positionWebsocket';
 import { key, positionStore } from '@/stores/positionStore';
 
-// ONLY FOR CHILDREN
 export const usePositionWebsocket = () => {
   const client = useQueryClient();
   const websocket = useRef<WebSocket | undefined>(undefined);
@@ -22,9 +21,7 @@ export const usePositionWebsocket = () => {
     };
 
     ws.onmessage = (event) => {
-      // on every message we want to update the dashboard - this is for just task states/messages though
       const data: PositionWebsocketMessage = JSON.parse(event.data);
-
       positionStore.setWsMessage(
         key(data.position_msg.strategy_id, data.position_msg.buy_task_id),
         prettifyWsMessage(data)
@@ -40,8 +37,6 @@ export const usePositionWebsocket = () => {
       ws.close();
     };
   }, [client]);
-
-  //we want to return a send object so we can subscribe to tasks//unsubscribe to tasks
 
   const sendPositionWsMessage = useCallback((msg: SendPositionWSMessage) => {
     if (msg.type === 'Subscribe' && subscribedTasks.current.has(msg.id)) {
