@@ -1,10 +1,10 @@
-// temporary file for go build
 package main
 
 import (
 	"context"
 	"database/sql"
 	"net/http"
+	_ "net/http/pprof"
 	"os/signal"
 	"personal_bot/app/wire"
 	"personal_bot/infrastructure/persistence"
