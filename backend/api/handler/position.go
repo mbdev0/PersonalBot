@@ -30,10 +30,11 @@ func NewPositionHandler(controller *controller.PositionController) http.Handler 
 }
 
 func (ph *PositionHandler) registerRoutes(mux *http.ServeMux) {
-	mux.HandleFunc("GET /position/{id}", ph.getPositionById)
-	mux.HandleFunc("GET /positions", ph.getPositions)
-	mux.HandleFunc("/subscribe", ph.subscribe)
+	mux.HandleFunc("GET /{id}", ph.getPositionById)
+	mux.HandleFunc("GET /", ph.getPositions)
+	mux.HandleFunc("GET /subscribe", ph.subscribe)
 	mux.HandleFunc("GET /dashboard", ph.positionDashboard)
+	mux.HandleFunc("DELETE /{id}", ph.delete)
 }
 
 func (ph *PositionHandler) positionDashboard(w http.ResponseWriter, r *http.Request) {
@@ -86,6 +87,23 @@ func (ph *PositionHandler) getPositions(w http.ResponseWriter, r *http.Request) 
 	if err != nil {
 		logger.Error("error", err)
 	}
+}
+
+func (ph *PositionHandler) delete(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	convId, err := strconv.Atoi(id)
+	if err != nil {
+		http.Error(w, "ID passed was not int", http.StatusBadRequest)
+		return
+	}
+
+	err = ph.controller.Delete(r.Context(), int64(convId))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func (ph *PositionHandler) subscribe(w http.ResponseWriter, r *http.Request) {

@@ -144,6 +144,15 @@ func (s *Service) GetAll() []position.Position {
 	return allPos
 }
 
+func (s *Service) Delete(ctx context.Context, id int64) error {
+	if _, ok := s.positions[id]; !ok {
+		return fmt.Errorf("cannot find position with id: %d", id)
+	}
+
+	delete(s.positions, id)
+	return s.repo.Delete(ctx, id)
+}
+
 func (s *Service) LoadFromDB(ctx context.Context) error {
 	positions, err := s.repo.GetAll(ctx)
 	if err != nil {

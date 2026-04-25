@@ -69,7 +69,7 @@ func (pr *PositionsRepository) Add(ctx context.Context, position position.Positi
 }
 
 func (pr *PositionsRepository) Delete(ctx context.Context, id int64) error {
-	query := `DELETE FROM position WHERE position_id=?`
+	query := `DELETE FROM positions WHERE position_id=?`
 	tx, err := pr.db.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable, ReadOnly: false})
 	if err != nil {
 		return err
