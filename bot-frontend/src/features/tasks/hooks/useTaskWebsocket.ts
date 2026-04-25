@@ -113,7 +113,7 @@ export const useTaskWebsocket = (sendPositionWsMessage: (msg: SendPositionWSMess
     return () => {
       ws.close();
     };
-  }, [client]);
+  }, [client, sendPositionWsMessage]);
 
   //we want to return a send object so we can subscribe to tasks//unsubscribe to tasks
 
