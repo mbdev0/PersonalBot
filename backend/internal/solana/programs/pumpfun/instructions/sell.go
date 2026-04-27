@@ -14,7 +14,6 @@ import (
 	"personal_bot/pkg/logger"
 
 	"github.com/gagliardetto/solana-go"
-	"github.com/gagliardetto/solana-go/rpc"
 	"github.com/near/borsh-go"
 )
 
@@ -23,84 +22,80 @@ type SellArgs struct {
 	min_sol_output uint64
 }
 
-var bondingCurveData *models.BondingCurve
-var associatedTokenAddress solana.PublicKey
-
-func GetSellInstruction(ctx context.Context, sellTask *tasks.SellTask, position *position.Position) (*solana.GenericInstruction, error) {
-	accounts, err := getAccounts(ctx, sellTask)
-	if err != nil {
-		logger.Error("Error getting accounts for sell instruction", err)
-		return nil, err
-	}
-
-	instructionData, err := getInstructionData(ctx, sellTask, position)
-
-	if err != nil {
-		logger.Error("Error getting instruction data for sell instruction", err)
-		return nil, err
-	}
-
-	sellInstructions := solana.NewInstruction(solana.MustPublicKeyFromBase58(constants.Program), accounts, instructionData)
-	return sellInstructions, nil
+type BondingCurveInfo struct {
+	bondingCurveAddress string
+	bondingCurveData    *models.BondingCurve
 }
 
-func getAccounts(ctx context.Context, sellTask *tasks.SellTask) ([]*solana.AccountMeta, error) {
+type InstructionInfo struct {
+	bondingCurveData       *models.BondingCurve
+	associatedTokenAddress solana.PK
+}
+
+func GetSellInstruction(ctx context.Context, sellTask *tasks.SellTask, position *position.Position) (*solana.GenericInstruction, error) {
 	bondingCurveAddress, err := pda.GetBondingCurveAddress(sellTask.Token.String())
 	if err != nil {
-		logger.Error("Error getting bonding curve address:", err)
 		return nil, err
 	}
 
-	isNewTokenAddress, err := instructions.IsTokenAccountNew(ctx, sellTask.Token, sellTask.HttpClient())
+	bondingCurveData, err, _ := bondingcurve.GetBondingCurveDataFromAddress(ctx, bondingCurveAddress, sellTask.HttpClient())
 	if err != nil {
 		return nil, err
 	}
 
-	var tokenProgram string
-	if isNewTokenAddress {
-		tokenProgram = constants.Token2022Program
-	} else {
-		tokenProgram = constants.TokenProgram
-	}
-
-	associatedBondingCurveAddress, err := pda.GetAssociatedBondingCurveAddress(bondingCurveAddress, sellTask.Token.String(), isNewTokenAddress)
-	if err != nil {
-		logger.Error("Error getting associated bonding curve address:", err)
-		return nil, err
-	}
-
-	var ata solana.PublicKey
-	if isNewTokenAddress {
-		ata, _, err = pda.FindToken2022AssociatedTokenAddress(sellTask.Wallet.PublicKey(), sellTask.Token)
-	} else {
-		ata, _, err = pda.FindTokenAssociatedTokenAddress(sellTask.Wallet.PublicKey(), sellTask.Token)
-
-	}
-
-	if err != nil {
-		logger.Error("Error getting token address: ", err)
-		return nil, err
-	}
-	associatedTokenAddress = ata
-
-	creatorAddress, err := getCreatorVaultAddress(ctx, bondingCurveAddress, sellTask.HttpClient())
-	if err != nil {
-		logger.Error("Error getting creator vault address:", err)
-		return nil, err
-	}
-
-	bondingCurveV2Address, err := pda.GetBondingCurveV2Address(sellTask.Token.String())
+	accounts, instructionInfo, err := getAccounts(ctx, sellTask, BondingCurveInfo{bondingCurveAddress: bondingCurveAddress, bondingCurveData: bondingCurveData})
 	if err != nil {
 		return nil, err
 	}
 
-	accounts := []*solana.AccountMeta{
+	instructionData, err := getInstructionData(ctx, sellTask, position, instructionInfo)
+	if err != nil {
+		return nil, err
+	}
+	sellInstructions := solana.NewInstruction(solana.MustPublicKeyFromBase58(constants.Program), accounts, instructionData)
+	return sellInstructions, nil
+
+}
+
+func getAccounts(ctx context.Context, sellTask *tasks.SellTask, bondingCurveData BondingCurveInfo) (accounts []*solana.AccountMeta, instructionInfo InstructionInfo, err error) {
+
+	tokenProgram, isNewTokenAddress, err := getTokenProgram(ctx, *sellTask)
+	if err != nil {
+		return
+	}
+
+	associatedBondingCurveAddress, err := GetAssociatedBondingCurveAddress(bondingCurveData.bondingCurveAddress, sellTask.GetToken(), isNewTokenAddress)
+	if err != nil {
+		return
+	}
+
+	creatorAddress, err := newGetCreatorVaultAddress(bondingCurveData.bondingCurveData)
+	if err != nil {
+		return
+	}
+
+	bondingCurveV2Address, err := getBondingCurveV2Address(sellTask.GetToken())
+	if err != nil {
+		return
+	}
+
+	associatedTokenAddress, err := getAssociatedTokenAddress(*sellTask, isNewTokenAddress)
+	if err != nil {
+		return
+	}
+
+	associatedTokenAddressPubKey, err := solana.PublicKeyFromBase58(associatedTokenAddress)
+	if err != nil {
+		return
+	}
+
+	accounts = []*solana.AccountMeta{
 		utils.GetAccountMeta(constants.GlobalAccount, false, false),
 		utils.GetAccountMeta(constants.FeeRecipient, true, false),
 		utils.GetAccountMeta(sellTask.Token.String(), false, false),
-		utils.GetAccountMeta(bondingCurveAddress, true, false),
+		utils.GetAccountMeta(bondingCurveData.bondingCurveAddress, true, false),
 		utils.GetAccountMeta(associatedBondingCurveAddress, true, false),
-		utils.GetAccountMeta(associatedTokenAddress.String(), true, false),
+		utils.GetAccountMeta(associatedTokenAddress, true, false),
 		utils.GetAccountMeta(sellTask.Wallet.PublicKey().String(), true, true),
 		utils.GetAccountMeta(solana.SystemProgramID.String(), false, false),
 		utils.GetAccountMeta(creatorAddress, true, false),
@@ -109,21 +104,49 @@ func getAccounts(ctx context.Context, sellTask *tasks.SellTask) ([]*solana.Accou
 		utils.GetAccountMeta(constants.Program, false, false),
 		utils.GetAccountMeta(constants.FeeConfig, false, false),
 		utils.GetAccountMeta(constants.FeeProgram, false, false),
-		utils.GetAccountMeta(bondingCurveV2Address, false, false),
 	}
 
-	return accounts, nil
+	if bondingCurveData.bondingCurveData.IsCashbackCoin {
+		userVolumeAccumulatorAddy, err := getUserVolumeAccumulatorAddress(sellTask.GetWallet())
+		if err != nil {
+			return nil, InstructionInfo{}, err
+		}
+		accounts = append(accounts, utils.GetAccountMeta(userVolumeAccumulatorAddy, true, false))
+	}
+
+	accounts = append(accounts, utils.GetAccountMeta(bondingCurveV2Address, false, false))
+
+	return accounts, InstructionInfo{associatedTokenAddress: associatedTokenAddressPubKey, bondingCurveData: bondingCurveData.bondingCurveData}, nil
 }
 
-func getCreatorVaultAddress(ctx context.Context, bondingCurveAddress string, httpClient *rpc.Client) (string, error) {
-	data, err, _ := bondingcurve.GetBondingCurveDataFromAddress(ctx, bondingCurveAddress, httpClient)
+func getTokenProgram(ctx context.Context, sellTask tasks.SellTask) (tokenProgram string, isNewTokenAddress bool, err error) {
+	isNewTokenAddress, err = instructions.IsTokenAccountNew(ctx, sellTask.Token, sellTask.HttpClient())
 	if err != nil {
-		logger.Error("Error getting bonding curve data:", err)
+		return
+	}
+
+	if isNewTokenAddress {
+		tokenProgram = constants.Token2022Program
+	} else {
+		tokenProgram = constants.TokenProgram
+	}
+
+	return tokenProgram, isNewTokenAddress, nil
+}
+
+func GetAssociatedBondingCurveAddress(bondingCurveAddress string, token string, isNewTokenAddress bool) (string, error) {
+	associatedBondingCurveAddress, err := pda.GetAssociatedBondingCurveAddress(bondingCurveAddress, token, isNewTokenAddress)
+	if err != nil {
+		logger.Error("Error getting associated bonding curve address:", err)
 		return "", err
 	}
-	bondingCurveData = data
 
-	creatorAddress, err := pda.GetCreatorVaultAddress(bondingCurveData.Creator.String())
+	return associatedBondingCurveAddress, nil
+
+}
+
+func newGetCreatorVaultAddress(bondingCurve *models.BondingCurve) (string, error) {
+	creatorAddress, err := pda.GetCreatorVaultAddress(bondingCurve.Creator.String())
 
 	if err != nil {
 		logger.Error("Error getting creator address:", err)
@@ -133,9 +156,43 @@ func getCreatorVaultAddress(ctx context.Context, bondingCurveAddress string, htt
 	return creatorAddress, nil
 }
 
-func getInstructionData(ctx context.Context, sellTask *tasks.SellTask, position *position.Position) ([]byte, error) {
+func getBondingCurveV2Address(token string) (string, error) {
+	bondingCurveV2Address, err := pda.GetBondingCurveV2Address(token)
+	if err != nil {
+		return "", err
+	}
 
-	tokenAmount, solOutput, err := getTokenAmountAndSolOutput(ctx, sellTask, position)
+	return bondingCurveV2Address, nil
+}
+
+func getUserVolumeAccumulatorAddress(wallet string) (string, error) {
+	userVolumeAccumulatorAddy, err := pda.GetUserVolumeAccumulatorAddress(wallet)
+	if err != nil {
+		return "", err
+	}
+
+	return userVolumeAccumulatorAddy, nil
+}
+
+func getAssociatedTokenAddress(sellTask tasks.SellTask, isNewTokenProgram bool) (ata string, err error) {
+	if isNewTokenProgram {
+		ataPubKey, _, err := pda.FindToken2022AssociatedTokenAddress(sellTask.Wallet.PublicKey(), sellTask.Token)
+		if err != nil {
+			return "", err
+		}
+		return ataPubKey.String(), nil
+	} else {
+		ataPubKey, _, err := pda.FindTokenAssociatedTokenAddress(sellTask.Wallet.PublicKey(), sellTask.Token)
+		if err != nil {
+			return "", err
+		}
+		return ataPubKey.String(), nil
+
+	}
+}
+
+func getInstructionData(ctx context.Context, sellTask *tasks.SellTask, position *position.Position, instructionInfo InstructionInfo) ([]byte, error) {
+	tokenAmount, solOutput, err := getTokenAmountAndSolOutput(ctx, sellTask, position, instructionInfo)
 	if err != nil {
 		return nil, err
 	}
@@ -153,12 +210,12 @@ func getInstructionData(ctx context.Context, sellTask *tasks.SellTask, position 
 	return append(constants.SellInstructionDiscriminator[:], data...), nil
 }
 
-func getTokenAmountAndSolOutput(ctx context.Context, sellTask *tasks.SellTask, position *position.Position) (tokenAmount *uint64, solOutput *uint64, err error) {
+func getTokenAmountAndSolOutput(ctx context.Context, sellTask *tasks.SellTask, position *position.Position, instructionInfo InstructionInfo) (tokenAmount *uint64, solOutput *uint64, err error) {
 	if position != nil {
 		tokens, _ := position.TokenRemaining.Uint64()
 		tokenAmount = &tokens
 	} else {
-		tokenAmount, err = client.GetTokenAccountBalance(ctx, associatedTokenAddress, sellTask.HttpClient())
+		tokenAmount, err = client.GetTokenAccountBalance(ctx, instructionInfo.associatedTokenAddress, sellTask.HttpClient())
 		if err != nil {
 			return nil, nil, err
 		}
@@ -169,7 +226,7 @@ func getTokenAmountAndSolOutput(ctx context.Context, sellTask *tasks.SellTask, p
 		*tokenAmount = uint64(float64(*tokenAmount) * percentageToSell)
 	}
 
-	solAmnt := bondingcurve.GetSolanaTokenPrice(*bondingCurveData, *tokenAmount)
+	solAmnt := bondingcurve.GetSolanaTokenPrice(*instructionInfo.bondingCurveData, *tokenAmount)
 	slippageSolOutput := float64(*solAmnt) * (1 - sellTask.Slippage)
 	minSolOutput := uint64(slippageSolOutput)
 
