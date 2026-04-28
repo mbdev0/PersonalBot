@@ -190,7 +190,11 @@ func (dn *DiscordNotifier) setupFailedMessage(payload notifier.ErrorNotifierPayl
 	case "SELL":
 		title = fmt.Sprintf("[QS] - %s", payload.TokenAddress)
 	default:
-		title = fmt.Sprintf("%s %d - Task %s", payload.TaskType, *payload.StrategyId, shortAddress(payload.TokenAddress))
+		if payload.StrategyId == nil {
+			title = fmt.Sprintf("%s - Task %s", payload.TaskType, shortAddress(payload.TokenAddress))
+		} else {
+			title = fmt.Sprintf("%s %d - Task %s", payload.TaskType, *payload.StrategyId, shortAddress(payload.TokenAddress))
+		}
 	}
 
 	embed := webhook.Embeds{
