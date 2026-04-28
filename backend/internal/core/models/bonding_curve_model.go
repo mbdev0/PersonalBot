@@ -13,6 +13,7 @@ type BondingCurve struct {
 	Complete             bool
 	Creator              *solana.PublicKey
 	IsMayhemMode         bool
+	IsCashbackCoin       bool
 }
 
 type BondingCurveV0 struct {
@@ -45,4 +46,5 @@ type BondingCurveV2 struct {
 	Complete             bool
 	Creator              solana.PublicKey
 	IsMayhemMode         bool
+	IsCashbackCoin       bool
 }
