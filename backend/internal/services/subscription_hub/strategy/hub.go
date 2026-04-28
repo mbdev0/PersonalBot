@@ -33,10 +33,6 @@ func (sh *SubscriptionHub) Subscribe(taskId int64) (*Subscription, error) {
 	sh.mu.Lock()
 	defer sh.mu.Unlock()
 
-	if _, ok := sh.subscriptions[taskId]; ok {
-		return nil, fmt.Errorf("an existing subscription is attatched to task: %d", taskId)
-	}
-
 	subChan := make(chan strategies.StrategyMessage, sh.bufferSize)
 	if _, ok := sh.last[taskId]; ok {
 		subChan <- sh.last[taskId]

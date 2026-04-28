@@ -20,6 +20,8 @@ export function useTaskDashboard() {
       return;
     }
 
+    console.log('QUERY WAS OLD AND HAS NOW CHANGED');
+
     query.data.rows.forEach((row) => {
       if (row.type === 'strategy') {
         if (row.state == 'SUCCESS' || row.state == 'Done') {
@@ -44,11 +46,14 @@ function subscribeToTaskChildren(
     return;
   }
 
-  if (row.data.trading_type === 'BUY' || row.data.trading_type === 'SELL') {
+  if (row.data.trading_type === 'SELL') {
     return;
   }
 
   row.children.forEach((taskRow) => {
     if (!isTerminal(taskRow.state)) send({ type: 'Subscribe', id: taskRow.id });
+    taskRow.children?.forEach((sellTask) => {
+      if (!isTerminal(sellTask.state)) send({ type: 'Subscribe', id: sellTask.id });
+    });
   });
 }

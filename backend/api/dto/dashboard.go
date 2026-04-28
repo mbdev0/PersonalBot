@@ -15,6 +15,15 @@ type ChildRow struct {
 	WsMessage string       `json:"ws_message"`
 	State     string       `json:"state"`
 	Data      ResponseTask `json:"data"`
+	Children  []SellTasks  `json:"children"`
+}
+
+type SellTasks struct {
+	Type      string       `json:"type"`
+	Id        int64        `json:"id"`
+	WsMessage string       `json:"ws_message"`
+	State     string       `json:"state"`
+	Data      ResponseTask `json:"data"`
 }
 
 type DashboardResponseDto struct {

@@ -16,7 +16,7 @@ interface StrategyRow {
   subRows: TaskRow[];
 }
 
-interface TaskRow {
+export interface TaskRow {
   id: number;
   type: TaskRowType.Task;
   state: string;
@@ -24,7 +24,7 @@ interface TaskRow {
   tx_message?: string;
   data: Task;
   strategyId?: number;
-  subRows?: never;
+  subRows?: TaskRow[];
 }
 
 type DisplayRow = StrategyRow | TaskRow;

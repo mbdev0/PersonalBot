@@ -1,16 +1,11 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type {
-  Dashboard,
-  DashboardRow,
-  StrategyDashboardRow,
-  TaskDashboardRow,
-} from '../types/dashboard';
+import type { Dashboard, StrategyDashboardRow, TaskDashboardRow } from '../types/dashboard';
 import type { SendTaskWSMessage, TaskWSMessage } from '../types/taskWebsocket';
 import { TASK_WS } from '@/config/urls';
 import type { SendPositionWSMessage } from '../types/positionWebsocket';
 
-// ONLY FOR CHILDREN
+// TODO - We are not updating sell tasks here. Sell Tasks do not have strategy_id... so now we have to search through to find task 
 export const useTaskWebsocket = (sendPositionWsMessage: (msg: SendPositionWSMessage) => void) => {
   const client = useQueryClient();
   const websocket = useRef<WebSocket | undefined>(undefined);
@@ -27,14 +22,10 @@ export const useTaskWebsocket = (sendPositionWsMessage: (msg: SendPositionWSMess
     };
 
     ws.onmessage = (event) => {
-      // on every message we want to update the dashboard - this is for just task states/messages though
       const data: TaskWSMessage = JSON.parse(event.data);
-      client.setQueryData(['dashboard'], (oldData: Dashboard | undefined) => {
-        if (!oldData) return oldData;
 
-        if (data.error) {
-          return oldData;
-        }
+      client.setQueryData(['dashboard'], (oldData: Dashboard | undefined) => {
+        if (!oldData || data.error) return oldData;
 
         const strategyTaskIdx = oldData.rows.findIndex((v) => v.id === data.task_event.strategy_id);
 
@@ -44,63 +35,43 @@ export const useTaskWebsocket = (sendPositionWsMessage: (msg: SendPositionWSMess
         }
 
         const strategyTask = oldData.rows[strategyTaskIdx];
-        if (strategyTask.type != 'strategy') {
-          console.error('when looking for strategy task - we ended up getting a task for the row');
+        if (strategyTask.type !== 'strategy') {
+          console.error('expected strategy row but got task row');
           return oldData;
         }
 
-        const childTaskIdx = strategyTask.children.findIndex(
-          (v) => v.id === data.task_event.task_id
+        const { updatedChildren, updatedTask } = updateTaskInChildren(
+          strategyTask.children,
+          data.task_event.task_id,
+          data,
+          sendPositionWsMessage
         );
 
-        if (childTaskIdx === -1) {
-          console.error('unable to find task_id with id: ', data.task_event.task_id);
+        if (!updatedTask) {
+          console.error('unable to find task_id: ', data.task_event.task_id);
           return oldData;
         }
 
-        const childTask = strategyTask.children[childTaskIdx];
-        const updatedChildRow: TaskDashboardRow = {
-          ...childTask,
-        };
-
-        switch (data.task_event.event_type) {
-          case 'StatusUpdate':
-            updatedChildRow.state = data.task_event.state.task_state;
-            break;
-          case 'ProgressMessage':
-            updatedChildRow.ws_message = data.task_event.message;
-            break;
+        // subscribe to position if buy task just completed
+        if (
+          updatedTask.state === 'Done' &&
+          updatedTask.ws_message.includes('successfully confirmed transaction')
+        ) {
+          sendPositionWsMessage({ id: updatedTask.id, type: 'Subscribe' });
         }
-
-        //we need to now update the child rows array
-        const updatedChildRows: TaskDashboardRow[] = [
-          ...strategyTask.children.slice(0, childTaskIdx),
-          updatedChildRow,
-          ...strategyTask.children.slice(childTaskIdx + 1),
-        ];
 
         const updatedDashboardRow: StrategyDashboardRow = {
           ...strategyTask,
-          children: updatedChildRows,
+          children: updatedChildren,
         };
-        // update the strategy rows  array
-        const updatedDashboardRows: DashboardRow[] = [
-          ...oldData.rows.slice(0, strategyTaskIdx),
-          updatedDashboardRow,
-          ...oldData.rows.slice(strategyTaskIdx + 1),
-        ];
-
-        if (
-          updatedChildRow.state === 'Done' &&
-          updatedChildRow.ws_message.includes('successfully confirmed transaction')
-        ) {
-          updatedChildRow.tx_message = updatedChildRow.ws_message;
-          sendPositionWsMessage({ id: updatedChildRow.id, type: 'Subscribe' });
-        }
 
         return {
           ...oldData,
-          rows: updatedDashboardRows,
+          rows: [
+            ...oldData.rows.slice(0, strategyTaskIdx),
+            updatedDashboardRow,
+            ...oldData.rows.slice(strategyTaskIdx + 1),
+          ],
         };
       });
     };
@@ -139,3 +110,59 @@ export const useTaskWebsocket = (sendPositionWsMessage: (msg: SendPositionWSMess
     taskWebsocketOpen: websocketOpen,
   };
 };
+
+function applyTaskEvent(task: TaskDashboardRow, event: TaskWSMessage): TaskDashboardRow {
+  const updated = { ...task };
+  switch (event.task_event.event_type) {
+    case 'StatusUpdate':
+      updated.state = event.task_event.state.task_state;
+      break;
+    case 'ProgressMessage':
+      updated.ws_message = event.task_event.message;
+      break;
+  }
+  return updated;
+}
+
+function updateTaskInChildren(
+  children: TaskDashboardRow[],
+  taskId: number,
+  event: TaskWSMessage,
+  sendPositionWsMessage: (msg: SendPositionWSMessage) => void
+): { updatedChildren: TaskDashboardRow[]; updatedTask: TaskDashboardRow | null } {
+  let updatedTask: TaskDashboardRow | null = null;
+
+  // depth 1 — direct children (buy tasks on AFK, sell tasks on BUY strategy)
+  const directIdx = children.findIndex((v) => v.id === taskId);
+  if (directIdx !== -1) {
+    updatedTask = applyTaskEvent(children[directIdx], event);
+    return {
+      updatedChildren: [
+        ...children.slice(0, directIdx),
+        updatedTask,
+        ...children.slice(directIdx + 1),
+      ],
+      updatedTask,
+    };
+  }
+
+  // depth 2 — grandchildren (sell tasks under AFK buy tasks)
+  const updatedChildren = children.map((buyTask) => {
+    if (!buyTask.children?.length) return buyTask;
+
+    const sellIdx = buyTask.children.findIndex((v) => v.id === taskId);
+    if (sellIdx === -1) return buyTask;
+
+    updatedTask = applyTaskEvent(buyTask.children[sellIdx], event);
+    return {
+      ...buyTask,
+      children: [
+        ...buyTask.children.slice(0, sellIdx),
+        updatedTask,
+        ...buyTask.children.slice(sellIdx + 1),
+      ],
+    };
+  });
+
+  return { updatedChildren, updatedTask };
+}

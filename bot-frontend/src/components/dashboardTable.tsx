@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/table';
 import { useRowActions } from '@/features/tasks/hooks/useRowActions';
 import { columns } from '@/features/tasks/types/columns';
-import { TaskRowType, type DisplayRow } from '@/features/tasks/types/tableRows';
+import type { DisplayRow } from '@/features/tasks/types/tableRows';
 
 export function DashboardTable({
   data,
@@ -42,9 +42,9 @@ export function DashboardTable({
             <TableRow key={headerGroup.id} className="hover:bg-transparent">
               {headerGroup.headers.map((header) => (
                 <TableHead
+                  key={header.id}
                   style={{ width: header.column.columnDef.size }}
                   className="table-header-cell text-center"
-                  key={header.id}
                 >
                   {header.isPlaceholder
                     ? null
@@ -57,27 +57,27 @@ export function DashboardTable({
         <TableBody>
           {table.getRowModel().rows.length ? (
             table.getRowModel().rows.map((row) => {
-              const isChild = row.original.type === TaskRowType.Task && row.original.strategyId;
-              const isParent = row.getCanExpand();
-              const isExpanded = isParent && row.getIsExpanded();
+              const depth = row.depth;
+
               return (
                 <TableRow
                   key={row.id}
-                  className={`text-center border-0 group transition-colors duration-200 ${
-                    isChild ? 'bg-foreground/1.5' : ''
-                  } ${isExpanded ? 'bg-foreground/2' : ''}`}
+                  className={`text-center border-0 transition-colors duration-200 ${
+                    depth === 1 ? 'bg-foreground/1.5' : ''
+                  } ${depth === 2 ? 'bg-foreground/[0.008]' : ''}`}
                   data-state={row.getIsSelected() && 'selected'}
                 >
-                  {row.getVisibleCells().map((cell, cellIndex) => (
+                  {row.getVisibleCells().map((cell) => (
                     <TableCell
                       key={cell.id}
-                      className={`py-4 px-6 text-center text-[13px] font-medium ${
-                        isChild
-                          ? cellIndex === 0
-                            ? 'pl-14 relative before:content-[""] before:absolute before:left-8 before:top-0 before:bottom-0 before:w-px before:bg-foreground/10'
-                            : 'text-foreground/60 text-[12px]'
-                          : 'text-foreground/80'
-                      }`}
+                      className={[
+                        'py-4 text-[13px] font-medium text-center',
+                        depth === 0 ? 'text-foreground/80 px-6' : '',
+                        depth === 1 ? 'text-foreground/60 text-[12px] px-8' : '',
+                        depth === 2 ? 'text-foreground/40 text-[12px] px-12' : '',
+                      ]
+                        .filter(Boolean)
+                        .join(' ')}
                     >
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>

@@ -89,14 +89,20 @@ func createSellTask(reqTask *dto.RequestTask, wallet wallets.SolanaWallet, rpcGr
 		sellOptions = append(sellOptions, positionOpt)
 	}
 
+	taskOpts := []tasks.Option{
+		tasks.WithComputeUnits(reqTask.ComputeUnits),
+		tasks.WithSlippage(reqTask.Slippage),
+		tasks.WithUnixTime(time.Now().Unix()),
+		tasks.WithHttpNode(rpcGroup.Http),
+		tasks.WithWS(rpcGroup.WS),
+	}
+
+	if reqTask.StrategyId != nil {
+		taskOpts = append(taskOpts, tasks.WithStrategyId(*reqTask.StrategyId))
+	}
+
 	sellTask := tasks.NewSellTask(wallet, token,
-		[]tasks.Option{
-			tasks.WithComputeUnits(reqTask.ComputeUnits),
-			tasks.WithSlippage(reqTask.Slippage),
-			tasks.WithUnixTime(time.Now().Unix()),
-			tasks.WithHttpNode(rpcGroup.Http),
-			tasks.WithWS(rpcGroup.WS),
-		},
+		taskOpts,
 		sellOptions,
 	)
 
