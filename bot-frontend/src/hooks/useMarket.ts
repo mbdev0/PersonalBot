@@ -7,5 +7,6 @@ export function useSolanaPrice() {
     queryKey: ['solana_price'],
     queryFn: GetSolanaPrice,
     refetchInterval: SOLANA_PRICE_REFETCH,
+    retry: false,
   });
 }

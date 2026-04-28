@@ -22,14 +22,17 @@ export const useStrategyWebsocket = (
   const client = useQueryClient();
   const websocket = useRef<WebSocket | undefined>(undefined);
   const subscribedTasks = useRef<Set<number>>(new Set<number>());
+  const wasConnected = useRef(false);
   const [isWebsocketOpen, setWebsocketStatus] = useState(false);
 
   useEffect(() => {
+    let cancelled = false;
     const ws = new WebSocket(STRATEGY_WS);
     websocket.current = ws;
 
     ws.onopen = () => {
       console.log('Strategy WebSocket connected');
+      wasConnected.current = true;
       setWebsocketStatus(true);
     };
 
@@ -141,20 +144,24 @@ export const useStrategyWebsocket = (
     };
 
     ws.onclose = (event) => {
+      if (cancelled) return;
       console.log('Strategy WebSocket closed:', event.code);
-      toast.info('Disconnected from strategy websocket');
+      if (wasConnected.current) {
+        toast.info('Disconnected from strategy websocket');
+        wasConnected.current = false;
+      } else {
+        toast.error('Unable to connect to strategy websocket');
+      }
       setWebsocketStatus(false);
     };
 
     ws.onerror = (error) => {
       console.error('Strategy WebSocket error:', error);
-      toast.error(`Strategy websocket error`);
     };
 
     return () => {
-      if (ws.readyState === WebSocket.OPEN) {
-        ws.close(1000, 'Component unmounting');
-      }
+      cancelled = true;
+      ws.close();
     };
   }, [client, sendPositionWsMessage]);
 
