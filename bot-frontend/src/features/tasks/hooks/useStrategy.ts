@@ -9,7 +9,6 @@ import {
 import type { StrategyTaskPost } from '../types/strategies/strategyTaskPost';
 import type { StrategyTaskPut } from '../types/strategies/strategyTaskPut';
 import { useStrategyWebsocketSend } from '@/hooks/useWebsocketSend';
-import { toast } from 'sonner';
 
 export function useAddStrategy() {
   const client = useQueryClient();
@@ -46,9 +45,7 @@ export function useDeleteStrategy() {
     onSuccess() {
       client.invalidateQueries({ queryKey: ['dashboard'] });
     },
-    onError: (e) => {
-      toast.error(`Failure to delete strategy task: ${e.message}`);
-    },
+    onError: (e) => console.error('error deleting strategy: ', e),
   });
 }
 
@@ -62,7 +59,6 @@ export function useStartStrategy() {
     },
     onError(e) {
       console.error('error whilst starting strategy: ', e);
-      toast.error(`Failure to start strategy task: ${e.message}`);
     },
   });
 }
@@ -73,7 +69,6 @@ export function useStopStrategy() {
     onSuccess() {},
     onError(e) {
       console.error('error whilst stopping strategy: ', e);
-      toast.error(`Failure to stop strategy task: ${e.message}`);
     },
   });
 }

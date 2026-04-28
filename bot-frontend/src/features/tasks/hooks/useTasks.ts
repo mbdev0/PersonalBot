@@ -1,7 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { deleteTask, postTask, transitionTask } from '../api/tasks';
 import type { TaskAction, TaskPost } from '../types/task';
-import { toast } from 'sonner';
 
 export function useAddTask() {
   const client = useQueryClient();
@@ -25,7 +24,7 @@ export function useDeleteTask() {
     onSuccess() {
       client.invalidateQueries({ queryKey: ['dashboard'] });
     },
-    onError: (e) => toast.error('Failure to delete task', { description: e.message }),
+    onError: (e) => console.error('error deleting task: ', e),
   });
 }
 
@@ -33,6 +32,6 @@ export function useTransitionTask() {
   return useMutation({
     mutationFn: ({ id, taskAction }: { id: number; taskAction: TaskAction }) =>
       transitionTask(id, taskAction),
-    onError: (e) => toast.error('Failure to transition task', { description: e.message }),
+    onError: (e) => console.error('error transitioning task: ', e),
   });
 }
