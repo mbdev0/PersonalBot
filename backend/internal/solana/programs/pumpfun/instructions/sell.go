@@ -89,9 +89,14 @@ func getAccounts(ctx context.Context, sellTask *tasks.SellTask, bondingCurveData
 		return
 	}
 
+	feeRecipient := constants.FeeRecipient
+	if bondingCurveData.bondingCurveData.IsMayhemMode == true {
+		feeRecipient = constants.ReservedFeeRecipient
+	}
+
 	accounts = []*solana.AccountMeta{
 		utils.GetAccountMeta(constants.GlobalAccount, false, false),
-		utils.GetAccountMeta(constants.FeeRecipient, true, false),
+		utils.GetAccountMeta(feeRecipient, true, false),
 		utils.GetAccountMeta(sellTask.Token.String(), false, false),
 		utils.GetAccountMeta(bondingCurveData.bondingCurveAddress, true, false),
 		utils.GetAccountMeta(associatedBondingCurveAddress, true, false),
@@ -115,6 +120,7 @@ func getAccounts(ctx context.Context, sellTask *tasks.SellTask, bondingCurveData
 	}
 
 	accounts = append(accounts, utils.GetAccountMeta(bondingCurveV2Address, false, false))
+	accounts = append(accounts, utils.GetAccountMeta(constants.BuyBackFeeRecipient, true, false))
 
 	return accounts, InstructionInfo{associatedTokenAddress: associatedTokenAddressPubKey, bondingCurveData: bondingCurveData.bondingCurveData}, nil
 }
