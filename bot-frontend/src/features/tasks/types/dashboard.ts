@@ -21,7 +21,7 @@ export interface StrategyDashboardRowDto extends BaseDashboardRowDto {
 export interface TaskDashboardRowDto extends BaseDashboardRowDto {
   type: 'manual';
   data: TaskDto;
-  children?: never;
+  children?: TaskDashboardRowDto[];
 }
 
 type DashboardRowDto = StrategyDashboardRowDto | TaskDashboardRowDto;
@@ -30,7 +30,7 @@ interface BaseDashboardRow {
   type: string;
   id: number;
   ws_message: string;
-  tx_message? : string
+  tx_message?: string;
   state: string;
 }
 
@@ -43,7 +43,7 @@ export interface StrategyDashboardRow extends BaseDashboardRow {
 export interface TaskDashboardRow extends BaseDashboardRow {
   type: 'task';
   data: Task;
-  children?: undefined;
+  children?: TaskDashboardRow[];
 }
 
 export type DashboardRow = StrategyDashboardRow | TaskDashboardRow;

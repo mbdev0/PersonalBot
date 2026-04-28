@@ -43,5 +43,6 @@ function mapTaskRowDtoToTaskRow(src: TaskDashboardRowDto): TaskDashboardRow {
     ws_message: src.ws_message,
     state: src.state,
     data: mapTaskDtoToTask(src.data),
+    children: src.children?.map(mapTaskRowDtoToTaskRow),
   };
 }

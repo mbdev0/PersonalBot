@@ -34,6 +34,7 @@ func (dh *DashboardHandler) GetDashboard(w http.ResponseWriter, r *http.Request)
 		return
 	}
 	allTasks, err := dh.taskController.GetAllTasks()
+
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -69,9 +70,23 @@ func (dh *DashboardHandler) generateDashboardResponse(strategies []dto.TradingTa
 					WsMessage: t.Message,
 					State:     t.State.TaskState,
 					Data:      t,
+					Children:  dh.getSellTasksForBuy(allTasks, t.TaskId),
 				}
 
 				childrenRows = append(childrenRows, childRow)
+			}
+		} else if st.Type == dto.BUY {
+			sellTasks := dh.getSellTasksForBuy(allTasks, *st.BuyTaskId)
+
+			for _, st := range sellTasks {
+				child := dto.ChildRow{
+					Type:      string(dto.TASK),
+					Id:        st.Id,
+					WsMessage: st.WsMessage,
+					State:     st.State,
+					Data:      st.Data,
+				}
+				childrenRows = append(childrenRows, child)
 			}
 		}
 
@@ -108,4 +123,26 @@ func (dh *DashboardHandler) shouldCreateRowFor(t dto.ResponseTask, st dto.Tradin
 	}
 
 	return true
+}
+
+func (dh *DashboardHandler) getSellTasksForBuy(tasks []dto.ResponseTask, buyTaskId int64) []dto.SellTasks {
+	sellTasks := []dto.SellTasks{}
+	for _, t := range tasks {
+		if t.SellPositionId == nil {
+			continue
+		}
+
+		if *t.SellPositionId == buyTaskId {
+			sellTask := dto.SellTasks{
+				Type:      t.Type,
+				Id:        t.TaskId,
+				WsMessage: t.Message,
+				State:     t.State.TaskState,
+				Data:      t,
+			}
+			sellTasks = append(sellTasks, sellTask)
+		}
+	}
+
+	return sellTasks
 }

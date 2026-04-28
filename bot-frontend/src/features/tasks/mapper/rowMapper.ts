@@ -1,5 +1,5 @@
-import type { DashboardRow } from '../types/dashboard';
-import { TaskRowType, type DisplayRow } from '../types/tableRows';
+import type { DashboardRow, TaskDashboardRow } from '../types/dashboard';
+import { TaskRowType, type DisplayRow, type TaskRow } from '../types/tableRows';
 
 export function mapDashboardRowToRow(row: DashboardRow): DisplayRow {
   if (row.type === 'strategy') {
@@ -10,18 +10,14 @@ export function mapDashboardRowToRow(row: DashboardRow): DisplayRow {
       ws_message: row.ws_message,
       tx_message: row.tx_message,
       data: row.data,
-      subRows: row.children.map((child) => ({
-        id: child.id,
-        type: TaskRowType.Task as const,
-        state: child.state,
-        ws_message: child.ws_message,
-        tx_message: child.tx_message,
-        data: child.data,
-        strategyId: row.id,
-      })),
+      subRows: row.children.map((child) => mapTaskRowToRow(child, row.id)),
     };
   }
 
+  return mapTaskRowToRow(row);
+}
+
+function mapTaskRowToRow(row: TaskDashboardRow, strategyId?: number): TaskRow {
   return {
     id: row.id,
     type: TaskRowType.Task,
@@ -29,5 +25,7 @@ export function mapDashboardRowToRow(row: DashboardRow): DisplayRow {
     ws_message: row.ws_message,
     tx_message: row.tx_message,
     data: row.data,
+    strategyId,
+    subRows: row.children?.map((child) => mapTaskRowToRow(child)),
   };
 }
