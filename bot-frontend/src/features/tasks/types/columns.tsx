@@ -19,36 +19,36 @@ declare module '@tanstack/react-table' {
 
 export const columns: ColumnDef<DisplayRow>[] = [
   {
-    id: 'expand',
-    header: '',
-    size: 40,
-    cell: ({ row }) => {
-      return row.getCanExpand() ? (
-        <button
-          onClick={row.getToggleExpandedHandler()}
-          className="h-6 w-6 flex items-center justify-center rounded-md hover:bg-foreground/8 transition-[background-color,box-shadow] duration-200 ring-1 ring-foreground/5 hover:ring-foreground/15"
-        >
-          {row.getIsExpanded() ? (
-            <ArrowDown className="h-3.5 w-3.5 text-foreground/60" />
-          ) : (
-            <ArrowRight className="h-3.5 w-3.5 text-foreground/60" />
-          )}
-        </button>
-      ) : (
-        ''
-      );
-    },
-  },
-  {
     accessorKey: 'task_type',
     header: 'Task Type',
-    size: 100,
+    size: 140,
     cell: ({ row }) => {
-      {
-        return row.original.type === TaskRowType.Task
-          ? row.original.data.type
-          : row.original.data.trading_type;
-      }
+      const canExpand = row.getCanExpand();
+      const isExpanded = row.getIsExpanded();
+
+      return (
+        <div className="flex items-center gap-2">
+          {canExpand ? (
+            <button
+              onClick={row.getToggleExpandedHandler()}
+              className="h-6 w-6 shrink-0 flex items-center justify-center rounded-md hover:bg-foreground/8 transition-colors ring-1 ring-foreground/5 hover:ring-foreground/15"
+            >
+              {isExpanded ? (
+                <ArrowDown className="h-3.5 w-3.5 text-foreground/60" />
+              ) : (
+                <ArrowRight className="h-3.5 w-3.5 text-foreground/60" />
+              )}
+            </button>
+          ) : (
+            <div className="w-6 shrink-0" />
+          )}
+          <span>
+            {row.original.type === TaskRowType.Task
+              ? row.original.data.type
+              : row.original.data.trading_type}
+          </span>
+        </div>
+      );
     },
   },
   {
