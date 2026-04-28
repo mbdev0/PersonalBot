@@ -17,4 +17,5 @@ const (
 	FeeConfig                 = "8Wf5TiAheLUqBrKXeYg2JtAFFMWtKdG2BSFgqUcPVwTt"
 	FeeProgram                = "pfeeUxB6jkeY1Hxd7CsFCAjcbHA9rWtchMGdZ6VojVZ"
 	SolanaTokenAddress        = "So11111111111111111111111111111111111111112"
+	BuyBackFeeRecipient       = "A7hAgCzFw14fejgCp387JUJRMNyz4j89JKnhtKU8piqW"
 )
