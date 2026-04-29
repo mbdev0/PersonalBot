@@ -34,6 +34,7 @@ type BondingCurveV1 struct {
 	Complete             bool
 	Creator              solana.PublicKey
 	IsMayhemMode         bool
+	IsCashbackCoin       bool
 }
 
 // TODO: when we care about cashback coins only, expand v2
