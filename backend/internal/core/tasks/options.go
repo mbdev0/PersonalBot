@@ -27,6 +27,10 @@ func WithWS(ws string) Option {
 	return func(t Configurable) { t.SetWSNode(ws) }
 }
 
+func WithRPCGroupId(id int64) Option {
+	return func(t Configurable) { t.SetRPCGroupId(id) }
+}
+
 type BuyOption func(*BuyTask)
 
 func WithBuyAmount(amnt *big.Int) BuyOption {

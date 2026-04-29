@@ -53,6 +53,7 @@ func createBuyTask(req *dto.RequestTask, wallet wallets.SolanaWallet, rpcGroup r
 			tasks.WithComputeUnits(req.ComputeUnits),
 			tasks.WithSlippage(req.Slippage),
 			tasks.WithUnixTime(time.Now().Unix()),
+			tasks.WithRPCGroupId(req.RPCGroupId),
 			tasks.WithHttpNode(rpcGroup.Http),
 			tasks.WithWS(rpcGroup.WS),
 		},
@@ -93,6 +94,7 @@ func createSellTask(reqTask *dto.RequestTask, wallet wallets.SolanaWallet, rpcGr
 		tasks.WithComputeUnits(reqTask.ComputeUnits),
 		tasks.WithSlippage(reqTask.Slippage),
 		tasks.WithUnixTime(time.Now().Unix()),
+		tasks.WithRPCGroupId(reqTask.RPCGroupId),
 		tasks.WithHttpNode(rpcGroup.Http),
 		tasks.WithWS(rpcGroup.WS),
 	}

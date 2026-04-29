@@ -27,6 +27,7 @@ type BuyTask struct {
 	state         State
 	message       string
 	mu            *sync.RWMutex
+	rpcGroupId    int64
 	rpcNode       *rpc.Client
 	rpcNodeString string
 	ws            string
@@ -105,4 +106,11 @@ func (bt *BuyTask) WSNode() string {
 
 func (bt *BuyTask) SetWSNode(ws string) {
 	bt.ws = ws
+}
+
+func (bt *BuyTask) GetRPCGroupId() int64 {
+	return bt.rpcGroupId
+}
+func (bt *BuyTask) SetRPCGroupId(id int64) {
+	bt.rpcGroupId = id
 }

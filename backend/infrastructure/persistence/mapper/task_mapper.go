@@ -60,6 +60,7 @@ func createBuyTask(src models.TaskRow, wallet models.WalletRepository) (*tasks.B
 		tasks.WithSlippage(float64(src.Slippage) / 100.0),
 		tasks.WithComputeUnits(uint32(src.ComputeUnits)),
 		tasks.WithUnixTime(src.TimeCreatedUnix),
+		tasks.WithRPCGroupId(nodeConfig.RPCGroupId),
 		tasks.WithHttpNode(nodeConfig.Http),
 		tasks.WithWS(nodeConfig.Ws),
 	}
@@ -105,6 +106,7 @@ func createSellTask(src models.TaskRow, wallet models.WalletRepository) (*tasks.
 		tasks.WithComputeUnits(uint32(src.ComputeUnits)),
 		tasks.WithSlippage(float64(src.Slippage) / 100.0),
 		tasks.WithUnixTime(src.TimeCreatedUnix),
+		tasks.WithRPCGroupId(nodeConfig.RPCGroupId),
 		tasks.WithHttpNode(nodeConfig.Http),
 		tasks.WithWS(nodeConfig.Ws),
 	}
@@ -159,8 +161,9 @@ func MapTaskToRepo(src tasks.Task) (*models.TaskRow, error) {
 		taskRow.TimeCreatedUnix = task.TimeCreated
 
 		nodeConfig := models.NodeConfig{
-			Http: task.HttpNode(),
-			Ws:   task.WSNode(),
+			RPCGroupId: task.GetRPCGroupId(),
+			Http:       task.HttpNode(),
+			Ws:         task.WSNode(),
 		}
 		nodeConfigJson, err := json.Marshal(nodeConfig)
 		if err != nil {
@@ -193,8 +196,9 @@ func MapTaskToRepo(src tasks.Task) (*models.TaskRow, error) {
 		taskRow.StrategyId = task.StrategyId
 
 		nodeConfig := models.NodeConfig{
-			Http: task.HttpNode(),
-			Ws:   task.WSNode(),
+			RPCGroupId: task.GetRPCGroupId(),
+			Http:       task.HttpNode(),
+			Ws:         task.WSNode(),
 		}
 		nodeConfigJson, err := json.Marshal(nodeConfig)
 		if err != nil {
