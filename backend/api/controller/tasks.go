@@ -153,6 +153,15 @@ func (tc *TaskController) TransitionTask(id int64, action dto.ActionType) (err e
 	return nil
 }
 
+func (tc *TaskController) CreateAndRunTask(ctx context.Context, task dto.RequestTask) error {
+	createdTask, err := tc.CreateTask(ctx, task)
+	if err != nil {
+		return err
+	}
+
+	return tc.TransitionTask(createdTask.TaskId, dto.Run)
+}
+
 func (tc *TaskController) Subscribe(id int64) (*subscriptionhub.Subscription, error) {
 	task, err := tc.TaskService.GetTaskWith(id)
 	if err != nil {
