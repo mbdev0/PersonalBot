@@ -51,61 +51,75 @@ func (dh *DashboardHandler) GetDashboard(w http.ResponseWriter, r *http.Request)
 func (dh *DashboardHandler) generateDashboardResponse(strategies []dto.TradingTaskResponse, allTasks []dto.ResponseTask) dto.DashboardResponseDto {
 	dashboardResponse := dto.DashboardResponseDto{}
 	dashboardResponse.New()
+	strategyToBuy := map[int64][]dto.ResponseTask{}
+	sellPositionToSellTask := map[int64][]dto.ResponseTask{}
+
+	for _, task := range allTasks {
+		if task.Type == "Buy" && task.StrategyId != nil {
+			strategyToBuy[*task.StrategyId] = append(strategyToBuy[*task.StrategyId], task)
+		} else if task.Type == "Sell" && task.SellPositionId != nil {
+			sellPositionToSellTask[*task.SellPositionId] = append(sellPositionToSellTask[*task.SellPositionId], task)
+		}
+	}
 
 	for _, st := range strategies {
-
-		childrenRows := []dto.ChildRow{}
-
-		//TODO: terrible when we have 1000s of tasks -> maybe future improvement? - dont improve performance prematurely
-		if st.Type == dto.AFK {
-			for _, t := range allTasks {
-
-				if !dh.shouldCreateRowFor(t, st) {
-					continue
-				}
-
-				t.SellFee = st.SellFee
-
-				childRow := dto.ChildRow{
-					Type:      string(dto.TASK),
-					Id:        t.TaskId,
-					WsMessage: t.Message,
-					State:     t.State.TaskState,
-					Data:      t,
-					Children:  dh.getSellTasksForBuy(allTasks, t.TaskId),
-				}
-
-				childrenRows = append(childrenRows, childRow)
+		switch st.Type {
+		case dto.BUY:
+			var sellTasks []dto.ResponseTask
+			if st.BuyTaskId != nil {
+				sellTasks = sellPositionToSellTask[*st.BuyTaskId]
 			}
-		} else if st.Type == dto.BUY {
-			sellTasks := dh.getSellTasksForBuy(allTasks, *st.BuyTaskId)
+			dashboardResponse.Rows = append(dashboardResponse.Rows, dh.createBuyStrategyRow(st, sellTasks))
+		case dto.SELL:
+			dashboardResponse.Rows = append(dashboardResponse.Rows, dh.createSellStrategyRow(st))
+		default:
+			// AFK strategy — buy tasks as children, each with sell task grandchildren
+			buyTasks := strategyToBuy[st.Id]
+			children := make([]dto.ChildRow, 0, len(buyTasks))
 
-			for _, st := range sellTasks {
-				child := dto.ChildRow{
-					Type:      string(dto.TASK),
-					Id:        st.Id,
-					WsMessage: st.WsMessage,
-					State:     st.State,
-					Data:      st.Data,
+			for _, buyTask := range buyTasks {
+				buyTask.SellFee = st.SellFee
+
+				sellTasks := sellPositionToSellTask[buyTask.TaskId]
+				grandChildren := make([]dto.SellTasks, 0, len(sellTasks))
+
+				for _, sellTask := range sellTasks {
+					grandChildren = append(grandChildren, dto.SellTasks{
+						Type:      string(dto.TASK),
+						Id:        sellTask.TaskId,
+						WsMessage: sellTask.Message,
+						State:     sellTask.State.TaskState,
+						Data:      sellTask,
+					})
 				}
-				childrenRows = append(childrenRows, child)
+
+				slices.SortFunc(grandChildren, func(a, b dto.SellTasks) int {
+					return cmp.Compare(a.Data.TimeCreated, b.Data.TimeCreated)
+				})
+
+				children = append(children, dto.ChildRow{
+					Type:      string(dto.TASK),
+					Id:        buyTask.TaskId,
+					WsMessage: buyTask.Message,
+					State:     buyTask.State.TaskState,
+					Data:      buyTask,
+					Children:  grandChildren,
+				})
 			}
+
+			slices.SortFunc(children, func(a, b dto.ChildRow) int {
+				return cmp.Compare(a.Data.TimeCreated, b.Data.TimeCreated)
+			})
+
+			dashboardResponse.Rows = append(dashboardResponse.Rows, dto.TableRow{
+				Type:      string(dto.STRATEGY),
+				Id:        st.Id,
+				WsMessage: st.Message,
+				State:     st.State,
+				Data:      st,
+				Children:  children,
+			})
 		}
-
-		slices.SortFunc(childrenRows, func(a, b dto.ChildRow) int {
-			return cmp.Compare(a.Data.TimeCreated, b.Data.TimeCreated)
-		})
-
-		tbr := dto.TableRow{
-			Type:      string(dto.STRATEGY),
-			Id:        st.Id,
-			WsMessage: st.Message,
-			State:     st.State,
-			Data:      st,
-			Children:  childrenRows,
-		}
-
-		dashboardResponse.Rows = append(dashboardResponse.Rows, tbr)
 	}
 
 	slices.SortFunc(dashboardResponse.Rows, func(a, b dto.TableRow) int {
@@ -115,36 +129,42 @@ func (dh *DashboardHandler) generateDashboardResponse(strategies []dto.TradingTa
 	return dashboardResponse
 }
 
-func (dh *DashboardHandler) shouldCreateRowFor(t dto.ResponseTask, st dto.TradingTaskResponse) bool {
-	if t.Type == string(dto.Sell) {
-		return false
+func (dh *DashboardHandler) createSellStrategyRow(st dto.TradingTaskResponse) dto.TableRow {
+	return dto.TableRow{
+		Type:      string(dto.STRATEGY),
+		Id:        st.Id,
+		WsMessage: st.Message,
+		State:     st.State,
+		Data:      st,
 	}
-
-	if t.StrategyId == nil || *t.StrategyId != st.Id {
-		return false
-	}
-
-	return true
 }
 
-func (dh *DashboardHandler) getSellTasksForBuy(tasks []dto.ResponseTask, buyTaskId int64) []dto.SellTasks {
-	sellTasks := []dto.SellTasks{}
-	for _, t := range tasks {
-		if t.SellPositionId == nil {
-			continue
+func (dh *DashboardHandler) createBuyStrategyRow(st dto.TradingTaskResponse, sellTasks []dto.ResponseTask) dto.TableRow {
+	sellRows := make([]dto.ChildRow, 0, len(sellTasks))
+
+	for _, child := range sellTasks {
+		child.SellFee = st.SellFee
+		childRow := dto.ChildRow{
+			Type:      string(dto.TASK),
+			Id:        child.TaskId,
+			WsMessage: child.Message,
+			State:     child.State.TaskState,
+			Data:      child,
 		}
 
-		if *t.SellPositionId == buyTaskId {
-			sellTask := dto.SellTasks{
-				Type:      t.Type,
-				Id:        t.TaskId,
-				WsMessage: t.Message,
-				State:     t.State.TaskState,
-				Data:      t,
-			}
-			sellTasks = append(sellTasks, sellTask)
-		}
+		sellRows = append(sellRows, childRow)
 	}
 
-	return sellTasks
+	slices.SortFunc(sellRows, func(a, b dto.ChildRow) int {
+		return cmp.Compare(a.Data.TimeCreated, b.Data.TimeCreated)
+	})
+
+	return dto.TableRow{
+		Type:      string(dto.STRATEGY),
+		Id:        st.Id,
+		WsMessage: st.Message,
+		State:     st.State,
+		Data:      st,
+		Children:  sellRows,
+	}
 }
