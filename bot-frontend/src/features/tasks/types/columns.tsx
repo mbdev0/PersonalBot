@@ -61,6 +61,9 @@ export const columns: ColumnDef<DisplayRow>[] = [
         if (row.original.strategyId) {
           return `${row.original.data.type} ${formatAddress(row.original.data.token_address)}`;
         }
+        if (row.original.data.sell_amount && row.original.data.type === 'Sell') {
+          return `${row.original.data.type} ${row.original.data.sell_amount * 100}%`;
+        }
       } else {
         if (row.original.data.trading_type === 'AFK') {
           return `Task - ${row.original.data.trading_type} ${row.original.id}`;
