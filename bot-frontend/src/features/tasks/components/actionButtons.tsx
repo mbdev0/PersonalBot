@@ -1,8 +1,10 @@
 import type { RowActions } from '../types/rowActions';
-import { type DisplayRow } from '../types/tableRows';
+import { TaskRowType, type DisplayRow } from '../types/tableRows';
 import { StrategyTaskState } from '../types/strategies/strategyTask';
 import { Play, Square, Pencil, Trash2, Copy, ExternalLink } from 'lucide-react';
 import { isFailure } from '../types/taskState';
+import { QuickSellButtons } from './quickSellButtons';
+import { cn } from '@/lib/utils';
 
 interface ActionButtonProps {
   row: DisplayRow;
@@ -35,45 +37,51 @@ export function ActionButtons({ row, rowActions }: ActionButtonProps) {
   };
 
   return (
-    <div className="flex gap-1.5">
-      {isRunning && !isRerunnable ? (
-        <button className="stop_task action-button-stop" onClick={() => rowActions.onStop(row)}>
-          <Square className="action-icon" />
+    <div className="grid-cols-1 space-y-2">
+      <div className={cn('flex', isDone ? 'justify-evenly' : 'gap-1.5')}>
+        {isRunning && !isRerunnable ? (
+          <button className="stop_task action-button-stop" onClick={() => rowActions.onStop(row)}>
+            <Square className="action-icon" />
+          </button>
+        ) : (
+          <button
+            className={`start_task action-button-start ${
+              isTerminal ? 'opacity-50 cursor-not-allowed' : ''
+            }`}
+            disabled={isTerminal}
+            onClick={() => rowActions.onStart(row)}
+          >
+            <Play className="action-icon fill-current" />
+          </button>
+        )}
+
+        <button className="edit action-button-edit" onClick={() => rowActions.onEdit(row)}>
+          <Pencil className="action-icon" />
         </button>
-      ) : (
+
+        <button className="delete action-button-delete" onClick={() => rowActions.onDelete(row)}>
+          <Trash2 className="action-icon" />
+        </button>
+
         <button
-          className={`start_task action-button-start ${
-            isTerminal ? 'opacity-50 cursor-not-allowed' : ''
-          }`}
-          disabled={isTerminal}
-          onClick={() => rowActions.onStart(row)}
+          className="duplicate action-button-neutral"
+          onClick={() => rowActions.onDuplicate(row)}
         >
-          <Play className="action-icon fill-current" />
+          <Copy className="action-icon" />
         </button>
-      )}
 
-      <button className="edit action-button-edit" onClick={() => rowActions.onEdit(row)}>
-        <Pencil className="action-icon" />
-      </button>
+        {isDone && solscanLink(row) && (
+          <button
+            className="link action-button-link"
+            onClick={() => window.open(solscanLink(row), '_blank', 'noopener,noreferrer')}
+          >
+            <ExternalLink className="action-icon" />
+          </button>
+        )}
+      </div>
 
-      <button className="delete action-button-delete" onClick={() => rowActions.onDelete(row)}>
-        <Trash2 className="action-icon" />
-      </button>
-
-      <button
-        className="duplicate action-button-neutral"
-        onClick={() => rowActions.onDuplicate(row)}
-      >
-        <Copy className="action-icon" />
-      </button>
-
-      {isDone && solscanLink(row) && (
-        <button
-          className="link action-button-link"
-          onClick={() => window.open(solscanLink(row), '_blank', 'noopener,noreferrer')}
-        >
-          <ExternalLink className="action-icon" />
-        </button>
+      {isDone && row.type === TaskRowType.Strategy && row.data.trading_type === 'BUY' && (
+        <QuickSellButtons row={row} rowActions={rowActions} />
       )}
     </div>
   );

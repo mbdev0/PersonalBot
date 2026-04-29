@@ -1,4 +1,4 @@
-import { useAddTask, useDeleteTask, useTransitionTask } from './useTasks';
+import { useAddTask, useCreateAndRunTask, useDeleteTask, useTransitionTask } from './useTasks';
 import type { RowActions } from '../types/rowActions';
 import { TaskRowType, type DisplayRow } from '../types/tableRows';
 import {
@@ -8,6 +8,8 @@ import {
   useStopStrategy,
 } from './useStrategy';
 import { toast } from 'sonner';
+import { mapTaskToTaskPost } from '../mapper/taskMapper';
+import type { TaskPostDto } from '../types/task';
 
 export function useRowActions(setEditingRow: (row: DisplayRow | null) => void): RowActions {
   const deleteMutation = useDeleteTask();
@@ -15,6 +17,7 @@ export function useRowActions(setEditingRow: (row: DisplayRow | null) => void): 
   const transitionMutation = useTransitionTask();
   const startStrategy = useStartStrategy();
   const stopStrategy = useStopStrategy();
+  const createAndRunTaskMutation = useCreateAndRunTask();
 
   const deleteStrategyMutation = useDeleteStrategy();
   const duplicateStrategyMutation = useAddStrategy();
@@ -68,7 +71,7 @@ export function useRowActions(setEditingRow: (row: DisplayRow | null) => void): 
     },
     onDuplicate: (row: DisplayRow) => {
       if (row.type === TaskRowType.Task) {
-        duplicateMutation.mutate(row.data, {
+        duplicateMutation.mutate(mapTaskToTaskPost(row.data), {
           onError: (e) =>
             toast.error(`Failed to duplicate task ${row.id}`, { description: e.message }),
         });
@@ -78,6 +81,12 @@ export function useRowActions(setEditingRow: (row: DisplayRow | null) => void): 
             toast.error(`Failed to duplicate task ${row.id}`, { description: e.message }),
         });
       }
+    },
+    onQuickSell: (task: TaskPostDto) => {
+      createAndRunTaskMutation.mutate(task, {
+        onError: (e) =>
+          toast.error(`Failed to create task ${task.type}`, { description: e.message }),
+      });
     },
   };
 }

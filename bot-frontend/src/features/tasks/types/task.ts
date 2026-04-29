@@ -13,6 +13,7 @@ interface TaskDto {
   strategy_id: number | undefined;
   state: StateDto;
   message: string;
+  rpc_group_id: number;
 }
 
 interface StateDto {
@@ -35,6 +36,7 @@ interface Task {
   strategy_id: number | undefined;
   state: State;
   message: string;
+  rpc_group_id: number;
 }
 
 interface TaskPost {
@@ -47,6 +49,8 @@ interface TaskPost {
   buy_fee?: number;
   sell_amount?: number;
   sell_fee?: number;
+  rpc_group_id: number;
+  strategy_id: number;
 }
 
 interface TaskPostDto {
@@ -55,10 +59,13 @@ interface TaskPostDto {
   compute_units: number;
   token_address: string;
   wallet_name: string;
-  buy_amount: number | undefined;
-  buy_fee: number | undefined;
-  sell_amount: number | undefined;
-  sell_fee: number | undefined;
+  buy_amount?: number;
+  buy_fee?: number;
+  sell_amount?: number;
+  sell_fee?: number;
+  sell_position_id?: number;
+  rpc_group_id: number;
+  strategy_id: number;
 }
 
 interface State {
