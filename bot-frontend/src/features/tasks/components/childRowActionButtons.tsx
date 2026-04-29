@@ -1,7 +1,8 @@
 import type { RowActions } from '../types/rowActions';
-import { type DisplayRow } from '../types/tableRows';
+import { TaskRowType, type DisplayRow } from '../types/tableRows';
 import { ExternalLink, Play, Square, Trash2 } from 'lucide-react';
 import { isFailure, TaskState, isRunning } from '../types/taskState';
+import { QuickSellButtons } from './quickSellButtons';
 
 interface ActionButtonProps {
   row: DisplayRow;
@@ -25,34 +26,40 @@ export function ChildRowActionButtons({ row, rowActions }: ActionButtonProps) {
   };
 
   return (
-    <div className="flex gap-1.5">
-      {isRunning(row.state) ? (
-        <button className="stop_task action-button-stop" onClick={() => rowActions.onStop(row)}>
-          <Square className="action-icon" />
-        </button>
-      ) : (
-        <button
-          className={`start_task action-button-start ${
-            isTerminal ? 'opacity-50 cursor-not-allowed' : ''
-          }`}
-          disabled={isTerminal}
-          onClick={() => rowActions.onStart(row)}
-        >
-          <Play className="action-icon fill-current" />
-        </button>
-      )}
+    <div className="grid-cols-1 space-y-2">
+      <div className="flex justify-center gap-1.5">
+        {isRunning(row.state) ? (
+          <button className="stop_task action-button-stop" onClick={() => rowActions.onStop(row)}>
+            <Square className="action-icon" />
+          </button>
+        ) : (
+          <button
+            className={`start_task action-button-start ${
+              isTerminal ? 'opacity-50 cursor-not-allowed' : ''
+            }`}
+            disabled={isTerminal}
+            onClick={() => rowActions.onStart(row)}
+          >
+            <Play className="action-icon fill-current" />
+          </button>
+        )}
 
-      <button className="delete action-button-delete" onClick={() => rowActions.onDelete(row)}>
-        <Trash2 className="action-icon" />
-      </button>
-
-      {isDone && solscanLink(row) && (
-        <button
-          className="link action-button-link"
-          onClick={() => window.open(solscanLink(row), '_blank', 'noopener,noreferrer')}
-        >
-          <ExternalLink className="action-icon" />
+        <button className="delete action-button-delete" onClick={() => rowActions.onDelete(row)}>
+          <Trash2 className="action-icon" />
         </button>
+
+        {isDone && solscanLink(row) && (
+          <button
+            className="link action-button-link"
+            onClick={() => window.open(solscanLink(row), '_blank', 'noopener,noreferrer')}
+          >
+            <ExternalLink className="action-icon" />
+          </button>
+        )}
+      </div>
+
+      {isDone && row.type === TaskRowType.Task && row.data.type === 'Buy' && (
+        <QuickSellButtons row={row} rowActions={rowActions} />
       )}
     </div>
   );

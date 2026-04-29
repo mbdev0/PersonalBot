@@ -1,12 +1,26 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { deleteTask, postTask, transitionTask } from '../api/tasks';
-import type { TaskAction, TaskPost } from '../types/task';
+import { createAndRunTask, deleteTask, postTask, transitionTask } from '../api/tasks';
+import type { TaskAction, TaskPost, TaskPostDto } from '../types/task';
 
 export function useAddTask() {
   const client = useQueryClient();
 
   return useMutation({
     mutationFn: (task: TaskPost) => postTask(task),
+    onSuccess() {
+      client.invalidateQueries({ queryKey: ['dashboard'] });
+    },
+    onError(e) {
+      console.error('error: ', e);
+    },
+  });
+}
+
+export function useCreateAndRunTask() {
+  const client = useQueryClient();
+
+  return useMutation({
+    mutationFn: (task: TaskPostDto) => createAndRunTask(task),
     onSuccess() {
       client.invalidateQueries({ queryKey: ['dashboard'] });
     },

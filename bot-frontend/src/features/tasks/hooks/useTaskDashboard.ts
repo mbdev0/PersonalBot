@@ -20,14 +20,11 @@ export function useTaskDashboard() {
       return;
     }
 
-    console.log('QUERY WAS OLD AND HAS NOW CHANGED');
-
     query.data.rows.forEach((row) => {
       if (row.type === 'strategy') {
-        if (row.state == 'SUCCESS' || row.state == 'Done') {
-          return;
+        if (!(row.state == 'SUCCESS' || row.state == 'Done')) {
+          strategySend({ type: 'Subscribe', id: row.data.id });
         }
-        strategySend({ type: 'Subscribe', id: row.data.id });
         if (row.children.length > 0) {
           subscribeToTaskChildren(row, send);
         }

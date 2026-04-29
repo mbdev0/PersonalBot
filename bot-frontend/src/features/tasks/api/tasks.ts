@@ -1,6 +1,6 @@
 import { API_BASE } from '../../../config/urls';
 import { mapTaskToPostDto } from '../mapper/taskMapper';
-import type { TaskAction, TaskPost } from '../types/task';
+import type { TaskAction, TaskPost, TaskPostDto } from '../types/task';
 const TASK_BASE = '/tasks/task';
 
 export async function postTask(task: TaskPost): Promise<number> {
@@ -18,6 +18,25 @@ export async function postTask(task: TaskPost): Promise<number> {
 
   if (!response.ok) {
     throw new Error(`Failed to add new task: ${response.status}`);
+  }
+
+  return response.status;
+}
+
+export async function createAndRunTask(task: TaskPostDto): Promise<number> {
+  const url = API_BASE + TASK_BASE + '/run';
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(task),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to add and run new task: ${response.status}`);
   }
 
   return response.status;
