@@ -41,6 +41,7 @@ func mapBuyToResponseTask(t *tasks.BuyTask) *dto.ResponseTask {
 	responseTask.Message = t.Message()
 	responseTask.HTTPNode = t.HttpNode()
 	responseTask.WSNode = t.WSNode()
+	responseTask.RPCGroupId = t.GetRPCGroupId()
 
 	return &responseTask
 }
@@ -67,6 +68,7 @@ func mapSellToResponseTask(t *tasks.SellTask) *dto.ResponseTask {
 	responseTask.Message = t.Message()
 	responseTask.HTTPNode = t.HttpNode()
 	responseTask.WSNode = t.WSNode()
+	responseTask.RPCGroupId = t.GetRPCGroupId()
 
 	return &responseTask
 }

@@ -150,6 +150,7 @@ func (s *Service) createSellTask(sell strategies.Sell, rpcGroup rpcgroupsModel.G
 			tasks.WithComputeUnits(uint32(sell.GetComputeUnits())),
 			tasks.WithSlippage(sell.GetSlippage()),
 			tasks.WithStrategyId(sell.StrategyTaskId()),
+			tasks.WithRPCGroupId(sell.RPCGroupId()),
 			tasks.WithHttpNode(rpcGroup.Http),
 			tasks.WithWS(rpcGroup.WS),
 		},

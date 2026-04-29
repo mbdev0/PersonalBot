@@ -27,6 +27,7 @@ type SellConfig struct {
 }
 
 type NodeConfig struct {
-	Http string `json:"http_node"`
-	Ws   string `json:"ws_node"`
+	RPCGroupId int64  `json:"rpc_group_id"`
+	Http       string `json:"http_node"`
+	Ws         string `json:"ws_node"`
 }

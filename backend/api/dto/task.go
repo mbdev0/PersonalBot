@@ -52,6 +52,7 @@ type ResponseTask struct {
 	TimeCreated       int64    `json:"time_created"`
 	HTTPNode          string   `json:"http_node"`
 	WSNode            string   `json:"ws_node"`
+	RPCGroupId        int64    `json:"rpc_group_id"`
 }
 
 type State struct {

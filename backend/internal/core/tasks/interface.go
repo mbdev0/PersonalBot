@@ -20,6 +20,7 @@ type Configurable interface {
 	SetTime(t int64)
 	SetHttpNode(rpcNode string)
 	SetWSNode(ws string)
+	SetRPCGroupId(id int64)
 }
 
 type ConfigurableTask interface {

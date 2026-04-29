@@ -28,6 +28,7 @@ type SellTask struct {
 	rpcNode        *rpc.Client
 	rpcNodeString  string
 	ws             string
+	rpcGroupId     int64
 }
 
 func NewSellTask(wallet wallets.SolanaWallet, token solana.PublicKey, common []Option, sellOpt []SellOption) *SellTask {
@@ -106,4 +107,11 @@ func (st *SellTask) WSNode() string {
 
 func (st *SellTask) SetWSNode(ws string) {
 	st.ws = ws
+}
+
+func (st *SellTask) GetRPCGroupId() int64 {
+	return st.rpcGroupId
+}
+func (st *SellTask) SetRPCGroupId(id int64) {
+	st.rpcGroupId = id
 }

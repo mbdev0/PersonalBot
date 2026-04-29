@@ -8,4 +8,5 @@ type SellableStrategy interface {
 	GetSlippage() float64
 	GetSellFee() *float64
 	StrategyTaskId() int64
+	RPCGroupId() int64
 }
