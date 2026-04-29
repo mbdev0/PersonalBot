@@ -34,12 +34,12 @@ func NewTaskHandler(controller *controller.TaskController) http.Handler {
 
 func (th *TaskHandler) registerRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("POST /task", th.createTask)
-	mux.HandleFunc("GET /test", th.Test)
 	mux.HandleFunc("GET /task/{id}", th.getTaskById)
 	mux.HandleFunc("GET /task", th.getTasks)
 	mux.HandleFunc("PUT /task/{id}", th.updateTask)
 	mux.HandleFunc("DELETE /task/{id}", th.deleteTask)
 	mux.HandleFunc("POST /transition/{id}", th.transitionTask)
+	mux.HandleFunc("POST /task/run", th.createAndRunTask)
 	mux.HandleFunc("/subscribe", th.subscribe)
 }
 
@@ -202,6 +202,24 @@ func (th *TaskHandler) transitionTask(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
+func (th *TaskHandler) createAndRunTask(w http.ResponseWriter, r *http.Request) {
+	decoder := json.NewDecoder(r.Body)
+	decoder.DisallowUnknownFields()
+
+	var reqTask dto.RequestTask
+	err := decoder.Decode(&reqTask)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
+	}
+
+	err = th.controller.CreateAndRunTask(r.Context(), reqTask)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
 func (th *TaskHandler) subscribe(w http.ResponseWriter, r *http.Request) {
 	subscribers := make(chan subscriptionhub.Subscription, th.bufferSize)
 	defer close(subscribers)
@@ -328,14 +346,5 @@ func (th *TaskHandler) subscribe(w http.ResponseWriter, r *http.Request) {
 				logger.Error("error whilst trying to write to WS, error: " + err.Error())
 			}
 		}
-	}
-}
-
-func (th *TaskHandler) Test(w http.ResponseWriter, r *http.Request) {
-	res := th.controller.TestEP()
-	_, err := w.Write([]byte(res))
-
-	if err != nil {
-		logger.Error(err.Error())
 	}
 }
