@@ -87,6 +87,8 @@ export const useStrategyWebsocket = (
             data.strategy_msg.task
           ) {
             const task = mapTaskDtoToTask(data.strategy_msg.task);
+            task.sell_fee = strategyTask.data.sell_fee;
+
             const taskRow: TaskDashboardRow = {
               type: 'task',
               data: task,

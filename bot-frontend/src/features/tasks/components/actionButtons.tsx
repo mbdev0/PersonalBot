@@ -20,6 +20,9 @@ export function ActionButtons({ row, rowActions }: ActionButtonProps) {
   const isRerunnable = isFailure(row.state);
   const isFailed = row.state === 'Task Failed' || row.state === StrategyTaskState.failed;
 
+  const isCompletedBuyStrategy =
+    isDone && row.type === TaskRowType.Strategy && row.data.trading_type === 'BUY';
+
   const isTerminal = isDone || isFailed;
 
   const isRunning =
@@ -38,7 +41,7 @@ export function ActionButtons({ row, rowActions }: ActionButtonProps) {
 
   return (
     <div className="grid-cols-1 space-y-2">
-      <div className={cn('flex', isDone ? 'justify-evenly' : 'gap-1.5')}>
+      <div className={cn('flex', isCompletedBuyStrategy ? 'justify-evenly' : 'gap-1.5')}>
         {isRunning && !isRerunnable ? (
           <button className="stop_task action-button-stop" onClick={() => rowActions.onStop(row)}>
             <Square className="action-icon" />
@@ -80,9 +83,7 @@ export function ActionButtons({ row, rowActions }: ActionButtonProps) {
         )}
       </div>
 
-      {isDone && row.type === TaskRowType.Strategy && row.data.trading_type === 'BUY' && (
-        <QuickSellButtons row={row} rowActions={rowActions} />
-      )}
+      {isCompletedBuyStrategy && <QuickSellButtons row={row} rowActions={rowActions} />}
     </div>
   );
 }
