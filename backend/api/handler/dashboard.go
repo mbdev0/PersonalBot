@@ -64,6 +64,8 @@ func (dh *DashboardHandler) generateDashboardResponse(strategies []dto.TradingTa
 					continue
 				}
 
+				t.SellFee = st.SellFee
+
 				childRow := dto.ChildRow{
 					Type:      string(dto.TASK),
 					Id:        t.TaskId,

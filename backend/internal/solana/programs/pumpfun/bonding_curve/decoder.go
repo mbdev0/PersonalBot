@@ -224,6 +224,7 @@ func parseV1(data []byte) (*models.BondingCurve, error) {
 		Complete:             v1.Complete,
 		Creator:              v1.Creator.ToPointer(),
 		IsMayhemMode:         v1.IsMayhemMode,
+		IsCashbackCoin:       v1.IsCashbackCoin,
 	}, nil
 }
 
