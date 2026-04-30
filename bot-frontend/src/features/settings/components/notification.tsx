@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { usePostSettings, useTestDiscordWebhook } from '../hooks/useSettings';
 import { useState } from 'react';
+import { toast } from 'sonner';
 
 interface NotifcationProps {
   data: Settings;
@@ -17,7 +18,17 @@ export function Notifcation({ data }: NotifcationProps) {
 
   const update = (patch: Partial<Settings>) => {
     if (!data) return;
-    mutation.mutate({ ...data, ...patch });
+    mutation.mutate(
+      { ...data, ...patch },
+      {
+        onSuccess: () => {
+          toast.success('Succesfully updated Webhook');
+        },
+        onError: (error) => {
+          toast.error('Failed to update Webhook', { description: error.message });
+        },
+      }
+    );
   };
 
   return (
@@ -40,7 +51,19 @@ export function Notifcation({ data }: NotifcationProps) {
           >
             Save
           </Button>
-          <Button variant="outline" onClick={() => testMutation.mutate(discordWebhook)}>
+          <Button
+            variant="outline"
+            onClick={() => {
+              testMutation.mutate(discordWebhook, {
+                onSuccess: () => {
+                  toast.success('Succesfully sent Test Webhook');
+                },
+                onError: (error) => {
+                  toast.error('Failed to send Test Webhook', { description: error.message });
+                },
+              });
+            }}
+          >
             Test
           </Button>
         </div>
