@@ -5,16 +5,18 @@ import { Play, Square, Pencil, Trash2, Copy, ExternalLink } from 'lucide-react';
 import { isFailure } from '../types/taskState';
 import { QuickSellButtons } from './quickSellButtons';
 import { cn } from '@/lib/utils';
+import type { Settings } from '@/features/settings/types/settings';
 
 interface ActionButtonProps {
   row: DisplayRow;
   rowActions: RowActions;
+  settings?: Settings;
 }
 
 const TX_HASH_REGEX = /[1-9A-HJ-NP-Za-km-z]{87,88}/g;
 const SOLSCAN_TX_URL = 'https://solscan.io/tx/';
 
-export function ActionButtons({ row, rowActions }: ActionButtonProps) {
+export function ActionButtons({ row, rowActions, settings }: ActionButtonProps) {
   const isDone = row.state === 'Done' || row.state === StrategyTaskState.success;
 
   const isRerunnable = isFailure(row.state);
@@ -83,7 +85,9 @@ export function ActionButtons({ row, rowActions }: ActionButtonProps) {
         )}
       </div>
 
-      {isCompletedBuyStrategy && <QuickSellButtons row={row} rowActions={rowActions} />}
+      {isCompletedBuyStrategy && (
+        <QuickSellButtons row={row} rowActions={rowActions} settings={settings} />
+      )}
     </div>
   );
 }

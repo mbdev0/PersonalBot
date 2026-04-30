@@ -3,16 +3,18 @@ import { TaskRowType, type DisplayRow } from '../types/tableRows';
 import { ExternalLink, Play, Square, Trash2 } from 'lucide-react';
 import { isFailure, TaskState, isRunning } from '../types/taskState';
 import { QuickSellButtons } from './quickSellButtons';
+import type { Settings } from '@/features/settings/types/settings';
 
 interface ActionButtonProps {
   row: DisplayRow;
   rowActions: RowActions;
+  settings?: Settings;
 }
 
 const TX_HASH_REGEX = /[1-9A-HJ-NP-Za-km-z]{87,88}/g;
 const SOLSCAN_TX_URL = 'https://solscan.io/tx/';
 
-export function ChildRowActionButtons({ row, rowActions }: ActionButtonProps) {
+export function ChildRowActionButtons({ row, rowActions, settings }: ActionButtonProps) {
   const isDone = row.state === TaskState.TASK_DONE;
   const isFailed = isFailure(row.state);
   const isTerminal = isDone || isFailed;
@@ -59,7 +61,7 @@ export function ChildRowActionButtons({ row, rowActions }: ActionButtonProps) {
       </div>
 
       {isDone && row.type === TaskRowType.Task && row.data.type === 'Buy' && (
-        <QuickSellButtons row={row} rowActions={rowActions} />
+        <QuickSellButtons row={row} rowActions={rowActions} settings={settings} />
       )}
     </div>
   );
