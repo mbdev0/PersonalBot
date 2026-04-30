@@ -4,6 +4,7 @@ import type { Settings } from '../types/settings';
 import { Label } from '@/components/ui/label';
 import { useState } from 'react';
 import { usePostSettings } from '../hooks/useSettings';
+import { toast } from 'sonner';
 
 interface PositionNodeProps {
   data: Settings;
@@ -16,7 +17,17 @@ export function PositionNode({ data }: PositionNodeProps) {
 
   const update = (patch: Partial<Settings>) => {
     if (!data) return;
-    mutation.mutate({ ...data, ...patch });
+    mutation.mutate(
+      { ...data, ...patch },
+      {
+        onSuccess: () => {
+          toast.success('Succesfully updated nodes');
+        },
+        onError: (error) => {
+          toast.error('Failed to update nodes', { description: error.message });
+        },
+      }
+    );
   };
 
   return (
