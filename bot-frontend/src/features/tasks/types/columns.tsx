@@ -6,6 +6,7 @@ import { formatAddress } from '@/utils/crypto/address_shortner';
 import { ArrowRight, ArrowDown } from 'lucide-react';
 import { ChildRowActionButtons } from '../components/childRowActionButtons';
 import { MessageCell } from '../components/messageCell';
+import type { Settings } from '@/features/settings/types/settings';
 
 // this extends the table meta to add a field called row actions so TS doesn't complain
 // eslint complaining compaining about no unused vars, but for the interface to work we must copy the same
@@ -14,6 +15,7 @@ declare module '@tanstack/react-table' {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   interface TableMeta<TData extends RowData = RowData> {
     rowActions: RowActions;
+    settingsData?: Settings;
   }
 }
 
@@ -94,10 +96,18 @@ export const columns: ColumnDef<DisplayRow>[] = [
       return (
         <div className="flex justify-center">
           {row.original.type === TaskRowType.Strategy && (
-            <ActionButtons row={row.original} rowActions={table.options.meta!.rowActions} />
+            <ActionButtons
+              row={row.original}
+              rowActions={table.options.meta!.rowActions}
+              settings={table.options.meta!.settingsData}
+            />
           )}
           {row.original.type === TaskRowType.Task && (
-            <ChildRowActionButtons row={row.original} rowActions={table.options.meta!.rowActions} />
+            <ChildRowActionButtons
+              row={row.original}
+              rowActions={table.options.meta!.rowActions}
+              settings={table.options.meta!.settingsData}
+            />
           )}
         </div>
       );

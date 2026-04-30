@@ -15,6 +15,7 @@ import {
 import { useRowActions } from '@/features/tasks/hooks/useRowActions';
 import { columns } from '@/features/tasks/types/columns';
 import type { DisplayRow } from '@/features/tasks/types/tableRows';
+import { useSettings } from '@/features/settings/hooks/useSettings';
 
 export function DashboardTable({
   data,
@@ -24,11 +25,13 @@ export function DashboardTable({
   setEditingRow: (row: DisplayRow | null) => void;
 }) {
   const rowActions = useRowActions(setEditingRow);
+  const settings = useSettings();
+  const settingsData = settings.data;
 
   const table = useReactTable({
     data,
     columns,
-    meta: { rowActions },
+    meta: { rowActions, settingsData },
     getCoreRowModel: getCoreRowModel(),
     getExpandedRowModel: getExpandedRowModel(),
     getSubRows: (row) => row.subRows,

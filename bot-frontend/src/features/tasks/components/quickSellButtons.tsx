@@ -1,3 +1,4 @@
+import type { Settings } from '@/features/settings/types/settings';
 import type { RowActions } from '../types/rowActions';
 import { TaskRowType, type DisplayRow } from '../types/tableRows';
 import type { TaskPostDto } from '../types/task';
@@ -5,34 +6,40 @@ import type { TaskPostDto } from '../types/task';
 interface QuickSellButtonProps {
   row: DisplayRow;
   rowActions: RowActions;
+  settings?: Settings;
 }
 
-export function QuickSellButtons({ row, rowActions }: QuickSellButtonProps) {
+export function QuickSellButtons({ row, rowActions, settings }: QuickSellButtonProps) {
+  const button1 = settings?.quick_sell_buttons.button_1 ?? 0.25;
+  const button2 = settings?.quick_sell_buttons.button_2 ?? 0.5;
+  const button3 = settings?.quick_sell_buttons.button_3 ?? 0.75;
+  const button4 = settings?.quick_sell_buttons.button_4 ?? 1;
+
   return (
     <div className="flex gap-1.5">
       <button
         className="quicksell quick-sell-button-base  hover:bg-green-400/10 hover:ring-green-400/25"
-        onClick={() => spawnAndRunTask(row, 0.25, rowActions)}
+        onClick={() => spawnAndRunTask(row, button1, rowActions)}
       >
-        25%
+        {button1 * 100}%
       </button>
       <button
         className="quicksell quick-sell-button-base  hover:bg-green-500/10 hover:ring-green-500/25"
-        onClick={() => spawnAndRunTask(row, 0.5, rowActions)}
+        onClick={() => spawnAndRunTask(row, button2, rowActions)}
       >
-        50%
+        {button2 * 100}%
       </button>
       <button
         className="quicksell quick-sell-button-base  hover:bg-green-600/10 hover:ring-green-600/25"
-        onClick={() => spawnAndRunTask(row, 0.75, rowActions)}
+        onClick={() => spawnAndRunTask(row, button3, rowActions)}
       >
-        75%
+        {button3 * 100}%
       </button>
       <button
         className="quicksell quick-sell-button-base  hover:bg-green-700/10 hover:ring-green-700/25"
-        onClick={() => spawnAndRunTask(row, 1, rowActions)}
+        onClick={() => spawnAndRunTask(row, button4, rowActions)}
       >
-        100%
+        {button4 * 100}%
       </button>
     </div>
   );
