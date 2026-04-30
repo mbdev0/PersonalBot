@@ -21,13 +21,13 @@ func NewSettingRepository(db *sql.DB) *SettingRepository {
 
 func (sr *SettingRepository) GetSettings(ctx context.Context) (settings.Settings, error) {
 	query := `
-	SELECT s.discord_webhook, s.send_on_fail, s.send_on_success, s.position_nodes from settings s`
+	SELECT s.discord_webhook, s.send_on_fail, s.send_on_success, s.position_nodes, s.quick_sell_buttons from settings s`
 
 	row := sr.db.QueryRowContext(ctx, query)
 
 	settingsRow := &models.SettingsRow{}
 
-	err := row.Scan(&settingsRow.DiscordWebhook, &settingsRow.SendOnFail, &settingsRow.SendOnSuccess, &settingsRow.PositionNodes)
+	err := row.Scan(&settingsRow.DiscordWebhook, &settingsRow.SendOnFail, &settingsRow.SendOnSuccess, &settingsRow.PositionNodes, &settingsRow.QuickSellButtons)
 	if err != nil {
 		return settings.Settings{}, err
 	}
@@ -44,7 +44,7 @@ func (sr *SettingRepository) GetSettings(ctx context.Context) (settings.Settings
 func (sr *SettingRepository) PostSettings(ctx context.Context, settings settings.Settings) error {
 	query := `
 		UPDATE settings
-		SET discord_webhook=?, send_on_fail=?, send_on_success=?, position_nodes=?
+		SET discord_webhook=?, send_on_fail=?, send_on_success=?, position_nodes=?, quick_sell_buttons=?
 		WHERE id = 1
 	`
 	mappedSettings, err := mapper.MapSettingsToRepo(settings)
@@ -52,7 +52,10 @@ func (sr *SettingRepository) PostSettings(ctx context.Context, settings settings
 		return err
 	}
 
-	row, err := sr.db.ExecContext(ctx, query, mappedSettings.DiscordWebhook, mappedSettings.SendOnFail, mappedSettings.SendOnSuccess, mappedSettings.PositionNodes)
+	row, err := sr.db.ExecContext(ctx, query,
+		mappedSettings.DiscordWebhook, mappedSettings.SendOnFail, mappedSettings.SendOnSuccess,
+		mappedSettings.PositionNodes, mappedSettings.QuickSellButtons)
+
 	if err != nil {
 		return err
 	}

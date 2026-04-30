@@ -110,6 +110,7 @@ func (s *Service) createBuyTask(buyTask strategies.Buy, node rpcgroupsModel.Grou
 			tasks.WithSlippage(buyTask.Slippage),
 			tasks.WithComputeUnits(uint32(buyTask.ComputeUnits)),
 			tasks.WithStrategyId(buyTask.StrategyTaskId()),
+			tasks.WithRPCGroupId(buyTask.RPCGroup.Id),
 			tasks.WithHttpNode(node.Http),
 			tasks.WithWS(node.WS),
 		},
