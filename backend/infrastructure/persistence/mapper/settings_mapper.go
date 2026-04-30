@@ -25,8 +25,14 @@ func MapSettingsToRepo(settings settings.Settings) (settingsRow models.SettingsR
 	if err != nil {
 		return
 	}
-
 	settingsRow.PositionNodes = string(posNodes)
+
+	quickSellButtons, err := json.Marshal(settings.QuickSellButtons)
+	if err != nil {
+		return
+	}
+
+	settingsRow.QuickSellButtons = string(quickSellButtons)
 
 	return settingsRow, nil
 }
@@ -48,6 +54,14 @@ func MapRepoToSettings(settingsRow *models.SettingsRow) (sttings settings.Settin
 		return
 	}
 	sttings.PositionNodes = *positionNodes
+
+	quickSellButtons := new(settings.QuickSellButtons)
+	err = json.Unmarshal([]byte(settingsRow.QuickSellButtons), quickSellButtons)
+	if err != nil {
+		return
+	}
+
+	sttings.QuickSellButtons = *quickSellButtons
 
 	return sttings, nil
 }
