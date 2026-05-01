@@ -37,7 +37,6 @@ type BondingCurveV1 struct {
 	IsCashbackCoin       bool
 }
 
-// TODO: when we care about cashback coins only, expand v2
 type BondingCurveV2 struct {
 	VirtualTokenReserves uint64
 	VirtualSolReserves   uint64

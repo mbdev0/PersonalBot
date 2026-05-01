@@ -46,8 +46,6 @@ export function QuickSellButtons({ row, rowActions, settings }: QuickSellButtonP
 }
 
 function spawnAndRunTask(row: DisplayRow, amountToSell: number, rowActions: RowActions) {
-  // let sellTask: Partial<TaskPostDto> = {};
-
   if (
     !(
       (row.type === TaskRowType.Strategy && row.data.trading_type === 'BUY') ||

@@ -115,7 +115,7 @@ func setBondingCurveInformation(accountAddressesSet *AccountAddressesSet, ctx co
 
 func resolvePDAs(accountAddressesSet *AccountAddressesSet, isNewTokenAddress bool) (err error) {
 
-	//TODO: when a create_fee_sharing_config instruction comes in, it changes the bonding curve creator address
+	//TODO: when a create_fee_sharing_config instruction comes in, it changes the bonding curve creator address - requires subscribing to account
 	accountAddressesSet.CreatorAddress, err = pda.GetCreatorVaultAddress(accountAddressesSet.BondingCurveData.Creator.String())
 	if err != nil {
 		return fmt.Errorf("error getting creator vault address: %w", err)
