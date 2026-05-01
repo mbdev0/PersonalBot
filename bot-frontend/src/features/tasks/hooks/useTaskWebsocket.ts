@@ -5,7 +5,6 @@ import type { SendTaskWSMessage, TaskWSMessage } from '../types/taskWebsocket';
 import { TASK_WS } from '@/config/urls';
 import type { SendPositionWSMessage } from '../types/positionWebsocket';
 
-// TODO - We are not updating sell tasks here. Sell Tasks do not have strategy_id... so now we have to search through to find task 
 export const useTaskWebsocket = (sendPositionWsMessage: (msg: SendPositionWSMessage) => void) => {
   const client = useQueryClient();
   const websocket = useRef<WebSocket | undefined>(undefined);
