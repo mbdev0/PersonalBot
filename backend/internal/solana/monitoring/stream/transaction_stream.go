@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"personal_bot/internal/core/constants"
-	"personal_bot/internal/monitoring/stream/response"
+	"personal_bot/internal/solana/monitoring/stream/response"
 	"personal_bot/pkg/logger"
 
 	"github.com/avast/retry-go/v4"
@@ -62,7 +62,7 @@ func geyserStreamTransactions(ctx context.Context, transactionChan chan<- respon
 			map[string]interface{}{
 				"failed": false,
 				"accountInclude": []interface{}{
-					constants.Program,
+					constants.PumpFunProgram,
 				},
 			},
 			map[string]interface{}{

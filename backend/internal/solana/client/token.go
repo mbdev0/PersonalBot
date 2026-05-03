@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"personal_bot/internal/core/constants"
-	"personal_bot/internal/solana/programs/pumpfun/pda"
+	"personal_bot/internal/solana/pda"
 	"strconv"
 
 	"github.com/gagliardetto/solana-go"

@@ -4,8 +4,8 @@ import (
 	"context"
 	"math/big"
 	rpcgroups "personal_bot/internal/core/rpc_groups"
-	"personal_bot/internal/monitoring/stream"
-	"personal_bot/internal/monitoring/stream/response"
+	"personal_bot/internal/solana/monitoring/stream"
+	"personal_bot/internal/solana/monitoring/stream/response"
 	bondingcurve "personal_bot/internal/solana/programs/pumpfun/bonding_curve"
 	"personal_bot/pkg/logger"
 )

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"personal_bot/internal/core/constants"
 	"personal_bot/internal/solana/client"
-	"personal_bot/internal/solana/programs/pumpfun/pda"
+	"personal_bot/internal/solana/pda"
 	"personal_bot/pkg/logger"
 
 	"github.com/gagliardetto/solana-go"

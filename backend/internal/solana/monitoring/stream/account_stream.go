@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"personal_bot/internal/core/constants"
-	"personal_bot/internal/monitoring/stream/response"
+	"personal_bot/internal/solana/monitoring/stream/response"
 	"personal_bot/pkg/logger"
 	"time"
 

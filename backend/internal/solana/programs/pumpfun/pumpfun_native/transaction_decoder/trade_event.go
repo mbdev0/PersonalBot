@@ -3,7 +3,7 @@ package transactiondecoder
 import (
 	"encoding/base64"
 	"fmt"
-	"personal_bot/internal/solana/programs/pumpfun/models"
+	"personal_bot/internal/solana/programs/pumpfun/pumpfun_native/models"
 	"strings"
 
 	"github.com/gagliardetto/solana-go/rpc"

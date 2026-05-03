@@ -2,11 +2,11 @@ package monitoring
 
 import (
 	"context"
-	"personal_bot/internal/monitoring/decoder"
-	"personal_bot/internal/monitoring/filters"
-	"personal_bot/internal/monitoring/models"
-	"personal_bot/internal/monitoring/stream"
-	"personal_bot/internal/monitoring/stream/response"
+	"personal_bot/internal/solana/monitoring/decoder"
+	"personal_bot/internal/solana/monitoring/filters"
+	"personal_bot/internal/solana/monitoring/models"
+	"personal_bot/internal/solana/monitoring/stream"
+	"personal_bot/internal/solana/monitoring/stream/response"
 	"personal_bot/pkg/logger"
 	"sync"
 )

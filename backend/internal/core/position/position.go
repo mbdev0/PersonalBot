@@ -6,6 +6,8 @@ import (
 	"github.com/gagliardetto/solana-go"
 )
 
+// TODO: what we will probably have to do is on ReportBuy set the interface in Position
+// then when monitoring happens we can use the interface set here to do stuff
 type Position struct {
 	PositionId           int64
 	StrategyId           *int64
@@ -22,6 +24,7 @@ type Position struct {
 	TotalMarketCapExit   *big.Float
 	NumberOfSells        int
 	AddressForUrl        string
+	MonitoringAddress    string
 }
 
 // we keep floats as strings to preserve some sort of accuracy
@@ -48,12 +51,13 @@ const (
 )
 
 type ReportBuyPayload struct {
-	StrategyId    *int64
-	BuyTaskId     int64
-	TokenAddress  solana.PublicKey
-	WalletAddress solana.PublicKey
-	TokenAmount   *big.Float
-	SolSpent      *big.Float
-	MarketCap     *big.Float
-	AddressForUrl string
+	StrategyId          *int64
+	BuyTaskId           int64
+	TokenAddress        solana.PublicKey
+	WalletAddress       solana.PublicKey
+	TokenAmount         *big.Float
+	SolSpent            *big.Float
+	MarketCap           *big.Float
+	AddressForUrl       string
+	AdressForMonitoring string
 }

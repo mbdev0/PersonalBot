@@ -8,8 +8,10 @@ import (
 	"personal_bot/internal/core/models"
 	"personal_bot/internal/core/tasks"
 	"personal_bot/internal/solana/instructions"
+	solanaPda "personal_bot/internal/solana/pda"
 	bondingcurve "personal_bot/internal/solana/programs/pumpfun/bonding_curve"
-	"personal_bot/internal/solana/programs/pumpfun/pda"
+	"personal_bot/internal/solana/programs/pumpfun/pumpfun_native/pda"
+
 	"personal_bot/internal/solana/utils"
 
 	"github.com/gagliardetto/solana-go"
@@ -51,7 +53,7 @@ func GetBuyInstruction(ctx context.Context, buyTask *tasks.BuyTask) (instruction
 		return nil, fmt.Errorf("error creating buy data: %w", err)
 	}
 
-	progId := solana.MustPublicKeyFromBase58(constants.Program)
+	progId := solana.MustPublicKeyFromBase58(constants.PumpFunProgram)
 	buyInstructions := solana.NewInstruction(progId, accounts, instructionData)
 
 	return buyInstructions, nil
@@ -130,9 +132,9 @@ func resolvePDAs(accountAddressesSet *AccountAddressesSet, isNewTokenAddress boo
 	tokenAddress := solana.MustPublicKeyFromBase58(accountAddressesSet.TokenAddress)
 
 	if isNewTokenAddress {
-		accountAddressesSet.AssociatedTokenAddressPubkey, _, err = pda.FindToken2022AssociatedTokenAddress(walletAddress, tokenAddress)
+		accountAddressesSet.AssociatedTokenAddressPubkey, _, err = solanaPda.FindToken2022AssociatedTokenAddress(walletAddress, tokenAddress)
 	} else {
-		accountAddressesSet.AssociatedTokenAddressPubkey, _, err = pda.FindTokenAssociatedTokenAddress(walletAddress, tokenAddress)
+		accountAddressesSet.AssociatedTokenAddressPubkey, _, err = solanaPda.FindTokenAssociatedTokenAddress(walletAddress, tokenAddress)
 	}
 	if err != nil {
 		return fmt.Errorf("error finding associated token address: %w", err)
@@ -165,7 +167,7 @@ func buildAccounts(accountAddressesSet AccountAddressesSet) (accounts []*solana.
 		utils.GetAccountMeta(accountAddressesSet.TokenProgram, false, false),
 		utils.GetAccountMeta(accountAddressesSet.CreatorAddress, true, false),
 		utils.GetAccountMeta(constants.EventAuthority, false, false),
-		utils.GetAccountMeta(constants.Program, false, false),
+		utils.GetAccountMeta(constants.PumpFunProgram, false, false),
 		utils.GetAccountMeta(constants.GlobalVolumeAccumulator, true, false),
 		utils.GetAccountMeta(accountAddressesSet.UserVolumeAccumulator, true, false),
 		utils.GetAccountMeta(constants.FeeConfig, false, false),

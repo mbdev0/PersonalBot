@@ -1,7 +1,7 @@
 package filters
 
 import (
-	"personal_bot/internal/monitoring/models"
+	"personal_bot/internal/solana/monitoring/models"
 	"slices"
 )
 

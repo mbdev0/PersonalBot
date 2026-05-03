@@ -14,10 +14,10 @@ import (
 	"personal_bot/internal/solana/client"
 	"personal_bot/internal/solana/instructions"
 	bondingcurve "personal_bot/internal/solana/programs/pumpfun/bonding_curve"
-	pumpInstructions "personal_bot/internal/solana/programs/pumpfun/instructions"
-	pumpmodels "personal_bot/internal/solana/programs/pumpfun/models"
-	"personal_bot/internal/solana/programs/pumpfun/pda"
-	transactiondecoder "personal_bot/internal/solana/programs/pumpfun/transaction_decoder"
+	pumpInstructions "personal_bot/internal/solana/programs/pumpfun/pumpfun_native/instructions"
+	pumpmodels "personal_bot/internal/solana/programs/pumpfun/pumpfun_native/models"
+	"personal_bot/internal/solana/programs/pumpfun/pumpfun_native/pda"
+	transactiondecoder "personal_bot/internal/solana/programs/pumpfun/pumpfun_native/transaction_decoder"
 
 	wallets "personal_bot/internal/solana/wallet"
 	"personal_bot/pkg/logger"
@@ -291,4 +291,8 @@ func (st *Transaction) getAllInstructionsForSell(ctx context.Context, sellTask *
 
 	solInstructions := []solana.Instruction{computeLimitInstruction, computeLimitBudgetInstruction, sellInstructions}
 	return solInstructions, nil
+}
+
+func (st *Transaction) GetAddressForURL() (string, error) {
+	return pda.GetBondingCurveAddress(st.Task.GetToken())
 }
