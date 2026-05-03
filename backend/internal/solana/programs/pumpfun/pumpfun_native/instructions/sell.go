@@ -8,8 +8,10 @@ import (
 	"personal_bot/internal/core/tasks"
 	"personal_bot/internal/solana/client"
 	"personal_bot/internal/solana/instructions"
+	solanaPda "personal_bot/internal/solana/pda"
 	bondingcurve "personal_bot/internal/solana/programs/pumpfun/bonding_curve"
-	"personal_bot/internal/solana/programs/pumpfun/pda"
+	"personal_bot/internal/solana/programs/pumpfun/pumpfun_native/pda"
+
 	"personal_bot/internal/solana/utils"
 	"personal_bot/pkg/logger"
 
@@ -52,7 +54,7 @@ func GetSellInstruction(ctx context.Context, sellTask *tasks.SellTask, position 
 	if err != nil {
 		return nil, err
 	}
-	sellInstructions := solana.NewInstruction(solana.MustPublicKeyFromBase58(constants.Program), accounts, instructionData)
+	sellInstructions := solana.NewInstruction(solana.MustPublicKeyFromBase58(constants.PumpFunProgram), accounts, instructionData)
 	return sellInstructions, nil
 
 }
@@ -106,7 +108,7 @@ func getAccounts(ctx context.Context, sellTask *tasks.SellTask, bondingCurveData
 		utils.GetAccountMeta(creatorAddress, true, false),
 		utils.GetAccountMeta(tokenProgram, false, false),
 		utils.GetAccountMeta(constants.EventAuthority, false, false),
-		utils.GetAccountMeta(constants.Program, false, false),
+		utils.GetAccountMeta(constants.PumpFunProgram, false, false),
 		utils.GetAccountMeta(constants.FeeConfig, false, false),
 		utils.GetAccountMeta(constants.FeeProgram, false, false),
 	}
@@ -182,13 +184,13 @@ func getUserVolumeAccumulatorAddress(wallet string) (string, error) {
 
 func getAssociatedTokenAddress(sellTask tasks.SellTask, isNewTokenProgram bool) (ata string, err error) {
 	if isNewTokenProgram {
-		ataPubKey, _, err := pda.FindToken2022AssociatedTokenAddress(sellTask.Wallet.PublicKey(), sellTask.Token)
+		ataPubKey, _, err := solanaPda.FindToken2022AssociatedTokenAddress(sellTask.Wallet.PublicKey(), sellTask.Token)
 		if err != nil {
 			return "", err
 		}
 		return ataPubKey.String(), nil
 	} else {
-		ataPubKey, _, err := pda.FindTokenAssociatedTokenAddress(sellTask.Wallet.PublicKey(), sellTask.Token)
+		ataPubKey, _, err := solanaPda.FindTokenAssociatedTokenAddress(sellTask.Wallet.PublicKey(), sellTask.Token)
 		if err != nil {
 			return "", err
 		}

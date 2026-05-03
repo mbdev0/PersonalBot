@@ -115,7 +115,7 @@ func (dn *DiscordNotifier) setupSuccessBuyMessage(payload notifier.BuyNotifierPa
 			{
 				Name: "Links",
 				//Solscan, Axiom, Pumpfun
-				Value: fmt.Sprintf("[SolScan](%s) | [Axiom](%s) | [PumpFun](%s)", "https://solscan.io/tx/"+payload.TxHash, "https://axiom.trade/meme/"+payload.BondingCurve+"?chain=sol", "https://pump.fun/"+payload.TokenAddress),
+				Value: fmt.Sprintf("[SolScan](%s) | [Axiom](%s) | [PumpFun](%s)", "https://solscan.io/tx/"+payload.TxHash, "https://axiom.trade/meme/"+payload.AddressForAxiom+"?chain=sol", "https://pump.fun/"+payload.TokenAddress),
 			},
 		},
 		Footer: webhook.Footer{
@@ -172,7 +172,7 @@ func (dn *DiscordNotifier) setupSuccessSellMessage(payload notifier.SellNotifier
 			{
 				Name: "Links",
 				//Solscan, Axiom, Pumpfun
-				Value: fmt.Sprintf("[SolScan](%s) | [Axiom](%s) | [PumpFun](%s)", "https://solscan.io/tx/"+payload.TxHash, "https://axiom.trade/meme/"+payload.BondingCurve+"?chain=sol", "https://pump.fun/"+payload.TokenAddress),
+				Value: fmt.Sprintf("[SolScan](%s) | [Axiom](%s) | [PumpFun](%s)", "https://solscan.io/tx/"+payload.TxHash, "https://axiom.trade/meme/"+payload.AddressForAxiom+"?chain=sol", "https://pump.fun/"+payload.TokenAddress),
 			},
 		},
 		Footer: webhook.Footer{
@@ -216,7 +216,7 @@ func (dn *DiscordNotifier) setupFailedMessage(payload notifier.ErrorNotifierPayl
 			{
 				Name: "Links",
 				//Solscan, Axiom, Pumpfun
-				Value: fmt.Sprintf("[SolScan](%s) | [Axiom](%s) | [PumpFun](%s)", "https://solscan.io/tx/"+payload.TxHash, "https://axiom.trade/meme/"+payload.BondingCurve+"?chain=sol", "https://pump.fun/"+payload.TokenAddress),
+				Value: fmt.Sprintf("[SolScan](%s) | [Axiom](%s) | [PumpFun](%s)", "https://solscan.io/tx/"+payload.TxHash, "https://axiom.trade/meme/"+payload.AddressForAxiom+"?chain=sol", "https://pump.fun/"+payload.TokenAddress),
 			},
 		},
 		Footer: webhook.Footer{

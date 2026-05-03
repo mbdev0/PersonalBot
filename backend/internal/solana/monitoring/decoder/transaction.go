@@ -12,8 +12,8 @@ import (
 
 	"personal_bot/app/pumpfun_idl"
 	"personal_bot/internal/core/constants"
-	"personal_bot/internal/monitoring/models"
-	"personal_bot/internal/monitoring/stream/response"
+	"personal_bot/internal/solana/monitoring/stream/response"
+	"personal_bot/internal/solana/monitoring/models"
 
 	"personal_bot/pkg/logger"
 )

@@ -13,10 +13,10 @@ import (
 	subscriptionhub "personal_bot/internal/services/subscription_hub"
 	"personal_bot/internal/solana/client"
 	"personal_bot/internal/solana/instructions"
-	pumpInstructions "personal_bot/internal/solana/programs/pumpfun/instructions"
-	pumpfunmodels "personal_bot/internal/solana/programs/pumpfun/models"
-	"personal_bot/internal/solana/programs/pumpfun/pda"
-	transactiondecoder "personal_bot/internal/solana/programs/pumpfun/transaction_decoder"
+	pumpInstructions "personal_bot/internal/solana/programs/pumpfun/pumpfun_native/instructions"
+	pumpfunmodels "personal_bot/internal/solana/programs/pumpfun/pumpfun_native/models"
+	"personal_bot/internal/solana/programs/pumpfun/pumpfun_native/pda"
+	transactiondecoder "personal_bot/internal/solana/programs/pumpfun/pumpfun_native/transaction_decoder"
 
 	wallets "personal_bot/internal/solana/wallet"
 	"personal_bot/pkg/logger"
@@ -172,14 +172,15 @@ func (bt *Transaction) UpdatePosition(ctx context.Context, publisher subscriptio
 	}
 
 	payload := positionmodels.ReportBuyPayload{
-		BuyTaskId:     bt.BuyTask.Id(),
-		StrategyId:    bt.BuyTask.StrategyId,
-		TokenAddress:  bt.BuyTask.Token,
-		WalletAddress: bt.BuyTask.Wallet.PublicKey(),
-		TokenAmount:   new(big.Float).SetFloat64(float64(tradeEvent.TokenAmount)),
-		SolSpent:      new(big.Float).SetFloat64(solAmnt),
-		MarketCap:     marketCapUSD,
-		AddressForUrl: bondingCurve,
+		BuyTaskId:           bt.BuyTask.Id(),
+		StrategyId:          bt.BuyTask.StrategyId,
+		TokenAddress:        bt.BuyTask.Token,
+		WalletAddress:       bt.BuyTask.Wallet.PublicKey(),
+		TokenAmount:         new(big.Float).SetFloat64(float64(tradeEvent.TokenAmount)),
+		SolSpent:            new(big.Float).SetFloat64(solAmnt),
+		MarketCap:           marketCapUSD,
+		AddressForUrl:       bondingCurve,
+		AdressForMonitoring: bondingCurve,
 	}
 
 	err = bt.PositionService.ReportBuy(ctx, payload)
@@ -239,4 +240,8 @@ func (bt *Transaction) getAllInstructionsForBuy(ctx context.Context, buyTask *ta
 	} else {
 		return []solana.Instruction{computeLimitInstruction, computeLimitBudgetInstruction, buyInstruction}, nil
 	}
+}
+
+func (bt *Transaction) GetAddressForURL() (string, error) {
+	return pda.GetBondingCurveAddress(bt.BuyTask.GetToken())
 }

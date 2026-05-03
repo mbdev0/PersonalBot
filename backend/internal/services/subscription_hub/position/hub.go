@@ -8,9 +8,8 @@ import (
 	"personal_bot/internal/core/constants"
 	"personal_bot/internal/core/position"
 	rpcgroups "personal_bot/internal/core/rpc_groups"
-	"personal_bot/internal/monitoring"
 	"personal_bot/internal/services/settings"
-	"personal_bot/internal/solana/programs/pumpfun/pda"
+	"personal_bot/internal/solana/monitoring"
 	datastructures "personal_bot/pkg/data_structures"
 	"personal_bot/pkg/logger"
 	"sync"
@@ -78,10 +77,10 @@ func (sh *SubscriptionHub) Subscribe(positionId int64, isInternalSub bool, rpcGr
 
 		marketCapChan := make(chan *big.Float, sh.bufferSize)
 
-		bondingCurveAddress, err := pda.GetBondingCurveAddress(pos.TokenAddress.String())
-		if err != nil {
-			logger.Error(err)
-		}
+		// bondingCurveAddress, err := pda.GetBondingCurveAddress(pos.TokenAddress.String())
+		// if err != nil {
+		// 	logger.Error(err)
+		// }
 
 		node, err := sh.resolveRPCNode(c, rpcGroup)
 		if err != nil {
@@ -89,7 +88,7 @@ func (sh *SubscriptionHub) Subscribe(positionId int64, isInternalSub bool, rpcGr
 			return
 		}
 
-		go monitoring.StartMarketCapMonitor(ctx, bondingCurveAddress, marketCapChan, node)
+		go monitoring.StartMarketCapMonitor(ctx, pos.MonitoringAddress, marketCapChan, node)
 
 		// start marketcap streaming
 

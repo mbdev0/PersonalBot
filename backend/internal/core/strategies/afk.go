@@ -4,7 +4,7 @@ import (
 	"math/big"
 	rpcgroups "personal_bot/internal/core/rpc_groups"
 	"personal_bot/internal/core/wallets"
-	"personal_bot/internal/monitoring/filters"
+	"personal_bot/internal/solana/monitoring/filters"
 )
 
 type StrategyFilter func() filters.FilterInfo

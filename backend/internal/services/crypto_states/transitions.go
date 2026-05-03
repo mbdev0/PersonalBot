@@ -13,7 +13,6 @@ import (
 	taskservice "personal_bot/internal/services/task_service"
 	"personal_bot/internal/services/trading"
 	transactionModel "personal_bot/internal/services/transaction"
-	"personal_bot/internal/solana/programs/pumpfun/pda"
 	"personal_bot/internal/solana/transaction"
 	"personal_bot/pkg/logger"
 )
@@ -110,7 +109,7 @@ func notifyCompletion(task tasks.Task, transaction transaction.Transaction, toke
 }
 
 func notifyBuy(t *tasks.BuyTask, transaction transaction.Transaction, tokenAmount float64, solAmount float64, deps *Dependencies) {
-	bondingCurve, err := pda.GetBondingCurveAddress(t.Token.String())
+	addressForAxiom, err := transaction.GetAddressForURL()
 	if err != nil {
 		logger.Error(err)
 	}
@@ -122,15 +121,15 @@ func notifyBuy(t *tasks.BuyTask, transaction transaction.Transaction, tokenAmoun
 	}
 
 	err = deps.Notifier.SendSuccessBuy(notifierModel.BuyNotifierPayload{
-		TaskType:      string(tradingTask.StrategyType()),
-		TaskId:        t.Id(),
-		StrategyId:    t.StrategyId,
-		TokensBought:  tokenAmount / constants.TokenAmountDecimals,
-		AmountPaid:    solAmount / constants.LamportsConversion,
-		TxHash:        transaction.GetSignature(),
-		WalletAddress: t.Wallet.PublicKey().String(),
-		TokenAddress:  t.Token.String(),
-		BondingCurve:  bondingCurve,
+		TaskType:        string(tradingTask.StrategyType()),
+		TaskId:          t.Id(),
+		StrategyId:      t.StrategyId,
+		TokensBought:    tokenAmount / constants.TokenAmountDecimals,
+		AmountPaid:      solAmount / constants.LamportsConversion,
+		TxHash:          transaction.GetSignature(),
+		WalletAddress:   t.Wallet.PublicKey().String(),
+		TokenAddress:    t.Token.String(),
+		AddressForAxiom: addressForAxiom,
 	})
 	if err != nil {
 		logger.Error(err)
@@ -138,7 +137,7 @@ func notifyBuy(t *tasks.BuyTask, transaction transaction.Transaction, tokenAmoun
 }
 
 func notifySell(t *tasks.SellTask, transaction transaction.Transaction, pos *positionModel.Position, tokensSold float64, solReceived float64, deps *Dependencies) {
-	bondingCurve, err := pda.GetBondingCurveAddress(t.Token.String())
+	addressForAxiom, err := transaction.GetAddressForURL()
 	if err != nil {
 		logger.Error(err)
 	}
@@ -161,7 +160,7 @@ func notifySell(t *tasks.SellTask, transaction transaction.Transaction, pos *pos
 		AmountSold:      solReceived / constants.LamportsConversion,
 		WalletAddress:   t.Wallet.PublicKey().String(),
 		TokenAddress:    t.Token.String(),
-		BondingCurve:    bondingCurve,
+		AddressForAxiom: addressForAxiom,
 	}
 
 	if t.StrategyId != nil {
@@ -203,20 +202,20 @@ func notifyError(errorMessage string, deps *Dependencies, task tasks.Task, trans
 		task_type = task.Type()
 	}
 
-	bondingCurve, err := pda.GetBondingCurveAddress(task.GetToken())
+	addressForAxiom, err := transaction.GetAddressForURL()
 	if err != nil {
 		return err
 	}
 
 	err = deps.Notifier.SendFailure(notifierModel.ErrorNotifierPayload{
-		TaskType:      task_type,
-		TaskId:        task.Id(),
-		StrategyId:    task.GetStrategyId(),
-		Error:         errorMessage,
-		TxHash:        transaction.GetSignature(),
-		WalletAddress: task.GetWallet(),
-		TokenAddress:  task.GetToken(),
-		BondingCurve:  bondingCurve,
+		TaskType:        task_type,
+		TaskId:          task.Id(),
+		StrategyId:      task.GetStrategyId(),
+		Error:           errorMessage,
+		TxHash:          transaction.GetSignature(),
+		WalletAddress:   task.GetWallet(),
+		TokenAddress:    task.GetToken(),
+		AddressForAxiom: addressForAxiom,
 	})
 
 	return err

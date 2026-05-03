@@ -6,8 +6,8 @@ import (
 	"personal_bot/internal/core/tasks"
 	"personal_bot/internal/services/position"
 	subscriptionhub "personal_bot/internal/services/subscription_hub"
-	"personal_bot/internal/solana/programs/pumpfun/transaction/buy"
-	"personal_bot/internal/solana/programs/pumpfun/transaction/sell"
+	"personal_bot/internal/solana/programs/pumpfun/pumpfun_native/transaction/buy"
+	"personal_bot/internal/solana/programs/pumpfun/pumpfun_native/transaction/sell"
 	"personal_bot/internal/solana/transaction"
 )
 
@@ -26,6 +26,7 @@ func NewExecutor(publisher subscriptionhub.Publisher, posService *position.Servi
 }
 
 func (e *Executor) GetImplementation(task tasks.Task) (transaction.Transaction, error) {
+	//TODO: we need to change this - pumpfun package will return the right transaction - so instead of switching task.type we'd switch on program
 	switch t := task.(type) {
 	case *tasks.BuyTask:
 		return &buy.Transaction{BuyTask: t, PositionService: e.positionService}, nil

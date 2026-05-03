@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"personal_bot/internal/core/constants"
-	"personal_bot/internal/monitoring/models"
+	"personal_bot/internal/solana/monitoring/models"
 	"personal_bot/pkg/logger"
 
 	"github.com/near/borsh-go"
