@@ -15,4 +15,5 @@ type Transaction interface {
 	UpdatePosition(ctx context.Context, publisher subscriptionhub.Publisher) (tokenAmount, solAmount float64, pos *position.Position, err error)
 	GetTask() tasks.Task
 	GetSignature() string
+	GetAddressForURL() (string, error)
 }
