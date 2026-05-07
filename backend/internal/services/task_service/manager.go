@@ -36,7 +36,7 @@ func (m *Manager) RunTask(task tasks.Task) error {
 
 	m.mu.Unlock()
 
-	transactionImpl, err := m.executor.GetImplementation(task)
+	transactionImpl, err := m.executor.GetImplementation(cancelCtx, task)
 	if err != nil {
 		return err
 	}
