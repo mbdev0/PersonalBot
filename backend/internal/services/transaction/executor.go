@@ -2,12 +2,10 @@ package transaction
 
 import (
 	"context"
-	"fmt"
 	"personal_bot/internal/core/tasks"
 	"personal_bot/internal/services/position"
 	subscriptionhub "personal_bot/internal/services/subscription_hub"
-	"personal_bot/internal/solana/programs/pumpfun/pumpfun_native/transaction/buy"
-	"personal_bot/internal/solana/programs/pumpfun/pumpfun_native/transaction/sell"
+	pumpTransaction "personal_bot/internal/solana/programs/pumpfun/transaction"
 	"personal_bot/internal/solana/transaction"
 )
 
@@ -25,15 +23,9 @@ func NewExecutor(publisher subscriptionhub.Publisher, posService *position.Servi
 	}
 }
 
-func (e *Executor) GetImplementation(task tasks.Task) (transaction.Transaction, error) {
+func (e *Executor) GetImplementation(ctx context.Context, task tasks.Task) (transaction.Transaction, error) {
 	//TODO: we need to change this - pumpfun package will return the right transaction - so instead of switching task.type we'd switch on program
-	switch t := task.(type) {
-	case *tasks.BuyTask:
-		return &buy.Transaction{BuyTask: t, PositionService: e.positionService}, nil
-	case *tasks.SellTask:
-		return &sell.Transaction{Task: t, PositionService: e.positionService}, nil
-	}
-	return nil, fmt.Errorf("no transaction found for task: %s", task.Type())
+	return pumpTransaction.GetTransactionType(ctx, task, e.positionService)
 }
 
 func (e *Executor) Execute(ctx context.Context, done chan struct{}, tx transaction.Transaction) {
