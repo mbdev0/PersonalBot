@@ -117,13 +117,13 @@ func GetBondingCurveDataFromAddress(ctx context.Context, bondingCurveAddress str
 
 	decodedBondingCurve := bondingCurveResponse.Value.Data.GetBinary()
 
-	bondingCurveModel, err, _ := getBondingCurveData(decodedBondingCurve)
+	bondingCurveModel, err, isComplete := getBondingCurveData(decodedBondingCurve)
 	if err != nil {
 		return nil, err, false
 	}
 
-	if bondingCurveModel.Complete {
-		return nil, fmt.Errorf("coin has already migrated"), true
+	if isComplete {
+		return bondingCurveModel, fmt.Errorf("coin has already migrated"), true
 	}
 
 	return bondingCurveModel, nil, false
@@ -137,7 +137,7 @@ func getBondingCurveData(bondingCurveBytes []byte) (bondingCurveData *models.Bon
 	}
 
 	if bondingCurveInfo.Complete {
-		return nil, nil, true
+		return bondingCurveInfo, nil, true
 	}
 
 	return bondingCurveInfo, nil, false
