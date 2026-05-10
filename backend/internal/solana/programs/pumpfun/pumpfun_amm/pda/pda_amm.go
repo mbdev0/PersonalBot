@@ -26,7 +26,7 @@ func getPoolAuthority(baseMint string) (solana.PK, error) {
 	return address, err
 }
 
-func GetPoolPda(creator string, baseMint string, quoteMint string) (string, error) {
+func GetPoolPda(baseMint string, quoteMint string) (string, error) {
 	poolAuth, err := getPoolAuthority(baseMint)
 	if err != nil {
 		return "", err
@@ -61,22 +61,25 @@ func GetPoolPda(creator string, baseMint string, quoteMint string) (string, erro
 	return pubkey.String(), nil
 }
 
-func GetPoolTokenAccount(poolAddress string, mintAddress string, tokenAccount string) (string, error) {
+func GetPoolTokenAccount(poolAddress, mintAddress string, isNewTokenAccount bool) (string, error) {
 	pool, err := solana.PublicKeyFromBase58(poolAddress)
 	if err != nil {
 		return "", err
 	}
 
-	tokenaccount, err := solana.PublicKeyFromBase58(tokenAccount)
-	if err != nil {
-		return "", err
+	var tokenAccount solana.PK
+	if isNewTokenAccount {
+		tokenAccount = solana.MustPublicKeyFromBase58(constants.TokenProgram)
+	} else {
+		tokenAccount = solana.MustPublicKeyFromBase58(constants.Token2022Program)
 	}
+
 	mint, err := solana.PublicKeyFromBase58(mintAddress)
 	if err != nil {
 		return "", err
 	}
 
-	poolTokenAccount, _, err := solana.FindAssociatedTokenAddressWithProgram(pool, mint, tokenaccount)
+	poolTokenAccount, _, err := solana.FindAssociatedTokenAddressWithProgram(pool, mint, tokenAccount)
 	if err != nil {
 		return "", err
 	}
