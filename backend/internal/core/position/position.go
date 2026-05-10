@@ -51,13 +51,13 @@ const (
 )
 
 type ReportBuyPayload struct {
-	StrategyId          *int64
-	BuyTaskId           int64
-	TokenAddress        solana.PublicKey
-	WalletAddress       solana.PublicKey
-	TokenAmount         *big.Float
-	SolSpent            *big.Float
-	MarketCap           *big.Float
-	AddressForUrl       string
-	AdressForMonitoring string
+	StrategyId           *int64
+	BuyTaskId            int64
+	TokenAddress         solana.PublicKey
+	WalletAddress        solana.PublicKey
+	TokenAmount          *big.Float
+	SolSpent             *big.Float
+	MarketCap            *big.Float
+	AddressForUrl        string
+	AddressForMonitoring string
 }
