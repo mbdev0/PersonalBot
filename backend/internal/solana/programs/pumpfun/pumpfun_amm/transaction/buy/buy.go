@@ -84,7 +84,6 @@ func (bt *Transaction) getAllInstructionsForBuy(ctx context.Context, buyTask *ta
 	}
 
 	if idEmponenetInstructionWsol != nil {
-		
 		buyInstructions = append(buyInstructions, idEmponenetInstructionWsol)
 	}
 
@@ -202,21 +201,22 @@ func (bt *Transaction) UpdatePosition(ctx context.Context, publisher subscriptio
 
 	marketCapUSD := new(big.Float).SetFloat64((pricePerToken * 1_000_000_000) * *solPrice)
 
+	//TODO - to change when we do mcap monitoring
 	bondingCurve, err := pda.GetBondingCurveAddress(bt.BuyTask.GetToken())
 	if err != nil {
 		return
 	}
 
 	payload := positionmodels.ReportBuyPayload{
-		BuyTaskId:           bt.BuyTask.Id(),
-		StrategyId:          bt.BuyTask.StrategyId,
-		TokenAddress:        bt.BuyTask.Token,
-		WalletAddress:       bt.BuyTask.Wallet.PublicKey(),
-		TokenAmount:         new(big.Float).SetFloat64(float64(buyEvent.BaseAmountOut)),
-		SolSpent:            new(big.Float).SetFloat64(solAmnt),
-		MarketCap:           marketCapUSD,
-		AddressForUrl:       bt.poolAddress,
-		AdressForMonitoring: bondingCurve,
+		BuyTaskId:            bt.BuyTask.Id(),
+		StrategyId:           bt.BuyTask.StrategyId,
+		TokenAddress:         bt.BuyTask.Token,
+		WalletAddress:        bt.BuyTask.Wallet.PublicKey(),
+		TokenAmount:          new(big.Float).SetFloat64(float64(buyEvent.BaseAmountOut)),
+		SolSpent:             new(big.Float).SetFloat64(solAmnt),
+		MarketCap:            marketCapUSD,
+		AddressForUrl:        bt.poolAddress,
+		AddressForMonitoring: bondingCurve,
 	}
 
 	err = bt.PositionService.ReportBuy(ctx, payload)

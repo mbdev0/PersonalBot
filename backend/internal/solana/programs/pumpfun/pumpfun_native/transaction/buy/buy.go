@@ -172,15 +172,15 @@ func (bt *Transaction) UpdatePosition(ctx context.Context, publisher subscriptio
 	}
 
 	payload := positionmodels.ReportBuyPayload{
-		BuyTaskId:           bt.BuyTask.Id(),
-		StrategyId:          bt.BuyTask.StrategyId,
-		TokenAddress:        bt.BuyTask.Token,
-		WalletAddress:       bt.BuyTask.Wallet.PublicKey(),
-		TokenAmount:         new(big.Float).SetFloat64(float64(tradeEvent.TokenAmount)),
-		SolSpent:            new(big.Float).SetFloat64(solAmnt),
-		MarketCap:           marketCapUSD,
-		AddressForUrl:       bondingCurve,
-		AdressForMonitoring: bondingCurve,
+		BuyTaskId:            bt.BuyTask.Id(),
+		StrategyId:           bt.BuyTask.StrategyId,
+		TokenAddress:         bt.BuyTask.Token,
+		WalletAddress:        bt.BuyTask.Wallet.PublicKey(),
+		TokenAmount:          new(big.Float).SetFloat64(float64(tradeEvent.TokenAmount)),
+		SolSpent:             new(big.Float).SetFloat64(solAmnt),
+		MarketCap:            marketCapUSD,
+		AddressForUrl:        bondingCurve,
+		AddressForMonitoring: bondingCurve,
 	}
 
 	err = bt.PositionService.ReportBuy(ctx, payload)
