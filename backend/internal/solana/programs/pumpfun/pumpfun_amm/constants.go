@@ -6,6 +6,8 @@ const (
 	EventAuthority          = "GS4CU59F31iL7aR2Q8zVS8DRrcRnXX1yjQ66TqNVQnaR"
 	GlobalVolumeAccumulator = "C2aFPdENg4A2HQsmrd5rTw5TaYBX5Ku887cWjbFKtZpw"
 	FeeConfig               = "5PHirr8joyTMp9JMm6nW7hNDVyEYdkzDqazxPD7RaTjx"
+	BuyBackVault            = "5cjcW9wExnJJiqgLjq7DEG75Pm6JBgE1hNv4B2vHXUW6"
+	BuyBackVaultWsol        = "GYH1Gae1wJytMSvMvw8JVcv7nuAbxi8i9erNVbERnzXd"
 )
 
 var (
