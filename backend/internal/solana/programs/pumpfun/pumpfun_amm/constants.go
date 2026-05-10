@@ -12,4 +12,7 @@ const (
 
 var (
 	BuyExactQuoteInDiscriminator = []byte{198, 46, 21, 82, 180, 217, 232, 112}
+	SellInstructionDiscriminator = []byte{51, 230, 133, 164, 1, 127, 131, 173}
+	BuyEvent                     = []byte{103, 244, 82, 31, 44, 245, 119, 119}
+	SellEvent                    = []byte{62, 47, 55, 10, 165, 3, 220, 42}
 )

@@ -12,9 +12,9 @@ import (
 	"github.com/near/borsh-go"
 )
 
-func GetBuyEvent(tx *rpc.GetParsedTransactionResult) (models.BuyEvent, error) {
+func GetSellEvent(tx *rpc.GetParsedTransactionResult) (models.SellEvent, error) {
 	if tx.Meta.Err != nil {
-		return models.BuyEvent{}, fmt.Errorf("error from tx")
+		return models.SellEvent{}, fmt.Errorf("error from tx")
 	}
 
 	for _, log := range tx.Meta.LogMessages {
@@ -32,11 +32,11 @@ func GetBuyEvent(tx *rpc.GetParsedTransactionResult) (models.BuyEvent, error) {
 			continue
 		}
 
-		if !bytes.Equal(data[8:], pumpfunamm.BuyEvent) {
+		if !bytes.Equal(data[8:], pumpfunamm.SellEvent) {
 			continue
 		}
 
-		var tradeEvent models.BuyEvent
+		var tradeEvent models.SellEvent
 		err = borsh.Deserialize(&tradeEvent, data[8:])
 		if err != nil {
 			continue
@@ -45,5 +45,5 @@ func GetBuyEvent(tx *rpc.GetParsedTransactionResult) (models.BuyEvent, error) {
 		return tradeEvent, nil
 	}
 
-	return models.BuyEvent{}, fmt.Errorf("unable to find buy event in logs")
+	return models.SellEvent{}, fmt.Errorf("unable to find buy event in logs")
 }
