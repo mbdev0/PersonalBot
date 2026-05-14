@@ -15,12 +15,14 @@ import (
 )
 
 func main() {
+	mainCtx := context.Background()
+
 	db, err := persistence.NewConnection()
 	if err != nil {
 		panic(err)
 	}
 
-	server, shutdownServices := wire.WireServicesAndLaunchServer(db)
+	server, shutdownServices := wire.WireServicesAndLaunchServer(mainCtx, db)
 
 	go func() {
 		logger.Information("Starting server on port 9090:")
@@ -31,10 +33,10 @@ func main() {
 	}()
 
 	// checkGoRoutines()
-	handleShutdown(db, server, shutdownServices)
+	handleShutdown(mainCtx, db, server, shutdownServices)
 }
 
-func handleShutdown(db *sql.DB, server *http.Server, shutdownServices wire.ShutdownServices) {
+func handleShutdown(ctx context.Context, db *sql.DB, server *http.Server, shutdownServices wire.ShutdownServices) {
 	shutdown, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 	<-shutdown.Done()
@@ -42,7 +44,7 @@ func handleShutdown(db *sql.DB, server *http.Server, shutdownServices wire.Shutd
 	logger.Information("shutting down application")
 
 	logger.Information("pushing tasks to db")
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
+	ctx, cancel := context.WithTimeout(ctx, time.Second*30)
 	defer cancel()
 
 	err := shutdownServices.TradingService.Shutdown(ctx)
