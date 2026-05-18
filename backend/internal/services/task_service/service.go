@@ -6,7 +6,7 @@ import (
 	"personal_bot/app/iterable"
 	"personal_bot/infrastructure/persistence/repository"
 	"personal_bot/internal/core/tasks"
-	subscriptionhub "personal_bot/internal/services/subscription_hub"
+	"personal_bot/internal/services/subscription_hub/task"
 	"sync"
 	"time"
 )
@@ -14,13 +14,13 @@ import (
 type TaskService struct {
 	taskManager *Manager
 	repo        *repository.TaskRepository
-	hub         *subscriptionhub.Hub
+	hub         *task.Hub
 	tasks       map[int64]tasks.Task
 	mu          sync.Mutex
 	iter        *iterable.Iterable
 }
 
-func NewTaskService(repo *repository.TaskRepository, hub *subscriptionhub.Hub, tManager *Manager) *TaskService {
+func NewTaskService(repo *repository.TaskRepository, hub *task.Hub, tManager *Manager) *TaskService {
 	return &TaskService{
 		taskManager: tManager,
 		hub:         hub,
@@ -131,7 +131,7 @@ func (ts *TaskService) StopTask(id int64) error {
 	return nil
 }
 
-func (ts *TaskService) Subscribe(task tasks.Task) (*subscriptionhub.Subscription, error) {
+func (ts *TaskService) Subscribe(task tasks.Task) (*task.Subscription, error) {
 	c, err := ts.hub.Subscribe(task)
 	if err != nil {
 		return nil, err

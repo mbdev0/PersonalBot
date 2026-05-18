@@ -10,7 +10,7 @@ import (
 	"personal_bot/api/controller"
 	"personal_bot/api/dto"
 	"personal_bot/internal/core/tasks"
-	subscriptionhub "personal_bot/internal/services/subscription_hub"
+	"personal_bot/internal/services/subscription_hub/task"
 	"personal_bot/pkg/logger"
 	"strconv"
 
@@ -221,7 +221,7 @@ func (th *TaskHandler) createAndRunTask(w http.ResponseWriter, r *http.Request) 
 }
 
 func (th *TaskHandler) subscribe(w http.ResponseWriter, r *http.Request) {
-	subscribers := make(chan subscriptionhub.Subscription, th.bufferSize)
+	subscribers := make(chan task.Subscription, th.bufferSize)
 	defer close(subscribers)
 
 	opts := &websocket.AcceptOptions{
@@ -247,7 +247,7 @@ func (th *TaskHandler) subscribe(w http.ResponseWriter, r *http.Request) {
 
 	// read from each subs channels and write to wsWrite channel
 	// writes are threadsafe as channels are built with sync
-	readFromChannel := func(s subscriptionhub.Subscription) {
+	readFromChannel := func(s task.Subscription) {
 		for tskEvent := range s.Chan() {
 			select {
 			case wsWrite <- tskEvent:
@@ -313,7 +313,7 @@ func (th *TaskHandler) subscribe(w http.ResponseWriter, r *http.Request) {
 
 		switch msg.Type {
 		case dto.Subscribe:
-			var sub *subscriptionhub.Subscription
+			var sub *task.Subscription
 			var err error
 			sub, err = th.controller.Subscribe(msg.Id)
 
