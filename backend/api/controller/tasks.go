@@ -7,7 +7,7 @@ import (
 	"personal_bot/api/mapper"
 	"personal_bot/internal/core/wallets"
 	rpcgroups "personal_bot/internal/services/rpc_groups"
-	subscriptionhub "personal_bot/internal/services/subscription_hub"
+	"personal_bot/internal/services/subscription_hub/task"
 	taskservice "personal_bot/internal/services/task_service"
 	"personal_bot/internal/services/wallet"
 )
@@ -162,7 +162,7 @@ func (tc *TaskController) CreateAndRunTask(ctx context.Context, task dto.Request
 	return tc.TransitionTask(createdTask.TaskId, dto.Run)
 }
 
-func (tc *TaskController) Subscribe(id int64) (*subscriptionhub.Subscription, error) {
+func (tc *TaskController) Subscribe(id int64) (*task.Subscription, error) {
 	task, err := tc.TaskService.GetTaskWith(id)
 	if err != nil {
 		return nil, err

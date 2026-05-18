@@ -16,6 +16,7 @@ import (
 	subscriptionhub "personal_bot/internal/services/subscription_hub"
 	positionhub "personal_bot/internal/services/subscription_hub/position"
 	"personal_bot/internal/services/subscription_hub/strategy"
+	"personal_bot/internal/services/subscription_hub/task"
 	"personal_bot/internal/services/wallet"
 	"personal_bot/pkg/logger"
 
@@ -43,7 +44,7 @@ func WireServicesAndLaunchServer(mainCtx context.Context, db *sql.DB) (*http.Ser
 	discordNotifier := notifier.NewDiscordNotifier(settings)
 	settingsController := controller.NewSettingsController(settingsService, discordNotifier)
 
-	taskSubhub := subscriptionhub.NewTaskSubscriptionHub()
+	taskSubhub := task.NewTaskSubscriptionHub()
 	posSubhub := positionhub.NewSubscriptionHub(settingsService)
 	posRepo := repository.NewPositionRepository(db)
 	positionService := position.NewPositionService(posSubhub, posRepo)
