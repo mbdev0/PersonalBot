@@ -24,7 +24,7 @@ func GetMarketCapFrom(bondingCurveValue string) (marketCapVal *big.Float, err er
 	if err != nil {
 		return nil, err, false
 	}
-	bondingCurveData, err, hasCompleted := getBondingCurveData(bondingCurveBytes)
+	bondingCurveData, err, hasCompleted := GetBondingCurveData(bondingCurveBytes)
 	if err != nil {
 		return nil, err, false
 	}
@@ -33,7 +33,7 @@ func GetMarketCapFrom(bondingCurveValue string) (marketCapVal *big.Float, err er
 		return nil, fmt.Errorf("coin has already migrated"), true
 	}
 
-	marketCap, err := getMarketCap(*bondingCurveData)
+	marketCap, err := GetMarketCap(*bondingCurveData)
 	if err != nil {
 		return nil, err, false
 	}
@@ -58,7 +58,7 @@ func GetMarketCapInitial(ctx context.Context, bondingCurveAddress string, httpNo
 
 	decodedBondingCurve := bondingCurveResponse.Value.Data.GetBinary()
 
-	bondingCurveData, err, hasCompleted := getBondingCurveData(decodedBondingCurve)
+	bondingCurveData, err, hasCompleted := GetBondingCurveData(decodedBondingCurve)
 	if err != nil {
 		return nil, err, false
 	}
@@ -67,7 +67,7 @@ func GetMarketCapInitial(ctx context.Context, bondingCurveAddress string, httpNo
 		return nil, fmt.Errorf("coin has already migrated"), true
 	}
 
-	marketCap, err := getMarketCap(*bondingCurveData)
+	marketCap, err := GetMarketCap(*bondingCurveData)
 	if err != nil {
 		return nil, err, false
 	}
@@ -76,7 +76,7 @@ func GetMarketCapInitial(ctx context.Context, bondingCurveAddress string, httpNo
 
 }
 
-func getMarketCap(bondingCurve models.BondingCurve) (*big.Float, error) {
+func GetMarketCap(bondingCurve models.BondingCurve) (*big.Float, error) {
 	solPrice, err := solana_price.GetSolPrice()
 	if err != nil {
 		return nil, err
@@ -117,7 +117,7 @@ func GetBondingCurveDataFromAddress(ctx context.Context, bondingCurveAddress str
 
 	decodedBondingCurve := bondingCurveResponse.Value.Data.GetBinary()
 
-	bondingCurveModel, err, isComplete := getBondingCurveData(decodedBondingCurve)
+	bondingCurveModel, err, isComplete := GetBondingCurveData(decodedBondingCurve)
 	if err != nil {
 		return nil, err, false
 	}
@@ -129,7 +129,7 @@ func GetBondingCurveDataFromAddress(ctx context.Context, bondingCurveAddress str
 	return bondingCurveModel, nil, false
 }
 
-func getBondingCurveData(bondingCurveBytes []byte) (bondingCurveData *models.BondingCurve, err error, hasMigrated bool) {
+func GetBondingCurveData(bondingCurveBytes []byte) (bondingCurveData *models.BondingCurve, err error, hasMigrated bool) {
 
 	bondingCurveInfo, err := decryptBondingCurveData(bondingCurveBytes)
 	if err != nil {
