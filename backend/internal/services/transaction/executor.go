@@ -25,16 +25,14 @@ func NewExecutor(publisher subscriptionhub.Publisher, posService *position.Servi
 
 func (e *Executor) GetImplementation(ctx context.Context, task tasks.Task) (transaction.Transaction, error) {
 	//TODO: we need to change this - pumpfun package will return the right transaction - so instead of switching task.type we'd switch on program
-	return pumpTransaction.GetTransactionType(ctx, task, e.positionService)
+	return pumpTransaction.GetTransactionType(ctx, task, e.positionService, e.publisher)
 }
 
-func (e *Executor) Execute(ctx context.Context, done chan struct{}, tx transaction.Transaction) {
+func (e *Executor) Execute(ctx context.Context, done chan struct{}, tx transaction.Transaction, task tasks.Task) {
 	defer close(done)
 
-	t := tx.GetTask()
-
 	for {
-		state, ok := e.steps[t.State().TaskState]
+		state, ok := e.steps[task.State().TaskState]
 
 		// terminal state
 		if !ok {
@@ -43,20 +41,20 @@ func (e *Executor) Execute(ctx context.Context, done chan struct{}, tx transacti
 
 		// if there is ctx error/ cancellation then we set
 		if err := ctx.Err(); err != nil {
-			e.setStateAndPublish(tasks.TaskCancel, t)
+			e.setStateAndPublish(tasks.TaskCancel, task)
 			return
 		}
 
-		if err := state.Fn(ctx, tx); err != nil {
+		if err := state.Fn(ctx, task, tx); err != nil {
 			if ctx.Err() != nil {
-				e.setStateAndPublish(tasks.TaskCancel, t)
+				e.setStateAndPublish(tasks.TaskCancel, task)
 			} else {
-				e.setStateAndPublish(state.OnError, t, err.Error())
+				e.setStateAndPublish(state.OnError, task, err.Error())
 			}
 			return
 		}
 
-		e.setStateAndPublish(state.To, t)
+		e.setStateAndPublish(state.To, task)
 	}
 }
 func (e *Executor) setStateAndPublish(newState tasks.TaskState, t tasks.Task, errMsg ...string) {

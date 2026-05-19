@@ -9,7 +9,7 @@ import (
 type State struct {
 	From    tasks.TaskState
 	To      tasks.TaskState
-	Fn      func(ctx context.Context, t transaction.Transaction) error
+	Fn      func(ctx context.Context, task tasks.Task, t transaction.Transaction) error
 	OnError tasks.TaskState
 }
 

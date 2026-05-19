@@ -17,6 +17,7 @@ import (
 	subscriptionhub "personal_bot/internal/services/subscription_hub"
 	positionhub "personal_bot/internal/services/subscription_hub/position"
 	"personal_bot/internal/services/subscription_hub/strategy"
+	"personal_bot/internal/services/subscription_hub/task"
 	taskservice "personal_bot/internal/services/task_service"
 	"personal_bot/internal/services/trading/sell"
 	"personal_bot/pkg/logger"
@@ -29,7 +30,7 @@ type Strategy struct {
 	taskService     *taskservice.TaskService
 	positionHub     *positionhub.SubscriptionHub
 	strategyHub     *strategy.SubscriptionHub
-	taskHub         *subscriptionhub.Hub
+	taskHub         *task.Hub
 	positionService *positionservice.Service
 	rpcService      *rpcgroups.Service
 }

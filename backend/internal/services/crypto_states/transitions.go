@@ -30,60 +30,60 @@ func Build(deps *Dependencies) transactionModel.Transitions {
 		tasks.TaskValidating: {
 			To:      tasks.TxInstructionBuild,
 			OnError: tasks.TaskValidationFail,
-			Fn: func(ctx context.Context, t transaction.Transaction) error {
+			Fn: func(ctx context.Context, task tasks.Task, t transaction.Transaction) error {
 				return withNotify(ctx, deps, func() error {
-					return validator.ValidateStruct(t.GetTask())
-				}, t.GetTask(), t)
+					return validator.ValidateStruct(task)
+				}, task, t)
 			},
 		},
 		tasks.TxInstructionBuild: {
 			To:      tasks.TxBuild,
 			OnError: tasks.TxInstructionBuildFail,
-			Fn: func(ctx context.Context, t transaction.Transaction) error {
+			Fn: func(ctx context.Context, task tasks.Task, t transaction.Transaction) error {
 				return withNotify(ctx, deps, func() error {
-					return t.BuildInstructions(ctx, deps.Publisher)
-				}, t.GetTask(), t)
+					return t.BuildInstructions(ctx)
+				}, task, t)
 			},
 		},
 		tasks.TxBuild: {
 			To:      tasks.TxSend,
 			OnError: tasks.TxBuildFail,
-			Fn: func(ctx context.Context, t transaction.Transaction) error {
+			Fn: func(ctx context.Context, task tasks.Task, t transaction.Transaction) error {
 				return withNotify(ctx, deps, func() error {
-					return t.BuildTransaction(ctx, deps.Publisher)
-				}, t.GetTask(), t)
+					return t.BuildTransaction(ctx)
+				}, task, t)
 			},
 		},
 		tasks.TxSend: {
 			To:      tasks.TxConfirm,
 			OnError: tasks.TxSendFail,
-			Fn: func(ctx context.Context, t transaction.Transaction) error {
+			Fn: func(ctx context.Context, task tasks.Task, t transaction.Transaction) error {
 				return withNotify(ctx, deps, func() error {
-					return t.SendTransaction(ctx, deps.Publisher)
-				}, t.GetTask(), t)
+					return t.SendTransaction(ctx)
+				}, task, t)
 			},
 		},
 		tasks.TxConfirm: {
 			To:      tasks.TaskUpdatingPosition,
 			OnError: tasks.TxConfirmFail,
-			Fn: func(ctx context.Context, t transaction.Transaction) error {
+			Fn: func(ctx context.Context, task tasks.Task, t transaction.Transaction) error {
 				return withNotify(ctx, deps, func() error {
-					return t.ConfirmTransaction(ctx, deps.Publisher)
-				}, t.GetTask(), t)
+					return t.ConfirmTransaction(ctx)
+				}, task, t)
 			},
 		},
 		tasks.TaskUpdatingPosition: {
 			To:      tasks.TaskDone,
 			OnError: tasks.TaskUpdatingPositionFail,
-			Fn: func(ctx context.Context, t transaction.Transaction) error {
+			Fn: func(ctx context.Context, task tasks.Task, t transaction.Transaction) error {
 				return withNotify(ctx, deps, func() error {
-					tokenAmount, solAmount, pos, err := t.UpdatePosition(ctx, deps.Publisher)
+					tokenAmount, solAmount, pos, err := t.UpdatePosition(ctx)
 					if err != nil {
 						return err
 					}
-					notifyCompletion(t.GetTask(), t, tokenAmount, solAmount, pos, deps)
+					notifyCompletion(task, t, tokenAmount, solAmount, pos, deps)
 					return nil
-				}, t.GetTask(), t)
+				}, task, t)
 			},
 		},
 	}
