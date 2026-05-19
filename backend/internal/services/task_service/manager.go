@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"personal_bot/internal/core/tasks"
-	subscriptionhub "personal_bot/internal/services/subscription_hub"
+	"personal_bot/internal/services/subscription_hub/task"
 	"personal_bot/internal/services/transaction"
 	"sync"
 )
@@ -15,7 +15,7 @@ type Manager struct {
 	mu       *sync.Mutex
 }
 
-func NewTaskManager(subhub *subscriptionhub.Hub, executor *transaction.Executor) *Manager {
+func NewTaskManager(subhub *task.Hub, executor *transaction.Executor) *Manager {
 	return &Manager{
 		executor: executor,
 		running:  map[int64]context.CancelFunc{},
@@ -44,7 +44,7 @@ func (m *Manager) RunTask(task tasks.Task) error {
 	go func() {
 
 		done := make(chan struct{})
-		m.executor.Execute(cancelCtx, done, transactionImpl)
+		m.executor.Execute(cancelCtx, done, transactionImpl, task)
 
 		//wait for the channel to close to continue
 		<-done

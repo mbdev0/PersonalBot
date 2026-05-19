@@ -34,9 +34,10 @@ type Transaction struct {
 	signature       solana.Signature
 	PositionService *position.Service
 	poolAddress     string
+	Publisher       subscriptionhub.Publisher
 }
 
-func (st *Transaction) BuildInstructions(ctx context.Context, publisher subscriptionhub.Publisher) error {
+func (st *Transaction) BuildInstructions(ctx context.Context) error {
 	if st.SellTask == nil {
 		return fmt.Errorf("sell task was nil - make sure buy task is set")
 	}
@@ -48,7 +49,7 @@ func (st *Transaction) BuildInstructions(ctx context.Context, publisher subscrip
 	}
 
 	st.instructions = &sellInstructions
-	publisher.PublishMessage(st.SellTask, "Instructions Built")
+	st.Publisher.PublishMessage(st.SellTask, "Instructions Built")
 
 	return nil
 }
@@ -174,7 +175,7 @@ func (st *Transaction) getAllInstructionsForSell(ctx context.Context, sellTask *
 	return []solana.Instruction{computeLimitInstruction, computeLimitBudgetInstruction, sellInstruction}, nil
 }
 
-func (st *Transaction) BuildTransaction(ctx context.Context, publisher subscriptionhub.Publisher) error {
+func (st *Transaction) BuildTransaction(ctx context.Context) error {
 	if st.SellTask == nil {
 		return fmt.Errorf("sell task was nil - make sure sell task is set")
 	}
@@ -210,12 +211,12 @@ func (st *Transaction) BuildTransaction(ctx context.Context, publisher subscript
 		return err
 	}
 	st.transaction = tx
-	publisher.PublishMessage(st.SellTask, "TX Built")
+	st.Publisher.PublishMessage(st.SellTask, "TX Built")
 
 	return nil
 }
 
-func (st *Transaction) SendTransaction(ctx context.Context, publisher subscriptionhub.Publisher) error {
+func (st *Transaction) SendTransaction(ctx context.Context) error {
 	rpcClient := st.getHttpClient()
 	// SIMULATE TRANSACTION
 	// txResp, err := rpcClient.SimulateTransaction(bt.BuyTask.Ctx(), bt.transaction)
@@ -242,11 +243,11 @@ func (st *Transaction) SendTransaction(ctx context.Context, publisher subscripti
 	// }
 
 	st.signature = txResp
-	publisher.PublishMessage(st.SellTask, fmt.Sprintf("Tx Sent: %s", txResp))
+	st.Publisher.PublishMessage(st.SellTask, fmt.Sprintf("Tx Sent: %s", txResp))
 	return nil
 }
 
-func (st *Transaction) ConfirmTransaction(ctx context.Context, publisher subscriptionhub.Publisher) error {
+func (st *Transaction) ConfirmTransaction(ctx context.Context) error {
 	rpcClient := st.getHttpClient()
 
 	stream := make(chan client.ConfirmMessage, 100)
@@ -258,16 +259,16 @@ func (st *Transaction) ConfirmTransaction(ctx context.Context, publisher subscri
 
 	for msg := range stream {
 		if msg.Err != "" {
-			publisher.PublishMessage(st.SellTask, msg.Err)
+			st.Publisher.PublishMessage(st.SellTask, msg.Err)
 			return fmt.Errorf("%v", msg.Err)
 		}
-		publisher.PublishMessage(st.SellTask, msg.Message)
+		st.Publisher.PublishMessage(st.SellTask, msg.Message)
 	}
 
 	return nil
 }
 
-func (st *Transaction) UpdatePosition(ctx context.Context, publisher subscriptionhub.Publisher) (tokenAmount, solAmount float64, pos *positionmodel.Position, err error) {
+func (st *Transaction) UpdatePosition(ctx context.Context) (tokenAmount, solAmount float64, pos *positionmodel.Position, err error) {
 	solAmnt, sellEvent, err := st.extractTokenAndSolFromTx(ctx, st.signature)
 	if err != nil {
 		return
