@@ -117,7 +117,6 @@ func (st *Transaction) getAllInstructionsForSell(ctx context.Context, sellTask *
 			return nil, err
 		}
 
-		//TODO: add address for URL
 		payload := positionmodel.ReportBuyPayload{
 			BuyTaskId:     st.SellTask.Id(),
 			StrategyId:    st.SellTask.StrategyId,
@@ -127,6 +126,7 @@ func (st *Transaction) getAllInstructionsForSell(ctx context.Context, sellTask *
 			SolSpent:      new(big.Float).SetFloat64(0),
 			MarketCap:     marketCap,
 			AddressForUrl: poolAddy,
+			Program:       st.SellTask.Program(),
 		}
 
 		err = st.PositionService.ReportBuy(ctx, payload)
