@@ -35,6 +35,7 @@ func mapReqPatchToBuyPatch(req dto.PatchRequestTask, wallet *wallets.SolanaWalle
 	bp.Fee = req.BuyFee
 	bp.ComputeUnit = req.ComputeUnits
 	bp.Slippage = req.Slippage
+	bp.Program = (*string)(req.Program)
 
 	if req.BuyAmount != nil {
 		amnt := req.BuyAmount
@@ -63,6 +64,7 @@ func mapReqPatchToSellPatch(req dto.PatchRequestTask, wallet *wallets.SolanaWall
 	sp.Fee = req.SellFee
 	sp.ComputeUnit = req.ComputeUnits
 	sp.Slippage = req.Slippage
+	sp.Program = (*string)(req.Program)
 
 	if req.SellAmount != nil {
 		amnt := req.SellAmount

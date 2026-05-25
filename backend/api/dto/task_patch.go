@@ -1,6 +1,9 @@
 package dto
 
+import programnames "personal_bot/app/program_names"
+
 type PatchRequestTask struct {
+	Program           *programnames.Program `json:"program"`
 	Type              TransactionType
 	Slippage          *float64 `json:"slippage"`
 	ComputeUnits      *uint32  `json:"compute_units"`

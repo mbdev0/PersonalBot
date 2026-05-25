@@ -50,6 +50,7 @@ func createBuyTask(req *dto.RequestTask, wallet wallets.SolanaWallet, rpcGroup r
 
 	bt := tasks.NewBuyTask(wallet, address,
 		[]tasks.Option{
+			tasks.WithProgram(string(req.Program)),
 			tasks.WithComputeUnits(req.ComputeUnits),
 			tasks.WithSlippage(req.Slippage),
 			tasks.WithUnixTime(time.Now().Unix()),
@@ -91,6 +92,7 @@ func createSellTask(reqTask *dto.RequestTask, wallet wallets.SolanaWallet, rpcGr
 	}
 
 	taskOpts := []tasks.Option{
+		tasks.WithProgram(string(reqTask.Program)),
 		tasks.WithComputeUnits(reqTask.ComputeUnits),
 		tasks.WithSlippage(reqTask.Slippage),
 		tasks.WithUnixTime(time.Now().Unix()),

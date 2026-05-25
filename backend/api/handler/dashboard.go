@@ -85,6 +85,7 @@ func (dh *DashboardHandler) generateDashboardResponse(strategies []dto.TradingTa
 
 				for _, sellTask := range sellTasks {
 					grandChildren = append(grandChildren, dto.SellTasks{
+						Program:   string(sellTask.Program),
 						Type:      string(dto.TASK),
 						Id:        sellTask.TaskId,
 						WsMessage: sellTask.Message,
@@ -98,6 +99,7 @@ func (dh *DashboardHandler) generateDashboardResponse(strategies []dto.TradingTa
 				})
 
 				children = append(children, dto.ChildRow{
+					Program:   string(buyTask.Program),
 					Type:      string(dto.TASK),
 					Id:        buyTask.TaskId,
 					WsMessage: buyTask.Message,
@@ -112,6 +114,7 @@ func (dh *DashboardHandler) generateDashboardResponse(strategies []dto.TradingTa
 			})
 
 			dashboardResponse.Rows = append(dashboardResponse.Rows, dto.TableRow{
+				Program:   st.Program,
 				Type:      string(dto.STRATEGY),
 				Id:        st.Id,
 				WsMessage: st.Message,
@@ -131,6 +134,7 @@ func (dh *DashboardHandler) generateDashboardResponse(strategies []dto.TradingTa
 
 func (dh *DashboardHandler) createSellStrategyRow(st dto.TradingTaskResponse) dto.TableRow {
 	return dto.TableRow{
+		Program:   string(st.Program),
 		Type:      string(dto.STRATEGY),
 		Id:        st.Id,
 		WsMessage: st.Message,
@@ -145,6 +149,7 @@ func (dh *DashboardHandler) createBuyStrategyRow(st dto.TradingTaskResponse, sel
 	for _, child := range sellTasks {
 		child.SellFee = st.SellFee
 		childRow := dto.ChildRow{
+			Program:   string(child.Program),
 			Type:      string(dto.TASK),
 			Id:        child.TaskId,
 			WsMessage: child.Message,
@@ -160,6 +165,7 @@ func (dh *DashboardHandler) createBuyStrategyRow(st dto.TradingTaskResponse, sel
 	})
 
 	return dto.TableRow{
+		Program:   st.Program,
 		Type:      string(dto.STRATEGY),
 		Id:        st.Id,
 		WsMessage: st.Message,

@@ -1,6 +1,10 @@
 package dto
 
-import "github.com/go-playground/validator/v10"
+import (
+	programnames "personal_bot/app/program_names"
+
+	"github.com/go-playground/validator/v10"
+)
 
 type TradingType string
 
@@ -11,11 +15,12 @@ const (
 )
 
 type TradingTask struct {
-	Type         TradingType `json:"trading_type" validate:"required,oneof=AFK BUY SELL"`
-	ComputeUnits float64     `json:"compute_units" validate:"required,gt=0"`
-	WalletName   string      `json:"wallet_name" validate:"required"`
-	Slippage     float64     `json:"slippage" validate:"required,gte=0,lte=1"`
-	RPCGroupId   int64       `json:"rpc_group_id" validate:"required"`
+	Program      programnames.Program `json:"program" validate:"required,oneof=PumpfunNative PumpfunAMM"`
+	Type         TradingType          `json:"trading_type" validate:"required,oneof=AFK BUY SELL"`
+	ComputeUnits float64              `json:"compute_units" validate:"required,gt=0"`
+	WalletName   string               `json:"wallet_name" validate:"required"`
+	Slippage     float64              `json:"slippage" validate:"required,gte=0,lte=1"`
+	RPCGroupId   int64                `json:"rpc_group_id" validate:"required"`
 
 	Filters        *Filters           `json:"filters,omitempty" validate:"required_if=Type AFK"`
 	SellStrategies *[]SellStrategyDTO `json:"sell_strategies,omitempty" validate:"required_if=Type AFK,required_if=Type BUY"`
@@ -32,6 +37,7 @@ func (t *TradingTask) Validate() error {
 }
 
 type TradingTaskResponse struct {
+	Program       string      `json:"program"`
 	Type          TradingType `json:"trading_type"`
 	Id            int64       `json:"id"`
 	ComputeUnits  float64     `json:"compute_units"`
@@ -57,11 +63,12 @@ type TradingTaskResponse struct {
 }
 
 type TradingTaskPatch struct {
-	Type         *TradingType `json:"trading_type" validate:"omitempty,oneof=AFK BUY SELL"`
-	ComputeUnits *float64     `json:"compute_units" validate:"omitempty,gt=0"`
-	WalletName   *string      `json:"wallet_name" validate:"omitempty"`
-	Slippage     *float64     `json:"slippage" validate:"omitempty,gte=0,lte=1"`
-	RPCGroupId   *int64       `json:"rpc_group_id" validate:"omitempty"`
+	Program      *programnames.Program `json:"program"`
+	Type         *TradingType          `json:"trading_type" validate:"omitempty,oneof=AFK BUY SELL"`
+	ComputeUnits *float64              `json:"compute_units" validate:"omitempty,gt=0"`
+	WalletName   *string               `json:"wallet_name" validate:"omitempty"`
+	Slippage     *float64              `json:"slippage" validate:"omitempty,gte=0,lte=1"`
+	RPCGroupId   *int64                `json:"rpc_group_id" validate:"omitempty"`
 
 	Filters        *Filters           `json:"filters,omitempty"`
 	SellStrategies *[]SellStrategyDTO `json:"sell_strategies,omitempty"`

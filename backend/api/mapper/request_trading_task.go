@@ -30,6 +30,7 @@ func mapBuyDtoToBuy(src dto.TradingTask, wallet wallets.SolanaWallet, rpcGroup r
 	dest := strategies.Buy{}
 	dest.New()
 
+	dest.Program = string(src.Program)
 	dest.BuyFee = *src.BuyFee
 	dest.ComputeUnits = float64(src.ComputeUnits)
 	dest.Slippage = src.Slippage
@@ -56,6 +57,7 @@ func mapAfkDtoToAfk(src dto.TradingTask, wallet wallets.SolanaWallet, rpcGroup r
 	dest := strategies.Afk{}
 	dest.New()
 
+	dest.Program = string(src.Program)
 	dest.BuyFee = *src.BuyFee
 	dest.ComputeUnits = float64(src.ComputeUnits)
 	dest.Slippage = src.Slippage
@@ -75,6 +77,7 @@ func mapSellDtoToSell(src dto.TradingTask, wallet wallets.SolanaWallet, rpcGroup
 	dest := strategies.Sell{}
 	dest.New()
 
+	dest.Program = string(src.Program)
 	dest.SellFee = *src.SellFee
 	dest.SellAmount = *src.SellAmount
 	dest.ComputeUnits = float64(src.ComputeUnits)
