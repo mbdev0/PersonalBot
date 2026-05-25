@@ -19,10 +19,14 @@ func NewTradingRepository(db *sql.DB) *TradingRepository {
 
 func (tr *TradingRepository) GetAllTasks(ctx context.Context) ([]strategies.Task, error) {
 	query := `
-	SELECT tt.id, tt.trading_type, tt.slippage, tt.compute_units, tt.config, tt.time_created, cw.id, cw.wallet_name, cw.chain, cw.private_key, rg.id, rg.group_name, rg.rpc_groups, rg.creation_time
+	SELECT tt.id, tt.trading_type, tt.slippage, tt.compute_units, tt.config, tt.time_created,
+	cw.id, cw.wallet_name, cw.chain, cw.private_key,
+	rg.id, rg.group_name, rg.rpc_groups, rg.creation_time,
+	p.id, p.program
 		FROM trading_tasks tt
 		INNER JOIN crypto_wallets cw ON cw.id = tt.wallet_id
 		INNER JOIN rpc_groups rg ON rg.id = tt.rpc_group_id
+		INNER JOIN programs p ON p.id = tt.program_id
 	`
 	rows, err := tr.db.QueryContext(ctx, query)
 	if err != nil {
@@ -34,14 +38,18 @@ func (tr *TradingRepository) GetAllTasks(ctx context.Context) ([]strategies.Task
 		task := models.TradingRow{}
 		wallet := models.WalletRepository{}
 		rpcGroup := models.RpcGroupRepository{}
+		program := models.ProgramRepository{}
 		err := rows.Scan(&task.Id, &task.TradingType, &task.Slippage, &task.ComputeUnits, &task.Config, &task.TimeCreatedUnix,
 			&wallet.Id, &wallet.WalletName, &wallet.Chain, &wallet.PrivateKey,
-			&rpcGroup.Id, &rpcGroup.GroupName, &rpcGroup.RpcGroups, &rpcGroup.CreationTime)
+			&rpcGroup.Id, &rpcGroup.GroupName, &rpcGroup.RpcGroups, &rpcGroup.CreationTime,
+			&program.Id, &program.Program,
+		)
+
 		if err != nil {
 			return nil, err
 		}
 
-		mappedTask, err := mapper.MapRepoToTradingTask(task, wallet, rpcGroup)
+		mappedTask, err := mapper.MapRepoToTradingTask(task, wallet, rpcGroup, program)
 		if err != nil {
 			return nil, err
 		}
@@ -67,8 +75,9 @@ func (tr *TradingRepository) AddAllTasks(ctx context.Context, tasks []strategies
 		return true, nil
 	}
 
+	//TODO: need to update this to have programs in
 	baseQuery := `
-		INSERT into trading_tasks values (?,?,?,?,?,?,?,?)
+		INSERT into trading_tasks values (?,?,?,?,?,?,?,?, (SELECT id FROM programs WHERE program = ?))
 		ON CONFLICT(id) DO UPDATE SET
             trading_type = excluded.trading_type,
             wallet_id = excluded.wallet_id,
@@ -76,7 +85,8 @@ func (tr *TradingRepository) AddAllTasks(ctx context.Context, tasks []strategies
             compute_units = excluded.compute_units,
             config = excluded.config,
 			time_created = excluded.time_created,
-			rpc_group_id = excluded.rpc_group_id
+			rpc_group_id = excluded.rpc_group_id,
+			program_id = excluded.program_id
 	`
 
 	tx, err := tr.db.BeginTx(ctx, nil)
@@ -97,7 +107,9 @@ func (tr *TradingRepository) AddAllTasks(ctx context.Context, tasks []strategies
 			return false, fmt.Errorf("failed to map task: %d", t.StrategyTaskId())
 		}
 
-		_, err = stmt.ExecContext(ctx, mappedTask.Id, mappedTask.TradingType, mappedTask.WalletId, mappedTask.Slippage, mappedTask.ComputeUnits, mappedTask.Config, mappedTask.TimeCreatedUnix, mappedTask.RpcGroupId)
+		_, err = stmt.ExecContext(ctx,
+			mappedTask.Id, mappedTask.TradingType, mappedTask.WalletId, mappedTask.Slippage, mappedTask.ComputeUnits,
+			mappedTask.Config, mappedTask.TimeCreatedUnix, mappedTask.RpcGroupId, t.GetProgram())
 		if err != nil {
 			return false, fmt.Errorf("error whilst executing data for task id: %d, error: %w", t.StrategyTaskId(), err)
 		}

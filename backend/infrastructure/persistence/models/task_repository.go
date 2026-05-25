@@ -12,6 +12,7 @@ type TaskRow struct {
 	StrategyId      *int64 `db:"strategy_id"`
 	TimeCreatedUnix int64  `db:"time_created"`
 	NodeConfig      string `db:"node_config"`
+	ProgramId       int    `db:"program_id"`
 }
 
 // Stored as lamports

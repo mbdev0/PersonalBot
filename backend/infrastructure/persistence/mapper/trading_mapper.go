@@ -197,20 +197,20 @@ func mapSellStratsToRepo(src []strategies.StrategyConfig) []models.SellStrategie
 	return dest
 }
 
-func MapRepoToTradingTask(src models.TradingRow, wallet models.WalletRepository, rpcGroup models.RpcGroupRepository) (strategies.Task, error) {
+func MapRepoToTradingTask(src models.TradingRow, wallet models.WalletRepository, rpcGroup models.RpcGroupRepository, program models.ProgramRepository) (strategies.Task, error) {
 	switch src.TradingType {
 	case "AFK":
-		return mapAfkRepoToTradingTask(src, wallet, rpcGroup)
+		return mapAfkRepoToTradingTask(src, wallet, rpcGroup, program)
 	case "BUY":
-		return mapBuyRepoToTradingTask(src, wallet, rpcGroup)
+		return mapBuyRepoToTradingTask(src, wallet, rpcGroup, program)
 	case "SELL":
-		return mapSellRepoToTradingTask(src, wallet, rpcGroup)
+		return mapSellRepoToTradingTask(src, wallet, rpcGroup, program)
 	default:
 		return nil, fmt.Errorf("unknown trading type: %s", src.TradingType)
 	}
 }
 
-func mapAfkRepoToTradingTask(src models.TradingRow, wallet models.WalletRepository, rpcGroup models.RpcGroupRepository) (*strategies.Afk, error) {
+func mapAfkRepoToTradingTask(src models.TradingRow, wallet models.WalletRepository, rpcGroup models.RpcGroupRepository, program models.ProgramRepository) (*strategies.Afk, error) {
 	afkTask := strategies.Afk{}
 	afkTask.New()
 	afkTask.SetId(int64(src.Id))
@@ -221,6 +221,7 @@ func mapAfkRepoToTradingTask(src models.TradingRow, wallet models.WalletReposito
 		return nil, err
 	}
 
+	afkTask.Program = program.Program
 	afkTask.State = string(strategies.CREATED)
 	afkTask.BuyAmount = big.NewInt(int64(config.BuyAmount))
 	afkTask.BuyFee = utils.ConvertLamportToSol(big.NewInt(int64(config.BuyFee)))
@@ -257,10 +258,11 @@ func mapAfkRepoToTradingTask(src models.TradingRow, wallet models.WalletReposito
 	return &afkTask, nil
 }
 
-func mapBuyRepoToTradingTask(src models.TradingRow, wallet models.WalletRepository, rpcGroup models.RpcGroupRepository) (*strategies.Buy, error) {
+func mapBuyRepoToTradingTask(src models.TradingRow, wallet models.WalletRepository, rpcGroup models.RpcGroupRepository, program models.ProgramRepository) (*strategies.Buy, error) {
 	buyTask := strategies.Buy{}
 	buyTask.New()
 	buyTask.SetId(int64(src.Id))
+	buyTask.Program = program.Program
 
 	config := models.BuyStrategyConfig{}
 	err := json.Unmarshal([]byte(src.Config), &config)
@@ -309,10 +311,11 @@ func mapBuyRepoToTradingTask(src models.TradingRow, wallet models.WalletReposito
 	return &buyTask, nil
 }
 
-func mapSellRepoToTradingTask(src models.TradingRow, wallet models.WalletRepository, rpcGroup models.RpcGroupRepository) (strategies.Task, error) {
+func mapSellRepoToTradingTask(src models.TradingRow, wallet models.WalletRepository, rpcGroup models.RpcGroupRepository, program models.ProgramRepository) (strategies.Task, error) {
 	sellTask := strategies.Sell{}
 	sellTask.New()
 	sellTask.SetId(int64(src.Id))
+	sellTask.Program = program.Program
 
 	config := models.SellStrategyConfig{}
 	err := json.Unmarshal([]byte(src.Config), &config)

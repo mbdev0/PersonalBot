@@ -20,9 +20,11 @@ func NewTaskRepository(db *sql.DB) *TaskRepository {
 func (tr *TaskRepository) GetAll(ctx context.Context) ([]tasks.Task, error) {
 	query := `
 	SELECT t.id, t.task_type, t.slippage_percentage, t.compute_units, t.config, t.state, t.token, t.strategy_id, t.time_created, t.node_config,
-		cw.id, cw.wallet_name, cw.chain, cw.private_key
+		cw.id, cw.wallet_name, cw.chain, cw.private_key,
+		p.id, p.program
 		FROM tasks t
-		INNER JOIN crypto_wallets cw WHERE cw.id = t.wallet_id
+		INNER JOIN crypto_wallets cw ON cw.id = t.wallet_id
+		INNER JOIN programs p ON p.id = t.program_id
 	`
 	rows, err := tr.db.QueryContext(ctx, query)
 	if err != nil {
@@ -33,23 +35,30 @@ func (tr *TaskRepository) GetAll(ctx context.Context) ([]tasks.Task, error) {
 	for rows.Next() {
 		task := models.TaskRow{}
 		wallet := models.WalletRepository{}
+		program := models.ProgramRepository{}
 		err := rows.Scan(
 			&task.Id, &task.TaskType, &task.Slippage,
 			&task.ComputeUnits, &task.Config, &task.State,
 			&task.Token, &task.StrategyId, &task.TimeCreatedUnix,
 			&task.NodeConfig,
 			&wallet.Id, &wallet.WalletName, &wallet.Chain, &wallet.PrivateKey,
+			&program.Id, &program.Program,
 		)
+
 		if err != nil {
 			return nil, err
 		}
 
-		mappedTask, err := mapper.MapRepoToTask(task, wallet)
+		mappedTask, err := mapper.MapRepoToTask(task, wallet, program)
 		if err != nil {
 			return nil, err
 		}
 
 		dbTasks = append(dbTasks, mappedTask)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
 	}
 
 	return dbTasks, nil
@@ -71,18 +80,19 @@ func (tr *TaskRepository) AddAllTasks(ctx context.Context, tasks []tasks.Task) (
 	}
 
 	baseQuery := `
-		INSERT into tasks values (?,?,?,?,?,?,?,?,?,?,?)
-		ON CONFLICT(id) DO UPDATE SET
-            task_type = excluded.task_type,
-            wallet_id = excluded.wallet_id,
-            slippage_percentage = excluded.slippage_percentage,
-            compute_units = excluded.compute_units,
-            config = excluded.config,
-            state = excluded.state,
-            token = excluded.token,
-			strategy_id = excluded.strategy_id,
-			time_created = excluded.time_created,
-			node_config = excluded.node_config
+	INSERT INTO tasks VALUES (?,?,?,?,?,?,?,?,?,?,?, (SELECT id FROM programs WHERE program = ?))
+	ON CONFLICT(id) DO UPDATE SET
+	    task_type = excluded.task_type,
+	    wallet_id = excluded.wallet_id,
+	    slippage_percentage = excluded.slippage_percentage,
+	    compute_units = excluded.compute_units,
+	    config = excluded.config,
+	    state = excluded.state,
+	    token = excluded.token,
+	    strategy_id = excluded.strategy_id,
+	    time_created = excluded.time_created,
+	    node_config = excluded.node_config,
+	    program_id = excluded.program_id
 	`
 
 	tx, err := tr.db.BeginTx(ctx, nil)
@@ -106,7 +116,10 @@ func (tr *TaskRepository) AddAllTasks(ctx context.Context, tasks []tasks.Task) (
 		_, err = stmt.ExecContext(ctx,
 			mappedTask.Id, mappedTask.TaskType, mappedTask.WalletId, mappedTask.Slippage,
 			mappedTask.ComputeUnits, mappedTask.Config, mappedTask.StrategyId,
-			mappedTask.State, mappedTask.Token, mappedTask.TimeCreatedUnix, mappedTask.NodeConfig)
+			mappedTask.State, mappedTask.Token, mappedTask.TimeCreatedUnix, mappedTask.NodeConfig,
+			t.Program(),
+		)
+
 		if err != nil {
 			return false, fmt.Errorf("error whilst executing data for task id: %d, error: %w", t.Id(), err)
 		}
