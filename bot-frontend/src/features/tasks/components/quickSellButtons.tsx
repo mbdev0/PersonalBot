@@ -55,10 +55,8 @@ function spawnAndRunTask(row: DisplayRow, amountToSell: number, rowActions: RowA
     return;
   }
 
-  console.log(row.data.sell_fee);
-  console.log(row);
-
   const baseTask = {
+    program: row.program,
     type: 'Sell' as const,
     slippage: row.data.slippage,
     compute_units: row.data.compute_units,

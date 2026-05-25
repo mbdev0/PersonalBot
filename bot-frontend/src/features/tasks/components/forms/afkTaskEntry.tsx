@@ -26,14 +26,15 @@ import type { RPCGroupDashboardRow } from '@/features/rpc-groups/types/rpcGroup'
 import { FormDataLoader } from './fields/formDataLoader';
 
 interface AFKTaskEntryProps {
+  program: string;
   onClose: () => void;
 }
 
-export function AFKTaskEntry({ onClose }: AFKTaskEntryProps) {
+export function AFKTaskEntry({ onClose, program }: AFKTaskEntryProps) {
   return (
     <FormDataLoader>
       {(wallets, rpcGroups) => (
-        <AFKTaskForm onClose={onClose} wallets={wallets} rpcGroups={rpcGroups} />
+        <AFKTaskForm onClose={onClose} wallets={wallets} rpcGroups={rpcGroups} program={program} />
       )}
     </FormDataLoader>
   );
@@ -43,9 +44,10 @@ interface AFKTaskFormProps {
   onClose: () => void;
   wallets: Wallet[];
   rpcGroups: RPCGroupDashboardRow[];
+  program: string;
 }
 
-function AFKTaskForm({ onClose, wallets, rpcGroups }: AFKTaskFormProps) {
+function AFKTaskForm({ onClose, wallets, rpcGroups, program }: AFKTaskFormProps) {
   const postMutation = useAddStrategy();
 
   const [slippage, setSlippage] = useState(SLIPPAGE_DEFAULT);
@@ -65,6 +67,7 @@ function AFKTaskForm({ onClose, wallets, rpcGroups }: AFKTaskFormProps) {
     e.preventDefault();
 
     const strategyBody: AFKStrategyTaskPost = {
+      program: program,
       trading_type: 'AFK',
       slippage: slippage / 100,
       compute_units: computeUnits,

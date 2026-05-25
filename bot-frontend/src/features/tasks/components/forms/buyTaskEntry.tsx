@@ -25,15 +25,16 @@ import { RPCGroupSelector } from './fields/rpcGroupSelector';
 import { FormDataLoader } from './fields/formDataLoader';
 
 interface BuyTaskEntryProps {
+  program: string;
   onClose: () => void;
 }
 
 // BuyTaskEntry.tsx
-export function BuyTaskEntry({ onClose }: BuyTaskEntryProps) {
+export function BuyTaskEntry({ onClose, program }: BuyTaskEntryProps) {
   return (
     <FormDataLoader>
       {(wallets, rpcGroups) => (
-        <BuyTaskForm onClose={onClose} wallets={wallets} rpcGroups={rpcGroups} />
+        <BuyTaskForm onClose={onClose} wallets={wallets} rpcGroups={rpcGroups} program={program} />
       )}
     </FormDataLoader>
   );
@@ -43,9 +44,10 @@ interface BuyTaskFormProps {
   onClose: () => void;
   wallets: Wallet[];
   rpcGroups: RPCGroupDashboardRow[];
+  program: string;
 }
 
-function BuyTaskForm({ onClose, wallets, rpcGroups }: BuyTaskFormProps) {
+function BuyTaskForm({ onClose, wallets, rpcGroups, program }: BuyTaskFormProps) {
   const postMutation = useAddStrategy();
 
   const [slippage, setSlippage] = useState(SLIPPAGE_DEFAULT);
@@ -65,6 +67,7 @@ function BuyTaskForm({ onClose, wallets, rpcGroups }: BuyTaskFormProps) {
     e.preventDefault();
 
     const taskBody: BuyStrategyTaskPost = {
+      program: program,
       trading_type: 'BUY',
       slippage: slippage / 100,
       compute_units: computeUnits,
