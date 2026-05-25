@@ -7,17 +7,20 @@ import (
 	"personal_bot/api/controller"
 	"personal_bot/api/handler"
 	"personal_bot/app"
+	programnames "personal_bot/app/program_names"
 	"personal_bot/infrastructure/persistence/repository"
+	"personal_bot/internal/core/program"
 	cryptostates "personal_bot/internal/services/crypto_states"
 	"personal_bot/internal/services/notifier"
 	"personal_bot/internal/services/position"
 	rpcgroups "personal_bot/internal/services/rpc_groups"
 	"personal_bot/internal/services/settings"
-	subscriptionhub "personal_bot/internal/services/subscription_hub"
 	positionhub "personal_bot/internal/services/subscription_hub/position"
 	"personal_bot/internal/services/subscription_hub/strategy"
 	"personal_bot/internal/services/subscription_hub/task"
 	"personal_bot/internal/services/wallet"
+	datastream "personal_bot/internal/solana/monitoring/data_stream"
+	pumpfunnative "personal_bot/internal/solana/programs/pumpfun/pumpfun_native"
 	"personal_bot/pkg/logger"
 
 	taskservice "personal_bot/internal/services/task_service"
@@ -75,6 +78,9 @@ func WireServicesAndLaunchServer(mainCtx context.Context, db *sql.DB) (*http.Ser
 
 	walletRepo := repository.NewWalletRepository(db)
 	walletService := wallet.NewWalletService(walletRepo)
+
+	solanaStreamManager := datastream.NewSolanaStream(mainCtx)
+	registerPrograms(solanaStreamManager)
 
 	walletController := controller.NewWalletController(walletService)
 	tradingController := controller.NewStrategyController(tradingService, walletService, rpcGroupService)
@@ -147,4 +153,8 @@ func loadFromDB(ctx context.Context, tradingService *trading.Service, taskServic
 	if err != nil {
 		logger.Error("error whilst loading from db: ", err)
 	}
+}
+
+func registerPrograms(solanaStream datastream.DataStream) {
+	program.Register(string(programnames.PumpfunNative), pumpfunnative.New(solanaStream))
 }
