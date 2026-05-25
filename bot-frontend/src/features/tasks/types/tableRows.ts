@@ -8,6 +8,7 @@ enum TaskRowType {
 
 interface StrategyRow {
   id: number;
+  program: string;
   type: TaskRowType.Strategy;
   state: string;
   ws_message: string;
@@ -18,6 +19,7 @@ interface StrategyRow {
 
 export interface TaskRow {
   id: number;
+  program: string;
   type: TaskRowType.Task;
   state: string;
   ws_message: string;

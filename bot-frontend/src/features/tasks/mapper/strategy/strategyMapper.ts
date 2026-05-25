@@ -17,6 +17,7 @@ export function mapStrategyTaskDtoToStrategyTask(src: StrategyTaskDto): Strategy
         sell_strategies: src.sell_strategies,
         rpc_group: src.rpc_group,
         rpc_group_id: src.rpc_group_id,
+        program: src.program,
       };
 
     case 'BUY':
@@ -36,6 +37,7 @@ export function mapStrategyTaskDtoToStrategyTask(src: StrategyTaskDto): Strategy
         position_id: src.position_id,
         rpc_group: src.rpc_group,
         rpc_group_id: src.rpc_group_id,
+        program: src.program,
       };
 
     case 'SELL':
@@ -52,6 +54,7 @@ export function mapStrategyTaskDtoToStrategyTask(src: StrategyTaskDto): Strategy
         sell_task_id: src.sell_task_id,
         rpc_group: src.rpc_group,
         rpc_group_id: src.rpc_group_id,
+        program: src.program,
       };
   }
 }

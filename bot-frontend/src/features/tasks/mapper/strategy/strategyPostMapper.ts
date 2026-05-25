@@ -33,11 +33,13 @@ function mapAFKPostToDto(src: AFKStrategyTaskPost): AFKStrategyTaskPostDto {
     filters: src.filters,
     sell_strategies: src.sell_strategies.map(mapSellStrategyPostToDto),
     rpc_group_id: src.rpc_group_id,
+    program: src.program,
   };
 }
 
 function mapBuyPostToDto(src: BuyStrategyTaskPost): BuyStrategyTaskPostDto {
   return {
+    program: src.program,
     trading_type: 'BUY',
     compute_units: src.compute_units,
     slippage: src.slippage,
@@ -61,5 +63,6 @@ function mapSellPostToDto(src: SellStrategyTaskPost): SellStrategyTaskPostDto {
     sell_fee: src.sell_fee,
     token_address: src.token_address,
     rpc_group_id: src.rpc_group_id,
+    program: src.program,
   };
 }
