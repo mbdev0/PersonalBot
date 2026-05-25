@@ -9,6 +9,7 @@ import (
 
 type Sell struct {
 	id           int64
+	Program      string
 	strategyType TradingType
 	SellAmount   float64
 	SellFee      float64
@@ -25,6 +26,10 @@ type Sell struct {
 
 func (s *Sell) New() {
 	s.strategyType = SELL
+}
+
+func (s *Sell) GetProgram() string {
+	return s.Program
 }
 
 func (s *Sell) StrategyTaskId() int64 {

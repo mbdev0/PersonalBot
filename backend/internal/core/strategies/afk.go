@@ -10,6 +10,7 @@ import (
 type StrategyFilter func() filters.FilterInfo
 
 type Afk struct {
+	Program        string
 	id             int64
 	strategyType   TradingType
 	Filters        []StrategyFilter
@@ -28,6 +29,10 @@ type Afk struct {
 
 func (a *Afk) New() {
 	a.strategyType = AFK
+}
+
+func (a *Afk) GetProgram() string {
+	return a.Program
 }
 
 func (a *Afk) StrategyTaskId() int64 {

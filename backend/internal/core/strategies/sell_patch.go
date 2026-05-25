@@ -9,6 +9,7 @@ import (
 )
 
 type SellPatch struct {
+	Program      *string
 	SellAmount   *float64
 	SellFee      *float64
 	Slippage     *float64
@@ -22,6 +23,10 @@ func (sp *SellPatch) ApplyTo(task Task) error {
 	sell, ok := task.(*Sell)
 	if !ok {
 		return fmt.Errorf("patch/task type mismatch: want sell")
+	}
+
+	if sp.Program != nil {
+		sell.Program = *sp.Program
 	}
 
 	if sp.SellAmount != nil {

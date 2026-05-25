@@ -8,6 +8,7 @@ import (
 )
 
 type AfkPatch struct {
+	Program        *string
 	Filters        *[]StrategyFilter
 	BuyAmount      *big.Int
 	BuyFee         *float64
@@ -23,6 +24,10 @@ func (ap *AfkPatch) ApplyTo(task Task) error {
 	afk, ok := task.(*Afk)
 	if !ok {
 		return fmt.Errorf("patch/task type mismatch: want Afk")
+	}
+
+	if ap.Program != nil {
+		afk.Program = *ap.Program
 	}
 
 	if ap.BuyAmount != nil {

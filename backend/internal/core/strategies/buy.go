@@ -9,6 +9,7 @@ import (
 )
 
 type Buy struct {
+	Program        string
 	id             int64
 	strategyType   TradingType
 	BuyAmount      *big.Int
@@ -29,6 +30,10 @@ type Buy struct {
 
 func (b *Buy) New() {
 	b.strategyType = BUY
+}
+
+func (b *Buy) GetProgram() string {
+	return b.Program
 }
 
 func (b *Buy) StrategyTaskId() int64 {

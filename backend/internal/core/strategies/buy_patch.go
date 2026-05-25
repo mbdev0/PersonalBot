@@ -10,6 +10,7 @@ import (
 )
 
 type BuyPatch struct {
+	Program        *string
 	BuyAmount      *big.Int
 	BuyFee         *float64
 	Slippage       *float64
@@ -25,6 +26,10 @@ func (bp *BuyPatch) ApplyTo(task Task) error {
 	buy, ok := task.(*Buy)
 	if !ok {
 		return fmt.Errorf("patch/task type mismatch: want buy")
+	}
+
+	if bp.Program != nil {
+		buy.Program = *bp.Program
 	}
 
 	if bp.BuyAmount != nil {

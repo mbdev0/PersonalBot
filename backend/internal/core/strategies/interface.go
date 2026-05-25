@@ -9,4 +9,5 @@ type Task interface {
 	StrategyMessage() string
 	SetStrategyMessage(message string)
 	RPCGroupId() int64
+	GetProgram() string
 }
