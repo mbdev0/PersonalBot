@@ -12,6 +12,7 @@ interface BaseStrategyTaskDto {
   slippage: number;
   rpc_group: string;
   rpc_group_id: number;
+  program: string;
 }
 
 export interface AFKStrategyTaskDto extends BaseStrategyTaskDto {
@@ -53,6 +54,7 @@ interface BaseStrategyTask {
   slippage: number;
   rpc_group: string;
   rpc_group_id: number;
+  program: string;
 }
 
 export interface AFKStrategyTask extends BaseStrategyTask {

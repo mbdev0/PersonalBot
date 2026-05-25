@@ -33,6 +33,7 @@ function mapAFKPutToDto(src: AFKStrategyTaskPut): AFKStrategyTaskPutDto {
     filters: src.filters,
     sell_strategies: src.sell_strategies.map(mapSellStrategyPostToDto),
     rpc_group_id: src.rpc_group_id,
+    program: src.program,
   };
 }
 
@@ -48,6 +49,7 @@ function mapBuyPutToDto(src: BuyStrategyTaskPut): BuyStrategyTaskPutDto {
     token_address: src.token_address,
     sell_strategies: src.sell_strategies.map(mapSellStrategyPostToDto),
     rpc_group_id: src.rpc_group_id,
+    program: src.program,
   };
 }
 
@@ -61,5 +63,6 @@ function mapSellPutToDto(src: SellStrategyTaskPut): SellStrategyTaskPutDto {
     sell_fee: src.sell_fee,
     token_address: src.token_address,
     rpc_group_id: src.rpc_group_id,
+    program: src.program,
   };
 }

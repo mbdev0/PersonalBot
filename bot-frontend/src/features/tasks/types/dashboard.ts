@@ -6,6 +6,7 @@ interface DashboardDto {
 }
 
 interface BaseDashboardRowDto {
+  program: string;
   type: string;
   id: number;
   ws_message: string;
@@ -27,6 +28,7 @@ export interface TaskDashboardRowDto extends BaseDashboardRowDto {
 type DashboardRowDto = StrategyDashboardRowDto | TaskDashboardRowDto;
 
 interface BaseDashboardRow {
+  program: string;
   type: string;
   id: number;
   ws_message: string;

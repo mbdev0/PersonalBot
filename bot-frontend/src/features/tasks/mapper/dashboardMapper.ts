@@ -27,6 +27,7 @@ function mapDashboardRowDtoToDashboardRow(src: DashboardRowDto): DashboardRow {
 
 function mapStrategyRowDtoToStrategyRow(src: StrategyDashboardRowDto): StrategyDashboardRow {
   return {
+    program: src.program,
     type: 'strategy',
     id: src.id,
     ws_message: src.ws_message,
@@ -38,6 +39,7 @@ function mapStrategyRowDtoToStrategyRow(src: StrategyDashboardRowDto): StrategyD
 
 function mapTaskRowDtoToTaskRow(src: TaskDashboardRowDto): TaskDashboardRow {
   return {
+    program: src.program,
     type: 'task',
     id: src.id,
     ws_message: src.ws_message,

@@ -3,6 +3,7 @@ import type { SellStrategyDto, SellStrategyPost } from '../sellStrategies';
 import type { TradingType } from './strategyTask';
 
 interface BaseStrategyTaskCreateDto {
+  program: string;
   trading_type: TradingType;
   compute_units: number;
   slippage: number;
@@ -41,6 +42,7 @@ export type StrategyTaskPostDto =
   | SellStrategyTaskPostDto;
 
 interface BaseStrategyTaskPost {
+  program: string;
   trading_type: TradingType;
   compute_units: number;
   slippage: number;
