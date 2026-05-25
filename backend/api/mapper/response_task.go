@@ -20,6 +20,7 @@ func MapTaskToReponseTask(task tasks.Task) (*dto.ResponseTask, error) {
 
 func mapBuyToResponseTask(t *tasks.BuyTask) *dto.ResponseTask {
 	responseTask := dto.ResponseTask{}
+	responseTask.Program = t.Program()
 	responseTask.Type = t.Type()
 	responseTask.ComputeUnits = t.ComputeUnits
 	responseTask.Slippage = t.Slippage
@@ -48,6 +49,7 @@ func mapBuyToResponseTask(t *tasks.BuyTask) *dto.ResponseTask {
 
 func mapSellToResponseTask(t *tasks.SellTask) *dto.ResponseTask {
 	responseTask := dto.ResponseTask{}
+	responseTask.Program = t.Program()
 	responseTask.Type = t.Type()
 	responseTask.ComputeUnits = t.ComputeUnits
 	responseTask.Slippage = t.Slippage

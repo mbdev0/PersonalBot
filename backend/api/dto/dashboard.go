@@ -1,6 +1,7 @@
 package dto
 
 type TableRow struct {
+	Program   string              `json:"program"`
 	Type      string              `json:"type"`
 	Id        int64               `json:"id"`
 	WsMessage string              `json:"ws_message"`
@@ -10,6 +11,7 @@ type TableRow struct {
 }
 
 type ChildRow struct {
+	Program   string       `json:"program"`
 	Type      string       `json:"type"`
 	Id        int64        `json:"id"`
 	WsMessage string       `json:"ws_message"`
@@ -19,6 +21,7 @@ type ChildRow struct {
 }
 
 type SellTasks struct {
+	Program   string       `json:"program"`
 	Type      string       `json:"type"`
 	Id        int64        `json:"id"`
 	WsMessage string       `json:"ws_message"`

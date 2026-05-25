@@ -25,6 +25,7 @@ func MapTradingTaskToDto(src strategies.Task) (dest *dto.TradingTaskResponse, er
 
 func mapBuyToBuyResponse(src *strategies.Buy) (dest *dto.TradingTaskResponse, err error) {
 	dst := dto.TradingTaskResponse{}
+	dst.Program = src.GetProgram()
 	dst.Type = dto.TradingType(src.StrategyType())
 	dst.Id = src.StrategyTaskId()
 	buyAmount := utils.ConvertLamportToSol(src.BuyAmount)
@@ -52,6 +53,7 @@ func mapBuyToBuyResponse(src *strategies.Buy) (dest *dto.TradingTaskResponse, er
 
 func mapAfkToAfkResponse(src *strategies.Afk) (dest *dto.TradingTaskResponse, err error) {
 	dst := dto.TradingTaskResponse{}
+	dst.Program = src.GetProgram()
 	dst.Type = dto.TradingType(src.StrategyType())
 	dst.Id = src.StrategyTaskId()
 	buyAmount := utils.ConvertLamportToSol(src.BuyAmount)
@@ -81,6 +83,7 @@ func mapAfkToAfkResponse(src *strategies.Afk) (dest *dto.TradingTaskResponse, er
 
 func mapSellToSellResponse(t *strategies.Sell) (dest *dto.TradingTaskResponse, err error) {
 	dst := dto.TradingTaskResponse{}
+	dst.Program = t.GetProgram()
 	dst.Type = dto.TradingType(t.StrategyType())
 	dst.Id = t.StrategyTaskId()
 	sellAmount := t.SellAmount
