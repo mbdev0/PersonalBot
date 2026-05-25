@@ -107,6 +107,7 @@ func (s *Service) initBuyStrategy(st strategies.Task) (err error) {
 func (s *Service) createBuyTask(buyTask strategies.Buy, node rpcgroupsModel.GroupItem) *tasks.BuyTask {
 	bt := tasks.NewBuyTask(buyTask.Wallet, buyTask.Token,
 		[]tasks.Option{
+			tasks.WithProgram(buyTask.GetProgram()),
 			tasks.WithSlippage(buyTask.Slippage),
 			tasks.WithComputeUnits(uint32(buyTask.ComputeUnits)),
 			tasks.WithStrategyId(buyTask.StrategyTaskId()),
@@ -148,6 +149,7 @@ func (s *Service) createSellTask(sell strategies.Sell, rpcGroup rpcgroupsModel.G
 		sell.GetWallet(),
 		sell.Token,
 		[]tasks.Option{
+			tasks.WithProgram(sell.GetProgram()),
 			tasks.WithComputeUnits(uint32(sell.GetComputeUnits())),
 			tasks.WithSlippage(sell.GetSlippage()),
 			tasks.WithStrategyId(sell.StrategyTaskId()),

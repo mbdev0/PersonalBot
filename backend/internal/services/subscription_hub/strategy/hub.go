@@ -67,7 +67,7 @@ func (sh *SubscriptionHub) cancel(id int64) func() {
 	}
 }
 
-func (sh *SubscriptionHub) PublishTakeCreation(id int64, task tasks.Task) {
+func (sh *SubscriptionHub) PublishTaskCreation(id int64, task tasks.Task) {
 	sh.mu.Lock()
 	defer sh.mu.Unlock()
 
