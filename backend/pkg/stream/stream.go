@@ -5,17 +5,13 @@ import (
 	"personal_bot/pkg/logger"
 )
 
-type streamerFunc func(context.Context, string, string, chan<- []byte) error
+type streamerFunc func(wsurl string, address string) (<-chan []byte, error)
 
-func Stream[T any](ctx context.Context, address, wsUrl string, streamer streamerFunc, parser func([]byte) (T, error)) chan T {
-	dataStream := make(chan []byte, 100)
-	go func(ctx context.Context, s1, s2 string, c chan<- []byte) {
-		defer close(dataStream)
-		if err := streamer(ctx, s1, s2, c); err != nil {
-			logger.Error(err)
-			return
-		}
-	}(ctx, address, wsUrl, dataStream)
+func Stream[T any](ctx context.Context, address, wsUrl string, streamer streamerFunc, parser func([]byte) (*T, error)) chan T {
+	datastream, err := streamer(wsUrl, address)
+	if err != nil {
+		return nil
+	}
 
 	output := make(chan T, 100)
 	go func() {
@@ -24,7 +20,7 @@ func Stream[T any](ctx context.Context, address, wsUrl string, streamer streamer
 			select {
 			case <-ctx.Done():
 				return
-			case data, ok := <-dataStream:
+			case data, ok := <-datastream:
 				if !ok {
 					continue
 				}
@@ -35,8 +31,9 @@ func Stream[T any](ctx context.Context, address, wsUrl string, streamer streamer
 					continue
 				}
 
-				output <- parsed
-
+				if parsed != nil {
+					output <- *parsed
+				}
 			}
 		}
 	}()
