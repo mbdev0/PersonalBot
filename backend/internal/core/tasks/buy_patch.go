@@ -9,6 +9,7 @@ import (
 )
 
 type BuyPatch struct {
+	Program     *string
 	Wallet      *wallets.SolanaWallet
 	Token       *solana.PublicKey
 	Amount      *big.Int
@@ -29,6 +30,10 @@ func (p *BuyPatch) ApplyTo(t Task) error {
 	if p.Wallet != nil {
 		bt.Wallet = p.Wallet.PrivateKey
 		bt.WalletName = p.Wallet.WalletName
+	}
+
+	if p.Program != nil {
+		bt.program = *p.Program
 	}
 
 	if p.Token != nil {

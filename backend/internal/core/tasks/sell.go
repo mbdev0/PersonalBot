@@ -9,6 +9,7 @@ import (
 )
 
 type SellTask struct {
+	program        string
 	taskType       string
 	id             int64
 	Position_id    *int64
@@ -56,6 +57,14 @@ func NewSellTask(wallet wallets.SolanaWallet, token solana.PublicKey, common []O
 
 func (st *SellTask) GetStrategyId() *int64 {
 	return st.StrategyId
+}
+
+func (st *SellTask) Program() string {
+	return st.program
+}
+
+func (st *SellTask) SetProgram(program string) {
+	st.program = program
 }
 
 func (st *SellTask) State() State   { st.mu.RLock(); defer st.mu.RUnlock(); return st.state }
