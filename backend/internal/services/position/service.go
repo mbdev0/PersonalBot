@@ -61,6 +61,7 @@ func (s *Service) ReportBuy(ctx context.Context, buyReportPayload position.Repor
 		AverageMarketCapExit: big.NewFloat(0),
 		AddressForUrl:        buyReportPayload.AddressForUrl,
 		MonitoringAddress:    buyReportPayload.AddressForMonitoring,
+		Program:              buyReportPayload.Program,
 	}
 
 	s.positions[newPosition.PositionId] = &newPosition
