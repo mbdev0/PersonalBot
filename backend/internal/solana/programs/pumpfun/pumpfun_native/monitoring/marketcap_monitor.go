@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"math/big"
-	"personal_bot/internal/solana/monitoring/stream"
+	datastream "personal_bot/internal/solana/monitoring/data_stream"
 	bondingcurve "personal_bot/internal/solana/programs/pumpfun/bonding_curve"
 	"personal_bot/pkg/logger"
 	streamUtils "personal_bot/pkg/stream"
@@ -16,13 +16,15 @@ type PumpfunNativeMarketcap struct {
 	monitoringAddress string
 	httpClient        *rpc.Client
 	wsUrl             string
+	datastream        datastream.DataStream
 }
 
-func NewPumpfunNativeMarketcap(bondingCurveAddress, wsUrl string, httpClient *rpc.Client) *PumpfunNativeMarketcap {
+func NewPumpfunNativeMarketcap(bondingCurveAddress, wsUrl string, httpClient *rpc.Client, datastream datastream.DataStream) *PumpfunNativeMarketcap {
 	return &PumpfunNativeMarketcap{
 		monitoringAddress: bondingCurveAddress,
 		wsUrl:             wsUrl,
 		httpClient:        httpClient,
+		datastream:        datastream,
 	}
 }
 
@@ -47,7 +49,7 @@ func (pm *PumpfunNativeMarketcap) GetInitialMarketCap(ctx context.Context) (mark
 	return marketCapVal, nil, false
 }
 
-func (pm *PumpfunNativeMarketcap) GetMarketCapFrom(data []byte) (marketCapVal *big.Float, err error) {
+func (pm *PumpfunNativeMarketcap) GetMarketCapFrom(data []byte) (*big.Float, error) {
 	bondingCurve, err, _ := bondingcurve.GetBondingCurveData(data)
 	if err != nil {
 		return nil, err
@@ -57,7 +59,7 @@ func (pm *PumpfunNativeMarketcap) GetMarketCapFrom(data []byte) (marketCapVal *b
 		return nil, fmt.Errorf("bonding curve was nil")
 	}
 
-	marketCapVal, err = bondingcurve.GetMarketCap(*bondingCurve)
+	marketCapVal, err := bondingcurve.GetMarketCap(*bondingCurve)
 	if err != nil {
 		return nil, err
 	}
@@ -65,8 +67,9 @@ func (pm *PumpfunNativeMarketcap) GetMarketCapFrom(data []byte) (marketCapVal *b
 	return marketCapVal, nil
 }
 
-func (pm *PumpfunNativeMarketcap) StreamMarketCap(ctx context.Context) chan *big.Float {
-	output := streamUtils.Stream[*big.Float](ctx, pm.monitoringAddress, pm.wsUrl, stream.NewGeyserStreamAccountInfo, pm.GetMarketCapFrom)
+// This is run in it's own go routine, we return a channel which the go routine is outputting too
+func (pm *PumpfunNativeMarketcap) StreamMarketCap(ctx context.Context) chan big.Float {
+	output := streamUtils.Stream[big.Float](ctx, pm.monitoringAddress, pm.wsUrl, pm.datastream.SubscribeToAccountStream, pm.GetMarketCapFrom)
 
 	mcap, err, _ := pm.GetInitialMarketCap(ctx)
 	if err != nil {
@@ -74,7 +77,9 @@ func (pm *PumpfunNativeMarketcap) StreamMarketCap(ctx context.Context) chan *big
 		return nil
 	}
 
-	output <- mcap
+	if mcap != nil {
+		output <- *mcap
+	}
 
 	return output
 }
