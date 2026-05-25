@@ -5,16 +5,15 @@ import (
 	"fmt"
 	"personal_bot/infrastructure/solana_price"
 	"personal_bot/internal/core/position"
+	"personal_bot/internal/core/program"
 	rpcgroupsModel "personal_bot/internal/core/rpc_groups"
 	"personal_bot/internal/core/strategies"
 	"personal_bot/internal/core/tasks"
 	positionservice "personal_bot/internal/services/position"
 	rpcgroups "personal_bot/internal/services/rpc_groups"
-	"personal_bot/internal/solana/monitoring"
 	"personal_bot/internal/solana/monitoring/filters"
 	"personal_bot/internal/solana/monitoring/models"
 
-	subscriptionhub "personal_bot/internal/services/subscription_hub"
 	positionhub "personal_bot/internal/services/subscription_hub/position"
 	"personal_bot/internal/services/subscription_hub/strategy"
 	"personal_bot/internal/services/subscription_hub/task"
@@ -35,7 +34,8 @@ type Strategy struct {
 	rpcService      *rpcgroups.Service
 }
 
-func NewTradingStrategy(ts *taskservice.TaskService, ph *positionhub.SubscriptionHub, ps *positionservice.Service, sh *strategy.SubscriptionHub, th *subscriptionhub.Hub, rs *rpcgroups.Service) *Strategy {
+func NewTradingStrategy(ts *taskservice.TaskService, ph *positionhub.SubscriptionHub, ps *positionservice.Service,
+	sh *strategy.SubscriptionHub, th *task.Hub, rs *rpcgroups.Service) *Strategy {
 	return &Strategy{
 		taskService:     ts,
 		positionHub:     ph,
@@ -142,17 +142,28 @@ func (s *Strategy) AfkSniping(ctx context.Context, afkTask *strategies.Afk) {
 		return
 	}
 
-	go monitoring.StartAFKMonitor(ctx, filterPipeline, coins, node.WS)
+	prog := program.Resolve(afkTask.Program)
+	coinStream := prog.NewCoinStream(ctx, rpcgroupsModel.RPCNode{
+		Http: rpc.New(node.Http),
+		WS:   node.WS,
+	}, filterPipeline)
+
+	// go monitoring.StartAFKMonitor(ctx, filterPipeline, coins, node.WS)
 	logger.Information("started afk monitor")
 
+	counter := 0
 	for {
+		if counter > 3 {
+			break
+		}
+
 		select {
 		case <-ctx.Done():
 			afkTask.SetStrategyState(string(strategies.CANCELLED))
 			s.strategyHub.PublishStateUpdate(afkTask.StrategyTaskId(), afkTask.StrategyState())
 
 			return
-		case coin, ok := <-coins:
+		case coin, ok := <-coinStream:
 			if !ok {
 				afkTask.SetStrategyState(string(strategies.CANCELLED))
 				s.strategyHub.PublishStateUpdate(afkTask.StrategyTaskId(), afkTask.StrategyState())
@@ -160,6 +171,7 @@ func (s *Strategy) AfkSniping(ctx context.Context, afkTask *strategies.Afk) {
 			}
 			logger.Information("found new coin: ", coin.CoinData.Name)
 			s.handleNewCoin(ctx, afkTask, coin)
+			counter++
 		}
 	}
 }
@@ -212,7 +224,7 @@ func (s *Strategy) createAndRunBuyTask(coin models.Coin, afkTask *strategies.Afk
 		return nil, err
 	}
 
-	s.strategyHub.PublishTakeCreation(afkTask.StrategyTaskId(), bt)
+	s.strategyHub.PublishTaskCreation(afkTask.StrategyTaskId(), bt)
 	s.strategyHub.PublishProgressMessage(afkTask.StrategyTaskId(), fmt.Sprintf("created + running coin for %s", coin.CoinData.Symbol))
 
 	err = s.taskService.StartTask(bt.Id())
@@ -226,6 +238,7 @@ func (s *Strategy) createAndRunBuyTask(coin models.Coin, afkTask *strategies.Afk
 func (s *Strategy) createBuyTask(afkTask *strategies.Afk, tokenAddr solana.PublicKey, rpc rpcgroupsModel.GroupItem) *tasks.BuyTask {
 	bt := tasks.NewBuyTask(afkTask.Wallet, tokenAddr,
 		[]tasks.Option{
+			tasks.WithProgram(afkTask.GetProgram()),
 			tasks.WithSlippage(afkTask.Slippage),
 			tasks.WithComputeUnits(uint32(afkTask.ComputeUnits)),
 			tasks.WithStrategyId(afkTask.StrategyTaskId()),
@@ -330,6 +343,7 @@ func (s *Strategy) createAndRunSellTask(sellableTask strategies.SellableStrategy
 		sellableTask.GetWallet(),
 		pos.TokenAddress,
 		[]tasks.Option{
+			tasks.WithProgram(sellableTask.GetProgram()),
 			tasks.WithComputeUnits(uint32(sellableTask.GetComputeUnits())),
 			tasks.WithSlippage(sellableTask.GetSlippage()),
 			tasks.WithStrategyId(sellableTask.StrategyTaskId()),
