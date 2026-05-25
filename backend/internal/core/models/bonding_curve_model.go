@@ -14,6 +14,7 @@ type BondingCurve struct {
 	Creator              *solana.PublicKey
 	IsMayhemMode         bool
 	IsCashbackCoin       bool
+	QuoteMint            *solana.PublicKey
 }
 
 type BondingCurveV0 struct {
@@ -47,4 +48,17 @@ type BondingCurveV2 struct {
 	Creator              solana.PublicKey
 	IsMayhemMode         bool
 	IsCashbackCoin       bool
+}
+
+type BondingCurveV3 struct {
+	VirtualTokenReserves uint64
+	VirtualSolReserves   uint64
+	RealTokenReserves    uint64
+	RealSolReserves      uint64
+	TokenTotalSupply     uint64
+	Complete             bool
+	Creator              solana.PublicKey
+	IsMayhemMode         bool
+	IsCashbackCoin       bool
+	QuoteMint            solana.PublicKey
 }

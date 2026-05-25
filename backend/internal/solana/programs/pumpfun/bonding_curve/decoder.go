@@ -171,8 +171,9 @@ func decryptBondingCurveData(dataBinary []byte) (*models.BondingCurve, error) {
 		return nil, nil
 	}
 
+	// TODO: do we need to actually return an error here?
 	if !bytes.Equal(dataBinary[:8], constants.BondingCurveDiscriminator[:]) {
-		return nil, fmt.Errorf("incorrect discriminator")
+		return nil, nil
 	}
 
 	bondingCurve := new(models.BondingCurve)
@@ -182,6 +183,8 @@ func decryptBondingCurveData(dataBinary []byte) (*models.BondingCurve, error) {
 		bondingCurve, err = parseV0(dataBinary)
 	case 83:
 		bondingCurve, err = parseV1(dataBinary)
+	case 115:
+		bondingCurve, err = parseV3(dataBinary)
 	case 151:
 		bondingCurve, err = parseV2(dataBinary)
 	}
@@ -246,5 +249,27 @@ func parseV2(data []byte) (*models.BondingCurve, error) {
 		Creator:              v2.Creator.ToPointer(),
 		IsMayhemMode:         v2.IsMayhemMode,
 		IsCashbackCoin:       v2.IsCashbackCoin,
+	}, nil
+}
+
+func parseV3(data []byte) (*models.BondingCurve, error) {
+	v3 := new(models.BondingCurveV3)
+	err := borsh.Deserialize(v3, data[8:])
+	if err != nil {
+		logger.Error("err whilst doing new way: ", err)
+		return nil, err
+	}
+
+	return &models.BondingCurve{
+		VirtualTokenReserves: v3.VirtualTokenReserves,
+		VirtualSolReserves:   v3.VirtualSolReserves,
+		RealTokenReserves:    v3.RealTokenReserves,
+		RealSolReserves:      v3.RealSolReserves,
+		TokenTotalSupply:     v3.TokenTotalSupply,
+		Complete:             v3.Complete,
+		Creator:              v3.Creator.ToPointer(),
+		IsMayhemMode:         v3.IsMayhemMode,
+		IsCashbackCoin:       v3.IsCashbackCoin,
+		QuoteMint:            v3.QuoteMint.ToPointer(),
 	}, nil
 }
