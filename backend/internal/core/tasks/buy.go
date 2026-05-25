@@ -12,6 +12,7 @@ import (
 )
 
 type BuyTask struct {
+	program       string
 	taskType      string
 	id            int64
 	WalletName    string
@@ -53,6 +54,14 @@ func NewBuyTask(wallet wallets.SolanaWallet, token solana.PublicKey, common []Op
 	}
 
 	return bt
+}
+
+func (bt *BuyTask) Program() string {
+	return bt.program
+}
+
+func (bt *BuyTask) SetProgram(program string) {
+	bt.program = program
 }
 
 func (bt *BuyTask) Id() int64 {

@@ -8,6 +8,7 @@ import (
 )
 
 type SellPatch struct {
+	Program     *string
 	Wallet      *wallets.SolanaWallet
 	Token       *solana.PublicKey
 	Amount      *float64
@@ -29,6 +30,11 @@ func (p *SellPatch) ApplyTo(t Task) error {
 		st.Wallet = p.Wallet.PrivateKey
 		st.WalletName = p.Wallet.WalletName
 	}
+
+	if p.Program != nil {
+		st.program = *p.Program
+	}
+
 	if p.Token != nil {
 		st.Token = *p.Token
 	}

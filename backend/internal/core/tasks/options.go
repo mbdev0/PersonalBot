@@ -31,6 +31,10 @@ func WithRPCGroupId(id int64) Option {
 	return func(t Configurable) { t.SetRPCGroupId(id) }
 }
 
+func WithProgram(program string) Option {
+	return func(t Configurable) { t.SetProgram(program) }
+}
+
 type BuyOption func(*BuyTask)
 
 func WithBuyAmount(amnt *big.Int) BuyOption {

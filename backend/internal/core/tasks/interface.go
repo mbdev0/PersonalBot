@@ -10,9 +10,11 @@ type Task interface {
 	State() State
 	GetWallet() string
 	GetToken() string
+	Program() string
 }
 
 type Configurable interface {
+	SetProgram(program string)
 	SetStrategyId(id int64)
 	SetId(id int64)
 	SetSlippage(slippage float64)
