@@ -11,18 +11,18 @@ import (
 	"github.com/gagliardetto/solana-go"
 )
 
-func MapRepoToTask(task models.TaskRow, wallet models.WalletRepository) (tasks.Task, error) {
+func MapRepoToTask(task models.TaskRow, wallet models.WalletRepository, program models.ProgramRepository) (tasks.Task, error) {
 	switch task.TaskType {
 	case "BUY":
-		return createBuyTask(task, wallet)
+		return createBuyTask(task, wallet, program)
 	case "SELL":
-		return createSellTask(task, wallet)
+		return createSellTask(task, wallet, program)
 	default:
 		return nil, fmt.Errorf("invalid task type in db: %s", task.TaskType)
 	}
 }
 
-func createBuyTask(src models.TaskRow, wallet models.WalletRepository) (*tasks.BuyTask, error) {
+func createBuyTask(src models.TaskRow, wallet models.WalletRepository, program models.ProgramRepository) (*tasks.BuyTask, error) {
 	buyConfig := new(models.BuyConfig)
 	if err := json.Unmarshal([]byte(src.Config), buyConfig); err != nil {
 		return nil, err
@@ -57,6 +57,7 @@ func createBuyTask(src models.TaskRow, wallet models.WalletRepository) (*tasks.B
 	}
 
 	taskOpts := []tasks.Option{
+		tasks.WithProgram(program.Program),
 		tasks.WithSlippage(float64(src.Slippage) / 100.0),
 		tasks.WithComputeUnits(uint32(src.ComputeUnits)),
 		tasks.WithUnixTime(src.TimeCreatedUnix),
@@ -77,7 +78,7 @@ func createBuyTask(src models.TaskRow, wallet models.WalletRepository) (*tasks.B
 }
 
 // THIS SHOULD NOT BE CONNECTED TO ANY POSITION
-func createSellTask(src models.TaskRow, wallet models.WalletRepository) (*tasks.SellTask, error) {
+func createSellTask(src models.TaskRow, wallet models.WalletRepository, program models.ProgramRepository) (*tasks.SellTask, error) {
 	sellConfig := new(models.SellConfig)
 	if err := json.Unmarshal([]byte(src.Config), sellConfig); err != nil {
 		return nil, err
@@ -103,6 +104,7 @@ func createSellTask(src models.TaskRow, wallet models.WalletRepository) (*tasks.
 	}
 
 	taskOpts := []tasks.Option{
+		tasks.WithProgram(program.Program),
 		tasks.WithComputeUnits(uint32(src.ComputeUnits)),
 		tasks.WithSlippage(float64(src.Slippage) / 100.0),
 		tasks.WithUnixTime(src.TimeCreatedUnix),
