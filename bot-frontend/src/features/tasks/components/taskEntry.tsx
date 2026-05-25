@@ -10,6 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { PROGRAMS } from '../types/programs';
 
 interface TaskEntryProps {
   onClose: () => void;
@@ -17,26 +18,43 @@ interface TaskEntryProps {
 
 export function TaskEntry({ onClose }: TaskEntryProps) {
   const [taskType, setTaskType] = useState('Buy');
+  const [program, setProgram] = useState('PumpfunNative');
 
   return (
     <div className="space-y-6">
-      <div className="space-y-2">
-        <Label htmlFor="taskType">Task Type</Label>
-        <Select value={taskType} onValueChange={setTaskType}>
-          <SelectTrigger id="taskType">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="Buy">Buy</SelectItem>
-            <SelectItem value="Sell">Sell</SelectItem>
-            <SelectItem value="AFK">AFK</SelectItem>
-          </SelectContent>
-        </Select>
+      <div className="flex gap-4">
+        <div className="flex flex-col items-center space-y-2 ">
+          <Label htmlFor="taskType">Task Type</Label>
+          <Select value={taskType} onValueChange={setTaskType}>
+            <SelectTrigger id="taskType">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Buy">Buy</SelectItem>
+              <SelectItem value="Sell">Sell</SelectItem>
+              <SelectItem value="AFK">AFK</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="flex flex-col items-center space-y-2 ">
+          <Label htmlFor="program">Program</Label>
+          <Select value={program} onValueChange={setProgram}>
+            <SelectTrigger id="program">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {PROGRAMS.map((p) => {
+                return <SelectItem value={p.value}>{p.label}</SelectItem>;
+              })}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
-      {taskType === 'Buy' && <BuyTaskEntry onClose={onClose} />}
-      {taskType === 'Sell' && <SellTaskEntry onClose={onClose} />}
-      {taskType === 'AFK' && <AFKTaskEntry onClose={onClose} />}
+      {taskType === 'Buy' && <BuyTaskEntry onClose={onClose} program={program} />}
+      {taskType === 'Sell' && <SellTaskEntry onClose={onClose} program={program} />}
+      {taskType === 'AFK' && <AFKTaskEntry onClose={onClose} program={program} />}
     </div>
   );
 }

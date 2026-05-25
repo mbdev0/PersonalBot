@@ -20,14 +20,15 @@ import type { RPCGroupDashboardRow } from '@/features/rpc-groups/types/rpcGroup'
 import { RPCGroupSelector } from './fields/rpcGroupSelector';
 
 interface SellTaskEntryProps {
+  program: string;
   onClose: () => void;
 }
 
-export function SellTaskEntry({ onClose }: SellTaskEntryProps) {
+export function SellTaskEntry({ onClose, program }: SellTaskEntryProps) {
   return (
     <FormDataLoader>
       {(wallets, rpcGroups) => (
-        <SellTaskForm onClose={onClose} wallets={wallets} rpcGroups={rpcGroups} />
+        <SellTaskForm onClose={onClose} wallets={wallets} rpcGroups={rpcGroups} program={program} />
       )}
     </FormDataLoader>
   );
@@ -37,9 +38,10 @@ interface SellTaskFormProps {
   onClose: () => void;
   wallets: Wallet[];
   rpcGroups: RPCGroupDashboardRow[];
+  program: string;
 }
 
-function SellTaskForm({ onClose, wallets, rpcGroups }: SellTaskFormProps) {
+function SellTaskForm({ onClose, wallets, rpcGroups, program }: SellTaskFormProps) {
   const postMutation = useAddStrategy();
 
   const [slippage, setSlippage] = useState(SLIPPAGE_DEFAULT);
@@ -65,6 +67,7 @@ function SellTaskForm({ onClose, wallets, rpcGroups }: SellTaskFormProps) {
       sell_amount: sellAmount / 100,
       sell_fee: sellFee,
       rpc_group_id: rpcGroup?.id,
+      program: program,
     };
 
     postMutation.mutate(taskBody, { onSuccess: onClose });
