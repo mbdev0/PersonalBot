@@ -9,7 +9,6 @@ import (
 	"personal_bot/internal/core/constants"
 	positionmodel "personal_bot/internal/core/position"
 	"personal_bot/internal/core/tasks"
-	"personal_bot/internal/services/position"
 	subscriptionhub "personal_bot/internal/services/subscription_hub"
 	"personal_bot/internal/solana/client"
 	"personal_bot/internal/solana/instructions"
@@ -31,8 +30,16 @@ type Transaction struct {
 	instructions    []solana.Instruction
 	transaction     *solana.Transaction
 	signature       solana.Signature
-	PositionService *position.Service
+	PositionService positionmodel.PositionService
 	Publisher       subscriptionhub.Publisher
+}
+
+func NewTransaction(task *tasks.SellTask, posService positionmodel.PositionService, publisher subscriptionhub.Publisher) *Transaction {
+	return &Transaction{
+		Task:            task,
+		PositionService: posService,
+		Publisher:       publisher,
+	}
 }
 
 func (st *Transaction) BuildInstructions(ctx context.Context) error {
@@ -271,6 +278,7 @@ func (st *Transaction) getAllInstructionsForSell(ctx context.Context, sellTask *
 			SolSpent:      new(big.Float).SetFloat64(0),
 			MarketCap:     marketCap,
 			AddressForUrl: bondingCurve,
+			Program:       st.Task.Program(),
 		}
 
 		err = st.PositionService.ReportBuy(ctx, payload)

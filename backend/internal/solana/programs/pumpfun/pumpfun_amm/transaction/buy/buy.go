@@ -218,6 +218,7 @@ func (bt *Transaction) UpdatePosition(ctx context.Context) (tokenAmount, solAmou
 		MarketCap:            marketCapUSD,
 		AddressForUrl:        bt.poolAddress,
 		AddressForMonitoring: bondingCurve,
+		Program:              bt.BuyTask.Program(),
 	}
 
 	err = bt.PositionService.ReportBuy(ctx, payload)
