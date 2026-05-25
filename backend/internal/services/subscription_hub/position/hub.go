@@ -7,9 +7,9 @@ import (
 	"personal_bot/infrastructure/solana_price"
 	"personal_bot/internal/core/constants"
 	"personal_bot/internal/core/position"
+	"personal_bot/internal/core/program"
 	rpcgroups "personal_bot/internal/core/rpc_groups"
 	"personal_bot/internal/services/settings"
-	"personal_bot/internal/solana/monitoring"
 	datastructures "personal_bot/pkg/data_structures"
 	"personal_bot/pkg/logger"
 	"sync"
@@ -75,12 +75,7 @@ func (sh *SubscriptionHub) Subscribe(positionId int64, isInternalSub bool, rpcGr
 
 	go func(c context.Context, s *Subscription, pos *position.Position) {
 
-		marketCapChan := make(chan *big.Float, sh.bufferSize)
-
-		// bondingCurveAddress, err := pda.GetBondingCurveAddress(pos.TokenAddress.String())
-		// if err != nil {
-		// 	logger.Error(err)
-		// }
+		// marketCapChan := make(chan *big.Float, sh.bufferSize)
 
 		node, err := sh.resolveRPCNode(c, rpcGroup)
 		if err != nil {
@@ -88,12 +83,14 @@ func (sh *SubscriptionHub) Subscribe(positionId int64, isInternalSub bool, rpcGr
 			return
 		}
 
-		go monitoring.StartMarketCapMonitor(ctx, pos.MonitoringAddress, marketCapChan, node)
+		prog := program.Resolve(pos.Program)
+		stream := prog.NewMarketCapStream(c, pos.MonitoringAddress, node)
+
+		// go monitoring.StartMarketCapMonitor(ctx, pos.MonitoringAddress, marketCapChan, node)
 
 		// start marketcap streaming
-
 		// then foreach in mcap
-		for mcap := range marketCapChan {
+		for mcap := range stream {
 			positionMessage := sh.generatePositionMessage(pos, mcap)
 			positionMessage.MessageType = position.Update
 			//publish the profit, mcap, position
@@ -188,8 +185,12 @@ func (sh *SubscriptionHub) PublishPositionUpdate(pos *position.Position) error {
 	//	get mcap
 	sh.mu.Lock()
 	mcap := posMessage.MarketCap
+	if mcap == nil {
+		return fmt.Errorf("posMessage.MarketCap was nil")
+	}
+
 	//	regenerate profit etc.
-	message := sh.generatePositionMessage(pos, mcap)
+	message := sh.generatePositionMessage(pos, *mcap)
 	message.Message = "Position Update"
 	message.MessageType = position.Update
 	sh.mu.Unlock()
@@ -204,7 +205,11 @@ func (sh *SubscriptionHub) PublishPositionCreate(ctx context.Context, p *positio
 	sh.activePositions.Set(p.PositionId, p)
 	sh.mu.Unlock()
 
-	posMsg := sh.generatePositionMessage(p, p.MarketCapEntry)
+	if p.MarketCapEntry == nil {
+		return fmt.Errorf("MarketCapEntry was nil")
+	}
+
+	posMsg := sh.generatePositionMessage(p, *p.MarketCapEntry)
 	posMsg.MessageType = position.Created
 	posMsg.Message = "Position Created"
 
@@ -240,8 +245,9 @@ func (sh *SubscriptionHub) PublishPositionStop(pos *position.Position) error {
 	return nil
 }
 
-func (sh *SubscriptionHub) generatePositionMessage(pos *position.Position, marketCap *big.Float) position.PositionMessage {
+func (sh *SubscriptionHub) generatePositionMessage(pos *position.Position, mcap big.Float) position.PositionMessage {
 	//we need unrealized profit -> remaning tokens (in sol)
+	marketCap := big.NewFloat(0).Set(&mcap)
 	totalPnl, unrealizedPnl, currentPrice := sh.getProfitValues(pos, marketCap)
 
 	totalPnl.Quo(totalPnl, big.NewFloat(constants.LamportsConversion))
