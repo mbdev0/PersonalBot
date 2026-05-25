@@ -3,6 +3,7 @@ package strategies
 import "personal_bot/internal/core/wallets"
 
 type SellableStrategy interface {
+	GetProgram() string
 	GetWallet() wallets.SolanaWallet
 	GetComputeUnits() uint32
 	GetSlippage() float64
