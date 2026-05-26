@@ -61,10 +61,10 @@ func (ss *SolanaStream) subscribeToStream(wsurl, account string, subFunc func(ct
 		}
 
 		go func() {
+			defer close(messageChan)
 			err := subFunc(streamContext, account, wsurl, messageChan)
 			if err != nil {
 				logger.Error(err)
-				close(messageChan)
 				return
 			}
 		}()
@@ -89,8 +89,12 @@ func (ss *SolanaStream) Unsubscribe(wsurl, address string) {
 	}
 
 	connection.references--
-	if connection.references >= 0 {
+	if connection.references <= 0 {
 		connection.cancel()
-		close(connection.stream)
+		// close(connection.stream)
+		delete(ws.addressConnections, address)
+		if len(ws.addressConnections) == 0 {
+			delete(ss.activeConnections, wsurl)
+		}
 	}
 }

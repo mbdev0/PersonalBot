@@ -80,16 +80,27 @@ func (pmm *PumpfunAMMMarketCapMonitor) StreamMarketCap(ctx context.Context) <-ch
 		return nil
 	}
 
+	cleanup := func() {
+		pmm.datastream.Unsubscribe(pmm.ws, wsolAccount.String())
+		pmm.datastream.Unsubscribe(pmm.ws, tokenAccount.String())
+	}
+
 	cache := map[uint64]*PoolPair{}
 
 	output := make(chan big.Float)
 	go func() {
 		defer close(output)
+		defer cleanup()
+
 		for {
 			select {
 			case <-ctx.Done():
 				return
-			case data := <-streamWsol:
+			case data, ok := <-streamWsol:
+				if !ok {
+					return
+				}
+
 				slot, tokenAmount, err := pmm.parse(data)
 				if err != nil {
 					logger.Error(err)
@@ -108,7 +119,11 @@ func (pmm *PumpfunAMMMarketCapMonitor) StreamMarketCap(ctx context.Context) <-ch
 					delete(cache, slot)
 				}
 
-			case data := <-streamToken:
+			case data, ok := <-streamToken:
+				if !ok {
+					return
+				}
+
 				slot, tokenAmount, err := pmm.parse(data)
 				if err != nil {
 					logger.Error(err)

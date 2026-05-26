@@ -68,7 +68,11 @@ func (pm *PumpfunNativeMarketcap) GetMarketCapFrom(data []byte) (*big.Float, err
 }
 
 func (pm *PumpfunNativeMarketcap) StreamMarketCap(ctx context.Context) <-chan big.Float {
-	output := streamUtils.Stream[big.Float](ctx, pm.monitoringAddress, pm.wsUrl, pm.datastream.SubscribeToAccountStream, pm.GetMarketCapFrom)
+	cleanup := func() {
+		pm.datastream.Unsubscribe(pm.wsUrl, pm.monitoringAddress)
+	}
+
+	output := streamUtils.Stream[big.Float](ctx, pm.monitoringAddress, pm.wsUrl, pm.datastream.SubscribeToAccountStream, pm.GetMarketCapFrom, cleanup)
 
 	mcap, err, _ := pm.GetInitialMarketCap(ctx)
 	if err != nil {
