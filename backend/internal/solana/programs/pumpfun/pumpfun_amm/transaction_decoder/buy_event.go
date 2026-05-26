@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"fmt"
-	pumpfunamm "personal_bot/internal/solana/programs/pumpfun/pumpfun_amm"
+	pumpfunamm "personal_bot/internal/solana/programs/pumpfun/pumpfun_amm/constants"
 	"personal_bot/internal/solana/programs/pumpfun/pumpfun_amm/models"
 	"strings"
 
@@ -32,7 +32,7 @@ func GetBuyEvent(tx *rpc.GetParsedTransactionResult) (models.BuyEvent, error) {
 			continue
 		}
 
-		if !bytes.Equal(data[8:], pumpfunamm.BuyEvent) {
+		if !bytes.Equal(data[:8], pumpfunamm.BuyEvent) {
 			continue
 		}
 
