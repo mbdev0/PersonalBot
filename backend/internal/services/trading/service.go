@@ -428,9 +428,8 @@ func (s *Service) Subscribe(taskId int64) (*strategy.Subscription, error) {
 	return sub, nil
 }
 
-func (s *Service) Unsubscribe(taskId int64) error {
-	err := s.subhub.Unsubscribe(taskId)
-	return err
+func (s *Service) Unsubscribe(taskId int64) {
+	s.subhub.Unsubscribe(taskId)
 }
 
 // loads tasks into memory

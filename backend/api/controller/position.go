@@ -54,13 +54,8 @@ func (pc *PositionController) Subscribe(id int64, isInternalSub bool) (*position
 	return sub, nil
 }
 
-func (pc *PositionController) Unsubscribe(id int64, isInternalSub bool) error {
-	err := pc.PositionService.Unsubscribe(id, isInternalSub)
-	if err != nil {
-		return err
-	}
-
-	return nil
+func (pc *PositionController) Unsubscribe(id int64, isInternalSub bool) {
+	pc.PositionService.Unsubscribe(id, isInternalSub)
 }
 
 func (pc *PositionController) Delete(ctx context.Context, id int64) error {

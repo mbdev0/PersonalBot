@@ -177,11 +177,6 @@ func (s *Service) Subscribe(id int64, isInternalSub bool) (*position_hub.Subscri
 	return sub, nil
 }
 
-func (s *Service) Unsubscribe(id int64, isInternalSub bool) error {
-	err := s.subhub.Unsubscribe(id, isInternalSub)
-	if err != nil {
-		return err
-	}
-
-	return nil
+func (s *Service) Unsubscribe(id int64, isInternalSub bool) {
+	s.subhub.Unsubscribe(id, isInternalSub)
 }
