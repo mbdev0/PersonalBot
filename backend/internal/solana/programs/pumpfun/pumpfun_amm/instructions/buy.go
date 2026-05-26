@@ -42,8 +42,6 @@ func GetBuyInstruction(ctx context.Context, buyTask *tasks.BuyTask) (instruction
 	return buyInstructions, nil
 }
 
-// TODO - SELL uses mostly the same accounts - lets move it into a seperate file for all these pda getters
-// TODO - Sell has everything except global and user volume accumalators
 func getAccounts(ctx context.Context, task *tasks.BuyTask) (accounts []*solana.AccountMeta, err error, instructionAccounts accountsNeededForInstructions) {
 
 	accounts, err, informationFromAccounts := getBaseAccounts(ctx, task.Token, task.Wallet.PublicKey(), task.HttpClient())
@@ -51,7 +49,7 @@ func getAccounts(ctx context.Context, task *tasks.BuyTask) (accounts []*solana.A
 		return
 	}
 
-	userVolumeAccumulator, err := getUserVolumeAccumulator(task.Wallet.String())
+	userVolumeAccumulator, err := getUserVolumeAccumulator(task.Wallet.PublicKey().String())
 	if err != nil {
 		return
 	}
