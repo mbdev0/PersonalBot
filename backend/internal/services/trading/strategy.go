@@ -297,31 +297,26 @@ func (s *Strategy) monitorPositionForSellStrategies(ctx context.Context, pos pos
 	}
 
 	defer func() {
-		err := s.positionHub.Unsubscribe(pos.PositionId, true)
-		if err != nil {
-			logger.Error(err)
-		}
+		s.positionHub.Unsubscribe(pos.PositionId, true)
 	}()
 
 	for {
 		select {
 		case <-ctx.Done():
 			return nil
-		default:
-		}
+		case msg, ok := <-sub.SubChan:
+			if !ok {
+				return nil
+			}
 
-		msg, ok := <-sub.SubChan
-		if !ok {
-			return nil
-		}
+			if msg.MessageType == position.Stopped {
+				return nil
+			}
 
-		if msg.MessageType == position.Stopped {
-			return nil
-		}
-
-		hasHit := s.handleSellStrategy(ctx, &msg, sellableTask, pos, strats, rpcNode)
-		if hasHit {
-			return nil
+			hasHit := s.handleSellStrategy(ctx, &msg, sellableTask, pos, strats, rpcNode)
+			if hasHit {
+				return nil
+			}
 		}
 	}
 }
