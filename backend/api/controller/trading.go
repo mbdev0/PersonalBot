@@ -179,11 +179,7 @@ func (sc *StrategyController) Unsubscribe(id int64) error {
 		return err
 	}
 
-	err = sc.strategyService.Unsubscribe(tsk.StrategyTaskId())
-	if err != nil {
-		return err
-	}
-
+	sc.strategyService.Unsubscribe(tsk.StrategyTaskId())
 	return nil
 
 }

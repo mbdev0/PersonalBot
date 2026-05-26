@@ -132,10 +132,7 @@ func (ph *PositionHandler) subscribe(w http.ResponseWriter, r *http.Request) {
 
 	defer func() {
 		for strategyId := range activeSubs {
-			err := ph.controller.Unsubscribe(strategyId, false)
-			if err != nil {
-				logger.Error(err)
-			}
+			ph.controller.Unsubscribe(strategyId, false)
 		}
 	}()
 
@@ -187,11 +184,7 @@ func (ph *PositionHandler) subscribe(w http.ResponseWriter, r *http.Request) {
 			activeSubs[sub.Sub_id] = *sub
 
 		case dto.Unsubscribe:
-			err := ph.controller.Unsubscribe(msg.Id, false)
-			if err != nil {
-				ph.handleError(ctx, err, resp, c)
-				continue
-			}
+			ph.controller.Unsubscribe(msg.Id, false)
 			delete(activeSubs, msg.Id)
 		}
 	}

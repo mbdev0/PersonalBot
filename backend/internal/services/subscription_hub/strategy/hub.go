@@ -1,7 +1,6 @@
 package strategy
 
 import (
-	"fmt"
 	"personal_bot/internal/core/strategies"
 	"personal_bot/internal/core/tasks"
 	"sync"
@@ -47,15 +46,14 @@ func (sh *SubscriptionHub) Subscribe(taskId int64) (*Subscription, error) {
 
 }
 
-func (sh *SubscriptionHub) Unsubscribe(taskId int64) error {
+func (sh *SubscriptionHub) Unsubscribe(taskId int64) {
 	sh.mu.Lock()
 	defer sh.mu.Unlock()
 	if _, ok := sh.subscriptions[taskId]; !ok {
-		return fmt.Errorf("task not found for deletion: %d", taskId)
+		return
 	}
 
 	sh.subscriptions[taskId].cancel()
-	return nil
 }
 
 func (sh *SubscriptionHub) cancel(id int64) func() {

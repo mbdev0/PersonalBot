@@ -136,11 +136,11 @@ func (sh *SubscriptionHub) cancel(positionId int64) func() {
 	}
 }
 
-func (sh *SubscriptionHub) Unsubscribe(positionId int64, isInternalSub bool) error {
+func (sh *SubscriptionHub) Unsubscribe(positionId int64, isInternalSub bool) {
 	//get the sub if exists
 	pos, ok := sh.subscriptions[positionId]
 	if !ok {
-		return fmt.Errorf("not able to find positon with id: %d", positionId)
+		return
 	}
 
 	if isInternalSub {
@@ -155,7 +155,6 @@ func (sh *SubscriptionHub) Unsubscribe(positionId int64, isInternalSub bool) err
 		pos.cancel()
 	}
 	sh.mu.Unlock()
-	return nil
 }
 
 func (sh *SubscriptionHub) WaitForCreate(id int64) (*position.Position, bool) {
