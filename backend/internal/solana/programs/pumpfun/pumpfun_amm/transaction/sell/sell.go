@@ -1,4 +1,4 @@
-package buy
+package sell
 
 import (
 	"context"
@@ -9,7 +9,6 @@ import (
 	"personal_bot/internal/core/constants"
 	positionmodel "personal_bot/internal/core/position"
 	"personal_bot/internal/core/tasks"
-	"personal_bot/internal/services/position"
 	subscriptionhub "personal_bot/internal/services/subscription_hub"
 	"personal_bot/internal/solana/client"
 	"personal_bot/internal/solana/instructions"
@@ -32,9 +31,17 @@ type Transaction struct {
 	instructions    *[]solana.Instruction
 	transaction     *solana.Transaction
 	signature       solana.Signature
-	PositionService *position.Service
+	PositionService positionmodel.PositionService
 	poolAddress     string
 	Publisher       subscriptionhub.Publisher
+}
+
+func NewTransaction(task *tasks.SellTask, posService positionmodel.PositionService, publisher subscriptionhub.Publisher) *Transaction {
+	return &Transaction{
+		SellTask:        task,
+		PositionService: posService,
+		Publisher:       publisher,
+	}
 }
 
 func (st *Transaction) BuildInstructions(ctx context.Context) error {
@@ -110,7 +117,7 @@ func (st *Transaction) getAllInstructionsForSell(ctx context.Context, sellTask *
 			return nil, err
 		}
 
-		marketCap, err := pool.GetMarketCapUSD(ctx, poolBalances)
+		marketCap, err := pool.GetMarketCapUSD(poolBalances)
 
 		// marketCap, err, _ := bondingcurve.GetMarketCapFromTokenAddress(ctx, st.SellTask.Token, st.SellTask.HttpClient())
 		if err != nil {
