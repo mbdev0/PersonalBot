@@ -143,12 +143,6 @@ func NewGeyserStreamAccountInfo(ctx context.Context, address, wsUrl string, acco
 			return err
 		}
 
-		// out := response.AccountSubscribeModel{}
-		// if err := json.Unmarshal(raw, &out); err != nil {
-		// 	logger.Error("Error unmarshalling message", err, string(raw))
-		// 	continue
-		// }
-
 		accountinfoChan <- raw
 	}
 }
