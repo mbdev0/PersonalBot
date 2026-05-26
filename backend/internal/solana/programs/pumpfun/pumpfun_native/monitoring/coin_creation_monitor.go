@@ -33,7 +33,11 @@ func NewPumpfunNativeCoinCreation(wsUrl string, httpClient *rpc.Client, filters 
 }
 
 func (pn *PumpfunNativeCoinCreation) StreamCoinCreations(ctx context.Context) chan models.Coin {
-	return streamUtils.Stream[models.Coin](ctx, pn.monitoringAddress, pn.wsUrl, pn.datastream.SubscribeToTransaction, pn.parseTransactionForCoin)
+	cleanup := func() {
+		pn.datastream.Unsubscribe(pn.wsUrl, pn.monitoringAddress)
+	}
+
+	return streamUtils.Stream[models.Coin](ctx, pn.monitoringAddress, pn.wsUrl, pn.datastream.SubscribeToTransaction, pn.parseTransactionForCoin, cleanup)
 }
 
 func (pn *PumpfunNativeCoinCreation) parseTransactionForCoin(data []byte) (*models.Coin, error) {
