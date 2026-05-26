@@ -1,4 +1,4 @@
-package pumpfunamm
+package constants
 
 const (
 	GlobalConfig            = "ADyA8hdefvWN2dbGGWFotbzWxrAvLW83WG6QCVXvJKqw"
