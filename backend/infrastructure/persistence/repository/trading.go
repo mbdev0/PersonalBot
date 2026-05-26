@@ -75,7 +75,6 @@ func (tr *TradingRepository) AddAllTasks(ctx context.Context, tasks []strategies
 		return true, nil
 	}
 
-	//TODO: need to update this to have programs in
 	baseQuery := `
 		INSERT into trading_tasks values (?,?,?,?,?,?,?,?, (SELECT id FROM programs WHERE program = ?))
 		ON CONFLICT(id) DO UPDATE SET

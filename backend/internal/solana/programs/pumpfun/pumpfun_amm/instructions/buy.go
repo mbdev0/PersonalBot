@@ -5,7 +5,7 @@ import (
 	"math/big"
 	"personal_bot/internal/core/constants"
 	"personal_bot/internal/core/tasks"
-	ammConstants "personal_bot/internal/solana/programs/pumpfun/pumpfun_amm"
+	ammConstants "personal_bot/internal/solana/programs/pumpfun/pumpfun_amm/constants"
 	"personal_bot/internal/solana/programs/pumpfun/pumpfun_amm/pool"
 
 	"personal_bot/internal/solana/utils"

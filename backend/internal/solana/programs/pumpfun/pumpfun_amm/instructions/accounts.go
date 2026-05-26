@@ -6,8 +6,7 @@ import (
 	"personal_bot/internal/core/constants"
 	"personal_bot/internal/solana/instructions"
 	solanaPda "personal_bot/internal/solana/pda"
-	ammConstants "personal_bot/internal/solana/programs/pumpfun/pumpfun_amm"
-	pumpfunamm "personal_bot/internal/solana/programs/pumpfun/pumpfun_amm"
+	ammConstants "personal_bot/internal/solana/programs/pumpfun/pumpfun_amm/constants"
 	"personal_bot/internal/solana/programs/pumpfun/pumpfun_amm/instructions/pool"
 	pumpfunAmmPda "personal_bot/internal/solana/programs/pumpfun/pumpfun_amm/pda"
 	"personal_bot/internal/solana/utils"
@@ -92,7 +91,7 @@ func getBaseAccounts(ctx context.Context, token solana.PK, wallet solana.PK, htt
 	accounts = []*solana.AccountMeta{
 		utils.GetAccountMeta(poolAddress, true, false),
 		utils.GetAccountMeta(wallet.String(), true, true),
-		utils.GetAccountMeta(pumpfunamm.GlobalConfig, false, false),
+		utils.GetAccountMeta(ammConstants.GlobalConfig, false, false),
 		utils.GetAccountMeta(token.String(), false, false),
 		utils.GetAccountMeta(constants.WSOLTokenAddress, false, false),
 		utils.GetAccountMeta(baseMintATA.String(), true, false),

@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"fmt"
-	pumpfunamm "personal_bot/internal/solana/programs/pumpfun/pumpfun_amm"
+	pumpfunamm "personal_bot/internal/solana/programs/pumpfun/pumpfun_amm/constants"
 	"personal_bot/internal/solana/programs/pumpfun/pumpfun_amm/models"
 	"strings"
 

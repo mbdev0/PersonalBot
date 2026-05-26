@@ -171,7 +171,6 @@ func decryptBondingCurveData(dataBinary []byte) (*models.BondingCurve, error) {
 		return nil, nil
 	}
 
-	// TODO: do we need to actually return an error here?
 	if !bytes.Equal(dataBinary[:8], constants.BondingCurveDiscriminator[:]) {
 		return nil, nil
 	}
