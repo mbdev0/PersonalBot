@@ -71,7 +71,7 @@ func GetTokenBalances(ctx context.Context, poolAtaAddress, wsolAtaAddress string
 	return PoolBalances{TokenPoolBalance: tokenBalance, WsolPoolBalance: wsolBalance}, nil
 }
 
-func GetMarketCapUSD(ctx context.Context, poolBalances PoolBalances) (*big.Float, error) {
+func GetMarketCapUSD(poolBalances PoolBalances) (*big.Float, error) {
 	wsolPool := big.NewFloat(poolBalances.WsolPoolBalance)
 	tokenPool := big.NewFloat(poolBalances.TokenPoolBalance)
 
