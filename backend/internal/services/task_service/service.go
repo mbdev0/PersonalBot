@@ -6,6 +6,7 @@ import (
 	"personal_bot/app/iterable"
 	"personal_bot/infrastructure/persistence/repository"
 	"personal_bot/internal/core/tasks"
+	"personal_bot/internal/services/position"
 	"personal_bot/internal/services/subscription_hub/task"
 	"sync"
 	"time"
@@ -18,15 +19,17 @@ type TaskService struct {
 	tasks       map[int64]tasks.Task
 	mu          sync.Mutex
 	iter        *iterable.Iterable
+	posService  *position.Service
 }
 
-func NewTaskService(repo *repository.TaskRepository, hub *task.Hub, tManager *Manager) *TaskService {
+func NewTaskService(repo *repository.TaskRepository, hub *task.Hub, tManager *Manager, posService *position.Service) *TaskService {
 	return &TaskService{
 		taskManager: tManager,
 		hub:         hub,
 		repo:        repo,
 		tasks:       map[int64]tasks.Task{},
 		iter:        iterable.NewIterable(),
+		posService:  posService,
 	}
 }
 
@@ -87,6 +90,9 @@ func (ts *TaskService) DeleteTask(id int64) (err error) {
 	if !ok {
 		return fmt.Errorf("task not found with id: %d", id)
 	}
+
+	ts.posService.Unsubscribe(id, true)
+	ts.posService.Unsubscribe(id, false)
 
 	delete(ts.tasks, id)
 	return nil

@@ -69,7 +69,7 @@ func WireServicesAndLaunchServer(mainCtx context.Context, db *sql.DB) (*http.Ser
 
 	taskRepo := repository.NewTaskRepository(db)
 	taskManager := taskservice.NewTaskManager(taskSubhub, executor)
-	taskService := taskservice.NewTaskService(taskRepo, taskSubhub, taskManager)
+	taskService := taskservice.NewTaskService(taskRepo, taskSubhub, taskManager, positionService)
 	deps.TaskService = taskService
 
 	tradingStrategy := trading.NewTradingStrategy(taskService, posSubhub, positionService, strategySubHub, taskSubhub, rpcGroupService)
