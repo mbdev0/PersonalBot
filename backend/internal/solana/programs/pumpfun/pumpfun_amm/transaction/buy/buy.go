@@ -14,8 +14,9 @@ import (
 	"personal_bot/internal/solana/instructions"
 	amminstructions "personal_bot/internal/solana/programs/pumpfun/pumpfun_amm/instructions"
 	"personal_bot/internal/solana/programs/pumpfun/pumpfun_amm/models"
+	"personal_bot/internal/solana/programs/pumpfun/pumpfun_amm/pda"
 	ammtransactiondecoder "personal_bot/internal/solana/programs/pumpfun/pumpfun_amm/transaction_decoder"
-	"personal_bot/internal/solana/programs/pumpfun/pumpfun_native/pda"
+
 	transactiondecoder "personal_bot/internal/solana/programs/pumpfun/pumpfun_native/transaction_decoder"
 
 	wallets "personal_bot/internal/solana/wallet"
@@ -209,8 +210,7 @@ func (bt *Transaction) UpdatePosition(ctx context.Context) (tokenAmount, solAmou
 
 	marketCapUSD := new(big.Float).SetFloat64((pricePerToken * 1_000_000_000) * *solPrice)
 
-	//TODO - to change when we do mcap monitoring
-	bondingCurve, err := pda.GetBondingCurveAddress(bt.BuyTask.GetToken())
+	pool, err := pda.GetPoolPda(bt.BuyTask.Token.String(), constants.WSOLTokenAddress)
 	if err != nil {
 		return
 	}
@@ -224,7 +224,7 @@ func (bt *Transaction) UpdatePosition(ctx context.Context) (tokenAmount, solAmou
 		SolSpent:             new(big.Float).SetFloat64(solAmnt),
 		MarketCap:            marketCapUSD,
 		AddressForUrl:        bt.poolAddress,
-		AddressForMonitoring: bondingCurve,
+		AddressForMonitoring: pool,
 		Program:              bt.BuyTask.Program(),
 	}
 

@@ -69,9 +69,9 @@ func GetPoolTokenAccount(poolAddress, mintAddress string, isNewTokenAccount bool
 
 	var tokenAccount solana.PK
 	if isNewTokenAccount {
-		tokenAccount = solana.MustPublicKeyFromBase58(constants.TokenProgram)
-	} else {
 		tokenAccount = solana.MustPublicKeyFromBase58(constants.Token2022Program)
+	} else {
+		tokenAccount = solana.MustPublicKeyFromBase58(constants.TokenProgram)
 	}
 
 	mint, err := solana.PublicKeyFromBase58(mintAddress)
