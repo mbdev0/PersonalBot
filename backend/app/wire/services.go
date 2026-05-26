@@ -20,6 +20,7 @@ import (
 	"personal_bot/internal/services/subscription_hub/task"
 	"personal_bot/internal/services/wallet"
 	datastream "personal_bot/internal/solana/monitoring/data_stream"
+	pumpfunamm "personal_bot/internal/solana/programs/pumpfun/pumpfun_amm"
 	pumpfunnative "personal_bot/internal/solana/programs/pumpfun/pumpfun_native"
 	"personal_bot/pkg/logger"
 
@@ -157,4 +158,5 @@ func loadFromDB(ctx context.Context, tradingService *trading.Service, taskServic
 
 func registerPrograms(solanaStream datastream.DataStream) {
 	program.Register(string(programnames.PumpfunNative), pumpfunnative.New(solanaStream))
+	program.Register(string(programnames.PumpfunAMM), pumpfunamm.New(solanaStream))
 }

@@ -67,8 +67,7 @@ func (pm *PumpfunNativeMarketcap) GetMarketCapFrom(data []byte) (*big.Float, err
 	return marketCapVal, nil
 }
 
-// This is run in it's own go routine, we return a channel which the go routine is outputting too
-func (pm *PumpfunNativeMarketcap) StreamMarketCap(ctx context.Context) chan big.Float {
+func (pm *PumpfunNativeMarketcap) StreamMarketCap(ctx context.Context) <-chan big.Float {
 	output := streamUtils.Stream[big.Float](ctx, pm.monitoringAddress, pm.wsUrl, pm.datastream.SubscribeToAccountStream, pm.GetMarketCapFrom)
 
 	mcap, err, _ := pm.GetInitialMarketCap(ctx)
