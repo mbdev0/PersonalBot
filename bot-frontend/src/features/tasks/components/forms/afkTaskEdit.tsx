@@ -21,12 +21,19 @@ import { FormDataLoader } from './fields/formDataLoader';
 interface AFKTaskEditProps {
   task: AFKStrategyTask;
   onClose: () => void;
+  program: string;
 }
-export function AFKTaskEdit({ task, onClose }: AFKTaskEditProps) {
+export function AFKTaskEdit({ task, onClose, program }: AFKTaskEditProps) {
   return (
     <FormDataLoader>
       {(wallets, rpcGroups) => (
-        <AFKEditForm task={task} onClose={onClose} wallets={wallets} rpcGroups={rpcGroups} />
+        <AFKEditForm
+          task={task}
+          onClose={onClose}
+          wallets={wallets}
+          rpcGroups={rpcGroups}
+          program={program}
+        />
       )}
     </FormDataLoader>
   );
@@ -37,9 +44,10 @@ interface AFKEditFormProps {
   onClose: () => void;
   wallets: Wallet[];
   rpcGroups: RPCGroupDashboardRow[];
+  program: string;
 }
 
-function AFKEditForm({ task, onClose, wallets, rpcGroups }: AFKEditFormProps) {
+function AFKEditForm({ task, onClose, wallets, rpcGroups, program }: AFKEditFormProps) {
   const putMutation = useUpdateStrategy();
 
   const [slippage, setSlippage] = useState(task.slippage * 100);
@@ -62,6 +70,7 @@ function AFKEditForm({ task, onClose, wallets, rpcGroups }: AFKEditFormProps) {
     e.preventDefault();
 
     const taskBody: AFKStrategyTaskPut = {
+      program: program,
       trading_type: 'AFK',
       buy_amount: buyAmount,
       buy_fee: buyFee,

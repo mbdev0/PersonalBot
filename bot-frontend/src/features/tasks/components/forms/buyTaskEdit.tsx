@@ -22,13 +22,20 @@ import { RPCGroupSelector } from './fields/rpcGroupSelector';
 interface BuyTaskEditProps {
   task: BuyStrategyTask;
   onClose: () => void;
+  program: string;
 }
 
-export function BuyTaskEdit({ task, onClose }: BuyTaskEditProps) {
+export function BuyTaskEdit({ task, onClose, program }: BuyTaskEditProps) {
   return (
     <FormDataLoader>
       {(wallets, rpcGroups) => (
-        <BuyEditForm task={task} onClose={onClose} wallets={wallets} rpcGroups={rpcGroups} />
+        <BuyEditForm
+          task={task}
+          onClose={onClose}
+          wallets={wallets}
+          rpcGroups={rpcGroups}
+          program={program}
+        />
       )}
     </FormDataLoader>
   );
@@ -39,9 +46,10 @@ interface BuyEditFormProps {
   onClose: () => void;
   wallets: Wallet[];
   rpcGroups: RPCGroupDashboardRow[];
+  program: string;
 }
 
-function BuyEditForm({ task, onClose, wallets, rpcGroups }: BuyEditFormProps) {
+function BuyEditForm({ task, onClose, wallets, rpcGroups, program }: BuyEditFormProps) {
   const putMutation = useUpdateStrategy();
 
   const [slippage, setSlippage] = useState(task.slippage * 100);
@@ -63,6 +71,7 @@ function BuyEditForm({ task, onClose, wallets, rpcGroups }: BuyEditFormProps) {
     e.preventDefault();
 
     const taskBody: BuyStrategyTaskPut = {
+      program: program,
       id: task.id,
       trading_type: 'BUY',
       slippage: slippage / 100,
