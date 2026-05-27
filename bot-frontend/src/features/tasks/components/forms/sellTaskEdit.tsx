@@ -18,9 +18,10 @@ import type { SellStrategyTask } from '../../types/strategies/strategyTask';
 interface SellTaskEditProps {
   task: SellStrategyTask;
   onClose: () => void;
+  program: string;
 }
 
-export function SellTaskEdit({ task, onClose }: SellTaskEditProps) {
+export function SellTaskEdit({ task, onClose, program }: SellTaskEditProps) {
   if (!task.sell_amount) {
     return (
       <div className="text-center py-8 text-red-600">
@@ -32,7 +33,13 @@ export function SellTaskEdit({ task, onClose }: SellTaskEditProps) {
   return (
     <FormDataLoader>
       {(wallets, rpcGroups) => (
-        <SellEditForm task={task} onClose={onClose} wallets={wallets} rpcGroups={rpcGroups} />
+        <SellEditForm
+          task={task}
+          onClose={onClose}
+          wallets={wallets}
+          rpcGroups={rpcGroups}
+          program={program}
+        />
       )}
     </FormDataLoader>
   );
@@ -43,9 +50,10 @@ interface SellEditFormProps {
   onClose: () => void;
   wallets: Wallet[];
   rpcGroups: RPCGroupDashboardRow[];
+  program: string;
 }
 
-function SellEditForm({ task, onClose, wallets, rpcGroups }: SellEditFormProps) {
+function SellEditForm({ task, onClose, wallets, rpcGroups, program }: SellEditFormProps) {
   const putMutation = useUpdateStrategy();
 
   const [slippage, setSlippage] = useState(task.slippage * 100);
@@ -65,6 +73,7 @@ function SellEditForm({ task, onClose, wallets, rpcGroups }: SellEditFormProps) 
     e.preventDefault();
 
     const taskBody: SellStrategyTaskPut = {
+      program: program,
       id: task.id,
       trading_type: 'SELL',
       slippage: slippage / 100,
