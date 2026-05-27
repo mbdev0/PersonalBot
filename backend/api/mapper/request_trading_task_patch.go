@@ -43,6 +43,10 @@ func createAfkPatch(src dto.TradingTaskPatch, wallet *wallets.SolanaWallet, rpcG
 		respPatch.BuyFee = src.BuyFee
 	}
 
+	if src.Program != nil {
+		respPatch.Program = (*string)(src.Program)
+	}
+
 	if src.ComputeUnits != nil {
 		respPatch.ComputeUnits = src.ComputeUnits
 	}
@@ -90,6 +94,10 @@ func createBuyPatch(src dto.TradingTaskPatch, wallet *wallets.SolanaWallet, rpcG
 		respPatch.ComputeUnits = src.ComputeUnits
 	}
 
+	if src.Program != nil {
+		respPatch.Program = (*string)(src.Program)
+	}
+
 	if src.Slippage != nil {
 		respPatch.Slippage = src.Slippage
 	}
@@ -134,6 +142,10 @@ func createSellPatch(src dto.TradingTaskPatch, wallet *wallets.SolanaWallet, rpc
 
 	if src.ComputeUnits != nil {
 		respPatch.ComputeUnits = src.ComputeUnits
+	}
+
+	if src.Program != nil {
+		respPatch.Program = (*string)(src.Program)
 	}
 
 	if src.Slippage != nil {

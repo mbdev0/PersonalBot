@@ -300,6 +300,7 @@ func (s *Service) updateBuyTask(tradingTaskId int64, patch strategies.Patch) err
 	}
 
 	taskPatch := tasks.BuyPatch{
+		Program:     buyPatch.Program,
 		Wallet:      buyPatch.Wallet,
 		Token:       buyPatch.Token,
 		Amount:      buyPatch.BuyAmount,
@@ -339,6 +340,7 @@ func (s *Service) updateSellTask(tradingTaskId int64, patch strategies.Patch) er
 	}
 
 	taskPatch := tasks.SellPatch{
+		Program:     sellPatch.Program,
 		Wallet:      sellPatch.Wallet,
 		Token:       sellPatch.Token,
 		Amount:      sellPatch.SellAmount,
