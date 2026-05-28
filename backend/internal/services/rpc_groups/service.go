@@ -74,7 +74,7 @@ func (s *Service) Load(ctx context.Context, id int64) (rpcGroup rpcgroups.RPCGro
 	return loadedGroup.RPCGroup, nil
 }
 
-func (s *Service) Unload(ctx context.Context, id int64) error {
+func (s *Service) Unload(id int64) error {
 	// a trading task will call this, load id
 	s.mu.Lock()
 	defer s.mu.Unlock()

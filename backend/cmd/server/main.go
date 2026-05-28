@@ -28,6 +28,7 @@ func main() {
 		logger.Information("Starting server on port 9090:")
 		logger.Information("http://localhost:9090")
 		if err := server.ListenAndServe(); err != nil {
+			logger.Error(err)
 			logger.Information("stopped listening to localhost:9090")
 		}
 	}()
