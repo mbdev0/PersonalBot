@@ -11,6 +11,7 @@ type Task interface {
 	GetWallet() string
 	GetToken() string
 	Program() string
+	GetRPCGroupId() int64
 }
 
 type Configurable interface {

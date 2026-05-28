@@ -181,7 +181,7 @@ func (s *Service) Delete(ctx context.Context, id int64) error {
 	task := s.tasks[id]
 	delete(s.tasks, id)
 
-	err := s.rpcGroupService.Unload(ctx, task.RPCGroupId())
+	err := s.rpcGroupService.Unload(task.RPCGroupId())
 	if err != nil {
 		return err
 	}

@@ -127,14 +127,17 @@ func (tc *TaskController) UpdateTask(ctx context.Context, id int64, reqTask dto.
 	return mappedUpdatedTask, nil
 }
 
-func (tc *TaskController) DeleteTask(id int64) (err error) {
-	//TODO: unload the rpc group on deletion
-	err = tc.TaskService.DeleteTask(id)
+func (tc *TaskController) DeleteTask(id int64) error {
+	task, err := tc.TaskService.GetTaskWith(id)
 	if err != nil {
 		return err
 	}
 
-	return nil
+	if err = tc.TaskService.DeleteTask(id); err != nil {
+		return err
+	}
+
+	return tc.RPCGroupService.Unload(task.GetRPCGroupId())
 }
 
 func (tc *TaskController) TransitionTask(id int64, action dto.ActionType) (err error) {
