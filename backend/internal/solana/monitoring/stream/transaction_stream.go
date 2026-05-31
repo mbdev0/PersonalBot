@@ -6,6 +6,7 @@ import (
 	"personal_bot/internal/core/constants"
 	"personal_bot/internal/solana/monitoring/stream/response"
 	"personal_bot/pkg/logger"
+	"time"
 
 	"github.com/avast/retry-go/v4"
 	"github.com/coder/websocket"
@@ -143,18 +144,18 @@ func newGeyserStreamTransactions(ctx context.Context, transactionChan chan<- []b
 
 	ws.SetReadLimit(constants.WebSocketReadLimit)
 
-	err = wsjson.Write(ctx, ws, map[string]interface{}{
+	err = wsjson.Write(ctx, ws, map[string]any{
 		"jsonrpc": "2.0",
 		"id":      420,
 		"method":  "transactionSubscribe",
-		"params": []interface{}{
-			map[string]interface{}{
+		"params": []any{
+			map[string]any{
 				"failed": false,
-				"accountInclude": []interface{}{
+				"accountInclude": []any{
 					program,
 				},
 			},
-			map[string]interface{}{
+			map[string]any{
 				"commitment":                     "confirmed",
 				"transactionDetails":             "full",
 				"encoding":                       "jsonParsed",
@@ -167,18 +168,28 @@ func newGeyserStreamTransactions(ctx context.Context, transactionChan chan<- []b
 		return err
 	}
 
-	var firstMessage interface{}
+	var firstMessage any
 	err = wsjson.Read(ctx, ws, &firstMessage)
 	if err != nil {
 		return err
 	}
 	logger.Information("connected to ws")
 
-	for {
-		// out := response.TransactionNotification{}
-		_, data, err := ws.Read(ctx)
+	ticker := time.NewTicker(10 * time.Second)
+	go func(ctx context.Context) {
+		defer ticker.Stop()
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-ticker.C:
+				ws.Ping(ctx)
+			}
+		}
+	}(ctx)
 
-		// err = wsjson.Read(ctx, ws, &out)
+	for {
+		_, data, err := ws.Read(ctx)
 
 		if err != nil {
 			logger.Error("Error reading from websocket: ", err)
