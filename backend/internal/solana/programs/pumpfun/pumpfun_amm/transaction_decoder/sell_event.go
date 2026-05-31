@@ -32,7 +32,7 @@ func GetSellEvent(tx *rpc.GetParsedTransactionResult) (models.SellEvent, error) 
 			continue
 		}
 
-		if !bytes.Equal(data[8:], pumpfunamm.SellEvent) {
+		if !bytes.Equal(data[:8], pumpfunamm.SellEvent) {
 			continue
 		}
 
@@ -45,5 +45,5 @@ func GetSellEvent(tx *rpc.GetParsedTransactionResult) (models.SellEvent, error) 
 		return tradeEvent, nil
 	}
 
-	return models.SellEvent{}, fmt.Errorf("unable to find buy event in logs")
+	return models.SellEvent{}, fmt.Errorf("unable to find sell event in logs")
 }

@@ -50,12 +50,52 @@ func getSellAccounts(ctx context.Context, sellTask *tasks.SellTask) ([]*solana.A
 		return nil, informationFromAccounts, err
 	}
 
-	sellAccounts := []*solana.AccountMeta{
+	baseAccounts = append(baseAccounts,
 		utils.GetAccountMeta(ammConstants.FeeConfig, false, false),
 		utils.GetAccountMeta(constants.FeeProgram, false, false),
+	)
+
+	poolData := informationFromAccounts.poolData
+
+	remainingAccounts := []*solana.AccountMeta{}
+
+	if poolData.IsCashbackCoin {
+		userVolumeAccumulator, err := getUserVolumeAccumulator(sellTask.Wallet.PublicKey().String())
+		if err != nil {
+			return nil, informationFromAccounts, err
+		}
+
+		userVolumeAccumulatorWsolAta, err := getUserVolumeAccumulatorWsolTokenAccount(
+			userVolumeAccumulator,
+			constants.TokenProgram,
+			constants.WSOLTokenAddress,
+		)
+		if err != nil {
+			return nil, informationFromAccounts, err
+		}
+
+		remainingAccounts = append(remainingAccounts,
+			utils.GetAccountMeta(userVolumeAccumulatorWsolAta, true, false),
+			utils.GetAccountMeta(userVolumeAccumulator, true, false),
+		)
 	}
 
-	baseAccounts = append(baseAccounts, sellAccounts...)
+	if !poolData.CoinCreator.IsZero() {
+		poolV2, err := getPoolV2(sellTask.Token.String())
+		if err != nil {
+			return nil, informationFromAccounts, err
+		}
+		remainingAccounts = append(remainingAccounts,
+			utils.GetAccountMeta(poolV2, false, false),
+		)
+	}
+
+	remainingAccounts = append(remainingAccounts,
+		utils.GetAccountMeta(ammConstants.BuyBackVault, false, false),
+		utils.GetAccountMeta(ammConstants.BuyBackVaultWsol, true, false),
+	)
+
+	baseAccounts = append(baseAccounts, remainingAccounts...)
 
 	return baseAccounts, informationFromAccounts, nil
 }

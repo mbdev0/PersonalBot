@@ -275,12 +275,14 @@ func (st *Transaction) ConfirmTransaction(ctx context.Context) error {
 	return nil
 }
 
+// TODO: need to return position from  here
 func (st *Transaction) UpdatePosition(ctx context.Context) (tokenAmount, solAmount float64, pos *positionmodel.Position, err error) {
-	solAmnt, sellEvent, err := st.extractTokenAndSolFromTx(ctx, st.signature)
+	solAmount, sellEvent, err := st.extractTokenAndSolFromTx(ctx, st.signature)
 	if err != nil {
 		return
 	}
 
+	tokenAmount = float64(sellEvent.UserQuoteAmountOut)
 	solPrice, err := solana_price.GetSolPrice()
 	if err != nil {
 		return
@@ -291,20 +293,28 @@ func (st *Transaction) UpdatePosition(ctx context.Context) (tokenAmount, solAmou
 
 	marketCapUSD := new(big.Float).SetFloat64((pricePerToken * 1_000_000_000) * *solPrice)
 
-	if st.SellTask.Position_id != nil {
-		err = st.PositionService.ReportSell(ctx, *st.SellTask.Position_id, big.NewFloat(float64(sellEvent.UserQuoteAmountOut)), big.NewFloat(solAmnt), marketCapUSD)
-		if err != nil {
+	if st.SellTask.Position_id == nil {
+		position, exists := st.PositionService.FindPositionIfExists(st.SellTask.Token, st.SellTask.Wallet.PublicKey())
+		if !exists {
+			return 0, 0, nil, fmt.Errorf("position not found for sell task %d", st.SellTask.Id())
+		}
+		if err = st.PositionService.ReportSell(ctx, position.PositionId, big.NewFloat(float64(sellEvent.UserQuoteAmountOut)), big.NewFloat(solAmount), marketCapUSD); err != nil {
 			return
 		}
-	} else {
-		err = st.PositionService.ReportSell(ctx, st.SellTask.Id(), big.NewFloat(float64(sellEvent.UserQuoteAmountOut)), big.NewFloat(solAmnt), marketCapUSD)
-		if err != nil {
-			return
-		}
-
+		return tokenAmount, solAmount, position, nil
 	}
 
-	return float64(sellEvent.UserQuoteAmountOut), solAmnt, nil, nil
+	if err = st.PositionService.ReportSell(ctx, *st.SellTask.Position_id, big.NewFloat(float64(sellEvent.UserQuoteAmountOut)), big.NewFloat(solAmount), marketCapUSD); err != nil {
+		return
+	}
+
+	pos, err = st.PositionService.GetById(*st.SellTask.Position_id)
+	if err != nil {
+		return 0, 0, nil, fmt.Errorf("position not found for sell task %d", st.SellTask.Id())
+	}
+
+	return tokenAmount, solAmount, pos, nil
+
 }
 
 func (st *Transaction) extractTokenAndSolFromTx(ctx context.Context, signature solana.Signature) (solAmount float64, sellEvent models.SellEvent, err error) {
