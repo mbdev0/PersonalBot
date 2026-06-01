@@ -40,5 +40,6 @@ func (pa *PumpfunAmm) NewMarketCapStream(ctx context.Context, monitoringAddress 
 }
 
 func (pa *PumpfunAmm) NewCoinStream(ctx context.Context, node rpcgroups.RPCNode, filters filters.FilterPipeline) <-chan models.Coin {
-	return nil
+	stream := monitoring.NewPumpfunAMMCoinCreationMonitor(pa.datastream, node.WS, node.Http, filters)
+	return stream.StreamCoinCreation(ctx)
 }

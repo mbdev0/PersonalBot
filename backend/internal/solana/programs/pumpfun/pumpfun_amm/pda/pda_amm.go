@@ -227,3 +227,17 @@ func GetBuybackFeeRecipientTokenAccount(quoteMint, buybackFeeRecipient, quoteTok
 	address, _, err := solana.FindAssociatedTokenAddressWithProgram(quoteMintAddy, buybackFeeRecipientAddy, quoteTokenProgramAddy)
 	return address.String(), err
 }
+
+func GetMetadataAccount(mint solana.PK) (string, error) {
+	metaplexSeed := solana.MustPublicKeyFromBase58("metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s")
+	metadataSeed := []byte("metadata")
+
+	seeds := [][]byte{metadataSeed, metaplexSeed[:], mint[:]}
+
+	out, _, err := solana.FindProgramAddress(seeds, pumpfun_program)
+	if err != nil {
+		return "", err
+	}
+
+	return out.String(), nil
+}
