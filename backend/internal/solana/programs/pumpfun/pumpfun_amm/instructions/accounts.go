@@ -10,7 +10,10 @@ import (
 	"personal_bot/internal/solana/programs/pumpfun/pumpfun_amm/instructions/pool"
 	pumpfunAmmPda "personal_bot/internal/solana/programs/pumpfun/pumpfun_amm/pda"
 	"personal_bot/internal/solana/utils"
+	"personal_bot/pkg/logger"
+	"time"
 
+	"github.com/avast/retry-go/v4"
 	"github.com/gagliardetto/solana-go"
 	"github.com/gagliardetto/solana-go/rpc"
 )
@@ -68,7 +71,9 @@ func getBaseAccounts(ctx context.Context, token solana.PK, wallet solana.PK, htt
 		return
 	}
 
-	poolBytes, err := pool.GetPoolDataBytes(ctx, poolAddressPK, httpClient)
+	poolBytes, err := retry.DoWithData(func() ([]byte, error) {
+		return pool.GetPoolDataBytes(ctx, poolAddressPK, httpClient)
+	}, retry.Attempts(100), retry.Delay(time.Millisecond*10))
 	if err != nil {
 		return
 	}
