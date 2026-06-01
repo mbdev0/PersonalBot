@@ -8,7 +8,7 @@ import (
 )
 
 func GetPoolDataBytes(ctx context.Context, poolAddress solana.PK, httpClient *rpc.Client) ([]byte, error) {
-	resp, err := httpClient.GetAccountInfoWithOpts(ctx, poolAddress, &rpc.GetAccountInfoOpts{Encoding: solana.EncodingBase64, Commitment: rpc.CommitmentFinalized})
+	resp, err := httpClient.GetAccountInfoWithOpts(ctx, poolAddress, &rpc.GetAccountInfoOpts{Encoding: solana.EncodingBase64, Commitment: rpc.CommitmentProcessed})
 	if err != nil {
 		return nil, err
 	}
