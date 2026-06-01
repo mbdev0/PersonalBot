@@ -15,4 +15,5 @@ var (
 	SellInstructionDiscriminator = []byte{51, 230, 133, 164, 1, 127, 131, 173}
 	BuyEvent                     = []byte{103, 244, 82, 31, 44, 245, 119, 119}
 	SellEvent                    = []byte{62, 47, 55, 10, 165, 3, 220, 42}
+	MigrationEvent               = []byte{189, 233, 93, 185, 92, 148, 234, 148}
 )
