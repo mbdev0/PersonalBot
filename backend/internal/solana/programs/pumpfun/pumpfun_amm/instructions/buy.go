@@ -7,6 +7,7 @@ import (
 	"personal_bot/internal/core/tasks"
 	ammConstants "personal_bot/internal/solana/programs/pumpfun/pumpfun_amm/constants"
 	"personal_bot/internal/solana/programs/pumpfun/pumpfun_amm/pool"
+	"personal_bot/pkg/logger"
 
 	"personal_bot/internal/solana/utils"
 

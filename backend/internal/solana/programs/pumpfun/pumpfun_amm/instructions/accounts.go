@@ -10,7 +10,6 @@ import (
 	"personal_bot/internal/solana/programs/pumpfun/pumpfun_amm/instructions/pool"
 	pumpfunAmmPda "personal_bot/internal/solana/programs/pumpfun/pumpfun_amm/pda"
 	"personal_bot/internal/solana/utils"
-	"personal_bot/pkg/logger"
 	"time"
 
 	"github.com/avast/retry-go/v4"
@@ -159,8 +158,4 @@ func getUserVolumeAccumulatorWsolTokenAccount(userVolumeAccumulator, quoteTokenP
 
 func getPoolV2(baseMint string) (string, error) {
 	return pumpfunAmmPda.GetPoolV2Account(baseMint)
-}
-
-func getBuybackFeeRecipientTokenAccount(quoteMint, buybackFeeRecipient, quoteTokenProgram string) (string, error) {
-	return pumpfunAmmPda.GetBuybackFeeRecipientTokenAccount(quoteMint, buybackFeeRecipient, quoteTokenProgram)
 }

@@ -3,7 +3,6 @@ package bondingcurve
 import (
 	"bytes"
 	"context"
-	"encoding/base64"
 	"fmt"
 	"math/big"
 	"personal_bot/infrastructure/solana_price"
@@ -17,29 +16,6 @@ import (
 	"github.com/gagliardetto/solana-go/rpc"
 	"github.com/near/borsh-go"
 )
-
-func GetMarketCapFrom(bondingCurveValue string) (marketCapVal *big.Float, err error, hasCompleted bool) {
-	//check if base64 here, if so convert to bytes then pass in
-	bondingCurveBytes, err := base64.StdEncoding.DecodeString(bondingCurveValue)
-	if err != nil {
-		return nil, err, false
-	}
-	bondingCurveData, err, hasCompleted := GetBondingCurveData(bondingCurveBytes)
-	if err != nil {
-		return nil, err, false
-	}
-
-	if hasCompleted {
-		return nil, fmt.Errorf("coin has already migrated"), true
-	}
-
-	marketCap, err := GetMarketCap(*bondingCurveData)
-	if err != nil {
-		return nil, err, false
-	}
-
-	return marketCap, nil, false
-}
 
 func GetMarketCapFromTokenAddress(ctx context.Context, tokenAddrress solana.PublicKey, httpNode *rpc.Client) (marketCapVal *big.Float, err error, hasCompleted bool) {
 	bondingCurveAddress, err := pda.GetBondingCurveAddress(tokenAddrress.String())
