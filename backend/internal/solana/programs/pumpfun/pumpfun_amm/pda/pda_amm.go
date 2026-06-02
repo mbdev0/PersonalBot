@@ -208,26 +208,6 @@ func GetPoolV2Account(baseMint string) (string, error) {
 	return address.String(), nil
 }
 
-func GetBuybackFeeRecipientTokenAccount(quoteMint, buybackFeeRecipient, quoteTokenProgram string) (string, error) {
-
-	quoteMintAddy, err := solana.PublicKeyFromBase58(quoteMint)
-	if err != nil {
-		return "", err
-	}
-	buybackFeeRecipientAddy, err := solana.PublicKeyFromBase58(buybackFeeRecipient)
-	if err != nil {
-		return "", err
-	}
-
-	quoteTokenProgramAddy, err := solana.PublicKeyFromBase58(quoteTokenProgram)
-	if err != nil {
-		return "", err
-	}
-
-	address, _, err := solana.FindAssociatedTokenAddressWithProgram(quoteMintAddy, buybackFeeRecipientAddy, quoteTokenProgramAddy)
-	return address.String(), err
-}
-
 func GetMetadataAccount(mint solana.PK) (string, error) {
 	metaplexSeed := solana.MustPublicKeyFromBase58("metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s")
 	metadataSeed := []byte("metadata")

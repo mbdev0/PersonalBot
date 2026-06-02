@@ -179,7 +179,6 @@ func (pmm *PumpfunAMMMarketCapMonitor) parse(data []byte) (slot uint64, tokenAmo
 	tokenAmountUint := binary.LittleEndian.Uint64(accountData[64:72])
 	tokenAmount = float64(tokenAmountUint)
 
-	logger.Information("token amount: ", tokenAmount)
 	return res.Params.Result.Context.Slot, tokenAmount, nil
 }
 
