@@ -31,12 +31,12 @@ func NewSolanaStream(ctx context.Context) *SolanaStream {
 }
 
 func (ss *SolanaStream) SubscribeToTransaction(wsurl, program string) (out <-chan []byte, err error) {
-	return ss.subscribeToStream(wsurl, program, stream.NewStartGeyserTransactionStream)
+	return ss.subscribeToStream(wsurl, program, stream.StartGeyserTransactionStream)
 
 }
 
 func (ss *SolanaStream) SubscribeToAccountStream(wsurl, account string) (out <-chan []byte, err error) {
-	return ss.subscribeToStream(wsurl, account, stream.NewGeyserStreamAccountInfo)
+	return ss.subscribeToStream(wsurl, account, stream.GeyserStreamAccountInfo)
 }
 
 func (ss *SolanaStream) subscribeToStream(wsurl, account string, subFunc func(ctx context.Context, address, wsurl string, output chan<- []byte) error) (out <-chan []byte, err error) {

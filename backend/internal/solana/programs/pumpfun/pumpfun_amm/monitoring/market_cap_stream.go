@@ -7,10 +7,9 @@ import (
 	"math"
 	"math/big"
 	"personal_bot/internal/core/constants"
-	"personal_bot/internal/solana/models"
 	datastream "personal_bot/internal/solana/monitoring/data_stream"
-	"personal_bot/internal/solana/programs/pumpfun/pumpfun_amm/instructions/pool"
-	poolParse "personal_bot/internal/solana/programs/pumpfun/pumpfun_amm/pool"
+	"personal_bot/internal/solana/monitoring/models"
+	"personal_bot/internal/solana/programs/pumpfun/pumpfun_amm/pool"
 	jsonparse "personal_bot/pkg/json_parse"
 	"personal_bot/pkg/logger"
 
@@ -183,7 +182,7 @@ func (pmm *PumpfunAMMMarketCapMonitor) parse(data []byte) (slot uint64, tokenAmo
 }
 
 func (pmm *PumpfunAMMMarketCapMonitor) output(out chan big.Float, a, b float64) {
-	marketcap, err := poolParse.GetMarketCapUSD(poolParse.PoolBalances{
+	marketcap, err := pool.GetMarketCapUSD(pool.PoolBalances{
 		WsolPoolBalance:  a / math.Pow(10, 9),
 		TokenPoolBalance: b / math.Pow(10, 6),
 	})

@@ -12,13 +12,13 @@ import (
 	"github.com/coder/websocket/wsjson"
 )
 
-func NewStartGeyserTransactionStream(ctx context.Context, program, wsUrl string, transactionChan chan<- []byte) error {
+func StartGeyserTransactionStream(ctx context.Context, program, wsUrl string, transactionChan chan<- []byte) error {
 	for {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
 		default:
-			err := newGeyserStreamTransactions(ctx, transactionChan, program, wsUrl)
+			err := GeyserStreamTransactions(ctx, transactionChan, program, wsUrl)
 			if err != nil {
 				return err
 			}
@@ -26,7 +26,7 @@ func NewStartGeyserTransactionStream(ctx context.Context, program, wsUrl string,
 	}
 }
 
-func newGeyserStreamTransactions(ctx context.Context, transactionChan chan<- []byte, program, wsUrl string) error {
+func GeyserStreamTransactions(ctx context.Context, transactionChan chan<- []byte, program, wsUrl string) error {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 

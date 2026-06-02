@@ -12,13 +12,12 @@ import (
 
 	"personal_bot/app/pumpfun_idl"
 	"personal_bot/internal/core/constants"
-	"personal_bot/internal/solana/monitoring/stream/response"
 	"personal_bot/internal/solana/monitoring/models"
 
 	"personal_bot/pkg/logger"
 )
 
-func DecryptTransactionNotificationForCoin(transaction response.TransactionNotification, sendIPFSRequest bool) *models.Coin {
+func DecryptTransactionNotificationForCoin(transaction models.TransactionNotification, sendIPFSRequest bool) *models.Coin {
 
 	coin, err := getCreatedCoinWithBuyData(transaction)
 
@@ -40,7 +39,7 @@ func DecryptTransactionNotificationForCoin(transaction response.TransactionNotif
 	return &coin
 }
 
-func getCreatedCoinWithBuyData(transaction response.TransactionNotification) (models.Coin, error) {
+func getCreatedCoinWithBuyData(transaction models.TransactionNotification) (models.Coin, error) {
 	var coin models.Coin
 	var createTransactionFound bool
 	var devHoldingAmount float64
@@ -85,7 +84,7 @@ func getCreatedCoinWithBuyData(transaction response.TransactionNotification) (mo
 	return coin, nil
 }
 
-func createCoinFromInstruction(instruction response.Instruction, instructionData []byte) (models.Coin, error) {
+func createCoinFromInstruction(instruction models.Instruction, instructionData []byte) (models.Coin, error) {
 	coin := models.Coin{}
 
 	decodedInstruction, err := decodeCreateInstruction(instructionData)
@@ -99,7 +98,7 @@ func createCoinFromInstruction(instruction response.Instruction, instructionData
 	return coin, nil
 }
 
-func assignCoinAddresses(coin *models.Coin, instruction response.Instruction) {
+func assignCoinAddresses(coin *models.Coin, instruction models.Instruction) {
 	createAccountIDL := pumpfun_idl.GetIdlMap()["create"].AccountMap
 
 	coin.CoinData.TokenAddr = instruction.Accounts[createAccountIDL["mint"]]
