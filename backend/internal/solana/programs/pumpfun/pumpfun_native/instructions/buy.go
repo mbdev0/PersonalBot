@@ -89,7 +89,7 @@ func setupAccountAddressSet(ctx context.Context, buyTask *tasks.BuyTask) (Accoun
 		return *accountAddressesSet, err
 	}
 
-	if accountAddressesSet.BondingCurveData.IsMayhemMode == true {
+	if accountAddressesSet.BondingCurveData.IsMayhemMode {
 		accountAddressesSet.FeeRecpient = constants.ReservedFeeRecipient
 	} else {
 		accountAddressesSet.FeeRecpient = constants.FeeRecipient

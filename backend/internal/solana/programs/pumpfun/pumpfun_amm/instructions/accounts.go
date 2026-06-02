@@ -25,7 +25,7 @@ type InformationFromAccounts struct {
 	associateTokenAddress string
 }
 
-func getBaseAccounts(ctx context.Context, token solana.PK, wallet solana.PK, httpClient *rpc.Client) (accounts []*solana.AccountMeta, err error, info InformationFromAccounts) {
+func getBaseAccounts(ctx context.Context, token solana.PK, wallet solana.PK, httpClient *rpc.Client) (accounts []*solana.AccountMeta, info InformationFromAccounts, err error) {
 	poolAddress, err := getPoolPDA(token)
 	if err != nil {
 		return
@@ -114,7 +114,9 @@ func getBaseAccounts(ctx context.Context, token solana.PK, wallet solana.PK, htt
 		utils.GetAccountMeta(coinVaultAta, true, false),
 		utils.GetAccountMeta(creatorVaultAuthority, false, false),
 	}
-	return accounts, nil, InformationFromAccounts{poolData: poolData, wsolPoolAta: poolQuoteTokenAccount, mintPoolAta: poolBaseTokenAccount, associateTokenAddress: baseMintATA.String()}
+	return accounts,
+		InformationFromAccounts{poolData: poolData, wsolPoolAta: poolQuoteTokenAccount, mintPoolAta: poolBaseTokenAccount, associateTokenAddress: baseMintATA.String()},
+		nil
 }
 
 func getPoolPDA(token solana.PK) (string, error) {

@@ -26,7 +26,7 @@ type accountsNeededForInstructions struct {
 }
 
 func GetBuyInstruction(ctx context.Context, buyTask *tasks.BuyTask) (instruction *solana.GenericInstruction, err error) {
-	accounts, err, instructionsForAccount := getAccounts(ctx, buyTask)
+	accounts, instructionsForAccount, err := getAccounts(ctx, buyTask)
 	if err != nil {
 		return
 	}
@@ -42,9 +42,9 @@ func GetBuyInstruction(ctx context.Context, buyTask *tasks.BuyTask) (instruction
 	return buyInstructions, nil
 }
 
-func getAccounts(ctx context.Context, task *tasks.BuyTask) (accounts []*solana.AccountMeta, err error, instructionAccounts accountsNeededForInstructions) {
+func getAccounts(ctx context.Context, task *tasks.BuyTask) (accounts []*solana.AccountMeta, instructionAccounts accountsNeededForInstructions, err error) {
 
-	accounts, err, informationFromAccounts := getBaseAccounts(ctx, task.Token, task.Wallet.PublicKey(), task.HttpClient())
+	accounts, informationFromAccounts, err := getBaseAccounts(ctx, task.Token, task.Wallet.PublicKey(), task.HttpClient())
 	if err != nil {
 		return
 	}
@@ -66,7 +66,8 @@ func getAccounts(ctx context.Context, task *tasks.BuyTask) (accounts []*solana.A
 	if informationFromAccounts.poolData.IsCashbackCoin {
 		userVolumeAccumulatorWsolTokenAccount, err := getUserVolumeAccumulatorWsolTokenAccount(userVolumeAccumulator, constants.TokenProgram, constants.WSOLTokenAddress)
 		if err != nil {
-			return nil, err, accountsNeededForInstructions{}
+			logger.Error(err)
+			return nil, accountsNeededForInstructions{}, err
 		}
 		accounts = append(accounts, utils.GetAccountMeta(userVolumeAccumulatorWsolTokenAccount, true, false))
 	}
@@ -80,12 +81,7 @@ func getAccounts(ctx context.Context, task *tasks.BuyTask) (accounts []*solana.A
 	accounts = append(accounts, utils.GetAccountMeta(ammConstants.BuyBackVault, false, false))
 	accounts = append(accounts, utils.GetAccountMeta(ammConstants.BuyBackVaultWsol, true, false))
 
-	return accounts, nil, accountsNeededForInstructions{mintPoolAta: informationFromAccounts.mintPoolAta, wsolPoolAta: informationFromAccounts.wsolPoolAta}
-}
-
-type poolBalances struct {
-	tokenPoolBalance float64
-	wsolPoolBalance  float64
+	return accounts, accountsNeededForInstructions{mintPoolAta: informationFromAccounts.mintPoolAta, wsolPoolAta: informationFromAccounts.wsolPoolAta}, nil
 }
 
 func getInstructionData(ctx context.Context, task tasks.BuyTask, poolAtaAddress, wsolAtaAddress string) ([]byte, error) {
