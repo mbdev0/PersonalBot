@@ -282,21 +282,21 @@ func (sh *SubscriptionHub) getProfitValues(pos *position.Position, marketCap *bi
 	return totalPnL, unrealizedPnl, currentPrice
 }
 
-func (sh *SubscriptionHub) calculateTokenValueAndPrice(marketCapUSD *big.Float, tokensRemaining *big.Float, solPrice float64) (totalValueSOL *big.Float, pricePerToken *big.Float) {
-	//should solve the nil ref?
+func (sh *SubscriptionHub) calculateTokenValueAndPrice(marketCapUSD *big.Float, tokensRemaining *big.Float, solPrice float64) (totalValueLamports *big.Float, pricePerToken *big.Float) {
 	if marketCapUSD == nil {
-		marketCapUSD.SetFloat64(0)
+		marketCapUSD = big.NewFloat(0)
 	}
 	marketCapSol := new(big.Float).Quo(marketCapUSD, big.NewFloat(solPrice))
 
-	//total supply -> get data from
 	totalSupply := new(big.Float).SetInt64(1000000000)
 
 	pricePerTokenSOL := new(big.Float).Quo(marketCapSol, totalSupply)
 
 	tokensRemainingWhole := new(big.Float).Quo(tokensRemaining, big.NewFloat(constants.TokenAmountDecimals))
 
-	totalValueSOL = new(big.Float).Mul(pricePerTokenSOL, tokensRemainingWhole)
+	totalValueSOL := new(big.Float).Mul(pricePerTokenSOL, tokensRemainingWhole)
+	// RemainingCostBasis is stored in lamports, so return lamports for consistent subtraction
+	totalValueLamports = new(big.Float).Mul(totalValueSOL, big.NewFloat(constants.LamportsConversion))
 
-	return totalValueSOL, pricePerTokenSOL
+	return totalValueLamports, pricePerTokenSOL
 }

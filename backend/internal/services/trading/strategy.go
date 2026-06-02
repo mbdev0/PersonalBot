@@ -148,7 +148,6 @@ func (s *Strategy) AfkSniping(ctx context.Context, afkTask *strategies.Afk) {
 		WS:   node.WS,
 	}, filterPipeline)
 
-	// go monitoring.StartAFKMonitor(ctx, filterPipeline, coins, node.WS)
 	logger.Information("started afk monitor")
 
 	counter := 0
