@@ -92,7 +92,7 @@ func getAccounts(ctx context.Context, sellTask *tasks.SellTask, bondingCurveData
 	}
 
 	feeRecipient := constants.FeeRecipient
-	if bondingCurveData.bondingCurveData.IsMayhemMode == true {
+	if bondingCurveData.bondingCurveData.IsMayhemMode {
 		feeRecipient = constants.ReservedFeeRecipient
 	}
 

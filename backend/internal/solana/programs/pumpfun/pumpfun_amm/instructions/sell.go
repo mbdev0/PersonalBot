@@ -45,7 +45,7 @@ func GetSellInstruction(ctx context.Context, sellTask *tasks.SellTask, pos *posi
 }
 
 func getSellAccounts(ctx context.Context, sellTask *tasks.SellTask) ([]*solana.AccountMeta, InformationFromAccounts, error) {
-	baseAccounts, err, informationFromAccounts := getBaseAccounts(ctx, sellTask.Token, sellTask.Wallet.PublicKey(), sellTask.HttpClient())
+	baseAccounts, informationFromAccounts, err := getBaseAccounts(ctx, sellTask.Token, sellTask.Wallet.PublicKey(), sellTask.HttpClient())
 	if err != nil {
 		return nil, informationFromAccounts, err
 	}

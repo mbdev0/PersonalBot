@@ -32,7 +32,7 @@ func (e *Executor) GetImplementation(ctx context.Context, task tasks.Task) (tran
 	case *tasks.SellTask:
 		return program.NewSellTransaction(t, e.positionService, e.publisher), nil
 	default:
-		return nil, fmt.Errorf("Unable to find program: %s", task.Program())
+		return nil, fmt.Errorf("unable to find program: %s", task.Program())
 	}
 }
 
