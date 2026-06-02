@@ -10,7 +10,6 @@ import (
 	"personal_bot/internal/core/constants"
 	"personal_bot/internal/solana/monitoring/filters"
 	"personal_bot/internal/solana/monitoring/models"
-	"personal_bot/internal/solana/monitoring/stream/response"
 	eventModels "personal_bot/internal/solana/programs/pumpfun/pumpfun_amm/models"
 	"personal_bot/internal/solana/programs/pumpfun/pumpfun_amm/pda"
 
@@ -24,7 +23,7 @@ import (
 )
 
 func ParseTransactionNotification(ctx context.Context, data []byte, httpClient *rpc.Client, filters filters.FilterPipeline) (*models.Coin, error) {
-	tx, err := jsonparse.Decode[response.TransactionNotification](data)
+	tx, err := jsonparse.Decode[models.TransactionNotification](data)
 	if err != nil {
 		return nil, err
 	}

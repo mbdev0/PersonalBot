@@ -7,8 +7,8 @@ import (
 	"personal_bot/internal/solana/instructions"
 	solanaPda "personal_bot/internal/solana/pda"
 	ammConstants "personal_bot/internal/solana/programs/pumpfun/pumpfun_amm/constants"
-	"personal_bot/internal/solana/programs/pumpfun/pumpfun_amm/instructions/pool"
 	pumpfunAmmPda "personal_bot/internal/solana/programs/pumpfun/pumpfun_amm/pda"
+	"personal_bot/internal/solana/programs/pumpfun/pumpfun_amm/pool"
 	"personal_bot/internal/solana/utils"
 	"time"
 

@@ -7,7 +7,6 @@ import (
 	"personal_bot/internal/solana/monitoring/decoder"
 	"personal_bot/internal/solana/monitoring/filters"
 	"personal_bot/internal/solana/monitoring/models"
-	"personal_bot/internal/solana/monitoring/stream/response"
 	jsonparse "personal_bot/pkg/json_parse"
 	streamUtils "personal_bot/pkg/stream"
 
@@ -41,7 +40,7 @@ func (pn *PumpfunNativeCoinCreation) StreamCoinCreations(ctx context.Context) ch
 }
 
 func (pn *PumpfunNativeCoinCreation) parseTransactionForCoin(data []byte) (*models.Coin, error) {
-	tx, err := jsonparse.Decode[response.TransactionNotification](data)
+	tx, err := jsonparse.Decode[models.TransactionNotification](data)
 	if err != nil {
 		return nil, err
 	}

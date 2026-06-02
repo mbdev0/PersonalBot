@@ -12,7 +12,6 @@ import (
 	"personal_bot/internal/solana/transaction"
 )
 
-// TODO: add unsubsribe methods to marketcapstream + coinstream to kill of goroutines
 type Program interface {
 	NewBuyTransaction(task *tasks.BuyTask, posService position.PositionService, publisher subscriptionhub.Publisher) transaction.Transaction
 	NewSellTransaction(task *tasks.SellTask, posService position.PositionService, publisher subscriptionhub.Publisher) transaction.Transaction
