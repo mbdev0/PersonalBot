@@ -144,6 +144,7 @@ func notifySell(t *tasks.SellTask, transaction transaction.Transaction, pos *pos
 
 	if pos == nil {
 		logger.Information("Position is nil")
+		return
 	}
 
 	if pos.TokenRemaining == nil {
