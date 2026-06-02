@@ -298,13 +298,13 @@ func (st *Transaction) UpdatePosition(ctx context.Context) (tokenAmount, solAmou
 		if !exists {
 			return 0, 0, nil, fmt.Errorf("position not found for sell task %d", st.SellTask.Id())
 		}
-		if err = st.PositionService.ReportSell(ctx, position.PositionId, big.NewFloat(float64(sellEvent.UserQuoteAmountOut)), big.NewFloat(solAmount), marketCapUSD); err != nil {
+		if err = st.PositionService.ReportSell(ctx, position.PositionId, big.NewFloat(float64(sellEvent.BaseAmountIn)), big.NewFloat(solAmount), marketCapUSD); err != nil {
 			return
 		}
 		return tokenAmount, solAmount, position, nil
 	}
 
-	if err = st.PositionService.ReportSell(ctx, *st.SellTask.Position_id, big.NewFloat(float64(sellEvent.UserQuoteAmountOut)), big.NewFloat(solAmount), marketCapUSD); err != nil {
+	if err = st.PositionService.ReportSell(ctx, *st.SellTask.Position_id, big.NewFloat(float64(sellEvent.BaseAmountIn)), big.NewFloat(solAmount), marketCapUSD); err != nil {
 		return
 	}
 
