@@ -2,6 +2,7 @@ import { type Task, type TaskDto, type TaskPost, type TaskPostDto } from '../typ
 
 export function mapTaskDtoToTask(src: TaskDto): Task {
   return {
+    program: src.program,
     task_id: src.task_id,
     type: src.type,
     slippage: src.slippage,

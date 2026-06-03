@@ -21,7 +21,12 @@ export const usePositionWebsocket = () => {
     };
 
     ws.onmessage = (event) => {
-      const data: PositionWebsocketMessage = JSON.parse(event.data);
+      const parsed = JSON.parse(event.data);
+      if (!parsed.position_msg) {
+        console.error('Position WS error:', parsed.error);
+        return;
+      }
+      const data: PositionWebsocketMessage = parsed;
       positionStore.setWsMessage(
         key(data.position_msg.strategy_id, data.position_msg.buy_task_id),
         prettifyWsMessage(data)

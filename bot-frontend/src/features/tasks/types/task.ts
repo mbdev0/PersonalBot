@@ -1,4 +1,5 @@
 interface TaskDto {
+  program: string;
   task_id: number;
   type: string;
   slippage: number;
@@ -22,6 +23,7 @@ interface StateDto {
 }
 
 interface Task {
+  program: string;
   task_id: number;
   type: string;
   slippage: number;
@@ -94,5 +96,11 @@ export type TaskAction = 'Run' | 'Stop';
 export { type TaskDto, type Task, type TaskPostDto, type TaskPost };
 
 export function isTerminal(state: string) {
-  return state === TaskType.task_done || state === TaskType.tx_failed;
+  return (
+    state === TaskType.task_done ||
+    state === TaskType.tx_failed ||
+    state === TaskType.task_cancel ||
+    state === 'Cancelled' ||
+    state === 'Failed'
+  );
 }
