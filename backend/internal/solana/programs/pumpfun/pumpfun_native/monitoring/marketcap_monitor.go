@@ -2,10 +2,13 @@ package monitoring
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"math/big"
 	datastream "personal_bot/internal/solana/monitoring/data_stream"
+	"personal_bot/internal/solana/monitoring/models"
 	bondingcurve "personal_bot/internal/solana/programs/pumpfun/bonding_curve"
+	jsonparse "personal_bot/pkg/json_parse"
 	"personal_bot/pkg/logger"
 	streamUtils "personal_bot/pkg/stream"
 
@@ -50,7 +53,21 @@ func (pm *PumpfunNativeMarketcap) GetInitialMarketCap(ctx context.Context) (mark
 }
 
 func (pm *PumpfunNativeMarketcap) GetMarketCapFrom(data []byte) (*big.Float, error) {
-	bondingCurve, err, _ := bondingcurve.GetBondingCurveData(data)
+
+	accountInfo, err := jsonparse.Decode[models.AccountSubscribeModel](data)
+	if err != nil {
+		return nil, err
+	}
+
+	var bondingCurveData []byte
+	if len(accountInfo.Params.Result.Value.Data) > 0 {
+		bondingCurveData, err = base64.StdEncoding.DecodeString(accountInfo.Params.Result.Value.Data[0])
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	bondingCurve, err, _ := bondingcurve.GetBondingCurveData(bondingCurveData)
 	if err != nil {
 		return nil, err
 	}
