@@ -7,29 +7,33 @@ import (
 	"personal_bot/infrastructure/persistence/repository"
 	"personal_bot/internal/core/tasks"
 	"personal_bot/internal/services/position"
+	rpcgroups "personal_bot/internal/services/rpc_groups"
 	"personal_bot/internal/services/subscription_hub/task"
+	"personal_bot/pkg/logger"
 	"sync"
 	"time"
 )
 
 type TaskService struct {
-	taskManager *Manager
-	repo        *repository.TaskRepository
-	hub         *task.Hub
-	tasks       map[int64]tasks.Task
-	mu          sync.Mutex
-	iter        *iterable.Iterable
-	posService  *position.Service
+	taskManager     *Manager
+	repo            *repository.TaskRepository
+	hub             *task.Hub
+	tasks           map[int64]tasks.Task
+	mu              sync.Mutex
+	iter            *iterable.Iterable
+	posService      *position.Service
+	rpcGroupService *rpcgroups.Service
 }
 
-func NewTaskService(repo *repository.TaskRepository, hub *task.Hub, tManager *Manager, posService *position.Service) *TaskService {
+func NewTaskService(repo *repository.TaskRepository, hub *task.Hub, tManager *Manager, posService *position.Service, rpcGroupService *rpcgroups.Service) *TaskService {
 	return &TaskService{
-		taskManager: tManager,
-		hub:         hub,
-		repo:        repo,
-		tasks:       map[int64]tasks.Task{},
-		iter:        iterable.NewIterable(),
-		posService:  posService,
+		taskManager:     tManager,
+		hub:             hub,
+		repo:            repo,
+		tasks:           map[int64]tasks.Task{},
+		iter:            iterable.NewIterable(),
+		posService:      posService,
+		rpcGroupService: rpcGroupService,
 	}
 }
 
@@ -165,6 +169,10 @@ func (ts *TaskService) LoadFromDB(ctx context.Context) error {
 
 	for _, tdb := range tasksFromDb {
 		ts.tasks[tdb.Id()] = tdb
+		_, err = ts.rpcGroupService.Load(ctx, tdb.GetRPCGroupId())
+		if err != nil {
+			logger.Error(err)
+		}
 	}
 
 	return nil
