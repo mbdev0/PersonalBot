@@ -112,6 +112,10 @@ func GetBondingCurveData(bondingCurveBytes []byte) (bondingCurveData *models.Bon
 		return nil, err, false
 	}
 
+	if bondingCurveInfo == nil {
+		return nil, nil, false
+	}
+
 	if bondingCurveInfo.Complete {
 		return bondingCurveInfo, nil, true
 	}
