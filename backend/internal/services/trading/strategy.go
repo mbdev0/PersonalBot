@@ -176,7 +176,7 @@ func (s *Strategy) AfkSniping(ctx context.Context, afkTask *strategies.Afk) {
 }
 
 func (s *Strategy) handleNewCoin(ctx context.Context, afkTask *strategies.Afk, coin models.Coin) {
-	bt, err := s.createAndRunBuyTask(coin, afkTask)
+	bt, err := s.createAndRunBuyTask(ctx, coin, afkTask)
 	if err != nil {
 		logger.Error(err)
 		return
@@ -204,7 +204,7 @@ func (s *Strategy) handleNewCoin(ctx context.Context, afkTask *strategies.Afk, c
 
 }
 
-func (s *Strategy) createAndRunBuyTask(coin models.Coin, afkTask *strategies.Afk) (bt tasks.Task, err error) {
+func (s *Strategy) createAndRunBuyTask(ctx context.Context, coin models.Coin, afkTask *strategies.Afk) (bt tasks.Task, err error) {
 
 	coinAddr, err := solana.PublicKeyFromBase58(coin.CoinData.TokenAddr)
 	if err != nil {
@@ -212,6 +212,11 @@ func (s *Strategy) createAndRunBuyTask(coin models.Coin, afkTask *strategies.Afk
 	}
 
 	node, err := s.rpcService.GetNode(afkTask.RPCGroupId())
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = s.rpcService.Load(ctx, afkTask.RPCGroupId())
 	if err != nil {
 		return nil, err
 	}
