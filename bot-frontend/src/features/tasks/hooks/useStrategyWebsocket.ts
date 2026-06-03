@@ -90,6 +90,7 @@ export const useStrategyWebsocket = (
             task.sell_fee = strategyTask.data.sell_fee;
 
             const taskRow: TaskDashboardRow = {
+              program: task.program,
               type: 'task',
               data: task,
               id: task.task_id,
@@ -193,5 +194,5 @@ export const useStrategyWebsocket = (
 };
 
 function isTerminalState(state: string): boolean {
-  return ['Done', 'Task Failed', 'Transaction Failed'].includes(state);
+  return ['Done', 'Task Failed', 'Transaction Failed', 'CANCELLED', 'SUCCESS', 'FAILED'].includes(state);
 }
