@@ -29,7 +29,7 @@ type Strategy struct {
 	rpcService      *rpcgroups.Service
 }
 
-func NewTradingStrategy(ts *taskservice.TaskService, ph *positionhub.SubscriptionHub, ps *positionservice.Service,
+func New(ts *taskservice.TaskService, ph *positionhub.SubscriptionHub, ps *positionservice.Service,
 	sh *strategy.SubscriptionHub, th *task.Hub, rs *rpcgroups.Service) *Strategy {
 	return &Strategy{
 		taskService:     ts,
@@ -42,6 +42,9 @@ func NewTradingStrategy(ts *taskservice.TaskService, ph *positionhub.Subscriptio
 }
 
 func (s *Strategy) Run(ctx context.Context, strategyTask strategies.Task) error {
+	strategyTask.SetStrategyState(string(strategies.RUNNING))
+	s.strategyHub.PublishStateUpdate(strategyTask.StrategyTaskId(), strategyTask.StrategyState())
+
 	switch tsk := strategyTask.(type) {
 	case *strategies.Afk:
 		afk := NewAFKEngine(*s)
@@ -53,8 +56,11 @@ func (s *Strategy) Run(ctx context.Context, strategyTask strategies.Task) error 
 		sell := NewSellEngine(*s)
 		go sell.Run(ctx, tsk)
 	default:
+		strategyTask.SetStrategyState(string(strategies.FAILED))
+		s.strategyHub.PublishStateUpdate(strategyTask.StrategyTaskId(), strategyTask.StrategyState())
 		return fmt.Errorf("task doesn't belong to a strategy")
 	}
+
 	return nil
 }
 
