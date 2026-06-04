@@ -18,6 +18,7 @@ import (
 	positionhub "personal_bot/internal/services/subscription_hub/position"
 	"personal_bot/internal/services/subscription_hub/strategy"
 	"personal_bot/internal/services/subscription_hub/task"
+	newtradingstrategy "personal_bot/internal/services/trading/strategy"
 	"personal_bot/internal/services/wallet"
 	datastream "personal_bot/internal/solana/monitoring/data_stream"
 	pumpfunamm "personal_bot/internal/solana/programs/pumpfun/pumpfun_amm"
@@ -73,8 +74,10 @@ func WireServicesAndLaunchServer(mainCtx context.Context, db *sql.DB) (*http.Ser
 	deps.TaskService = taskService
 
 	tradingStrategy := trading.NewTradingStrategy(taskService, posSubhub, positionService, strategySubHub, taskSubhub, rpcGroupService)
+	newTradingStrategy := newtradingstrategy.NewTradingStrategy(taskService, posSubhub, positionService, strategySubHub, taskSubhub, rpcGroupService)
+
 	tradingTaskRepo := repository.NewTradingRepository(db)
-	tradingService := trading.NewTradingService(tradingStrategy, strategySubHub, tradingTaskRepo, taskService, rpcGroupService)
+	tradingService := trading.NewTradingService(tradingStrategy, newTradingStrategy, strategySubHub, tradingTaskRepo, taskService, rpcGroupService)
 	deps.TradingService = tradingService
 
 	walletRepo := repository.NewWalletRepository(db)
