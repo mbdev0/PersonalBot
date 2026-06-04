@@ -57,7 +57,7 @@ func (ts *TaskService) GetTaskWith(id int64) (tasks.Task, error) {
 	return task, nil
 }
 
-func (ts *TaskService) GetTasksWithStrategyId(id int64) ([]tasks.Task, error) {
+func (ts *TaskService) GetTasksWithStrategyId(id int64) []tasks.Task {
 	tasksWithStrategyId := []tasks.Task{}
 
 	for _, v := range ts.tasks {
@@ -65,7 +65,7 @@ func (ts *TaskService) GetTasksWithStrategyId(id int64) ([]tasks.Task, error) {
 			tasksWithStrategyId = append(tasksWithStrategyId, v)
 		}
 	}
-	return tasksWithStrategyId, nil
+	return tasksWithStrategyId
 }
 
 func (ts *TaskService) GetAllTasks() []tasks.Task {

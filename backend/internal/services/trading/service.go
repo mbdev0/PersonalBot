@@ -215,10 +215,7 @@ func (s *Service) Delete(ctx context.Context, id int64) error {
 		return nil
 	}
 
-	tasks, err := s.taskService.GetTasksWithStrategyId(id)
-	if err != nil {
-		return err
-	}
+	tasks := s.taskService.GetTasksWithStrategyId(id)
 
 	for _, task := range tasks {
 		err = s.taskService.DeleteTask(task.Id())
@@ -278,10 +275,7 @@ func (s *Service) Update(task strategies.Task, patch strategies.Patch) (strategi
 }
 
 func (s *Service) updateBuyTask(tradingTaskId int64, patch strategies.Patch) error {
-	allTasks, err := s.taskService.GetTasksWithStrategyId(tradingTaskId)
-	if err != nil {
-		return err
-	}
+	allTasks := s.taskService.GetTasksWithStrategyId(tradingTaskId)
 
 	if len(allTasks) == 0 || len(allTasks) > 1 {
 		return nil
@@ -310,7 +304,7 @@ func (s *Service) updateBuyTask(tradingTaskId int64, patch strategies.Patch) err
 		ComputeUnit: cuPtr,
 	}
 
-	_, err = s.taskService.UpdateTask(allTasks[0], &taskPatch)
+	_, err := s.taskService.UpdateTask(allTasks[0], &taskPatch)
 	if err != nil {
 		return err
 	}
@@ -318,10 +312,7 @@ func (s *Service) updateBuyTask(tradingTaskId int64, patch strategies.Patch) err
 }
 
 func (s *Service) updateSellTask(tradingTaskId int64, patch strategies.Patch) error {
-	allTasks, err := s.taskService.GetTasksWithStrategyId(tradingTaskId)
-	if err != nil {
-		return err
-	}
+	allTasks := s.taskService.GetTasksWithStrategyId(tradingTaskId)
 
 	if len(allTasks) == 0 || len(allTasks) > 1 {
 		return nil
@@ -350,7 +341,7 @@ func (s *Service) updateSellTask(tradingTaskId int64, patch strategies.Patch) er
 		ComputeUnit: cuPtr,
 	}
 
-	_, err = s.taskService.UpdateTask(allTasks[0], &taskPatch)
+	_, err := s.taskService.UpdateTask(allTasks[0], &taskPatch)
 	if err != nil {
 		return err
 	}
@@ -395,13 +386,10 @@ func (s *Service) Stop(id int64) error {
 		return fmt.Errorf("task not running with id: %d", id)
 	}
 
-	childTasks, err := s.taskService.GetTasksWithStrategyId(strategyTask.StrategyTaskId())
-	if err != nil {
-		return err
-	}
+	childTasks := s.taskService.GetTasksWithStrategyId(strategyTask.StrategyTaskId())
 
 	for _, child := range childTasks {
-		err = s.taskService.StopTask(child.Id())
+		err := s.taskService.StopTask(child.Id())
 		if err != nil {
 			logger.Error(err)
 		}
