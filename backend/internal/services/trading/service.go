@@ -22,8 +22,7 @@ import (
 )
 
 type Service struct {
-	strategy        *Strategy
-	newStrategy     *tradingStrategy.Strategy
+	strategy        *tradingStrategy.Strategy
 	tasks           map[int64]strategies.Task
 	running         map[int64]context.CancelFunc
 	mu              *sync.Mutex
@@ -34,11 +33,10 @@ type Service struct {
 	rpcGroupService *rpcgroups.Service
 }
 
-func NewTradingService(strat *Strategy, newStrat *tradingStrategy.Strategy, sh *strategy.SubscriptionHub, tr *repository.TradingRepository, ts *taskservice.TaskService, rgs *rpcgroups.Service) *Service {
+func NewTradingService(strategy *tradingStrategy.Strategy, sh *strategy.SubscriptionHub, tr *repository.TradingRepository, ts *taskservice.TaskService, rgs *rpcgroups.Service) *Service {
 
 	return &Service{
-		strategy:        strat,
-		newStrategy:     newStrat,
+		strategy:        strategy,
 		tasks:           map[int64]strategies.Task{},
 		running:         map[int64]context.CancelFunc{},
 		mu:              &sync.Mutex{},
@@ -371,23 +369,7 @@ func (s *Service) Start(id int64) error {
 	}
 
 	ctxCancel, cancel := context.WithCancel(context.Background())
-	task.SetStrategyState(string(strategies.RUNNING))
-	s.strategy.strategyHub.PublishStateUpdate(task.StrategyTaskId(), task.StrategyState())
-
-	// switch tsk := task.(type) {
-	// case *strategies.Afk:
-	// 	go s.strategy.AfkSniping(ctxCancel, tsk)
-	// case *strategies.Buy:
-	// 	go s.strategy.Buy(ctxCancel, tsk)
-	// case *strategies.Sell:
-	// 	go s.strategy.Sell(ctxCancel, tsk)
-	// default:
-	// 	//if the task matches no type
-	// 	cancel()
-	// 	return fmt.Errorf("task doesn't belong to a strategy")
-	// }
-	//
-	err := s.newStrategy.Run(ctxCancel, task)
+	err := s.strategy.Run(ctxCancel, task)
 	if err != nil {
 		cancel()
 		return err
