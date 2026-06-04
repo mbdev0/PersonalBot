@@ -18,6 +18,8 @@ type AfkPatch struct {
 	SellStrategies *[]StrategyConfig
 	SellFee        *float64
 	RPCGroup       *rpcgroups.RPCGroup
+	Retries        *uint16
+	RetriesDelayMS *uint32
 }
 
 func (ap *AfkPatch) ApplyTo(task Task) error {
@@ -60,6 +62,14 @@ func (ap *AfkPatch) ApplyTo(task Task) error {
 
 	if ap.RPCGroup != nil {
 		afk.RPCGroup = *ap.RPCGroup
+	}
+
+	if ap.Retries != nil {
+		afk.Retries = *ap.Retries
+	}
+
+	if ap.RetriesDelayMS != nil {
+		afk.RetriesDelayMS = *ap.RetriesDelayMS
 	}
 
 	afk.SellFee = ap.SellFee
