@@ -55,6 +55,9 @@ func (s *Strategy) Run(ctx context.Context, strategyTask strategies.Task) error 
 	case *strategies.Sell:
 		sell := NewSellEngine(*s)
 		go sell.Run(ctx, tsk)
+	case *strategies.Spam:
+		spam := NewSpamEngine(*s)
+		go spam.Run(ctx, tsk)
 	default:
 		strategyTask.SetStrategyState(string(strategies.FAILED))
 		s.strategyHub.PublishStateUpdate(strategyTask.StrategyTaskId(), strategyTask.StrategyState())
