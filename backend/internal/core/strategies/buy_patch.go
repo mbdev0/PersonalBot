@@ -20,6 +20,8 @@ type BuyPatch struct {
 	SellStrategies *[]StrategyConfig
 	SellFee        *float64
 	RPCGroup       *rpcgroups.RPCGroup
+	Retries        *uint16
+	RetriesDelayMS *uint32
 }
 
 func (bp *BuyPatch) ApplyTo(task Task) error {
@@ -62,6 +64,14 @@ func (bp *BuyPatch) ApplyTo(task Task) error {
 
 	if bp.RPCGroup != nil {
 		buy.RPCGroup = *bp.RPCGroup
+	}
+
+	if bp.Retries != nil {
+		buy.Retries = *bp.Retries
+	}
+
+	if bp.RetriesDelayMS != nil {
+		buy.RetriesDelayMS = *bp.RetriesDelayMS
 	}
 
 	buy.SellFee = bp.SellFee

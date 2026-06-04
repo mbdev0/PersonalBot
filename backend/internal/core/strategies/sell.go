@@ -8,20 +8,22 @@ import (
 )
 
 type Sell struct {
-	id           int64
-	Program      string
-	strategyType TradingType
-	SellAmount   float64
-	SellFee      float64
-	Slippage     float64
-	ComputeUnits float64
-	Token        solana.PublicKey
-	Wallet       wallets.SolanaWallet
-	State        string
-	Message      string
-	SellTaskId   int64
-	TimeCreated  int64
-	RPCGroup     rpcgroups.RPCGroup
+	id             int64
+	Program        string
+	strategyType   TradingType
+	SellAmount     float64
+	SellFee        float64
+	Slippage       float64
+	ComputeUnits   float64
+	Token          solana.PublicKey
+	Wallet         wallets.SolanaWallet
+	State          string
+	Message        string
+	SellTaskId     int64
+	TimeCreated    int64
+	RPCGroup       rpcgroups.RPCGroup
+	Retries        uint16
+	RetriesDelayMS uint32
 }
 
 func (s *Sell) New() {

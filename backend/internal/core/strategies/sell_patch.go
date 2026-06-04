@@ -9,14 +9,16 @@ import (
 )
 
 type SellPatch struct {
-	Program      *string
-	SellAmount   *float64
-	SellFee      *float64
-	Slippage     *float64
-	ComputeUnits *float64
-	Token        *solana.PublicKey
-	Wallet       *wallets.SolanaWallet
-	RPCGroup     *rpcgroups.RPCGroup
+	Program        *string
+	SellAmount     *float64
+	SellFee        *float64
+	Slippage       *float64
+	ComputeUnits   *float64
+	Token          *solana.PublicKey
+	Wallet         *wallets.SolanaWallet
+	RPCGroup       *rpcgroups.RPCGroup
+	Retries        *uint16
+	RetriesDelayMS *uint32
 }
 
 func (sp *SellPatch) ApplyTo(task Task) error {
@@ -59,6 +61,14 @@ func (sp *SellPatch) ApplyTo(task Task) error {
 
 	if sp.RPCGroup != nil {
 		sell.RPCGroup = *sp.RPCGroup
+	}
+
+	if sp.Retries != nil {
+		sell.Retries = *sp.Retries
+	}
+
+	if sp.RetriesDelayMS != nil {
+		sell.RetriesDelayMS = *sp.RetriesDelayMS
 	}
 
 	return nil

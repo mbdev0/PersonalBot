@@ -26,6 +26,8 @@ type Buy struct {
 	Message        string
 	TimeCreated    int64
 	RPCGroup       rpcgroups.RPCGroup
+	Retries        uint16
+	RetriesDelayMS uint32
 }
 
 func (b *Buy) New() {
