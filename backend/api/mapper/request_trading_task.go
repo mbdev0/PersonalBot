@@ -21,6 +21,8 @@ func MapTradingTaskDtoToTradingTask(src dto.TradingTask, wallet wallets.SolanaWa
 		return mapBuyDtoToBuy(src, wallet, rpcGroup)
 	case dto.SELL:
 		return mapSellDtoToSell(src, wallet, rpcGroup)
+	case dto.SPAM:
+		return mapSpamDtoToSpam(src, wallet, rpcGroup)
 	default:
 		return nil, fmt.Errorf("task with type: %s - not found", src.Type)
 	}
@@ -49,6 +51,14 @@ func mapBuyDtoToBuy(src dto.TradingTask, wallet wallets.SolanaWallet, rpcGroup r
 	dest.TimeCreated = time.Now().Unix()
 	dest.RPCGroup = rpcGroup
 
+	if src.Retries != nil {
+		dest.Retries = *src.Retries
+	}
+
+	if src.RetriesDelayMS != nil {
+		dest.RetriesDelayMS = *src.RetriesDelayMS
+	}
+
 	return &dest, nil
 
 }
@@ -69,6 +79,14 @@ func mapAfkDtoToAfk(src dto.TradingTask, wallet wallets.SolanaWallet, rpcGroup r
 	dest.State = string(strategies.CREATED)
 	dest.TimeCreated = time.Now().Unix()
 	dest.RPCGroup = rpcGroup
+
+	if src.Retries != nil {
+		dest.Retries = *src.Retries
+	}
+
+	if src.RetriesDelayMS != nil {
+		dest.RetriesDelayMS = *src.RetriesDelayMS
+	}
 
 	return &dest, nil
 }
@@ -91,6 +109,48 @@ func mapSellDtoToSell(src dto.TradingTask, wallet wallets.SolanaWallet, rpcGroup
 		return nil, err
 	}
 	dest.RPCGroup = rpcGroup
+
+	if src.Retries != nil {
+		dest.Retries = *src.Retries
+	}
+
+	if src.RetriesDelayMS != nil {
+		dest.RetriesDelayMS = *src.RetriesDelayMS
+	}
+
+	return &dest, nil
+}
+
+func mapSpamDtoToSpam(src dto.TradingTask, wallet wallets.SolanaWallet, rpcGroup rpcgroups.RPCGroup) (dst strategies.Task, err error) {
+	dest := strategies.Spam{}
+	dest.New()
+
+	dest.Program = string(src.Program)
+	dest.BuyFee = *src.BuyFee
+	dest.ComputeUnits = float64(src.ComputeUnits)
+	dest.Slippage = src.Slippage
+	dest.BuyAmount = utils.ConvertSolToLamport(*src.BuyAmount)
+	dest.Wallet = wallet
+	dest.SellFee = src.SellFee
+	dest.State = string(strategies.CREATED)
+	dest.TimeCreated = time.Now().Unix()
+	dest.RPCGroup = rpcGroup
+
+	if src.Retries != nil {
+		dest.Retries = *src.Retries
+	}
+
+	if src.RetriesDelayMS != nil {
+		dest.RetriesDelayMS = *src.RetriesDelayMS
+	}
+
+	if src.NumberOfSubTasks != nil {
+		dest.NumberOfSubTasks = *src.NumberOfSubTasks
+	}
+
+	if src.StartTime != nil {
+		dest.StartTime = *src.StartTime
+	}
 
 	return &dest, nil
 }
