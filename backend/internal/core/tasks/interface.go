@@ -24,6 +24,8 @@ type Configurable interface {
 	SetHttpNode(rpcNode string)
 	SetWSNode(ws string)
 	SetRPCGroupId(id int64)
+	SetRetries(retries uint16)
+	SetRetriesDelayMS(retriesDelayMs uint32)
 }
 
 type ConfigurableTask interface {
