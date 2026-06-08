@@ -25,8 +25,8 @@ type Afk struct {
 	Message        string
 	TimeCreated    int64
 	RPCGroup       rpcgroups.RPCGroup
-	Retries        uint16
-	RetriesDelayMS uint32
+	Retries        *uint16
+	RetriesDelayMS *uint32
 }
 
 func (a *Afk) New() {
