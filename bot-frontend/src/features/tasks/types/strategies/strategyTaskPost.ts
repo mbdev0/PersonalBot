@@ -9,6 +9,8 @@ interface BaseStrategyTaskCreateDto {
   slippage: number;
   wallet_name: string;
   rpc_group_id: number;
+  retries?: number;
+  retry_delay_ms?: number;
 }
 
 export interface AFKStrategyTaskPostDto extends BaseStrategyTaskCreateDto {
@@ -36,10 +38,21 @@ export interface SellStrategyTaskPostDto extends BaseStrategyTaskCreateDto {
   token_address: string;
 }
 
+export interface SpamStrategyTaskPostDto extends BaseStrategyTaskCreateDto {
+  trading_type: 'SPAM';
+  buy_amount: number;
+  buy_fee: number;
+  sell_fee: number;
+  token_address: string;
+  no_of_tasks: number;
+  start_time: number;
+}
+
 export type StrategyTaskPostDto =
   | AFKStrategyTaskPostDto
   | BuyStrategyTaskPostDto
-  | SellStrategyTaskPostDto;
+  | SellStrategyTaskPostDto
+  | SpamStrategyTaskPostDto;
 
 interface BaseStrategyTaskPost {
   program: string;
@@ -48,6 +61,8 @@ interface BaseStrategyTaskPost {
   slippage: number;
   wallet_name: string;
   rpc_group_id: number;
+  retries?: number;
+  retry_delay_ms?: number;
 }
 
 export interface AFKStrategyTaskPost extends BaseStrategyTaskPost {
@@ -75,4 +90,18 @@ export interface SellStrategyTaskPost extends BaseStrategyTaskPost {
   token_address: string;
 }
 
-export type StrategyTaskPost = AFKStrategyTaskPost | BuyStrategyTaskPost | SellStrategyTaskPost;
+export interface SpamStrategyTaskPost extends BaseStrategyTaskPost {
+  trading_type: 'SPAM';
+  buy_amount: number;
+  buy_fee: number;
+  sell_fee: number;
+  token_address: string;
+  no_of_tasks: number;
+  start_time: number;
+}
+
+export type StrategyTaskPost =
+  | AFKStrategyTaskPost
+  | BuyStrategyTaskPost
+  | SellStrategyTaskPost
+  | SpamStrategyTaskPostDto;

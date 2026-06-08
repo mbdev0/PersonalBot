@@ -7,6 +7,8 @@ import type {
   BuyStrategyTaskPutDto,
   SellStrategyTaskPut,
   SellStrategyTaskPutDto,
+  SpamStrategyTaskPut,
+  SpamStrategyTaskPutDto,
 } from '../../types/strategies/strategyTaskPut';
 import { mapSellStrategyPostToDto } from './sellStrategyMapper';
 
@@ -18,51 +20,34 @@ export function mapStrategyTaskToPutDto(src: StrategyTaskPut): StrategyTaskPutDt
       return mapBuyPutToDto(src);
     case 'SELL':
       return mapSellPutToDto(src);
+    case 'SPAM':
+      return mapSpamPutToDto(src);
   }
 }
 
 function mapAFKPutToDto(src: AFKStrategyTaskPut): AFKStrategyTaskPutDto {
   return {
-    trading_type: 'AFK',
-    compute_units: src.compute_units,
-    slippage: src.slippage,
-    wallet_name: src.wallet_name,
-    buy_amount: src.buy_amount,
-    buy_fee: src.buy_fee,
-    sell_fee: src.sell_fee,
-    filters: src.filters,
+    ...src,
     sell_strategies: src.sell_strategies.map(mapSellStrategyPostToDto),
-    rpc_group_id: src.rpc_group_id,
-    program: src.program,
   };
 }
 
 function mapBuyPutToDto(src: BuyStrategyTaskPut): BuyStrategyTaskPutDto {
   return {
-    trading_type: 'BUY',
-    compute_units: src.compute_units,
-    slippage: src.slippage,
-    wallet_name: src.wallet_name,
-    buy_amount: src.buy_amount,
-    buy_fee: src.buy_fee,
+    ...src,
     sell_fee: src.sell_fee ?? 0,
-    token_address: src.token_address,
     sell_strategies: src.sell_strategies.map(mapSellStrategyPostToDto),
-    rpc_group_id: src.rpc_group_id,
-    program: src.program,
   };
 }
 
 function mapSellPutToDto(src: SellStrategyTaskPut): SellStrategyTaskPutDto {
   return {
-    trading_type: 'SELL',
-    compute_units: src.compute_units,
-    slippage: src.slippage,
-    wallet_name: src.wallet_name,
-    sell_amount: src.sell_amount,
-    sell_fee: src.sell_fee,
-    token_address: src.token_address,
-    rpc_group_id: src.rpc_group_id,
-    program: src.program,
+    ...src,
+  };
+}
+
+function mapSpamPutToDto(src: SpamStrategyTaskPut): SpamStrategyTaskPutDto {
+  return {
+    ...src,
   };
 }
