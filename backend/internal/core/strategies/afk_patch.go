@@ -65,11 +65,11 @@ func (ap *AfkPatch) ApplyTo(task Task) error {
 	}
 
 	if ap.Retries != nil {
-		afk.Retries = *ap.Retries
+		afk.Retries = ap.Retries
 	}
 
 	if ap.RetriesDelayMS != nil {
-		afk.RetriesDelayMS = *ap.RetriesDelayMS
+		afk.RetriesDelayMS = ap.RetriesDelayMS
 	}
 
 	afk.SellFee = ap.SellFee

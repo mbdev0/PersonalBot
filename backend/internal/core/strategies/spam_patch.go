@@ -59,11 +59,11 @@ func (sp *SpamPatch) ApplyTo(task Task) error {
 		spam.RPCGroup = *sp.RPCGroup
 	}
 	if sp.Retries != nil {
-		spam.Retries = *sp.Retries
+		spam.Retries = sp.Retries
 	}
 
 	if sp.RetriesDelayMS != nil {
-		spam.RetriesDelayMS = *sp.RetriesDelayMS
+		spam.RetriesDelayMS = sp.RetriesDelayMS
 	}
 	if sp.NumberOfSubTasks != nil {
 		spam.NumberOfSubTasks = *sp.NumberOfSubTasks

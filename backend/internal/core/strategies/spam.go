@@ -23,10 +23,11 @@ type Spam struct {
 	Message          string
 	TimeCreated      int64
 	RPCGroup         rpcgroups.RPCGroup
-	Retries          uint16
-	RetriesDelayMS   uint32
+	Retries          *uint16
+	RetriesDelayMS   *uint32
 	NumberOfSubTasks uint32
-	StartTime        uint64
+	//formatted as unix timestamp
+	StartTime uint64
 }
 
 func (s *Spam) New() {

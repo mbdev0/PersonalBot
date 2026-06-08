@@ -64,11 +64,11 @@ func (sp *SellPatch) ApplyTo(task Task) error {
 	}
 
 	if sp.Retries != nil {
-		sell.Retries = *sp.Retries
+		sell.Retries = sp.Retries
 	}
 
 	if sp.RetriesDelayMS != nil {
-		sell.RetriesDelayMS = *sp.RetriesDelayMS
+		sell.RetriesDelayMS = sp.RetriesDelayMS
 	}
 
 	return nil
