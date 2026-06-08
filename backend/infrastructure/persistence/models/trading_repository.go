@@ -18,6 +18,8 @@ type AfkConfig struct {
 	BuyAmount      int              `json:"buy_amount"`
 	SellFee        *int             `json:"sell_fee"`
 	SellStrategies []SellStrategies `json:"sell_strategies"`
+	Retries        *uint16          `json:"retries"`
+	RetriesDelayMs *uint32          `json:"retries_delay_ms"`
 }
 
 type BuyStrategyConfig struct {
@@ -28,13 +30,29 @@ type BuyStrategyConfig struct {
 	Token          string           `json:"token_address"`
 	BuyTaskId      int              `json:"buy_task_id"`
 	PositionId     int              `json:"position_id"`
+	Retries        *uint16          `json:"retries"`
+	RetriesDelayMs *uint32          `json:"retries_delay_ms"`
 }
 
 type SellStrategyConfig struct {
-	SellFee    int     `json:"sell_fee"`
-	SellAmount float64 `json:"sell_amount"`
-	Token      string  `json:"token_address"`
-	SellTaskId int     `json:"sell_task_id"`
+	SellFee        int     `json:"sell_fee"`
+	SellAmount     float64 `json:"sell_amount"`
+	Token          string  `json:"token_address"`
+	SellTaskId     int     `json:"sell_task_id"`
+	Retries        *uint16 `json:"retries"`
+	RetriesDelayMs *uint32 `json:"retries_delay_ms"`
+}
+
+type SpamStrategyConfig struct {
+	BuyFee         int     `json:"buy_fee"`
+	BuyAmount      int     `json:"buy_amount"`
+	SellFee        *int    `json:"sell_fee"`
+	Token          string  `json:"token_address"`
+	Retries        *uint16 `json:"retries"`
+	RetriesDelayMs *uint32 `json:"retries_delay_ms"`
+	//formatted as unix timestamp
+	StartTime        uint64 `json:"start_time"`
+	NumberOfSubTasks uint32 `json:"number_of_sub_tasks"`
 }
 
 type Filters struct {

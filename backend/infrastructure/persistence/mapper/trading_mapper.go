@@ -9,6 +9,8 @@ import (
 	"personal_bot/internal/core/wallets"
 	"personal_bot/internal/solana/monitoring/filters"
 	"personal_bot/internal/solana/utils"
+	jsonparse "personal_bot/pkg/json_parse"
+	"personal_bot/pkg/logger"
 
 	"github.com/gagliardetto/solana-go"
 )
@@ -21,6 +23,8 @@ func MapTradingTaskToRepo(task strategies.Task) (*models.TradingRow, error) {
 		return mapBuyToRepo(t)
 	case *strategies.Sell:
 		return mapSellToRepo(t)
+	case *strategies.Spam:
+		return mapSpamToRepo(t)
 	default:
 		return nil, fmt.Errorf("unknown task type")
 	}
@@ -68,6 +72,9 @@ func mapToAfkConfig(afk *strategies.Afk) (models.AfkConfig, error) {
 	}
 
 	afkConfig.SellStrategies = mapSellStratsToRepo(afk.SellStrategies)
+
+	afkConfig.Retries = afk.Retries
+	afkConfig.RetriesDelayMs = afk.RetriesDelayMS
 
 	return afkConfig, nil
 }
@@ -118,6 +125,8 @@ func mapToBuyConfig(buy *strategies.Buy) (models.BuyStrategyConfig, error) {
 
 	buyConfig.BuyTaskId = int(buy.BuyTaskId)
 	buyConfig.PositionId = int(buy.PositionId)
+	buyConfig.Retries = buy.Retries
+	buyConfig.RetriesDelayMs = buy.RetriesDelayMS
 
 	return buyConfig, nil
 }
@@ -157,7 +166,59 @@ func mapToSellConfig(t *strategies.Sell) (models.SellStrategyConfig, error) {
 	sellConfig.Token = t.Token.String()
 	sellConfig.SellTaskId = int(t.SellTaskId)
 
+	sellConfig.Retries = t.Retries
+	sellConfig.RetriesDelayMs = t.RetriesDelayMS
+
 	return sellConfig, nil
+}
+
+func mapSpamToRepo(spam *strategies.Spam) (*models.TradingRow, error) {
+	spamRow := models.TradingRow{}
+	spamRow.ComputeUnits = int(spam.ComputeUnits)
+	spamRow.Slippage = int(spam.Slippage * 100)
+	spamRow.TradingType = "SPAM"
+	spamRow.WalletId = spam.Wallet.Id
+	spamRow.Id = int(spam.StrategyTaskId())
+	spamRow.TimeCreatedUnix = spam.TimeCreated
+	spamRow.RpcGroupId = spam.RPCGroupId()
+
+	config := mapToSpamConfig(spam)
+
+	configJson, err := jsonparse.Encode(config)
+	if err != nil {
+		return nil, err
+	}
+	spamRow.Config = string(configJson)
+
+	logger.Information(spamRow)
+
+	return &spamRow, nil
+}
+
+func mapToSpamConfig(spam *strategies.Spam) models.SpamStrategyConfig {
+	config := models.SpamStrategyConfig{}
+
+	config.BuyAmount = int(spam.BuyAmount.Int64())
+	buyFee := utils.ConvertSolToLamport(spam.BuyFee)
+	config.BuyFee = int(buyFee.Int64())
+
+	config.Token = spam.Token.String()
+
+	if spam.SellFee != nil {
+		sellFee := utils.ConvertSolToLamport(*spam.SellFee)
+		sellFeeInt := int(sellFee.Int64())
+		config.SellFee = &sellFeeInt
+	}
+
+	config.NumberOfSubTasks = spam.NumberOfSubTasks
+	config.Retries = spam.Retries
+
+	config.RetriesDelayMs = spam.RetriesDelayMS
+
+	config.StartTime = spam.StartTime
+
+	return config
+
 }
 
 func mapFiltersToRepo(filters []strategies.StrategyFilter) models.Filters {
@@ -205,6 +266,8 @@ func MapRepoToTradingTask(src models.TradingRow, wallet models.WalletRepository,
 		return mapBuyRepoToTradingTask(src, wallet, rpcGroup, program)
 	case "SELL":
 		return mapSellRepoToTradingTask(src, wallet, rpcGroup, program)
+	case "SPAM":
+		return mapSpamRepoToTradingTask(src, wallet, rpcGroup, program)
 	default:
 		return nil, fmt.Errorf("unknown trading type: %s", src.TradingType)
 	}
@@ -254,6 +317,9 @@ func mapAfkRepoToTradingTask(src models.TradingRow, wallet models.WalletReposito
 	if err != nil {
 		return nil, err
 	}
+
+	afkTask.Retries = config.Retries
+	afkTask.RetriesDelayMS = config.RetriesDelayMs
 
 	return &afkTask, nil
 }
@@ -308,6 +374,9 @@ func mapBuyRepoToTradingTask(src models.TradingRow, wallet models.WalletReposito
 		return nil, err
 	}
 
+	buyTask.Retries = config.Retries
+	buyTask.RetriesDelayMS = config.RetriesDelayMs
+
 	return &buyTask, nil
 }
 
@@ -353,8 +422,66 @@ func mapSellRepoToTradingTask(src models.TradingRow, wallet models.WalletReposit
 	if err != nil {
 		return nil, err
 	}
+	sellTask.Retries = config.Retries
+	sellTask.RetriesDelayMS = config.RetriesDelayMs
 
 	return &sellTask, nil
+}
+
+func mapSpamRepoToTradingTask(src models.TradingRow, wallet models.WalletRepository, rpcGroup models.RpcGroupRepository, program models.ProgramRepository) (strategies.Task, error) {
+	spamTask := strategies.Spam{}
+	spamTask.New()
+	spamTask.SetId(int64(src.Id))
+
+	config := models.SpamStrategyConfig{}
+	err := json.Unmarshal([]byte(src.Config), &config)
+	if err != nil {
+		return nil, err
+	}
+
+	spamTask.Program = program.Program
+	spamTask.State = string(strategies.CREATED)
+	spamTask.BuyAmount = big.NewInt(int64(config.BuyAmount))
+	spamTask.BuyFee = utils.ConvertLamportToSol(big.NewInt(int64(config.BuyFee)))
+	spamTask.ComputeUnits = float64(src.ComputeUnits)
+	spamTask.Slippage = float64(src.Slippage) / 100
+	spamTask.NumberOfSubTasks = config.NumberOfSubTasks
+	spamTask.StartTime = config.StartTime
+	spamTask.Retries = config.Retries
+	spamTask.RetriesDelayMS = config.RetriesDelayMs
+
+	token, err := solana.PublicKeyFromBase58(config.Token)
+	if err != nil {
+		return nil, err
+	}
+
+	spamTask.Token = token
+
+	privateKey, err := solana.PrivateKeyFromBase58(wallet.PrivateKey)
+	if err != nil {
+		return nil, err
+	}
+
+	spamTask.Wallet = wallets.SolanaWallet{
+		Id:         wallet.Id,
+		WalletName: wallet.WalletName,
+		PrivateKey: privateKey,
+		PublicKey:  privateKey.PublicKey(),
+	}
+
+	if config.SellFee != nil {
+		sellFee := utils.ConvertLamportToSol(big.NewInt(int64(*config.SellFee)))
+		spamTask.SellFee = &sellFee
+	}
+
+	spamTask.TimeCreated = src.TimeCreatedUnix
+
+	spamTask.RPCGroup, err = MapRepositoryToRpcGroup(rpcGroup)
+	if err != nil {
+		return nil, err
+	}
+
+	return &spamTask, nil
 }
 
 func mapRepoFiltersToFilters(config models.AfkConfig) []strategies.StrategyFilter {
