@@ -52,11 +52,11 @@ func mapBuyDtoToBuy(src dto.TradingTask, wallet wallets.SolanaWallet, rpcGroup r
 	dest.RPCGroup = rpcGroup
 
 	if src.Retries != nil {
-		dest.Retries = *src.Retries
+		dest.Retries = src.Retries
 	}
 
 	if src.RetriesDelayMS != nil {
-		dest.RetriesDelayMS = *src.RetriesDelayMS
+		dest.RetriesDelayMS = src.RetriesDelayMS
 	}
 
 	return &dest, nil
@@ -81,11 +81,11 @@ func mapAfkDtoToAfk(src dto.TradingTask, wallet wallets.SolanaWallet, rpcGroup r
 	dest.RPCGroup = rpcGroup
 
 	if src.Retries != nil {
-		dest.Retries = *src.Retries
+		dest.Retries = src.Retries
 	}
 
 	if src.RetriesDelayMS != nil {
-		dest.RetriesDelayMS = *src.RetriesDelayMS
+		dest.RetriesDelayMS = src.RetriesDelayMS
 	}
 
 	return &dest, nil
@@ -111,11 +111,11 @@ func mapSellDtoToSell(src dto.TradingTask, wallet wallets.SolanaWallet, rpcGroup
 	dest.RPCGroup = rpcGroup
 
 	if src.Retries != nil {
-		dest.Retries = *src.Retries
+		dest.Retries = src.Retries
 	}
 
 	if src.RetriesDelayMS != nil {
-		dest.RetriesDelayMS = *src.RetriesDelayMS
+		dest.RetriesDelayMS = src.RetriesDelayMS
 	}
 
 	return &dest, nil
@@ -135,13 +135,17 @@ func mapSpamDtoToSpam(src dto.TradingTask, wallet wallets.SolanaWallet, rpcGroup
 	dest.State = string(strategies.CREATED)
 	dest.TimeCreated = time.Now().Unix()
 	dest.RPCGroup = rpcGroup
+	dest.Token, err = solana.PublicKeyFromBase58(*src.TokenAddress)
+	if err != nil {
+		return nil, err
+	}
 
 	if src.Retries != nil {
-		dest.Retries = *src.Retries
+		dest.Retries = src.Retries
 	}
 
 	if src.RetriesDelayMS != nil {
-		dest.RetriesDelayMS = *src.RetriesDelayMS
+		dest.RetriesDelayMS = src.RetriesDelayMS
 	}
 
 	if src.NumberOfSubTasks != nil {

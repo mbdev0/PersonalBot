@@ -17,7 +17,7 @@ const (
 
 type TradingTask struct {
 	Program      programnames.Program `json:"program" validate:"required,oneof=PumpfunNative PumpfunAMM"`
-	Type         TradingType          `json:"trading_type" validate:"required,oneof=AFK BUY SELL"`
+	Type         TradingType          `json:"trading_type" validate:"required,oneof=AFK BUY SELL SPAM"`
 	ComputeUnits float64              `json:"compute_units" validate:"required,gt=0"`
 	WalletName   string               `json:"wallet_name" validate:"required"`
 	Slippage     float64              `json:"slippage" validate:"required,gte=0,lte=1"`
@@ -30,10 +30,10 @@ type TradingTask struct {
 	SellAmount       *float64           `json:"sell_amount,omitempty" validate:"required_if=Type Sell"`
 	SellFee          *float64           `json:"sell_fee,omitempty"`
 	TokenAddress     *string            `json:"token_address,omitempty" validate:"required_if=Type SELL,required_if=Type BUY"`
-	Retries          *uint16            `json:"retries,omitempty" validate:"gte=0"`
-	RetriesDelayMS   *uint32            `json:"retry_delay_ms,omitempty" validate:"gte=0"`
-	NumberOfSubTasks *uint32            `json:"no_of_tasks,omitempty" validate:"gte=0 required_if=Type SPAM"`
-	StartTime        *uint64            `json:"start_time,omitempty" validate:"gte=0 require_if=Type SPAM"`
+	Retries          *uint16            `json:"retries,omitempty" validate:"omitnil,gte=0"`
+	RetriesDelayMS   *uint32            `json:"retry_delay_ms,omitempty" validate:"omitnil,gte=0"`
+	NumberOfSubTasks *uint32            `json:"no_of_tasks,omitempty" validate:"omitnil,gte=0,required_if=Type SPAM"`
+	StartTime        *uint64            `json:"start_time,omitempty" validate:"omitnil,gte=0,required_if=Type SPAM"`
 }
 
 func (t *TradingTask) Validate() error {

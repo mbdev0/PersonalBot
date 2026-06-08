@@ -35,6 +35,14 @@ func WithProgram(program string) Option {
 	return func(t Configurable) { t.SetProgram(program) }
 }
 
+func WithRetries(retries uint16) Option {
+	return func(t Configurable) { t.SetRetries(retries) }
+}
+
+func WithRetriesDelayMs(retriesDelayMs uint32) Option {
+	return func(t Configurable) { t.SetRetriesDelayMS(retriesDelayMs) }
+}
+
 type BuyOption func(*BuyTask)
 
 func WithBuyAmount(amnt *big.Int) BuyOption {

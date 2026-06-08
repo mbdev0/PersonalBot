@@ -18,6 +18,8 @@ func MapTradingTaskToDto(src strategies.Task) (dest *dto.TradingTaskResponse, er
 		return mapBuyToBuyResponse(t)
 	case *strategies.Sell:
 		return mapSellToSellResponse(t)
+	case *strategies.Spam:
+		return mapSpamToSpamResponse(t)
 	default:
 		return nil, fmt.Errorf("task not found with type - make sure the type is created/mapping is created")
 	}
@@ -49,6 +51,35 @@ func mapBuyToBuyResponse(src *strategies.Buy) (dest *dto.TradingTaskResponse, er
 	dst.RPCGroupID = src.RPCGroupId()
 
 	return &dst, nil
+}
+
+func mapSpamToSpamResponse(src *strategies.Spam) (dest *dto.TradingTaskResponse, err error) {
+	dst := dto.TradingTaskResponse{}
+	dst.Program = src.GetProgram()
+	dst.Type = dto.TradingType(src.StrategyType())
+	dst.Id = src.StrategyTaskId()
+	buyAmount := utils.ConvertLamportToSol(src.BuyAmount)
+	dst.BuyAmount = &buyAmount
+	dst.BuyFee = &src.BuyFee
+	dst.ComputeUnits = src.ComputeUnits
+	dst.Slippage = src.Slippage
+	dst.SellFee = src.SellFee
+	dst.WalletName = src.Wallet.WalletName
+	dst.WalletAddress = src.Wallet.PublicKey.Short(constants.ShortPublicAddressInt)
+	dst.State = string(src.State)
+	tokenAddress := src.Token.String()
+	dst.TokenAddress = &tokenAddress
+	dst.TimeCreated = src.TimeCreated
+	dst.Message = src.Message
+	dst.RPCGroup = src.RPCGroup.Name
+	dst.RPCGroupID = src.RPCGroupId()
+	dst.Retries = src.Retries
+	dst.RetriesDelayMS = src.RetriesDelayMS
+	dst.NumberOfSubTasks = &src.NumberOfSubTasks
+	dst.StartTime = &src.StartTime
+
+	return &dst, nil
+
 }
 
 func mapAfkToAfkResponse(src *strategies.Afk) (dest *dto.TradingTaskResponse, err error) {
