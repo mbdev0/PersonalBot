@@ -12,26 +12,28 @@ import (
 )
 
 type BuyTask struct {
-	program       string
-	taskType      string
-	id            int64
-	WalletName    string
-	Wallet        solana.PrivateKey `validate:"required"`
-	WalletId      string
-	Token         solana.PublicKey `validate:"required"`
-	BuyAmount     *big.Int         `validate:"required,gtZero"`
-	Fee           float64          `validate:"required,gt=0"`
-	Slippage      float64          `validate:"required,gt=0,lt=1"` // Slippage percentage (0.0 to 1.0)
-	ComputeUnits  uint32           `validate:"required,min=1"`
-	StrategyId    *int64
-	TimeCreated   int64
-	state         State
-	message       string
-	mu            *sync.RWMutex
-	rpcGroupId    int64
-	rpcNode       *rpc.Client
-	rpcNodeString string
-	ws            string
+	program        string
+	taskType       string
+	id             int64
+	WalletName     string
+	Wallet         solana.PrivateKey `validate:"required"`
+	WalletId       string
+	Token          solana.PublicKey `validate:"required"`
+	BuyAmount      *big.Int         `validate:"required,gtZero"`
+	Fee            float64          `validate:"required,gt=0"`
+	Slippage       float64          `validate:"required,gt=0,lt=1"` // Slippage percentage (0.0 to 1.0)
+	ComputeUnits   uint32           `validate:"required,min=1"`
+	StrategyId     *int64
+	TimeCreated    int64
+	state          State
+	message        string
+	mu             *sync.RWMutex
+	rpcGroupId     int64
+	rpcNode        *rpc.Client
+	rpcNodeString  string
+	ws             string
+	retries        uint16
+	retriesDelayMs uint32
 }
 
 func NewBuyTask(wallet wallets.SolanaWallet, token solana.PublicKey, common []Option, buyOpts []BuyOption) *BuyTask {
@@ -122,4 +124,12 @@ func (bt *BuyTask) GetRPCGroupId() int64 {
 }
 func (bt *BuyTask) SetRPCGroupId(id int64) {
 	bt.rpcGroupId = id
+}
+
+func (bt *BuyTask) SetRetries(retries uint16) {
+	bt.retries = retries
+}
+
+func (bt *BuyTask) SetRetriesDelayMS(retriesDelayMs uint32) {
+	bt.retriesDelayMs = retriesDelayMs
 }

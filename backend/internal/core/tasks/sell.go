@@ -30,6 +30,8 @@ type SellTask struct {
 	rpcNodeString  string
 	ws             string
 	rpcGroupId     int64
+	retries        uint16
+	retriesDelayMs uint32
 }
 
 func NewSellTask(wallet wallets.SolanaWallet, token solana.PublicKey, common []Option, sellOpt []SellOption) *SellTask {
@@ -123,4 +125,12 @@ func (st *SellTask) GetRPCGroupId() int64 {
 }
 func (st *SellTask) SetRPCGroupId(id int64) {
 	st.rpcGroupId = id
+}
+
+func (st *SellTask) SetRetries(retries uint16) {
+	st.retries = retries
+}
+
+func (st *SellTask) SetRetriesDelayMS(retriesDelayMs uint32) {
+	st.retriesDelayMs = retriesDelayMs
 }

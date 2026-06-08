@@ -9,13 +9,15 @@ import (
 )
 
 type BuyPatch struct {
-	Program     *string
-	Wallet      *wallets.SolanaWallet
-	Token       *solana.PublicKey
-	Amount      *big.Int
-	Fee         *float64
-	Slippage    *float64
-	ComputeUnit *uint32
+	Program        *string
+	Wallet         *wallets.SolanaWallet
+	Token          *solana.PublicKey
+	Amount         *big.Int
+	Fee            *float64
+	Slippage       *float64
+	ComputeUnit    *uint32
+	Retries        *uint16
+	RetriesDelayMs *uint32
 }
 
 func (p *BuyPatch) ApplyTo(t Task) error {
@@ -51,5 +53,14 @@ func (p *BuyPatch) ApplyTo(t Task) error {
 	if p.ComputeUnit != nil {
 		bt.ComputeUnits = *p.ComputeUnit
 	}
+
+	if p.Retries != nil {
+		bt.retries = *p.Retries
+	}
+
+	if p.RetriesDelayMs != nil {
+		bt.retriesDelayMs = *p.RetriesDelayMs
+	}
+
 	return nil
 }

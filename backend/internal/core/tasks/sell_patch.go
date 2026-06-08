@@ -8,13 +8,15 @@ import (
 )
 
 type SellPatch struct {
-	Program     *string
-	Wallet      *wallets.SolanaWallet
-	Token       *solana.PublicKey
-	Amount      *float64
-	Fee         *float64
-	Slippage    *float64
-	ComputeUnit *uint32
+	Program        *string
+	Wallet         *wallets.SolanaWallet
+	Token          *solana.PublicKey
+	Amount         *float64
+	Fee            *float64
+	Slippage       *float64
+	ComputeUnit    *uint32
+	Retries        *uint16
+	RetriesDelayMs *uint32
 }
 
 func (p *SellPatch) ApplyTo(t Task) error {
@@ -50,6 +52,15 @@ func (p *SellPatch) ApplyTo(t Task) error {
 	if p.ComputeUnit != nil {
 		st.ComputeUnits = *p.ComputeUnit
 	}
+
+	if p.Retries != nil {
+		st.retries = *p.Retries
+	}
+
+	if p.RetriesDelayMs != nil {
+		st.retriesDelayMs = *p.RetriesDelayMs
+	}
+
 	return nil
 
 }
