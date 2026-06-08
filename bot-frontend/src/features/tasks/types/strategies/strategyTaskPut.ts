@@ -9,6 +9,8 @@ interface BaseStrategyTaskPutDto {
   wallet_name: string;
   rpc_group_id: number;
   program: string;
+  retries?: number;
+  retry_delay_ms?: number;
 }
 
 export interface AFKStrategyTaskPutDto extends BaseStrategyTaskPutDto {
@@ -36,10 +38,21 @@ export interface SellStrategyTaskPutDto extends BaseStrategyTaskPutDto {
   token_address: string;
 }
 
+export interface SpamStrategyTaskPutDto extends BaseStrategyTaskPutDto {
+  trading_type: 'SPAM';
+  buy_amount: number;
+  buy_fee: number;
+  sell_fee: number;
+  token_address: string;
+  no_of_tasks: number;
+  start_time: number;
+}
+
 export type StrategyTaskPutDto =
   | AFKStrategyTaskPutDto
   | BuyStrategyTaskPutDto
-  | SellStrategyTaskPutDto;
+  | SellStrategyTaskPutDto
+  | SpamStrategyTaskPutDto;
 
 interface BaseStrategyTaskPut {
   id: number;
@@ -49,6 +62,8 @@ interface BaseStrategyTaskPut {
   wallet_name: string;
   rpc_group_id: number;
   program: string;
+  retries?: number;
+  retry_delay_ms?: number;
 }
 
 export interface AFKStrategyTaskPut extends BaseStrategyTaskPut {
@@ -76,4 +91,18 @@ export interface SellStrategyTaskPut extends BaseStrategyTaskPut {
   token_address: string;
 }
 
-export type StrategyTaskPut = AFKStrategyTaskPut | BuyStrategyTaskPut | SellStrategyTaskPut;
+export interface SpamStrategyTaskPut extends BaseStrategyTaskPut {
+  trading_type: 'SPAM';
+  buy_amount: number;
+  buy_fee: number;
+  sell_fee: number;
+  token_address: string;
+  no_of_tasks: number;
+  start_time: number;
+}
+
+export type StrategyTaskPut =
+  | AFKStrategyTaskPut
+  | BuyStrategyTaskPut
+  | SellStrategyTaskPut
+  | SpamStrategyTaskPut;

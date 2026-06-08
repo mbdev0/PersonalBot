@@ -11,6 +11,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { PROGRAMS } from '../types/programs';
+import { SpamTaskEntry } from './forms/spamTaskEntry';
 
 interface TaskEntryProps {
   onClose: () => void;
@@ -33,6 +34,7 @@ export function TaskEntry({ onClose }: TaskEntryProps) {
               <SelectItem value="Buy">Buy</SelectItem>
               <SelectItem value="Sell">Sell</SelectItem>
               <SelectItem value="AFK">AFK</SelectItem>
+              <SelectItem value="Spam">Spam</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -55,6 +57,7 @@ export function TaskEntry({ onClose }: TaskEntryProps) {
       {taskType === 'Buy' && <BuyTaskEntry onClose={onClose} program={program} />}
       {taskType === 'Sell' && <SellTaskEntry onClose={onClose} program={program} />}
       {taskType === 'AFK' && <AFKTaskEntry onClose={onClose} program={program} />}
+      {taskType === 'Spam' && <SpamTaskEntry onClose={onClose} program={program} />}
     </div>
   );
 }

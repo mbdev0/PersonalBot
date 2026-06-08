@@ -1,7 +1,7 @@
 import type { Filters } from '../filters';
 import type { SellStrategyDto } from '../sellStrategies';
 
-export type TradingType = 'AFK' | 'BUY' | 'SELL';
+export type TradingType = 'AFK' | 'BUY' | 'SELL' | 'SPAM';
 
 interface BaseStrategyTaskDto {
   trading_type: TradingType;
@@ -13,6 +13,8 @@ interface BaseStrategyTaskDto {
   rpc_group: string;
   rpc_group_id: number;
   program: string;
+  retries: number;
+  retry_delay_ms: number;
 }
 
 export interface AFKStrategyTaskDto extends BaseStrategyTaskDto {
@@ -43,7 +45,21 @@ export interface SellStrategyTaskDto extends BaseStrategyTaskDto {
   sell_task_id: number;
 }
 
-export type StrategyTaskDto = AFKStrategyTaskDto | BuyStrategyTaskDto | SellStrategyTaskDto;
+export interface SpamStrategyTaskDto extends BaseStrategyTaskDto {
+  trading_type: 'SPAM';
+  buy_amount: number;
+  buy_fee: number;
+  sell_fee: number;
+  token_address: string;
+  no_of_tasks: number;
+  start_time: number;
+}
+
+export type StrategyTaskDto =
+  | AFKStrategyTaskDto
+  | BuyStrategyTaskDto
+  | SellStrategyTaskDto
+  | SpamStrategyTaskDto;
 
 interface BaseStrategyTask {
   trading_type: TradingType;
@@ -55,6 +71,8 @@ interface BaseStrategyTask {
   rpc_group: string;
   rpc_group_id: number;
   program: string;
+  retries: number;
+  retry_delay_ms: number;
 }
 
 export interface AFKStrategyTask extends BaseStrategyTask {
@@ -85,7 +103,17 @@ export interface SellStrategyTask extends BaseStrategyTask {
   sell_task_id: number;
 }
 
-export type StrategyTask = AFKStrategyTask | BuyStrategyTask | SellStrategyTask;
+export interface SpamStrategyTask extends BaseStrategyTask {
+  trading_type: 'SPAM';
+  buy_amount: number;
+  buy_fee: number;
+  sell_fee: number;
+  token_address: string;
+  no_of_tasks: number;
+  start_time: number;
+}
+
+export type StrategyTask = AFKStrategyTask | BuyStrategyTask | SellStrategyTask | SpamStrategyTask;
 
 export enum StrategyTaskState {
   create = 'CREATED',
