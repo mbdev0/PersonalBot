@@ -7,6 +7,7 @@ import (
 	"personal_bot/infrastructure/persistence/mapper"
 	"personal_bot/infrastructure/persistence/models"
 	"personal_bot/internal/core/strategies"
+	"personal_bot/pkg/logger"
 )
 
 type TradingRepository struct {
@@ -103,6 +104,7 @@ func (tr *TradingRepository) AddAllTasks(ctx context.Context, tasks []strategies
 	for _, t := range tasks {
 		mappedTask, err := mapper.MapTradingTaskToRepo(t)
 		if err != nil {
+			logger.Error(err)
 			return false, fmt.Errorf("failed to map task: %d", t.StrategyTaskId())
 		}
 
@@ -110,6 +112,7 @@ func (tr *TradingRepository) AddAllTasks(ctx context.Context, tasks []strategies
 			mappedTask.Id, mappedTask.TradingType, mappedTask.WalletId, mappedTask.Slippage, mappedTask.ComputeUnits,
 			mappedTask.Config, mappedTask.TimeCreatedUnix, mappedTask.RpcGroupId, t.GetProgram())
 		if err != nil {
+			logger.Error(err)
 			return false, fmt.Errorf("error whilst executing data for task id: %d, error: %w", t.StrategyTaskId(), err)
 		}
 	}
