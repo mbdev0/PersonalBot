@@ -2,11 +2,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
 export interface StartTimeProps {
+  isStartTimeEnabled: boolean;
   startTime: Date;
   onStartTimeChange: (date: Date) => void;
 }
 
-export function StartTime({ startTime, onStartTimeChange }: StartTimeProps) {
+export function StartTime({ startTime, onStartTimeChange, isStartTimeEnabled }: StartTimeProps) {
   return (
     <div className="flex flex-col">
       <Label>Start Time</Label>
@@ -15,6 +16,7 @@ export function StartTime({ startTime, onStartTimeChange }: StartTimeProps) {
       <div className="mt-auto">
         <Input
           type="time"
+          disabled={isStartTimeEnabled}
           id="time-picker-optional"
           value={startTime.toTimeString().slice(0, 8)}
           step="1"
