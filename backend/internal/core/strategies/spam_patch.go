@@ -43,6 +43,10 @@ func (sp *SpamPatch) ApplyTo(task Task) error {
 		spam.BuyFee = *sp.BuyFee
 	}
 
+	if sp.Slippage != nil {
+		spam.Slippage = *sp.Slippage
+	}
+
 	if sp.ComputeUnits != nil {
 		spam.ComputeUnits = *sp.ComputeUnits
 	}
@@ -58,13 +62,10 @@ func (sp *SpamPatch) ApplyTo(task Task) error {
 	if sp.RPCGroup != nil {
 		spam.RPCGroup = *sp.RPCGroup
 	}
-	if sp.Retries != nil {
-		spam.Retries = sp.Retries
-	}
 
-	if sp.RetriesDelayMS != nil {
-		spam.RetriesDelayMS = sp.RetriesDelayMS
-	}
+	spam.Retries = sp.Retries
+	spam.RetriesDelayMS = sp.RetriesDelayMS
+
 	if sp.NumberOfSubTasks != nil {
 		spam.NumberOfSubTasks = *sp.NumberOfSubTasks
 	}
