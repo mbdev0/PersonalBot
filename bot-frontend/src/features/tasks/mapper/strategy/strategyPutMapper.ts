@@ -26,28 +26,29 @@ export function mapStrategyTaskToPutDto(src: StrategyTaskPut): StrategyTaskPutDt
 }
 
 function mapAFKPutToDto(src: AFKStrategyTaskPut): AFKStrategyTaskPutDto {
-  return {
-    ...src,
-    sell_strategies: src.sell_strategies.map(mapSellStrategyPostToDto),
-  };
-}
-
-function mapBuyPutToDto(src: BuyStrategyTaskPut): BuyStrategyTaskPutDto {
-  return {
-    ...src,
-    sell_fee: src.sell_fee ?? 0,
-    sell_strategies: src.sell_strategies.map(mapSellStrategyPostToDto),
-  };
+  const { id, ...rest } = src;
+  void id;
+  return { ...rest, sell_strategies: rest.sell_strategies.map(mapSellStrategyPostToDto) };
 }
 
 function mapSellPutToDto(src: SellStrategyTaskPut): SellStrategyTaskPutDto {
-  return {
-    ...src,
-  };
+  const { id, ...rest } = src;
+  void id;
+  return { ...rest };
 }
 
 function mapSpamPutToDto(src: SpamStrategyTaskPut): SpamStrategyTaskPutDto {
+  const { id, ...rest } = src;
+  void id;
+  return { ...rest };
+}
+
+function mapBuyPutToDto(src: BuyStrategyTaskPut): BuyStrategyTaskPutDto {
+  const { id, ...rest } = src;
+  void id;
   return {
-    ...src,
+    ...rest,
+    sell_fee: rest.sell_fee ?? 0,
+    sell_strategies: rest.sell_strategies.map(mapSellStrategyPostToDto),
   };
 }
