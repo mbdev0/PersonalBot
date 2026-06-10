@@ -12,6 +12,7 @@ import { TaskRowType, type DisplayRow } from '../types/tableRows';
 import { AFKTaskEdit } from './forms/afkTaskEdit';
 import { useState } from 'react';
 import { PROGRAMS } from '../types/programs';
+import { SpamTaskEdit } from './forms/spamTaskEdit';
 
 interface TaskUpdateProps {
   row: DisplayRow;
@@ -35,6 +36,7 @@ export function TaskUpdate({ row, onClose }: TaskUpdateProps) {
               <SelectItem value="BUY">Buy</SelectItem>
               <SelectItem value="SELL">Sell</SelectItem>
               <SelectItem value="AFK">AFK</SelectItem>
+              <SelectItem value="SPAM">Spam</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -63,6 +65,10 @@ export function TaskUpdate({ row, onClose }: TaskUpdateProps) {
 
       {row.type === TaskRowType.Strategy && row.data.trading_type === 'AFK' && (
         <AFKTaskEdit task={row.data} onClose={onClose} program={program}></AFKTaskEdit>
+      )}
+
+      {row.type === TaskRowType.Strategy && row.data.trading_type === 'SPAM' && (
+        <SpamTaskEdit task={row.data} onClose={onClose} program={program} />
       )}
     </div>
   );
