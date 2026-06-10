@@ -71,8 +71,8 @@ interface BaseStrategyTask {
   rpc_group: string;
   rpc_group_id: number;
   program: string;
-  retries: number;
-  retry_delay_ms: number;
+  retries?: number;
+  retry_delay_ms?: number;
 }
 
 export interface AFKStrategyTask extends BaseStrategyTask {
