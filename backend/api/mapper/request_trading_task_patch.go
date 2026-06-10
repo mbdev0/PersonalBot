@@ -27,6 +27,8 @@ func MapTradingTaskPatchDtoToTradingTaskPatch(src dto.TradingTaskPatch, tskType 
 		return createBuyPatch(src, wallet, rpcGroup)
 	case dto.SELL:
 		return createSellPatch(src, wallet, rpcGroup)
+	case dto.SPAM:
+		return createSpamPatch(src, wallet, rpcGroup)
 	default:
 		return nil, fmt.Errorf("task type hasn't been set up for the type: %s", taskType)
 	}
@@ -169,6 +171,41 @@ func createSellPatch(src dto.TradingTaskPatch, wallet *wallets.SolanaWallet, rpc
 		}
 		respPatch.Token = token.ToPointer()
 	}
+
+	return &respPatch, nil
+}
+
+func createSpamPatch(src dto.TradingTaskPatch, wallet *wallets.SolanaWallet, rpcGroup *rpcgroups.RPCGroup) (strategies.Patch, error) {
+	respPatch := strategies.SpamPatch{}
+
+	if src.BuyAmount != nil {
+		respPatch.BuyAmount = utils.ConvertSolToLamport(*src.BuyAmount)
+	}
+
+	respPatch.BuyFee = src.BuyFee
+	respPatch.ComputeUnits = src.ComputeUnits
+	respPatch.NumberOfSubTasks = src.NumberOfSubTasks
+
+	if src.Program != nil {
+		respPatch.Program = (*string)(src.Program)
+	}
+
+	respPatch.RPCGroup = rpcGroup
+	respPatch.Retries = src.Retries
+	respPatch.RetriesDelayMS = src.RetriesDelayMS
+	respPatch.SellFee = src.SellFee
+	respPatch.Slippage = src.Slippage
+	respPatch.StartTime = src.StartTime
+
+	if src.TokenAddress != nil {
+		token, err := solana.PublicKeyFromBase58(*src.TokenAddress)
+		if err != nil {
+			return nil, err
+		}
+		respPatch.Token = token.ToPointer()
+	}
+
+	respPatch.Wallet = wallet
 
 	return &respPatch, nil
 }
