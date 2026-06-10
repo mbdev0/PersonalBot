@@ -8,6 +8,7 @@ import (
 	"personal_bot/internal/services/position"
 	subscriptionhub "personal_bot/internal/services/subscription_hub"
 	"personal_bot/internal/solana/transaction"
+	"time"
 )
 
 type Executor struct {
@@ -39,6 +40,12 @@ func (e *Executor) GetImplementation(ctx context.Context, task tasks.Task) (tran
 func (e *Executor) Execute(ctx context.Context, done chan struct{}, tx transaction.Transaction, task tasks.Task) {
 	defer close(done)
 
+	retries := uint16(0)
+	t, isRetryable := task.(tasks.RetryableTask)
+	if isRetryable {
+		retries = t.Retries()
+	}
+
 	for {
 		state, ok := e.steps[task.State().TaskState]
 
@@ -57,6 +64,12 @@ func (e *Executor) Execute(ctx context.Context, done chan struct{}, tx transacti
 			if ctx.Err() != nil {
 				e.setStateAndPublish(tasks.TaskCancel, task)
 			} else {
+				if isRetryable && retries > 0 {
+					retries--
+					time.Sleep(time.Duration(t.RetriesDelayMS()) * time.Millisecond)
+					e.setStateAndPublish(t.RetryFrom(), task)
+					continue
+				}
 				e.setStateAndPublish(state.OnError, task, err.Error())
 			}
 			return

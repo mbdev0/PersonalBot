@@ -32,3 +32,10 @@ type ConfigurableTask interface {
 	Task
 	Configurable
 }
+
+type RetryableTask interface {
+	Task
+	Retries() uint16
+	RetriesDelayMS() uint32
+	RetryFrom() TaskState
+}

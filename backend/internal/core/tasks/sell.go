@@ -134,3 +134,9 @@ func (st *SellTask) SetRetries(retries uint16) {
 func (st *SellTask) SetRetriesDelayMS(retriesDelayMs uint32) {
 	st.retriesDelayMs = retriesDelayMs
 }
+
+func (st *SellTask) Retries() uint16 { return st.retries }
+
+func (st *SellTask) RetriesDelayMS() uint32 { return st.retriesDelayMs }
+
+func (st *SellTask) RetryFrom() TaskState { return TxInstructionBuild }
