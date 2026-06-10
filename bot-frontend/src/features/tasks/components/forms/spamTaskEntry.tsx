@@ -69,9 +69,11 @@ function SpamTaskEntryForm({ program, onClose, wallets, rpcGroups }: SpamTaskEnt
   const [retriesDelayMs, setRetriesDelayMs] = useState<number>(0);
   const [startTime, setStartTime] = useState<Date>(() => {
     const date = new Date();
-    date.setMinutes(date.getMinutes() + 10);
+    date.setHours(date.getHours() + 1);
+    date.setSeconds(0);
     return date;
   });
+  const [startTimeEnabled, setStartTimeEnabled] = useState(false);
 
   const [numberOfTasks, setNumberOfTasks] = useState(1);
 
@@ -91,14 +93,18 @@ function SpamTaskEntryForm({ program, onClose, wallets, rpcGroups }: SpamTaskEnt
       sell_fee: sellFee,
       compute_units: computeUnits,
       slippage: slippage / 100,
-      start_time: startTime.valueOf(),
       wallet_name: wallet.wallet_name,
       rpc_group_id: rpcGroup.id,
+      start_time: 0,
     };
 
     if (retriesEnabled) {
       payload.retries = retries;
       payload.retry_delay_ms = retriesDelayMs;
+    }
+
+    if (startTimeEnabled) {
+      payload.start_time = startTime.valueOf();
     }
 
     postMutation.mutate(payload, { onSuccess: onClose });
@@ -153,7 +159,19 @@ function SpamTaskEntryForm({ program, onClose, wallets, rpcGroups }: SpamTaskEnt
             />
           </div>
 
-          <StartTime startTime={startTime} onStartTimeChange={setStartTime} />
+          <div className="flex gap-2">
+            <div className="flex flex-col">
+              <Label>Schedule Task?</Label>
+              <div className="flex flex-1 items-center justify-center">
+                <Switch checked={startTimeEnabled} onCheckedChange={setStartTimeEnabled} />
+              </div>
+            </div>
+            <StartTime
+              isStartTimeEnabled={!startTimeEnabled}
+              startTime={startTime}
+              onStartTimeChange={setStartTime}
+            />
+          </div>
           <NumberOfTasksEntry numberOfTasks={numberOfTasks} onChange={setNumberOfTasks} />
         </Card>
       </div>
