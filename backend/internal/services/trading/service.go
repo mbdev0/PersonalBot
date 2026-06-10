@@ -261,7 +261,8 @@ func (s *Service) Update(task strategies.Task, patch strategies.Patch) (strategi
 		return nil, err
 	}
 
-	if task.StrategyType() == strategies.BUY {
+	//any tasks that are precreated, we must update
+	if task.StrategyType() == strategies.BUY || task.StrategyType() == strategies.SPAM {
 		err = s.updateBuyTask(task.StrategyTaskId(), patch)
 	} else if task.StrategyType() == strategies.SELL {
 		err = s.updateSellTask(task.StrategyTaskId(), patch)
@@ -295,13 +296,15 @@ func (s *Service) updateBuyTask(tradingTaskId int64, patch strategies.Patch) err
 	}
 
 	taskPatch := tasks.BuyPatch{
-		Program:     buyPatch.Program,
-		Wallet:      buyPatch.Wallet,
-		Token:       buyPatch.Token,
-		Amount:      buyPatch.BuyAmount,
-		Fee:         buyPatch.BuyFee,
-		Slippage:    buyPatch.Slippage,
-		ComputeUnit: cuPtr,
+		Program:        buyPatch.Program,
+		Wallet:         buyPatch.Wallet,
+		Token:          buyPatch.Token,
+		Amount:         buyPatch.BuyAmount,
+		Fee:            buyPatch.BuyFee,
+		Slippage:       buyPatch.Slippage,
+		ComputeUnit:    cuPtr,
+		Retries:        buyPatch.Retries,
+		RetriesDelayMs: buyPatch.RetriesDelayMS,
 	}
 
 	_, err := s.taskService.UpdateTask(allTasks[0], &taskPatch)
@@ -332,13 +335,15 @@ func (s *Service) updateSellTask(tradingTaskId int64, patch strategies.Patch) er
 	}
 
 	taskPatch := tasks.SellPatch{
-		Program:     sellPatch.Program,
-		Wallet:      sellPatch.Wallet,
-		Token:       sellPatch.Token,
-		Amount:      sellPatch.SellAmount,
-		Fee:         sellPatch.SellFee,
-		Slippage:    sellPatch.Slippage,
-		ComputeUnit: cuPtr,
+		Program:        sellPatch.Program,
+		Wallet:         sellPatch.Wallet,
+		Token:          sellPatch.Token,
+		Amount:         sellPatch.SellAmount,
+		Fee:            sellPatch.SellFee,
+		Slippage:       sellPatch.Slippage,
+		ComputeUnit:    cuPtr,
+		Retries:        sellPatch.Retries,
+		RetriesDelayMs: sellPatch.RetriesDelayMS,
 	}
 
 	_, err := s.taskService.UpdateTask(allTasks[0], &taskPatch)
