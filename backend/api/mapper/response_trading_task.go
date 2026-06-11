@@ -49,6 +49,7 @@ func mapBuyToBuyResponse(src *strategies.Buy) (dest *dto.TradingTaskResponse, er
 	dst.Message = src.Message
 	dst.RPCGroup = src.RPCGroup.Name
 	dst.RPCGroupID = src.RPCGroupId()
+
 	dst.Retries = src.Retries
 	dst.RetriesDelayMS = src.RetriesDelayMS
 

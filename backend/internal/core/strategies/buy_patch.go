@@ -66,13 +66,9 @@ func (bp *BuyPatch) ApplyTo(task Task) error {
 		buy.RPCGroup = *bp.RPCGroup
 	}
 
-	if bp.Retries != nil {
-		buy.Retries = bp.Retries
-	}
+	buy.Retries = bp.Retries
 
-	if bp.RetriesDelayMS != nil {
-		buy.RetriesDelayMS = bp.RetriesDelayMS
-	}
+	buy.RetriesDelayMS = bp.RetriesDelayMS
 
 	buy.SellFee = bp.SellFee
 

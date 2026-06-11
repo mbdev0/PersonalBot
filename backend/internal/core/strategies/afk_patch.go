@@ -64,13 +64,8 @@ func (ap *AfkPatch) ApplyTo(task Task) error {
 		afk.RPCGroup = *ap.RPCGroup
 	}
 
-	if ap.Retries != nil {
-		afk.Retries = ap.Retries
-	}
-
-	if ap.RetriesDelayMS != nil {
-		afk.RetriesDelayMS = ap.RetriesDelayMS
-	}
+	afk.Retries = ap.Retries
+	afk.RetriesDelayMS = ap.RetriesDelayMS
 
 	afk.SellFee = ap.SellFee
 
