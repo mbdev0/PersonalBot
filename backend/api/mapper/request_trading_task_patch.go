@@ -79,6 +79,9 @@ func createAfkPatch(src dto.TradingTaskPatch, wallet *wallets.SolanaWallet, rpcG
 		respPatch.SellStrategies = &strats
 	}
 
+	respPatch.Retries = src.Retries
+	respPatch.RetriesDelayMS = src.RetriesDelayMS
+
 	return &respPatch, nil
 }
 
@@ -129,6 +132,9 @@ func createBuyPatch(src dto.TradingTaskPatch, wallet *wallets.SolanaWallet, rpcG
 		respPatch.Token = token.ToPointer()
 	}
 
+	respPatch.Retries = src.Retries
+	respPatch.RetriesDelayMS = src.RetriesDelayMS
+
 	return &respPatch, nil
 }
 
@@ -171,6 +177,9 @@ func createSellPatch(src dto.TradingTaskPatch, wallet *wallets.SolanaWallet, rpc
 		}
 		respPatch.Token = token.ToPointer()
 	}
+
+	respPatch.Retries = src.Retries
+	respPatch.RetriesDelayMS = src.RetriesDelayMS
 
 	return &respPatch, nil
 }

@@ -63,13 +63,8 @@ func (sp *SellPatch) ApplyTo(task Task) error {
 		sell.RPCGroup = *sp.RPCGroup
 	}
 
-	if sp.Retries != nil {
-		sell.Retries = sp.Retries
-	}
-
-	if sp.RetriesDelayMS != nil {
-		sell.RetriesDelayMS = sp.RetriesDelayMS
-	}
+	sell.Retries = sp.Retries
+	sell.RetriesDelayMS = sp.RetriesDelayMS
 
 	return nil
 
