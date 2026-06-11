@@ -95,6 +95,7 @@ function BuyEditForm({ task, onClose, wallets, rpcGroups, program }: BuyEditForm
       taskBody.retry_delay_ms = retriesDelayMs;
     }
 
+    console.log(taskBody);
     putMutation.mutate(taskBody, { onSuccess: onClose });
   };
 
