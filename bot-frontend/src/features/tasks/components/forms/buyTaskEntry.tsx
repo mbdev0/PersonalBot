@@ -23,6 +23,8 @@ import { SellStrategies } from './fields/sellStrategies/sellStrategies';
 import type { RPCGroupDashboardRow } from '@/features/rpc-groups/types/rpcGroup';
 import { RPCGroupSelector } from './fields/rpcGroupSelector';
 import { FormDataLoader } from './fields/formDataLoader';
+import { Switch } from '@/components/ui/switch';
+import { RetryEntry } from './fields/retries';
 
 interface BuyTaskEntryProps {
   program: string;
@@ -59,6 +61,9 @@ function BuyTaskForm({ onClose, wallets, rpcGroups, program }: BuyTaskFormProps)
   const [selectedWallet, setSelectedWallet] = useState<Wallet | null>(null);
   const [selectedRpcGroup, setSelectedRpcGroup] = useState<RPCGroupDashboardRow | null>(null);
   const [sellStrategies, setSellStrategies] = useState<SellStrategy[]>([]);
+  const [retriesEnabled, setRetriesFunctionality] = useState(false);
+  const [retries, setRetries] = useState<number>(0);
+  const [retriesDelayMs, setRetriesDelayMs] = useState<number>(0);
 
   const wallet = selectedWallet ?? wallets[0];
   const rpcGroup = selectedRpcGroup ?? rpcGroups[0];
@@ -80,6 +85,11 @@ function BuyTaskForm({ onClose, wallets, rpcGroups, program }: BuyTaskFormProps)
       rpc_group_id: rpcGroup?.id,
     };
 
+    if (retriesEnabled) {
+      taskBody.retries = retries;
+      taskBody.retry_delay_ms = retriesDelayMs;
+    }
+
     postMutation.mutate(taskBody, { onSuccess: onClose });
   };
 
@@ -89,7 +99,7 @@ function BuyTaskForm({ onClose, wallets, rpcGroups, program }: BuyTaskFormProps)
         <Card className="p-3">
           <h2>Buy Settings</h2>
           <div className="space-y-4">
-            <div className="grid grid-cols-[120px_120px_120px] gap-4">
+            <div className="flex flex-wrap gap-4">
               <BuyEntry
                 buyAmount={buyAmount}
                 onBuyAmountChange={setBuyAmount}
@@ -113,16 +123,31 @@ function BuyTaskForm({ onClose, wallets, rpcGroups, program }: BuyTaskFormProps)
 
         <Card className="p-3">
           <h2>Task Options</h2>
-          <div className="grid grid-cols-[120px_120px_130px] gap-4">
+          <div className="flex flex-wrap gap-4">
             <SlippageEntry slippage={slippage} onChange={setSlippage} />
             <ComputeUnitsEntry computeUnits={computeUnits} onChange={setComputeUnits} />
             <WalletSelector selectedWallet={wallet} onChange={setSelectedWallet} />
             <RPCGroupSelector selectedRpcGroup={rpcGroup} onChange={setSelectedRpcGroup} />
+            <div className="flex flex-row gap-2">
+              <div className="flex flex-col">
+                <Label>Enable Retries? </Label>
+                <div className="flex flex-1 items-center justify-center">
+                  <Switch checked={retriesEnabled} onCheckedChange={setRetriesFunctionality} />
+                </div>
+              </div>
+              <RetryEntry
+                isRetryEnabled={!retriesEnabled}
+                maxRetries={retries}
+                onMaxRetryChange={setRetries}
+                retryDelayMs={retriesDelayMs}
+                onRetryDelayChange={setRetriesDelayMs}
+              />
+            </div>
           </div>
         </Card>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="flex flex-wrap gap-4">
         <SellStrategies sellStrategies={sellStrategies} setSellStrategies={setSellStrategies} />
       </div>
 
