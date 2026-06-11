@@ -105,7 +105,7 @@ function SellEditForm({ task, onClose, wallets, rpcGroups, program }: SellEditFo
         <Card className="p-3">
           <h2>Sell Settings</h2>
           <div className="space-y-4">
-            <div className="grid grid-cols-[120px_120px] gap-4">
+            <div className="flex flex-wrap gap-4">
               <SellEntry
                 sellAmount={sellAmount ?? SELL_AMOUNT_DEFAULT}
                 onSellAmountChange={setSellAmount}

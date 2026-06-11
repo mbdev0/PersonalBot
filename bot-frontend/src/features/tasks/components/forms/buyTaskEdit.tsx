@@ -104,7 +104,7 @@ function BuyEditForm({ task, onClose, wallets, rpcGroups, program }: BuyEditForm
         <Card className="p-3">
           <h2>Buy Settings</h2>
           <div className="space-y-4">
-            <div className="grid grid-cols-[120px_120px_120px] gap-4">
+            <div className="flex flex-wrap gap-4">
               <BuyEntry
                 buyAmount={buyAmount ?? BUY_AMOUNT_DEFAULT}
                 onBuyAmountChange={setBuyAmount}
@@ -127,7 +127,7 @@ function BuyEditForm({ task, onClose, wallets, rpcGroups, program }: BuyEditForm
 
         <Card className="p-3">
           <h2>Task Options</h2>
-          <div className="grid grid-cols-[120px_120px_130px] gap-4">
+          <div className="flex flex-wrap gap-4">
             <SlippageEntry slippage={slippage} onChange={setSlippage} />
             <ComputeUnitsEntry computeUnits={computeUnits} onChange={setComputeUnits} />
             <WalletSelector selectedWallet={wallet} onChange={setSelectedWallet} />

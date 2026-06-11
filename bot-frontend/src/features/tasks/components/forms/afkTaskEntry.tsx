@@ -98,7 +98,7 @@ function AFKTaskForm({ onClose, wallets, rpcGroups, program }: AFKTaskFormProps)
       <div className="grid grid-cols-2 gap-4">
         <Card className="p-3">
           <h2>Buy/Sell Settings</h2>
-          <div className="grid grid-cols-[120px_120px_120px] gap-4">
+          <div className="flex flex-wrap gap-4">
             <BuyEntry
               buyAmount={buyAmount}
               onBuyAmountChange={setBuyAmount}
