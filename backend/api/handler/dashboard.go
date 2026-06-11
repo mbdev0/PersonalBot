@@ -140,6 +140,7 @@ func (dh *DashboardHandler) createSellStrategyRow(st dto.TradingTaskResponse) dt
 		WsMessage: st.Message,
 		State:     st.State,
 		Data:      st,
+		Children:  []dto.ChildRow{},
 	}
 }
 

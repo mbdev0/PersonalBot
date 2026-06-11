@@ -49,6 +49,8 @@ func mapBuyToBuyResponse(src *strategies.Buy) (dest *dto.TradingTaskResponse, er
 	dst.Message = src.Message
 	dst.RPCGroup = src.RPCGroup.Name
 	dst.RPCGroupID = src.RPCGroupId()
+	dst.Retries = src.Retries
+	dst.RetriesDelayMS = src.RetriesDelayMS
 
 	return &dst, nil
 }
@@ -108,6 +110,8 @@ func mapAfkToAfkResponse(src *strategies.Afk) (dest *dto.TradingTaskResponse, er
 	dst.Message = src.Message
 	dst.RPCGroup = src.RPCGroup.Name
 	dst.RPCGroupID = src.RPCGroupId()
+	dst.Retries = src.Retries
+	dst.RetriesDelayMS = src.RetriesDelayMS
 
 	return &dst, nil
 }
@@ -132,6 +136,8 @@ func mapSellToSellResponse(t *strategies.Sell) (dest *dto.TradingTaskResponse, e
 	dst.Message = t.Message
 	dst.RPCGroup = t.RPCGroup.Name
 	dst.RPCGroupID = t.RPCGroupId()
+	dst.Retries = t.Retries
+	dst.RetriesDelayMS = t.RetriesDelayMS
 
 	return &dst, nil
 }
