@@ -14,6 +14,9 @@ import { FormDataLoader } from './fields/formDataLoader';
 import type { RPCGroupDashboardRow } from '@/features/rpc-groups/types/rpcGroup';
 import { RPCGroupSelector } from './fields/rpcGroupSelector';
 import type { SellStrategyTask } from '../../types/strategies/strategyTask';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { RetryEntry } from './fields/retries';
 
 interface SellTaskEditProps {
   task: SellStrategyTask;
@@ -63,6 +66,9 @@ function SellEditForm({ task, onClose, wallets, rpcGroups, program }: SellEditFo
   const [sellFee, setSellFee] = useState(task.sell_fee);
   const [selectedWallet, setSelectedWallet] = useState<Wallet | null>(null);
   const [selectedRpcGroup, setSelectedRpcGroup] = useState<RPCGroupDashboardRow | null>(null);
+  const [retriesEnabled, setRetriesFunctionality] = useState(task.retries != null);
+  const [retries, setRetries] = useState<number>(task.retries ?? 0);
+  const [retriesDelayMs, setRetriesDelayMs] = useState<number>(task.retry_delay_ms ?? 0);
 
   const wallet =
     selectedWallet ?? wallets.find((w) => w.wallet_name === task.wallet_name) ?? wallets[0];
@@ -84,6 +90,11 @@ function SellEditForm({ task, onClose, wallets, rpcGroups, program }: SellEditFo
       sell_fee: sellFee ?? SELL_FEE_DEFAULT,
       rpc_group_id: rpcGroup.id,
     };
+
+    if (retriesEnabled) {
+      taskBody.retries = retries;
+      taskBody.retry_delay_ms = retriesDelayMs;
+    }
 
     putMutation.mutate(taskBody, { onSuccess: onClose });
   };
@@ -108,11 +119,26 @@ function SellEditForm({ task, onClose, wallets, rpcGroups, program }: SellEditFo
 
         <Card className="p-3">
           <h2>Task Options</h2>
-          <div className="grid grid-cols-[120px_120px_130px] gap-4">
+          <div className="flex flex-wrap gap-4">
             <SlippageEntry slippage={slippage} onChange={setSlippage} />
             <ComputeUnitsEntry computeUnits={computeUnits} onChange={setComputeUnits} />
             <WalletSelector selectedWallet={wallet} onChange={setSelectedWallet} />
             <RPCGroupSelector selectedRpcGroup={rpcGroup} onChange={setSelectedRpcGroup} />
+            <div className="flex flex-row gap-2">
+              <div className="flex flex-col">
+                <Label>Enable Retries? </Label>
+                <div className="flex flex-1 items-center justify-center">
+                  <Switch checked={retriesEnabled} onCheckedChange={setRetriesFunctionality} />
+                </div>
+              </div>
+              <RetryEntry
+                isRetryEnabled={!retriesEnabled}
+                maxRetries={retries}
+                onMaxRetryChange={setRetries}
+                retryDelayMs={retriesDelayMs}
+                onRetryDelayChange={setRetriesDelayMs}
+              />
+            </div>
           </div>
         </Card>
       </div>

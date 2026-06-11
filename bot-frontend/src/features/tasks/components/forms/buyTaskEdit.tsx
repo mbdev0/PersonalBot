@@ -18,6 +18,8 @@ import { Input } from '@/components/ui/input';
 import { FormDataLoader } from './fields/formDataLoader';
 import type { RPCGroupDashboardRow } from '@/features/rpc-groups/types/rpcGroup';
 import { RPCGroupSelector } from './fields/rpcGroupSelector';
+import { Switch } from '@/components/ui/switch';
+import { RetryEntry } from './fields/retries';
 
 interface BuyTaskEditProps {
   task: BuyStrategyTask;
@@ -61,6 +63,9 @@ function BuyEditForm({ task, onClose, wallets, rpcGroups, program }: BuyEditForm
   const [sellStrategies, setSellStrategies] = useState<SellStrategy[]>(task.sell_strategies);
   const [selectedWallet, setSelectedWallet] = useState<Wallet | null>(null);
   const [selectedRpcGroup, setSelectedRpcGroup] = useState<RPCGroupDashboardRow | null>(null);
+  const [retriesEnabled, setRetriesFunctionality] = useState(task.retries != null);
+  const [retries, setRetries] = useState<number>(task.retries ?? 0);
+  const [retriesDelayMs, setRetriesDelayMs] = useState<number>(task.retry_delay_ms ?? 0);
 
   const wallet =
     selectedWallet ?? wallets.find((w) => w.wallet_name === task.wallet_name) ?? wallets[0];
@@ -84,6 +89,11 @@ function BuyEditForm({ task, onClose, wallets, rpcGroups, program }: BuyEditForm
       sell_fee: sellFee,
       rpc_group_id: rpcGroup.id,
     };
+
+    if (retriesEnabled) {
+      taskBody.retries = retries;
+      taskBody.retry_delay_ms = retriesDelayMs;
+    }
 
     putMutation.mutate(taskBody, { onSuccess: onClose });
   };
@@ -122,6 +132,21 @@ function BuyEditForm({ task, onClose, wallets, rpcGroups, program }: BuyEditForm
             <ComputeUnitsEntry computeUnits={computeUnits} onChange={setComputeUnits} />
             <WalletSelector selectedWallet={wallet} onChange={setSelectedWallet} />
             <RPCGroupSelector selectedRpcGroup={rpcGroup} onChange={setSelectedRpcGroup} />
+            <div className="flex flex-row gap-2">
+              <div className="flex flex-col">
+                <Label>Enable Retries? </Label>
+                <div className="flex flex-1 items-center justify-center">
+                  <Switch checked={retriesEnabled} onCheckedChange={setRetriesFunctionality} />
+                </div>
+              </div>
+              <RetryEntry
+                isRetryEnabled={!retriesEnabled}
+                maxRetries={retries}
+                onMaxRetryChange={setRetries}
+                retryDelayMs={retriesDelayMs}
+                onRetryDelayChange={setRetriesDelayMs}
+              />
+            </div>
           </div>
         </Card>
       </div>

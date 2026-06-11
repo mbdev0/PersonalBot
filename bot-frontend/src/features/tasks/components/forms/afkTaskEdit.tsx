@@ -17,6 +17,8 @@ import type { AFKStrategyTaskPut } from '../../types/strategies/strategyTaskPut'
 import type { RPCGroupDashboardRow } from '@/features/rpc-groups/types/rpcGroup';
 import { RPCGroupSelector } from './fields/rpcGroupSelector';
 import { FormDataLoader } from './fields/formDataLoader';
+import { Switch } from '@/components/ui/switch';
+import { RetryEntry } from './fields/retries';
 
 interface AFKTaskEditProps {
   task: AFKStrategyTask;
@@ -59,6 +61,9 @@ function AFKEditForm({ task, onClose, wallets, rpcGroups, program }: AFKEditForm
   const [selectedWallet, setSelectedWallet] = useState<Wallet | null>(null);
   const [selectedRpcGroup, setSelectedRpcGroup] = useState<RPCGroupDashboardRow | null>(null);
   const [sellStrategies, setSellStrategies] = useState<SellStrategy[]>(task.sell_strategies);
+  const [retriesEnabled, setRetriesFunctionality] = useState(task.retries != null);
+  const [retries, setRetries] = useState<number>(task.retries ?? 0);
+  const [retriesDelayMs, setRetriesDelayMs] = useState<number>(task.retry_delay_ms ?? 0);
 
   // derive current values from task — fall back to task's existing wallet/rpc
   const wallet =
@@ -83,6 +88,11 @@ function AFKEditForm({ task, onClose, wallets, rpcGroups, program }: AFKEditForm
       id: task.id,
       rpc_group_id: rpcGroup.id,
     };
+
+    if (retriesEnabled) {
+      taskBody.retries = retries;
+      taskBody.retry_delay_ms = retriesDelayMs;
+    }
 
     putMutation.mutate(taskBody, { onSuccess: onClose });
   };
@@ -114,11 +124,27 @@ function AFKEditForm({ task, onClose, wallets, rpcGroups, program }: AFKEditForm
 
         <Card className="p-3">
           <h2>Task Options</h2>
-          <div className="grid grid-cols-[120px_120px_130px] gap-4">
+          <div className="flex flex-wrap gap-4">
             <SlippageEntry slippage={slippage} onChange={setSlippage} />
             <ComputeUnitsEntry computeUnits={computeUnits} onChange={setComputeUnits} />
             <WalletSelector selectedWallet={wallet} onChange={setSelectedWallet} />
             <RPCGroupSelector selectedRpcGroup={rpcGroup} onChange={setSelectedRpcGroup} />
+
+            <div className="flex flex-row gap-2">
+              <div className="flex flex-col">
+                <Label>Enable Retries? </Label>
+                <div className="flex flex-1 items-center justify-center">
+                  <Switch checked={retriesEnabled} onCheckedChange={setRetriesFunctionality} />
+                </div>
+              </div>
+              <RetryEntry
+                isRetryEnabled={!retriesEnabled}
+                maxRetries={retries}
+                onMaxRetryChange={setRetries}
+                retryDelayMs={retriesDelayMs}
+                onRetryDelayChange={setRetriesDelayMs}
+              />
+            </div>
           </div>
         </Card>
       </div>
