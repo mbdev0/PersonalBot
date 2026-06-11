@@ -9,7 +9,6 @@ import type {
   TaskDashboardRow,
   TaskDashboardRowDto,
 } from '../types/dashboard';
-import { mapStrategyTaskDtoToStrategyTask } from './strategy/strategyMapper';
 
 export function MapDashboardDtoToDashboard(src: DashboardDto): Dashboard {
   return {
@@ -32,7 +31,7 @@ function mapStrategyRowDtoToStrategyRow(src: StrategyDashboardRowDto): StrategyD
     id: src.id,
     ws_message: src.ws_message,
     state: src.state,
-    data: mapStrategyTaskDtoToStrategyTask(src.data),
+    data: src.data,
     children: src.children.map(mapTaskRowDtoToTaskRow),
   };
 }

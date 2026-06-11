@@ -1,31 +1,5 @@
-import type { StrategyTaskDto, StrategyTask } from './strategies/strategyTask';
+import type { StrategyTask } from './strategies/strategyTask';
 import type { Task, TaskDto } from './task';
-
-interface DashboardDto {
-  rows: DashboardRowDto[];
-}
-
-interface BaseDashboardRowDto {
-  program: string;
-  type: string;
-  id: number;
-  ws_message: string;
-  state: string;
-}
-
-export interface StrategyDashboardRowDto extends BaseDashboardRowDto {
-  type: 'strategy';
-  data: StrategyTaskDto;
-  children: TaskDashboardRowDto[];
-}
-
-export interface TaskDashboardRowDto extends BaseDashboardRowDto {
-  type: 'manual';
-  data: TaskDto;
-  children?: TaskDashboardRowDto[];
-}
-
-type DashboardRowDto = StrategyDashboardRowDto | TaskDashboardRowDto;
 
 interface BaseDashboardRow {
   program: string;
@@ -50,8 +24,34 @@ export interface TaskDashboardRow extends BaseDashboardRow {
 
 export type DashboardRow = StrategyDashboardRow | TaskDashboardRow;
 
+export interface StrategyDashboardRowDto {
+  program: string;
+  type: 'strategy';
+  id: number;
+  ws_message: string;
+  state: string;
+  data: StrategyTask;
+  children: TaskDashboardRowDto[];
+}
+
+export interface TaskDashboardRowDto {
+  program: string;
+  type: 'manual';
+  id: number;
+  ws_message: string;
+  state: string;
+  data: TaskDto;
+  children?: TaskDashboardRowDto[];
+}
+
+export type DashboardRowDto = StrategyDashboardRowDto | TaskDashboardRowDto;
+
 interface Dashboard {
   rows: DashboardRow[];
 }
 
-export { type DashboardDto, type DashboardRowDto, type Dashboard };
+interface DashboardDto {
+  rows: DashboardRowDto[];
+}
+
+export { type DashboardDto, type Dashboard };
