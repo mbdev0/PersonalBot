@@ -95,63 +95,42 @@ func (tr *TaskRepository) AddAllTasks(ctx context.Context, tasks []tasks.Task) (
 	    program_id = excluded.program_id
 	`
 
-	tx, err := tr.db.BeginTx(ctx, nil)
-	if err != nil {
-		return false, err
-	}
-	defer tx.Rollback()
-
-	stmt, err := tx.PrepareContext(ctx, baseQuery)
-	if err != nil {
-		return false, err
-	}
-	defer stmt.Close()
-
-	for _, t := range tasks {
+	rows := make([]Fields, len(tasks))
+	for i, t := range tasks {
 		mappedTask, err := mapper.MapTaskToRepo(t)
 		if err != nil {
 			return false, fmt.Errorf("failed to map task: %d", t.Id())
 		}
-
-		_, err = stmt.ExecContext(ctx,
+		rows[i] = Fields{
 			mappedTask.Id, mappedTask.TaskType, mappedTask.WalletId, mappedTask.Slippage,
 			mappedTask.ComputeUnits, mappedTask.Config, mappedTask.StrategyId,
 			mappedTask.State, mappedTask.Token, mappedTask.TimeCreatedUnix, mappedTask.NodeConfig,
 			t.Program(),
-		)
-
-		if err != nil {
-			return false, fmt.Errorf("error whilst executing data for task id: %d, error: %w", t.Id(), err)
 		}
 	}
 
-	if err := tx.Commit(); err != nil {
-		return false, fmt.Errorf("error whilst commiting: %w", err)
+	if err := execTxBatch(ctx, tr.db, baseQuery, rows); err != nil {
+		return false, fmt.Errorf("error whilst adding tasks: %w", err)
 	}
 
 	return true, nil
 }
 
-func (tr *TaskRepository) DeleteAll(ctx context.Context) (bool, error) {
+func (tr *TaskRepository) DeleteAll(ctx context.Context) (_ bool, err error) {
 	query := `DELETE from tasks`
-
 	tx, err := tr.db.BeginTx(ctx, nil)
 	if err != nil {
 		return false, err
 	}
+	defer func() {
+		if err != nil {
+			rollback(tx)
+		}
+	}()
 
-	defer tx.Rollback()
-
-	_, err = tx.ExecContext(ctx, query)
-	if err != nil {
+	if _, err = tx.ExecContext(ctx, query); err != nil {
 		return false, err
 	}
 
-	err = tx.Commit()
-	if err != nil {
-		return false, err
-	}
-
-	return true, nil
-
+	return true, tx.Commit()
 }
