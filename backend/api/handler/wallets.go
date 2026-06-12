@@ -98,18 +98,13 @@ func (wh *WalletsHandler) deleteWallets(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	deleted, err := wh.controller.DeleteWallet(r.Context(), id)
+	_, err := wh.controller.DeleteWallet(r.Context(), id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
 	w.WriteHeader(http.StatusNoContent)
 	w.Header().Set("Content-Type", "application/json")
-
-	err = json.NewEncoder(w).Encode(map[string]bool{"IsDeleted": deleted})
-	if err != nil {
-		logger.Error("Error in get walletByName", err)
-	}
 
 }
 
