@@ -7,7 +7,6 @@ import (
 	"personal_bot/infrastructure/persistence/mapper"
 	"personal_bot/infrastructure/persistence/models"
 	"personal_bot/internal/core/strategies"
-	"personal_bot/pkg/logger"
 )
 
 type TradingRepository struct {
@@ -89,78 +88,48 @@ func (tr *TradingRepository) AddAllTasks(ctx context.Context, tasks []strategies
 			program_id = excluded.program_id
 	`
 
-	tx, err := tr.db.BeginTx(ctx, nil)
-	if err != nil {
-		return false, err
-	}
-	defer tx.Rollback()
-
-	stmt, err := tx.PrepareContext(ctx, baseQuery)
-	if err != nil {
-		return false, err
-	}
-	defer stmt.Close()
-
-	for _, t := range tasks {
+	rows := make([]Fields, len(tasks))
+	for i, t := range tasks {
 		mappedTask, err := mapper.MapTradingTaskToRepo(t)
 		if err != nil {
-			logger.Error(err)
 			return false, fmt.Errorf("failed to map task: %d", t.StrategyTaskId())
 		}
-
-		_, err = stmt.ExecContext(ctx,
+		rows[i] = Fields{
 			mappedTask.Id, mappedTask.TradingType, mappedTask.WalletId, mappedTask.Slippage, mappedTask.ComputeUnits,
-			mappedTask.Config, mappedTask.TimeCreatedUnix, mappedTask.RpcGroupId, t.GetProgram())
-		if err != nil {
-			logger.Error(err)
-			return false, fmt.Errorf("error whilst executing data for task id: %d, error: %w", t.StrategyTaskId(), err)
+			mappedTask.Config, mappedTask.TimeCreatedUnix, mappedTask.RpcGroupId, t.GetProgram(),
 		}
 	}
 
-	if err := tx.Commit(); err != nil {
-		return false, fmt.Errorf("error whilst commiting: %w", err)
+	if err := execTxBatch(ctx, tr.db, baseQuery, rows); err != nil {
+		return false, fmt.Errorf("error whilst adding trading tasks: %w", err)
 	}
 
 	return true, nil
 }
 
-func (tr *TradingRepository) DeleteAll(ctx context.Context) (bool, error) {
+func (tr *TradingRepository) DeleteAll(ctx context.Context) (_ bool, err error) {
 	query := `DELETE from trading_tasks`
-
 	tx, err := tr.db.BeginTx(ctx, nil)
 	if err != nil {
 		return false, err
 	}
+	defer func() {
+		if err != nil {
+			rollback(tx)
+		}
+	}()
 
-	defer tx.Rollback()
-
-	_, err = tx.ExecContext(ctx, query)
-	if err != nil {
+	if _, err = tx.ExecContext(ctx, query); err != nil {
 		return false, err
 	}
 
-	err = tx.Commit()
-	if err != nil {
-		return false, err
-	}
-
-	return true, nil
+	return true, tx.Commit()
 }
 
 func (tr *TradingRepository) Delete(ctx context.Context, id int64) (bool, error) {
 	query := "delete from trading_tasks where id = ?"
-	tx, err := tr.db.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable, ReadOnly: false})
-	if err != nil {
-		return false, err
-	}
+	_, err := execTx(ctx, tr.db, query, Fields{id})
 
-	_, err = tx.ExecContext(ctx, query, id)
-	if err != nil {
-		tx.Rollback()
-		return false, err
-	}
-
-	err = tx.Commit()
 	if err != nil {
 		return false, err
 	}

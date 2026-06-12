@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"personal_bot/infrastructure/persistence/mapper"
 	"personal_bot/infrastructure/persistence/models"
 	"personal_bot/internal/core/position"
@@ -20,9 +19,9 @@ func NewPositionRepository(db *sql.DB) *PositionsRepository {
 
 func (pr *PositionsRepository) Add(ctx context.Context, position position.Position) error {
 	query := `INSERT INTO positions (
-					position_id, strategy_id, token_address, 
-					wallet_address, init_token_amount, tokens_remaining, remaining_cost_basis, 
-					finalized_profit, initial_amount, entry_price, mcap_entry, average_mcap_exit, 
+					position_id, strategy_id, token_address,
+					wallet_address, init_token_amount, tokens_remaining, remaining_cost_basis,
+					finalized_profit, initial_amount, entry_price, mcap_entry, average_mcap_exit,
 					total_marketcap_exit, number_of_sales, address_for_url
 				)
 				VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`
@@ -32,69 +31,21 @@ func (pr *PositionsRepository) Add(ctx context.Context, position position.Positi
 		return err
 	}
 
-	tx, err := pr.db.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable, ReadOnly: false})
-	if err != nil {
-		return err
-	}
-
-	res, err := tx.ExecContext(ctx, query, mappedPosition.PositionId, mappedPosition.StrategyId,
+	_, err = execTx(ctx, pr.db, query, Fields{
+		mappedPosition.PositionId, mappedPosition.StrategyId,
 		mappedPosition.TokenAddress, mappedPosition.WalletAddress, mappedPosition.InitialTokenAmount,
 		mappedPosition.TokensRemaining, mappedPosition.RemainingCostBasis, mappedPosition.FinalizedProfit,
 		mappedPosition.InitialAmount, mappedPosition.EntryPrice, mappedPosition.McapEntry,
-		mappedPosition.AverageMcapExit, mappedPosition.TotalMarketCapExit, mappedPosition.NumberOfSells, mappedPosition.AddressForUrl)
-
-	if err != nil {
-		pr.handleRollback(tx)
-		return err
-	}
-
-	rowsAffected, err := res.RowsAffected()
-	if err != nil {
-		pr.handleRollback(tx)
-		return err
-	}
-
-	if rowsAffected != 1 {
-		pr.handleRollback(tx)
-		return fmt.Errorf("did not insert any rows")
-	}
-
-	err = tx.Commit()
-	if err != nil {
-		pr.handleRollback(tx)
-		return err
-	}
-
-	return nil
+		mappedPosition.AverageMcapExit, mappedPosition.TotalMarketCapExit, mappedPosition.NumberOfSells,
+		mappedPosition.AddressForUrl,
+	})
+	return err
 }
 
 func (pr *PositionsRepository) Delete(ctx context.Context, id int64) error {
 	query := `DELETE FROM positions WHERE position_id=?`
-	tx, err := pr.db.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable, ReadOnly: false})
+	_, err := execTx(ctx, pr.db, query, Fields{id})
 	if err != nil {
-		return err
-	}
-
-	res, err := tx.ExecContext(ctx, query, id)
-	if err != nil {
-		pr.handleRollback(tx)
-		return err
-	}
-
-	rowsAffected, err := res.RowsAffected()
-	if err != nil {
-		pr.handleRollback(tx)
-		return err
-	}
-
-	if rowsAffected != 1 {
-		pr.handleRollback(tx)
-		return fmt.Errorf("did not insert any rows")
-	}
-
-	err = tx.Commit()
-	if err != nil {
-		pr.handleRollback(tx)
 		return err
 	}
 
@@ -124,37 +75,16 @@ func (pr *PositionsRepository) Update(ctx context.Context, position position.Pos
 		return err
 	}
 
-	tx, err := pr.db.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable, ReadOnly: false})
-	if err != nil {
-		return err
-	}
-
-	res, err := tx.ExecContext(ctx, query, mappedPosition.StrategyId,
+	_, err = execTx(ctx, pr.db, query, Fields{
+		mappedPosition.StrategyId,
 		mappedPosition.TokenAddress, mappedPosition.WalletAddress, mappedPosition.InitialTokenAmount,
 		mappedPosition.TokensRemaining, mappedPosition.RemainingCostBasis, mappedPosition.FinalizedProfit,
 		mappedPosition.InitialAmount, mappedPosition.EntryPrice, mappedPosition.McapEntry,
 		mappedPosition.AverageMcapExit, mappedPosition.TotalMarketCapExit, mappedPosition.NumberOfSells,
-		mappedPosition.AddressForUrl, mappedPosition.PositionId)
+		mappedPosition.AddressForUrl, mappedPosition.PositionId,
+	})
 
 	if err != nil {
-		pr.handleRollback(tx)
-		return err
-	}
-
-	rowsAffected, err := res.RowsAffected()
-	if err != nil {
-		pr.handleRollback(tx)
-		return err
-	}
-
-	if rowsAffected != 1 {
-		pr.handleRollback(tx)
-		return fmt.Errorf("did not insert any rows")
-	}
-
-	err = tx.Commit()
-	if err != nil {
-		pr.handleRollback(tx)
 		return err
 	}
 
@@ -163,7 +93,7 @@ func (pr *PositionsRepository) Update(ctx context.Context, position position.Pos
 
 func (pr *PositionsRepository) GetAll(ctx context.Context) ([]position.Position, error) {
 	query := `
-		SELECT 
+		SELECT
 			position_id, strategy_id, token_address,
 			wallet_address, init_token_amount, tokens_remaining, remaining_cost_basis,
 			finalized_profit, initial_amount, entry_price, mcap_entry, average_mcap_exit,

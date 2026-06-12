@@ -88,33 +88,18 @@ func (w *Wallet) GetWalletByName(ctx context.Context, name string) (wallets.Sola
 func (w *Wallet) InsertWallets(ctx context.Context, walletRepo models.WalletRepository) (bool, error) {
 	query := "INSERT INTO `crypto_wallets` VALUES (?,?,?,?)"
 
-	insertResult, err := w.db.ExecContext(ctx, query, walletRepo.Id, walletRepo.WalletName, walletRepo.Chain, walletRepo.PrivateKey)
-	if err != nil {
-		return false, err
-	}
-
-	rowsAmountUpdated, err := insertResult.RowsAffected()
-	if err != nil {
-		return false, err
-	}
-
-	return rowsAmountUpdated > 0, nil
+	_, err := execTx(ctx, w.db, query, Fields{
+		walletRepo.Id,
+		walletRepo.WalletName,
+		walletRepo.Chain,
+		walletRepo.PrivateKey,
+	})
+	return err == nil, err
 }
 
 func (w *Wallet) DeleteWallet(ctx context.Context, id string) (bool, error) {
 	query := "DELETE FROM `crypto_wallets` where id = ?"
-	tx, err := w.db.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable, ReadOnly: false})
-	if err != nil {
-		return false, err
-	}
-
-	_, err = tx.ExecContext(ctx, query, id)
-	if err != nil {
-		tx.Rollback()
-		return false, err
-	}
-
-	err = tx.Commit()
+	_, err := execTx(ctx, w.db, query, Fields{id})
 	if err != nil {
 		return false, err
 	}
@@ -124,37 +109,11 @@ func (w *Wallet) DeleteWallet(ctx context.Context, id string) (bool, error) {
 
 func (w *Wallet) UpdateWallet(ctx context.Context, id string, wallet models.WalletRepository) (wallets.SolanaWallet, error) {
 	query := "UPDATE crypto_wallets SET wallet_name = ?, chain = ?, private_key = ? WHERE id = ?"
-	tx, err := w.db.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable, ReadOnly: false})
+	_, err := execTx(ctx, w.db, query, Fields{wallet.WalletName, wallet.Chain, wallet.PrivateKey, id})
+
 	if err != nil {
 		return wallets.SolanaWallet{}, err
 	}
 
-	res, err := tx.ExecContext(ctx, query, wallet.WalletName, wallet.Chain, wallet.PrivateKey, id)
-	if err != nil {
-		tx.Rollback()
-		return wallets.SolanaWallet{}, err
-	}
-
-	rowsAffected, err := res.RowsAffected()
-	if err != nil {
-		tx.Rollback()
-		return wallets.SolanaWallet{}, err
-	}
-
-	if rowsAffected > 1 {
-		tx.Rollback()
-		return wallets.SolanaWallet{}, fmt.Errorf("more than 1 rows were effected")
-	}
-
-	err = tx.Commit()
-	if err != nil {
-		return wallets.SolanaWallet{}, err
-	}
-
-	updatedWallet, err := w.GetWalletById(ctx, id)
-	if err != nil {
-		return wallets.SolanaWallet{}, fmt.Errorf("error whilst getting updated wallet: %v", err)
-	}
-
-	return updatedWallet, nil
+	return w.GetWalletById(ctx, id)
 }
