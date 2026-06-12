@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"math/big"
-	lookuptable "personal_bot/app/lookup_table"
 	"personal_bot/infrastructure/solana_price"
 	"personal_bot/internal/core/constants"
 	positionmodel "personal_bot/internal/core/position"
@@ -13,13 +12,13 @@ import (
 	"personal_bot/internal/solana/client"
 	"personal_bot/internal/solana/instructions"
 	ammPda "personal_bot/internal/solana/programs/pumpfun/pumpfun_amm/pda"
+	"personal_bot/internal/solana/transaction"
 
 	amminstructions "personal_bot/internal/solana/programs/pumpfun/pumpfun_amm/instructions"
 	"personal_bot/internal/solana/programs/pumpfun/pumpfun_amm/models"
 	"personal_bot/internal/solana/programs/pumpfun/pumpfun_amm/pool"
 	ammtransactiondecoder "personal_bot/internal/solana/programs/pumpfun/pumpfun_amm/transaction_decoder"
 	transactiondecoder "personal_bot/internal/solana/programs/pumpfun/pumpfun_native/transaction_decoder"
-	wallets "personal_bot/internal/solana/wallet"
 	"personal_bot/pkg/logger"
 
 	"github.com/gagliardetto/solana-go"
@@ -187,36 +186,11 @@ func (st *Transaction) BuildTransaction(ctx context.Context) error {
 		return fmt.Errorf("sell task was nil - make sure sell task is set")
 	}
 
-	latestHash, err := client.GetLatestBlockhash(ctx, st.getHttpClient())
-	if err != nil {
-		logger.Error("Error getting latest blockhash", err)
-		return err
-	}
-
-	opts := []solana.TransactionOption{
-		solana.TransactionPayer(st.SellTask.Wallet.PublicKey()),
-	}
-
-	//TODO - Add constants into our address lookup table
-	accountLookupMap, err := lookuptable.GetAddressLookupTable(st.getHttpClient())
-	if err != nil {
-		logger.Error("Error getting address lookup table, proceeding without it: ", err)
-	} else {
-		opts = append(opts, solana.TransactionAddressTables(accountLookupMap))
-	}
-
-	tx, err := solana.NewTransaction(*st.instructions, latestHash.Value.Blockhash, opts...)
-	if err != nil {
-		logger.Error("Error creating transaction", err)
-		return err
-	}
-
-	tx.Message.SetVersion(solana.MessageVersionV0)
-
-	err = wallets.SignTx(tx, st.SellTask.Wallet)
+	tx, err := transaction.BuildTx(ctx, st.getHttpClient(), st.SellTask.Wallet, st.instructions)
 	if err != nil {
 		return err
 	}
+
 	st.transaction = tx
 	st.Publisher.PublishMessage(st.SellTask, "TX Built")
 
@@ -225,57 +199,21 @@ func (st *Transaction) BuildTransaction(ctx context.Context) error {
 
 func (st *Transaction) SendTransaction(ctx context.Context) error {
 	rpcClient := st.getHttpClient()
-	// SIMULATE TRANSACTION
-	// txResp, err := rpcClient.SimulateTransaction(bt.BuyTask.Ctx(), bt.transaction)
-	// if err != nil {
-	// 	logger.Error("Transaction simulation failed", err)
-	// 	return nil
-	// }
-	// fmt.Println(txResp.Value)
-
-	// SEND TRANSACTION WITH OPTIONS
-	// maxRetries := uint(5)
-	txResp, err := rpcClient.SendTransactionWithOpts(ctx, st.transaction, rpc.TransactionOpts{Encoding: solana.EncodingBase64, SkipPreflight: true})
+	sig, err := transaction.SendTx(ctx, rpcClient, st.transaction)
 	if err != nil {
-		logger.Error(err)
 		return err
 	}
 
-	// SEND TRANSACTION WITH NO OPTS
-	// fmt.Println(bt.transaction.String())
-	// txResp, err := rpcClient.SendTransaction(bt.BuyTask.Ctx(), bt.transaction)
-	// if err != nil {
-	// 	logger.Error(err)
-	// 	return err
-	// }
-
-	st.signature = txResp
-	st.Publisher.PublishMessage(st.SellTask, fmt.Sprintf("Tx Sent: %s", txResp))
+	st.signature = sig
+	st.Publisher.PublishMessage(st.SellTask, fmt.Sprintf("Tx Sent: %s", sig))
 	return nil
 }
 
 func (st *Transaction) ConfirmTransaction(ctx context.Context) error {
 	rpcClient := st.getHttpClient()
-
-	stream := make(chan client.ConfirmMessage, 100)
-
-	go func(stream chan client.ConfirmMessage) {
-		defer close(stream)
-		client.ConfirmTransactionWithStream(ctx, rpcClient, st.signature, stream)
-	}(stream)
-
-	for msg := range stream {
-		if msg.Err != "" {
-			st.Publisher.PublishMessage(st.SellTask, msg.Err)
-			return fmt.Errorf("%v", msg.Err)
-		}
-		st.Publisher.PublishMessage(st.SellTask, msg.Message)
-	}
-
-	return nil
+	return transaction.ConfirmTx(ctx, rpcClient, st.signature, st.SellTask, st.Publisher)
 }
 
-// TODO: need to return position from  here
 func (st *Transaction) UpdatePosition(ctx context.Context) (tokenAmount, solAmount float64, pos *positionmodel.Position, err error) {
 	solAmount, sellEvent, err := st.extractTokenAndSolFromTx(ctx, st.signature)
 	if err != nil {

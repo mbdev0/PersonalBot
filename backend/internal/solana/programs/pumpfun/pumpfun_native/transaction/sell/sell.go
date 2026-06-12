@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"math/big"
-	lookuptable "personal_bot/app/lookup_table"
 	"personal_bot/infrastructure/solana_price"
 	"personal_bot/internal/core/constants"
 	positionmodel "personal_bot/internal/core/position"
@@ -17,8 +16,8 @@ import (
 	pumpmodels "personal_bot/internal/solana/programs/pumpfun/pumpfun_native/models"
 	"personal_bot/internal/solana/programs/pumpfun/pumpfun_native/pda"
 	transactiondecoder "personal_bot/internal/solana/programs/pumpfun/pumpfun_native/transaction_decoder"
+	"personal_bot/internal/solana/transaction"
 
-	wallets "personal_bot/internal/solana/wallet"
 	"personal_bot/pkg/logger"
 
 	"github.com/gagliardetto/solana-go"
@@ -64,30 +63,7 @@ func (st *Transaction) BuildTransaction(ctx context.Context) error {
 		return fmt.Errorf("sell task is null - check if sell task was set")
 	}
 
-	latestHash, err := client.GetLatestBlockhash(ctx, st.getHttpClient())
-	if err != nil {
-		logger.Error("Error getting latest blockhash", err)
-		return err
-	}
-
-	opts := []solana.TransactionOption{
-		solana.TransactionPayer(st.Task.Wallet.PublicKey()),
-	}
-
-	accountLookupMap, err := lookuptable.GetAddressLookupTable(st.getHttpClient())
-	if err != nil {
-		logger.Error("Error getting address lookup table, proceeding without it: ", err)
-	} else {
-		opts = append(opts, solana.TransactionAddressTables(accountLookupMap))
-	}
-
-	tx, err := solana.NewTransaction(st.instructions, latestHash.Value.Blockhash, opts...)
-	if err != nil {
-		logger.Error("Error creating transaction", err)
-		return err
-	}
-
-	err = wallets.SignTx(tx, st.Task.Wallet)
+	tx, err := transaction.BuildTx(ctx, st.getHttpClient(), st.Task.Wallet, &st.instructions)
 	if err != nil {
 		return err
 	}
@@ -100,54 +76,18 @@ func (st *Transaction) BuildTransaction(ctx context.Context) error {
 
 func (st *Transaction) SendTransaction(ctx context.Context) error {
 	rpcClient := st.getHttpClient()
-
-	// simulate the transaction
-	// txResp, err := rpcClient.SimulateTransaction(st.Task.Ctx(), st.transaction)
-	// if err != nil {
-	// 	logger.Error("Transaction simulation failed", err)
-	// 	return
-	// }
-	// fmt.Println(txResp.Value)
-
-	// SEND TRANSACTION WITH OPTIONS
-	// maxRetries := uint(5)
-	txResp, err := rpcClient.SendTransactionWithOpts(ctx, st.transaction, rpc.TransactionOpts{Encoding: solana.EncodingBase64, SkipPreflight: true})
+	sig, err := transaction.SendTx(ctx, rpcClient, st.transaction)
 	if err != nil {
-		logger.Error("Error sending transaction", err)
-		st.Publisher.PublishMessage(st.Task, "failure whilst sending transaction")
 		return err
 	}
 
-	// SEND TRANSACTION WITH NO OPTS
-	// txResp, err := rpcClient.SendTransaction(ctx, st.transaction)
-	// if err != nil {
-	// 	logger.Error(err)
-	// 	publisher.PublishMessage(st.Task, "failure whilst sending transaction")
-	// 	return err
-	// }
-
-	st.signature = txResp
-	st.Publisher.PublishMessage(st.Task, fmt.Sprintf("Tx Sent: %s", txResp))
+	st.signature = sig
+	st.Publisher.PublishMessage(st.Task, fmt.Sprintf("Tx Sent: %s", sig))
 	return nil
 }
 
 func (st *Transaction) ConfirmTransaction(ctx context.Context) error {
-	stream := make(chan client.ConfirmMessage, 100)
-
-	go func(stream chan client.ConfirmMessage) {
-		defer close(stream)
-		client.ConfirmTransactionWithStream(ctx, st.getHttpClient(), st.signature, stream)
-	}(stream)
-
-	for msg := range stream {
-		if msg.Err != "" {
-			return fmt.Errorf("%v", msg.Err)
-		}
-
-		st.Publisher.PublishMessage(st.Task, msg.Message)
-	}
-
-	return nil
+	return transaction.ConfirmTx(ctx, st.getHttpClient(), st.signature, st.GetTask(), st.Publisher)
 }
 
 func (st *Transaction) GetSignature() string {

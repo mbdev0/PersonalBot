@@ -4,22 +4,19 @@ import (
 	"context"
 	"fmt"
 	"math/big"
-	lookuptable "personal_bot/app/lookup_table"
 	"personal_bot/infrastructure/solana_price"
 	"personal_bot/internal/core/constants"
 	positionmodels "personal_bot/internal/core/position"
 	"personal_bot/internal/core/tasks"
 	subscriptionhub "personal_bot/internal/services/subscription_hub"
-	"personal_bot/internal/solana/client"
 	"personal_bot/internal/solana/instructions"
 	amminstructions "personal_bot/internal/solana/programs/pumpfun/pumpfun_amm/instructions"
 	"personal_bot/internal/solana/programs/pumpfun/pumpfun_amm/models"
 	"personal_bot/internal/solana/programs/pumpfun/pumpfun_amm/pda"
 	ammtransactiondecoder "personal_bot/internal/solana/programs/pumpfun/pumpfun_amm/transaction_decoder"
+	"personal_bot/internal/solana/transaction"
 
 	transactiondecoder "personal_bot/internal/solana/programs/pumpfun/pumpfun_native/transaction_decoder"
-
-	wallets "personal_bot/internal/solana/wallet"
 
 	"personal_bot/pkg/logger"
 
@@ -106,92 +103,31 @@ func (bt *Transaction) BuildTransaction(ctx context.Context) error {
 		return fmt.Errorf("buy task was nil - make sure buy task is set")
 	}
 
-	latestHash, err := client.GetLatestBlockhash(ctx, bt.getHttpClient())
-	if err != nil {
-		logger.Error("Error getting latest blockhash", err)
-		return err
-	}
-
-	opts := []solana.TransactionOption{
-		solana.TransactionPayer(bt.BuyTask.Wallet.PublicKey()),
-	}
-
-	//TODO - Add constants into our address lookup table
-	accountLookupMap, err := lookuptable.GetAddressLookupTable(bt.getHttpClient())
-	if err != nil {
-		logger.Error("Error getting address lookup table, proceeding without it: ", err)
-	} else {
-		opts = append(opts, solana.TransactionAddressTables(accountLookupMap))
-	}
-
-	tx, err := solana.NewTransaction(*bt.instructions, latestHash.Value.Blockhash, opts...)
-	if err != nil {
-		logger.Error("Error creating transaction", err)
-		return err
-	}
-
-	tx.Message.SetVersion(solana.MessageVersionV0)
-
-	err = wallets.SignTx(tx, bt.BuyTask.Wallet)
+	tx, err := transaction.BuildTx(ctx, bt.getHttpClient(), bt.BuyTask.Wallet, bt.instructions)
 	if err != nil {
 		return err
 	}
+
 	bt.transaction = tx
 	bt.Publisher.PublishMessage(bt.BuyTask, "TX Built")
-
 	return nil
 }
 
 func (bt *Transaction) SendTransaction(ctx context.Context) error {
 	rpcClient := bt.getHttpClient()
-	// SIMULATE TRANSACTION
-	// txResp, err := rpcClient.SimulateTransaction(bt.BuyTask.Ctx(), bt.transaction)
-	// if err != nil {
-	// 	logger.Error("Transaction simulation failed", err)
-	// 	return nil
-	// }
-	// fmt.Println(txResp.Value)
-
-	// SEND TRANSACTION WITH OPTIONS
-	// maxRetries := uint(5)
-	txResp, err := rpcClient.SendTransactionWithOpts(ctx, bt.transaction, rpc.TransactionOpts{Encoding: solana.EncodingBase64, SkipPreflight: true})
+	signature, err := transaction.SendTx(ctx, rpcClient, bt.transaction)
 	if err != nil {
-		logger.Error(err)
 		return err
 	}
 
-	// SEND TRANSACTION WITH NO OPTS
-	// fmt.Println(bt.transaction.String())
-	// txResp, err := rpcClient.SendTransaction(bt.BuyTask.Ctx(), bt.transaction)
-	// if err != nil {
-	// 	logger.Error(err)
-	// 	return err
-	// }
-
-	bt.signature = txResp
-	bt.Publisher.PublishMessage(bt.BuyTask, fmt.Sprintf("Tx Sent: %s", txResp))
+	bt.signature = signature
+	bt.Publisher.PublishMessage(bt.BuyTask, fmt.Sprintf("Tx Sent: %s", signature))
 	return nil
 }
 
 func (bt *Transaction) ConfirmTransaction(ctx context.Context) error {
 	rpcClient := bt.getHttpClient()
-
-	stream := make(chan client.ConfirmMessage, 100)
-
-	go func(stream chan client.ConfirmMessage) {
-		defer close(stream)
-		client.ConfirmTransactionWithStream(ctx, rpcClient, bt.signature, stream)
-	}(stream)
-
-	for msg := range stream {
-		if msg.Err != "" {
-			bt.Publisher.PublishMessage(bt.BuyTask, msg.Err)
-			return fmt.Errorf("%v", msg.Err)
-		}
-		bt.Publisher.PublishMessage(bt.BuyTask, msg.Message)
-	}
-
-	return nil
+	return transaction.ConfirmTx(ctx, rpcClient, bt.signature, bt.BuyTask, bt.Publisher)
 }
 
 func (bt *Transaction) UpdatePosition(ctx context.Context) (tokenAmount, solAmount float64, pos *positionmodels.Position, err error) {
