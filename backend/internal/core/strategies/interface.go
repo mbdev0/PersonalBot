@@ -10,4 +10,6 @@ type Task interface {
 	SetStrategyMessage(message string)
 	RPCGroupId() int64
 	GetProgram() string
+	GetTimeCreated() int64
+	SetTimeCreated(time int64)
 }

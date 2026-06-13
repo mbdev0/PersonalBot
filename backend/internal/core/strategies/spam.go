@@ -82,3 +82,11 @@ func (s *Spam) GetSlippage() float64 {
 func (s *Spam) GetSellFee() *float64 {
 	return s.SellFee
 }
+
+func (s *Spam) GetTimeCreated() int64 {
+	return s.TimeCreated
+}
+
+func (s *Spam) SetTimeCreated(time int64) {
+	s.TimeCreated = time
+}
