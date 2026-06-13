@@ -81,3 +81,11 @@ func (b *Buy) GetSlippage() float64 {
 func (b *Buy) GetSellFee() *float64 {
 	return b.SellFee
 }
+
+func (b *Buy) GetTimeCreated() int64 {
+	return b.TimeCreated
+}
+
+func (b *Buy) SetTimeCreated(time int64) {
+	b.TimeCreated = time
+}

@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"personal_bot/api/dto"
 	"personal_bot/api/mapper"
-	rpcgroupsModel "personal_bot/internal/core/rpc_groups"
-	"personal_bot/internal/core/wallets"
 	rpcgroups "personal_bot/internal/services/rpc_groups"
 	"personal_bot/pkg/logger"
 
@@ -98,39 +96,30 @@ func (sc *StrategyController) GetAll() ([]dto.TradingTaskResponse, error) {
 	return responseAllTasks, nil
 }
 
-func (sc *StrategyController) Update(ctx context.Context, id int64, tsk dto.TradingTaskPatch) (*dto.TradingTaskResponse, error) {
-	task, err := sc.strategyService.GetBy(id)
+func (sc *StrategyController) Update(ctx context.Context, id int64, tsk dto.TradingTask) (*dto.TradingTaskResponse, error) {
+	_, err := sc.strategyService.GetBy(id)
 	if err != nil {
 		return nil, fmt.Errorf("task not found with the id %d", id)
 	}
 
-	var wallet *wallets.SolanaWallet
-	if tsk.WalletName != nil {
-		walletResp, err := sc.walletService.GetByName(ctx, *tsk.WalletName)
-		if err != nil {
-			return nil, err
-		}
-
-		wallet = &walletResp
+	wallet, err := sc.walletService.GetByName(ctx, tsk.WalletName)
+	if err != nil {
+		return nil, err
 	}
 
-	var rpcGroup *rpcgroupsModel.RPCGroup
-	if tsk.RPCGroupId != nil {
-		rpcGroupResp, err := sc.rpcGroupService.GetBy(ctx, *tsk.RPCGroupId)
-		if err != nil {
-			logger.Error(err)
-			return nil, err
-		}
-
-		rpcGroup = &rpcGroupResp
+	rpcGroup, err := sc.rpcGroupService.GetBy(ctx, tsk.RPCGroupId)
+	if err != nil {
+		logger.Error(err)
+		return nil, err
 	}
 
-	patch, err := mapper.MapTradingTaskPatchDtoToTradingTaskPatch(tsk, dto.TradingType(task.StrategyType()), wallet, rpcGroup)
+	tradingTask, err := mapper.MapTradingTaskDtoToTradingTask(tsk, wallet, rpcGroup)
+
 	if err != nil {
 		return nil, fmt.Errorf("error whilst mapping %w", err)
 	}
 
-	resp, err := sc.strategyService.Update(task, patch)
+	resp, err := sc.strategyService.Update(id, tradingTask)
 	if err != nil {
 		return nil, err
 	}

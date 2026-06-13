@@ -252,20 +252,26 @@ func (s *Service) GetAll() []strategies.Task {
 	return allTasks
 }
 
-func (s *Service) Update(task strategies.Task, patch strategies.Patch) (strategies.Task, error) {
+func (s *Service) Update(id int64, task strategies.Task) (strategies.Task, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-
-	err := patch.ApplyTo(task)
-	if err != nil {
-		return nil, err
+	oldTask, ok := s.tasks[id]
+	if !ok {
+		return nil, fmt.Errorf("unable to find task: %d", id)
 	}
 
+	s.tasks[id] = task
+	task.SetId(id)
+	task.SetTimeCreated(oldTask.GetTimeCreated())
+
+	var err error
 	//any tasks that are precreated, we must update
-	if task.StrategyType() == strategies.BUY || task.StrategyType() == strategies.SPAM {
-		err = s.updateBuyTask(task.StrategyTaskId(), patch)
+	if task.StrategyType() == strategies.BUY {
+		err = s.updateBuyTask(task)
 	} else if task.StrategyType() == strategies.SELL {
-		err = s.updateSellTask(task.StrategyTaskId(), patch)
+		err = s.updateSellTask(task)
+	} else if task.StrategyType() == strategies.SPAM {
+		err = s.updateSpamTask(task)
 	}
 
 	if err != nil {
@@ -275,36 +281,29 @@ func (s *Service) Update(task strategies.Task, patch strategies.Patch) (strategi
 	return task, nil
 }
 
-func (s *Service) updateBuyTask(tradingTaskId int64, patch strategies.Patch) error {
-	allTasks := s.taskService.GetTasksWithStrategyId(tradingTaskId)
-
+func (s *Service) updateBuyTask(task strategies.Task) error {
+	allTasks := s.taskService.GetTasksWithStrategyId(task.StrategyTaskId())
 	if len(allTasks) == 0 || len(allTasks) > 1 {
 		return nil
 	}
 
-	buyPatchPtr, ok := patch.(*strategies.BuyPatch)
+	buyPatchPtr, ok := task.(*strategies.Buy)
 	if !ok {
 		return fmt.Errorf("invalid casting to buy patch, check if this is being called in the right place")
 	}
-
-	buyPatch := *buyPatchPtr
-
-	var cuPtr *uint32
-	if buyPatch.ComputeUnits != nil {
-		computeUnits := uint32(math.Round(*buyPatch.ComputeUnits))
-		cuPtr = &computeUnits
-	}
+	buyTask := *buyPatchPtr
+	cu := uint32(math.Round(buyTask.ComputeUnits))
 
 	taskPatch := tasks.BuyPatch{
-		Program:        buyPatch.Program,
-		Wallet:         buyPatch.Wallet,
-		Token:          buyPatch.Token,
-		Amount:         buyPatch.BuyAmount,
-		Fee:            buyPatch.BuyFee,
-		Slippage:       buyPatch.Slippage,
-		ComputeUnit:    cuPtr,
-		Retries:        buyPatch.Retries,
-		RetriesDelayMs: buyPatch.RetriesDelayMS,
+		Program:        &buyTask.Program,
+		Wallet:         &buyTask.Wallet,
+		Token:          &buyTask.Token,
+		Amount:         buyTask.BuyAmount,
+		Fee:            &buyTask.BuyFee,
+		Slippage:       &buyTask.Slippage,
+		ComputeUnit:    &cu,
+		Retries:        buyTask.Retries,
+		RetriesDelayMs: buyTask.RetriesDelayMS,
 	}
 
 	_, err := s.taskService.UpdateTask(allTasks[0], &taskPatch)
@@ -314,42 +313,68 @@ func (s *Service) updateBuyTask(tradingTaskId int64, patch strategies.Patch) err
 	return nil
 }
 
-func (s *Service) updateSellTask(tradingTaskId int64, patch strategies.Patch) error {
-	allTasks := s.taskService.GetTasksWithStrategyId(tradingTaskId)
+func (s *Service) updateSellTask(task strategies.Task) error {
+	allTasks := s.taskService.GetTasksWithStrategyId(task.StrategyTaskId())
 
 	if len(allTasks) == 0 || len(allTasks) > 1 {
 		return nil
 	}
 
-	sellPatchPtr, ok := patch.(*strategies.SellPatch)
+	sellPatchPtr, ok := task.(*strategies.Sell)
 	if !ok {
 		return fmt.Errorf("invalid casting to sell patch, check if this is being called in the right place")
 	}
 
-	sellPatch := *sellPatchPtr
+	sellTask := *sellPatchPtr
 
-	var cuPtr *uint32
-	if sellPatch.ComputeUnits != nil {
-		computeUnits := uint32(math.Round(*sellPatch.ComputeUnits))
-		cuPtr = &computeUnits
-	}
+	computeUnits := uint32(math.Round(sellTask.ComputeUnits))
 
 	taskPatch := tasks.SellPatch{
-		Program:        sellPatch.Program,
-		Wallet:         sellPatch.Wallet,
-		Token:          sellPatch.Token,
-		Amount:         sellPatch.SellAmount,
-		Fee:            sellPatch.SellFee,
-		Slippage:       sellPatch.Slippage,
-		ComputeUnit:    cuPtr,
-		Retries:        sellPatch.Retries,
-		RetriesDelayMs: sellPatch.RetriesDelayMS,
+		Program:        &sellTask.Program,
+		Wallet:         &sellTask.Wallet,
+		Token:          &sellTask.Token,
+		Amount:         &sellTask.SellAmount,
+		Fee:            &sellTask.SellFee,
+		Slippage:       &sellTask.Slippage,
+		ComputeUnit:    &computeUnits,
+		Retries:        sellTask.Retries,
+		RetriesDelayMs: sellTask.RetriesDelayMS,
 	}
 
 	_, err := s.taskService.UpdateTask(allTasks[0], &taskPatch)
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+func (s *Service) updateSpamTask(task strategies.Task) error {
+	spamTask, ok := task.(*strategies.Spam)
+	if !ok {
+		return fmt.Errorf("wrong task passed in, check updating logic")
+	}
+
+	allSubTasks := s.taskService.GetTasksWithStrategyId(spamTask.StrategyTaskId())
+	cu := uint32(math.Round(spamTask.ComputeUnits))
+	taskPatch := tasks.BuyPatch{
+		Program:        &spamTask.Program,
+		Wallet:         &spamTask.Wallet,
+		Token:          &spamTask.Token,
+		Amount:         spamTask.BuyAmount,
+		Fee:            &spamTask.BuyFee,
+		Slippage:       &spamTask.Slippage,
+		ComputeUnit:    &cu,
+		Retries:        spamTask.Retries,
+		RetriesDelayMs: spamTask.RetriesDelayMS,
+	}
+
+	for _, t := range allSubTasks {
+		_, err := s.taskService.UpdateTask(t, &taskPatch)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
