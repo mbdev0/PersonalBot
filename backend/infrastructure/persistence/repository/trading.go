@@ -126,13 +126,21 @@ func (tr *TradingRepository) DeleteAll(ctx context.Context) (_ bool, err error) 
 	return true, tx.Commit()
 }
 
-func (tr *TradingRepository) Delete(ctx context.Context, id int64) (bool, error) {
+func (tr *TradingRepository) Delete(ctx context.Context, id int64) (_ bool, err error) {
 	query := "delete from trading_tasks where id = ?"
-	_, err := execTx(ctx, tr.db, query, Fields{id})
-
+	tx, err := tr.db.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
 	if err != nil {
 		return false, err
 	}
+	defer func() {
+		if err != nil {
+			rollback(tx)
+		}
+	}()
 
-	return true, nil
+	if _, err = tx.ExecContext(ctx, query, id); err != nil {
+		return false, err
+	}
+
+	return true, tx.Commit()
 }

@@ -34,7 +34,7 @@ func execTx(ctx context.Context, db *sql.DB, query string, fields Fields) (lastI
 	}
 
 	if numAffected != 1 {
-		return 0, fmt.Errorf("error whilst adding a new row, we found that more/less than 1 row got affected: %d", numAffected)
+		return 0, fmt.Errorf("error whilst executing tx, we found that more/less than 1 row got affected: %d", numAffected)
 	}
 
 	err = tx.Commit()
