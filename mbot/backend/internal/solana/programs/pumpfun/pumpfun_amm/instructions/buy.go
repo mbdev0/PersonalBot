@@ -1,0 +1,138 @@
+package instructions
+
+import (
+	"context"
+	"math/big"
+	"personal_bot/backend/internal/core/constants"
+	"personal_bot/backend/internal/core/tasks"
+	ammConstants "personal_bot/backend/internal/solana/programs/pumpfun/pumpfun_amm/constants"
+	"personal_bot/backend/internal/solana/programs/pumpfun/pumpfun_amm/pool"
+	"personal_bot/backend/pkg/logger"
+
+	"personal_bot/backend/internal/solana/utils"
+
+	"github.com/gagliardetto/solana-go"
+	"github.com/near/borsh-go"
+)
+
+type BuyArgs struct {
+	SpendableQuoteIn uint64
+	MinBaseAmountOut uint64
+	TrackVolume      *bool
+}
+
+type accountsNeededForInstructions struct {
+	mintPoolAta string
+	wsolPoolAta string
+}
+
+func GetBuyInstruction(ctx context.Context, buyTask *tasks.BuyTask) (instruction *solana.GenericInstruction, err error) {
+	accounts, instructionsForAccount, err := getAccounts(ctx, buyTask)
+	if err != nil {
+		return
+	}
+
+	instructions, err := getInstructionData(ctx, *buyTask, instructionsForAccount.mintPoolAta, instructionsForAccount.wsolPoolAta)
+	if err != nil {
+		return
+	}
+
+	progId := solana.MustPublicKeyFromBase58(constants.PumpFunAMMProgram)
+	buyInstructions := solana.NewInstruction(progId, accounts, instructions)
+
+	return buyInstructions, nil
+}
+
+func getAccounts(ctx context.Context, task *tasks.BuyTask) (accounts []*solana.AccountMeta, instructionAccounts accountsNeededForInstructions, err error) {
+
+	accounts, informationFromAccounts, err := getBaseAccounts(ctx, task.Token, task.Wallet.PublicKey(), task.HttpClient())
+	if err != nil {
+		return
+	}
+
+	userVolumeAccumulator, err := getUserVolumeAccumulator(task.Wallet.PublicKey().String())
+	if err != nil {
+		return
+	}
+
+	buyAccounts := []*solana.AccountMeta{
+		utils.GetAccountMeta(ammConstants.GlobalVolumeAccumulator, false, false),
+		utils.GetAccountMeta(userVolumeAccumulator, true, false),
+		utils.GetAccountMeta(ammConstants.FeeConfig, false, false),
+		utils.GetAccountMeta(constants.FeeProgram, false, false),
+	}
+
+	accounts = append(accounts, buyAccounts...)
+
+	if informationFromAccounts.poolData.IsCashbackCoin {
+		userVolumeAccumulatorWsolTokenAccount, err := getUserVolumeAccumulatorWsolTokenAccount(userVolumeAccumulator, constants.TokenProgram, constants.WSOLTokenAddress)
+		if err != nil {
+			logger.Error(err)
+			return nil, accountsNeededForInstructions{}, err
+		}
+		accounts = append(accounts, utils.GetAccountMeta(userVolumeAccumulatorWsolTokenAccount, true, false))
+	}
+
+	poolV2, err := getPoolV2(task.GetToken())
+	if err != nil {
+		return
+	}
+
+	accounts = append(accounts, utils.GetAccountMeta(poolV2, false, false))
+	accounts = append(accounts, utils.GetAccountMeta(ammConstants.BuyBackVault, false, false))
+	accounts = append(accounts, utils.GetAccountMeta(ammConstants.BuyBackVaultWsol, true, false))
+
+	return accounts, accountsNeededForInstructions{mintPoolAta: informationFromAccounts.mintPoolAta, wsolPoolAta: informationFromAccounts.wsolPoolAta}, nil
+}
+
+func getInstructionData(ctx context.Context, task tasks.BuyTask, poolAtaAddress, wsolAtaAddress string) ([]byte, error) {
+	poolBalances, err := pool.GetTokenBalances(ctx, poolAtaAddress, wsolAtaAddress, task.HttpClient())
+	if err != nil {
+		return nil, err
+	}
+
+	// convert pool balances to big.Float
+	tokenPool := new(big.Float).SetFloat64(poolBalances.TokenPoolBalance)
+	wsolPool := new(big.Float).SetFloat64(poolBalances.WsolPoolBalance)
+
+	// k = tokenPool * wsolPool
+	k := new(big.Float).Mul(tokenPool, wsolPool)
+
+	// buyAmount in SOL (convert from lamports)
+	lamportsConversion := new(big.Float).SetUint64(constants.LamportsConversion)
+	buyAmountLamports := new(big.Float).SetUint64(task.BuyAmount.Uint64())
+	buyAmountSol := new(big.Float).Quo(buyAmountLamports, lamportsConversion)
+
+	// newWsolPool = wsolPool + buyAmountSol
+	newWsolPool := new(big.Float).Add(wsolPool, buyAmountSol)
+
+	// newTokenPool = k / newWsolPool
+	newTokenPool := new(big.Float).Quo(k, newWsolPool)
+
+	// tokensOut = tokenPool - newTokenPool
+	tokensOut := new(big.Float).Sub(tokenPool, newTokenPool)
+
+	// apply slippage: minBaseAmountOut = tokensOut * (1 - slippage) * tokenDecimals
+	slippage := new(big.Float).SetFloat64(task.Slippage)
+	one := new(big.Float).SetFloat64(1)
+	slippageMultiplier := new(big.Float).Sub(one, slippage)
+
+	tokenDecimals := new(big.Float).SetUint64(constants.TokenAmountDecimals)
+
+	minBaseAmountOut := new(big.Float).Mul(tokensOut, slippageMultiplier)
+	minBaseAmountOut.Mul(minBaseAmountOut, tokenDecimals)
+
+	minBaseAmountOutUint64, _ := minBaseAmountOut.Uint64()
+
+	buyArgs := BuyArgs{
+		SpendableQuoteIn: task.BuyAmount.Uint64(),
+		MinBaseAmountOut: minBaseAmountOutUint64,
+	}
+
+	serialised, err := borsh.Serialize(buyArgs)
+	if err != nil {
+		return nil, err
+	}
+
+	return append(ammConstants.BuyExactQuoteInDiscriminator, serialised...), nil
+}

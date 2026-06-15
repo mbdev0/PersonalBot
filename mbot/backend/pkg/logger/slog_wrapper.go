@@ -1,0 +1,26 @@
+package logger
+
+import (
+	"log/slog"
+)
+
+type Level = slog.Level
+
+const (
+	LevelDebug Level = -4
+	LevelInfo  Level = 0
+	LevelWarn  Level = 4
+	LevelError Level = 8
+)
+
+func StringMessage(key, value string) slog.Attr {
+	return slog.Attr{Key: key, Value: slog.StringValue(value)}
+}
+
+func ErrorMessage(err error) slog.Attr {
+	return slog.Attr{Key: "error", Value: slog.StringValue(err.Error())}
+}
+
+func InfoMessage(msg string) slog.Attr {
+	return slog.Attr{Key: "info", Value: slog.StringValue(msg)}
+}
