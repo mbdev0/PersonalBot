@@ -74,10 +74,10 @@ export function DashboardTable({
                     <TableCell
                       key={cell.id}
                       className={[
-                        'py-4 text-[13px] font-medium text-center',
+                        'py-4 text-xs font-medium text-center',
                         depth === 0 ? 'text-foreground/80 px-6' : '',
-                        depth === 1 ? 'text-foreground/60 text-[12px] px-8' : '',
-                        depth === 2 ? 'text-foreground/40 text-[12px] px-12' : '',
+                        depth === 1 ? 'text-foreground/60 text-xs px-8' : '',
+                        depth === 2 ? 'text-foreground/40 text-xs px-12' : '',
                       ]
                         .filter(Boolean)
                         .join(' ')}
@@ -92,7 +92,7 @@ export function DashboardTable({
             <TableRow className="hover:bg-transparent">
               <TableCell
                 colSpan={columns.length}
-                className="h-32 text-center text-[13px] text-muted-foreground/40"
+                className="h-32 text-center text-xs text-muted-foreground/40"
               >
                 No tasks yet
               </TableCell>
