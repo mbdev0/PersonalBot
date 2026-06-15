@@ -3,9 +3,9 @@ set -e
 
 # Build configuration
 APP_NAME="mbot"
-BUNDLE_ID="com.example.mbot"
-VERSION="0.1.0"
-BUILD_NUMBER="0.1.0"
+BUNDLE_ID="com.mycompany.myproduct"
+VERSION="1.0.0"
+BUILD_NUMBER="1.0.0"
 BUILD_DIR="build/ios"
 TARGET="simulator"
 

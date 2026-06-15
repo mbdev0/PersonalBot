@@ -54,12 +54,24 @@ func main() {
 	// 'Mac' options tailor the window when running on macOS.
 	// 'BackgroundColour' is the background colour of the window.
 	// 'URL' is the URL that will be loaded into the webview.
+	//
+	//
+
+	macTitleBar := application.MacTitleBar{
+		AppearsTransparent:   false,
+		Hide:                 false,
+		HideTitle:            false,
+		FullSizeContent:      true,
+		UseToolbar:           false,
+		HideToolbarSeparator: false,
+	}
+
 	app.Window.NewWithOptions(application.WebviewWindowOptions{
-		Title: "",
+		Title: "Personal Bot",
 		Mac: application.MacWindow{
-			InvisibleTitleBarHeight: 50,
+			InvisibleTitleBarHeight: 150,
 			Backdrop:                application.MacBackdropTranslucent,
-			TitleBar:                application.MacTitleBarHiddenInset,
+			TitleBar:                macTitleBar,
 		},
 		BackgroundColour: application.NewRGB(27, 38, 54),
 		URL:              "http://localhost:9245",
