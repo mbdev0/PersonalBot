@@ -22,7 +22,7 @@ function parseParts(message: string): Array<{ type: 'text' | 'tx'; value: string
 
 export function MessageCell({ message }: { message: string }) {
   if (!message) {
-    return <div className="font-mono text-[11px] text-foreground/30 italic">...</div>;
+    return <div className="font-mono text-xs text-foreground/30 italic">...</div>;
   }
 
   const parts = parseParts(message);
@@ -30,7 +30,7 @@ export function MessageCell({ message }: { message: string }) {
   return (
     <div
       title={message}
-      className="font-mono text-[11px] bg-foreground/5 border border-foreground/10 
+      className="font-mono text-xs bg-foreground/5 border border-foreground/10
                  rounded px-2 py-1 truncate cursor-default "
     >
       {parts.map((part, i) =>

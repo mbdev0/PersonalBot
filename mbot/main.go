@@ -19,16 +19,7 @@ import (
 //go:embed all:frontend/dist
 var assets embed.FS
 
-// main function serves as the application's entry point. It initializes the application, creates a window,
-// and starts a goroutine that emits a time-based event every second. It subsequently runs the application and
-// logs any error that might occur.
 func main() {
-
-	// Create a new Wails application by providing the necessary options.
-	// Variables 'Name' and 'Description' are for application metadata.
-	// 'Assets' configures the asset server with the 'FS' variable pointing to the frontend files.
-	// 'Bind' is a list of Go struct instances. The frontend has access to the methods of these instances.
-	// 'Mac' options tailor the application when running an macOS.
 
 	ctx, cancel := context.WithCancel(context.Background())
 	server, err := server.New(ctx)
@@ -49,14 +40,6 @@ func main() {
 		}, OnShutdown: func() { server.Shutdown(ctx); cancel() },
 	})
 
-	// Create a new window with the necessary options.
-	// 'Title' is the title of the window.
-	// 'Mac' options tailor the window when running on macOS.
-	// 'BackgroundColour' is the background colour of the window.
-	// 'URL' is the URL that will be loaded into the webview.
-	//
-	//
-
 	macTitleBar := application.MacTitleBar{
 		AppearsTransparent:   false,
 		Hide:                 false,
@@ -69,9 +52,8 @@ func main() {
 	app.Window.NewWithOptions(application.WebviewWindowOptions{
 		Title: "Personal Bot",
 		Mac: application.MacWindow{
-			InvisibleTitleBarHeight: 150,
-			Backdrop:                application.MacBackdropTranslucent,
-			TitleBar:                macTitleBar,
+			Backdrop: application.MacBackdropTranslucent,
+			TitleBar: macTitleBar,
 		},
 		BackgroundColour: application.NewRGB(27, 38, 54),
 		URL:              "http://localhost:9245",

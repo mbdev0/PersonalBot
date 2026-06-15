@@ -2,8 +2,8 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
 
-:root {
-  zoom: 80%;
+html {
+  font-size: 80%;
 }
 
 @custom-variant dark (&:is(.dark *));
@@ -187,11 +187,11 @@
   }
 
   .table-header-cell {
-    @apply text-center text-[11px] font-semibold text-muted-foreground/50 uppercase tracking-widest py-5 px-6;
+    @apply text-center text-xs font-semibold text-muted-foreground/50 uppercase tracking-widest py-5 px-6;
   }
 
   .table-body-cell {
-    @apply py-4 px-6 text-center text-[13px] font-medium text-foreground/80;
+    @apply py-4 px-6 text-center text-xs font-medium text-foreground/80;
   }
 
   .action-button-edit {
