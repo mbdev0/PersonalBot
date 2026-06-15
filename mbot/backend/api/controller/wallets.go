@@ -1,0 +1,91 @@
+package controller
+
+import (
+	"context"
+	"personal_bot/backend/api/dto"
+	"personal_bot/backend/api/mapper"
+	"personal_bot/backend/internal/services/wallet"
+)
+
+type WalletsController struct {
+	walletService *wallet.Service
+}
+
+func NewWalletController(walletService *wallet.Service) *WalletsController {
+	return &WalletsController{walletService: walletService}
+}
+
+func (wc *WalletsController) GetWallets(ctx context.Context) ([]dto.ResponseWalletDto, error) {
+	wallets, err := wc.walletService.GetAll(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	res := []dto.ResponseWalletDto{}
+	for _, wallet := range wallets {
+		mappedWallet := mapper.MapWalletToDto(wallet)
+		res = append(res, mappedWallet)
+	}
+
+	return res, nil
+}
+
+func (wc *WalletsController) InsertWallet(ctx context.Context, wallet dto.RequestWalletDto) (succeeded bool, err error) {
+	mappedWallet, err := mapper.MapWalletDtoToWallet(wallet)
+	if err != nil {
+		return false, err
+	}
+
+	succeeded, err = wc.walletService.InsertWallet(ctx, mappedWallet)
+	if err != nil {
+		return false, err
+	}
+
+	return succeeded, nil
+
+}
+
+func (wc *WalletsController) GetWalletById(ctx context.Context, id string) (dto.ResponseWalletDto, error) {
+	wallet, err := wc.walletService.GetById(ctx, id)
+	if err != nil {
+		return dto.ResponseWalletDto{}, err
+	}
+
+	mappedWallet := mapper.MapWalletToDto(wallet)
+
+	return mappedWallet, nil
+}
+
+func (wc *WalletsController) GetWalletByName(ctx context.Context, name string) (dto.ResponseWalletDto, error) {
+	wallet, err := wc.walletService.GetByName(ctx, name)
+	if err != nil {
+		return dto.ResponseWalletDto{}, err
+	}
+
+	mappedWallet := mapper.MapWalletToDto(wallet)
+
+	return mappedWallet, nil
+}
+
+func (wc *WalletsController) UpdateWallet(ctx context.Context, id string, wallet dto.RequestWalletDto) (dto.ResponseWalletDto, error) {
+	mappedWallet, err := mapper.MapWalletDtoToWallet(wallet)
+	if err != nil {
+		return dto.ResponseWalletDto{}, err
+	}
+
+	updatedWallet, err := wc.walletService.Update(ctx, id, mappedWallet)
+	if err != nil {
+		return dto.ResponseWalletDto{}, err
+	}
+
+	return mapper.MapWalletToDto(updatedWallet), nil
+}
+
+func (wc *WalletsController) DeleteWallet(ctx context.Context, id string) (bool, error) {
+	deleted, err := wc.walletService.Delete(ctx, id)
+	if err != nil {
+		return false, err
+	}
+
+	return deleted, nil
+}
