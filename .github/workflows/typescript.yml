@@ -1,0 +1,35 @@
+name: Typescript CI/CD
+
+on:
+  pull_request:
+    branches:
+      - main
+    types: [opened, synchronize, reopened]
+
+  push:
+    branches:
+      - main
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20.x"
+          cache: npm
+          cache-dependency-path: mbot/frontend/package-lock.json
+
+      - name: Install Dependencies
+        working-directory: ./mbot/frontend
+        run: npm ci
+
+      - name: Typecheck
+        working-directory: ./mbot/frontend
+        run: npm run typecheck
+
+      - name: Lint
+        working-directory: ./mbot/frontend
+        run: npm run lint
