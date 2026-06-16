@@ -1,1 +1,0 @@
-export const SOLANA_PRICE_REFETCH = 5000;
