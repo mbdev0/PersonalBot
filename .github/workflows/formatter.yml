@@ -3,17 +3,16 @@ name: Go Formatter
 on: push
 
 jobs:
-
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Set up Go
-      uses: actions/setup-go@v4
-      with:
-        go-version: '1.22.5'
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.22.5"
 
-    - name: Build
-      working-directory: ./backend
-      run: go fmt ./...
+      - name: Build
+        working-directory: ./mbot/backend
+        run: go fmt ./...
