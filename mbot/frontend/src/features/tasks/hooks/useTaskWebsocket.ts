@@ -42,8 +42,7 @@ export const useTaskWebsocket = (sendPositionWsMessage: (msg: SendPositionWSMess
         const { updatedChildren, updatedTask } = updateTaskInChildren(
           strategyTask.children,
           data.task_event.task_id,
-          data,
-          sendPositionWsMessage
+          data
         );
 
         if (!updatedTask) {
@@ -126,8 +125,7 @@ function applyTaskEvent(task: TaskDashboardRow, event: TaskWSMessage): TaskDashb
 function updateTaskInChildren(
   children: TaskDashboardRow[],
   taskId: number,
-  event: TaskWSMessage,
-  sendPositionWsMessage: (msg: SendPositionWSMessage) => void
+  event: TaskWSMessage
 ): { updatedChildren: TaskDashboardRow[]; updatedTask: TaskDashboardRow | null } {
   let updatedTask: TaskDashboardRow | null = null;
 
