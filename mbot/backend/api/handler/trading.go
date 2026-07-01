@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"os"
+	"os/exec"
 	"personal_bot/backend/api/controller"
 	"personal_bot/backend/api/dto"
 	"personal_bot/backend/api/mapper"
@@ -40,6 +42,7 @@ func (th *TradingHandler) registerRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /task/start/{id}", th.startTask)
 	mux.HandleFunc("GET /task/stop/{id}", th.stopTask)
 	mux.HandleFunc("GET /subscribe", th.subscribe)
+	mux.HandleFunc("GET /terminal/{id}", th.openTerminal)
 
 }
 
@@ -204,6 +207,27 @@ func (th *TradingHandler) stopTask(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+}
+
+func (th *TradingHandler) openTerminal(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	convertedId, err := strconv.Atoi(id)
+	if err != nil {
+		http.Error(w, fmt.Errorf("invalid id passed").Error(), http.StatusBadRequest)
+		return
+	}
+
+	exe, err := os.Executable()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	exec.Command("osascript", "-e",
+		fmt.Sprintf(`tell application "Terminal" to do script "%s tui %d"`, exe, convertedId),
+	).Run()
+
+	w.WriteHeader(http.StatusOK)
 }
 
 func (th *TradingHandler) subscribe(w http.ResponseWriter, r *http.Request) {
