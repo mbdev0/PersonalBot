@@ -8,6 +8,7 @@ interface RowActions {
   onDelete: (row: DisplayRow) => void;
   onDuplicate: (row: DisplayRow) => void;
   onQuickSell: (task: TaskPostDto) => void;
+  onOpenTerminal: (row: DisplayRow) => void;
 }
 
 export { type RowActions };
