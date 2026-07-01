@@ -86,7 +86,7 @@ func (sh *SubscriptionHub) Subscribe(positionId int64, isInternalSub bool, rpcGr
 		prog := program.Resolve(pos.Program)
 		stream := prog.NewMarketCapStream(c, pos.MonitoringAddress, node)
 
-		// go monitoring.StartMarketCapMonitor(ctx, pos.MonitoringAddress, marketCapChan, node)
+		counter := 0
 
 		// start marketcap streaming
 		// then foreach in mcap
@@ -95,6 +95,19 @@ func (sh *SubscriptionHub) Subscribe(positionId int64, isInternalSub bool, rpcGr
 			positionMessage.MessageType = position.Update
 			//publish the profit, mcap, position
 			sh.publish(s.Sub_id, &positionMessage)
+
+			if counter == 5 {
+				pos.Logger.TaskInformation(positionId, fmt.Sprintf("Market Cap: $%s | Total PNL: %s | Unrealized: %s",
+					positionMessage.MarketCap.Text('f', 2),
+					positionMessage.TotalPnL.Text('f', 2),
+					positionMessage.UnrealizedProfit.Text('f', 2),
+				))
+
+				counter = 0
+			}
+
+			counter++
+
 		}
 	}(ctx, sub, p)
 

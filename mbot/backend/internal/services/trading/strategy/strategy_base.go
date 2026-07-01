@@ -44,6 +44,7 @@ func New(ts *taskservice.TaskService, ph *positionhub.SubscriptionHub, ps *posit
 func (s *Strategy) Run(ctx context.Context, strategyTask strategies.Task) error {
 	strategyTask.SetStrategyState(string(strategies.RUNNING))
 	s.strategyHub.PublishStateUpdate(strategyTask.StrategyTaskId(), strategyTask.StrategyState())
+	strategyTask.Logger().Information(string(strategies.RUNNING))
 
 	switch tsk := strategyTask.(type) {
 	case *strategies.Afk:
@@ -61,6 +62,8 @@ func (s *Strategy) Run(ctx context.Context, strategyTask strategies.Task) error 
 	default:
 		strategyTask.SetStrategyState(string(strategies.FAILED))
 		s.strategyHub.PublishStateUpdate(strategyTask.StrategyTaskId(), strategyTask.StrategyState())
+		strategyTask.Logger().Error("task doesn't belong to a strategy")
+
 		return fmt.Errorf("task doesn't belong to a strategy")
 	}
 
@@ -71,11 +74,13 @@ func (s *Strategy) syncStateAndMessage(ctx context.Context, taskId int64, strate
 	task, err := s.taskService.GetTaskWith(taskId)
 	if err != nil {
 		logger.Error(err)
+		strategyTask.Logger().Error(err)
 		return err
 	}
 	sub, err := s.taskHub.Subscribe(task)
 	if err != nil {
 		logger.Error(err)
+		strategyTask.Logger().Error(err)
 		return err
 	}
 	defer s.taskHub.Unsubcribe(task)
@@ -107,12 +112,13 @@ func (s *Strategy) processMessage(msg tasks.TaskEvent, strategyTask strategies.T
 	}
 }
 
-func (s *Strategy) resolveStrategyConfig(sellStratsConfig []strategies.StrategyConfig, position *position.Position) []sell.Strategy {
+func (s *Strategy) resolveStrategyConfig(sellStratsConfig []strategies.StrategyConfig, position *position.Position) ([]sell.Strategy, error) {
 	strats := []sell.Strategy{}
 	entryPrice, _ := position.EntryPrice.Float64()
 	solPrice, err := solana_price.GetSolPrice()
 	if err != nil {
 		logger.Error(err)
+		return nil, err
 	}
 
 	//TODO: get total token amount as a call -> maybe from pos_sub
@@ -136,7 +142,7 @@ func (s *Strategy) resolveStrategyConfig(sellStratsConfig []strategies.StrategyC
 			strats = append(strats, sell.NewTakeProfitPrice(strat.Value, strat.SellAmount))
 		}
 	}
-	return strats
+	return strats, nil
 }
 
 func (s *Strategy) monitorPositionForSellStrategies(ctx context.Context, pos position.Position, sellableTask strategies.SellableStrategy, strats []sell.Strategy, rpcNode rpcgroupsModel.GroupItem) error {
@@ -146,6 +152,7 @@ func (s *Strategy) monitorPositionForSellStrategies(ctx context.Context, pos pos
 	}
 	sub, err := s.positionHub.Subscribe(pos.PositionId, true, &rpc)
 	if err != nil {
+		sellableTask.Logger().Error(err)
 		logger.Error(err)
 		return err
 	}
@@ -199,6 +206,7 @@ func (s *Strategy) createAndRunSellTask(sellableTask strategies.SellableStrategy
 			tasks.WithRPCGroupId(sellableTask.RPCGroupId()),
 			tasks.WithHttpNode(rpcNode.Http),
 			tasks.WithWS(rpcNode.WS),
+			tasks.WithLogger(sellableTask.Logger()),
 		},
 		[]tasks.SellOption{
 			tasks.WithSellAmount(sellAmount),
@@ -208,6 +216,7 @@ func (s *Strategy) createAndRunSellTask(sellableTask strategies.SellableStrategy
 	))
 
 	if err != nil {
+		sellableTask.Logger().Error(err)
 		logger.Error(err)
 	}
 	s.taskService.StartTask(tsk.Id())

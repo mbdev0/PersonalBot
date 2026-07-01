@@ -65,6 +65,7 @@ func (e *Executor) Execute(ctx context.Context, done chan struct{}, tx transacti
 				e.setStateAndPublish(tasks.TaskCancel, task)
 			} else {
 				if isRetryable && retries > 0 {
+					t.Logger().TaskInformation(task.Id(), "retrying...")
 					retries--
 					time.Sleep(time.Duration(t.RetriesDelayMS()) * time.Millisecond)
 					e.setStateAndPublish(t.RetryFrom(), task)
@@ -80,10 +81,15 @@ func (e *Executor) Execute(ctx context.Context, done chan struct{}, tx transacti
 }
 func (e *Executor) setStateAndPublish(newState tasks.TaskState, t tasks.Task, errMsg ...string) {
 	state := tasks.State{TaskState: newState}
-	if len(errMsg) > 0 && errMsg[0] != "" {
+	isErr := len(errMsg) > 0 && errMsg[0] != ""
+	if isErr {
+		t.Logger().TaskError(t.Id(), errMsg[0])
 		state.Error = errMsg[0]
 		t.SetMessage(errMsg[0])
+	} else {
+		t.Logger().TaskInformation(t.Id(), fmt.Sprintf("Moving to next state: %s", state.TaskState.ToString()))
 	}
+
 	t.SetState(state)
 	e.publisher.PublishStateChange(t)
 }

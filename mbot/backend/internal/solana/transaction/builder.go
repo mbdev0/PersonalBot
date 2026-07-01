@@ -92,9 +92,11 @@ func ConfirmTx(ctx context.Context, rpcClient *rpc.Client, signature solana.Sign
 
 	for msg := range stream {
 		if msg.Err != "" {
+			task.Logger().TaskError(task.Id(), msg.Err)
 			publisher.PublishMessage(task, msg.Err)
 			return fmt.Errorf("%v", msg.Err)
 		}
+		task.Logger().TaskInformation(task.Id(), msg.Message)
 		publisher.PublishMessage(task, msg.Message)
 	}
 	return nil

@@ -16,6 +16,7 @@ func NewSellEngine(strategy Strategy) *Sell {
 
 func (s *Sell) Run(ctxCancel context.Context, tsk *strategies.Sell) {
 	if err := s.taskService.StartTask(tsk.SellTaskId); err != nil {
+		tsk.Logger().Error(err)
 		logger.Error(err)
 	}
 	go s.syncStateAndMessage(ctxCancel, tsk.SellTaskId, tsk)

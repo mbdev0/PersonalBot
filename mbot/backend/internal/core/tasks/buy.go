@@ -3,6 +3,7 @@ package tasks
 import (
 	"math/big"
 	"personal_bot/backend/internal/core/wallets"
+	"personal_bot/backend/pkg/logger"
 
 	"github.com/gagliardetto/solana-go/rpc"
 
@@ -34,6 +35,7 @@ type BuyTask struct {
 	ws             string
 	retries        uint16
 	retriesDelayMs uint32
+	logger         *logger.TaskLogger
 }
 
 func NewBuyTask(wallet wallets.SolanaWallet, token solana.PublicKey, common []Option, buyOpts []BuyOption) *BuyTask {
@@ -139,3 +141,7 @@ func (bt *BuyTask) Retries() uint16 { return bt.retries }
 func (bt *BuyTask) RetriesDelayMS() uint32 { return bt.retriesDelayMs }
 
 func (bt *BuyTask) RetryFrom() TaskState { return TxInstructionBuild }
+
+func (bt *BuyTask) Logger() *logger.TaskLogger { return bt.logger }
+
+func (bt *BuyTask) SetLogger(log *logger.TaskLogger) { bt.logger = log }

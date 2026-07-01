@@ -18,6 +18,7 @@ func (b *Buy) Run(ctx context.Context, buyTask *strategies.Buy) {
 	err := b.taskService.StartTask(buyTask.BuyTaskId)
 	if err != nil {
 		buyTask.SetStrategyMessage(err.Error())
+		buyTask.Logger().TaskError(buyTask.BuyTaskId)
 		logger.Error(err)
 	}
 
@@ -27,19 +28,26 @@ func (b *Buy) Run(ctx context.Context, buyTask *strategies.Buy) {
 		pos, ok := b.positionHub.WaitForCreate(buyTask.PositionId)
 		if !ok {
 			logger.Error("timeout whilst waiting for position to be created: ", buyTask.PositionId)
+			buyTask.Logger().Error(err)
 			return
 		}
 
-		sellStrats := b.resolveStrategyConfig(buyTask.SellStrategies, pos)
+		sellStrats, err := b.resolveStrategyConfig(buyTask.SellStrategies, pos)
+		if err != nil {
+			buyTask.Logger().Error(err)
+			return
+		}
 
 		node, err := b.rpcService.GetNode(buyTask.RPCGroupId())
 		if err != nil {
+			buyTask.Logger().Error(err)
 			logger.Error(err)
 			return
 		}
 
 		err = b.monitorPositionForSellStrategies(ctx, *pos, buyTask, sellStrats, node)
 		if err != nil {
+			buyTask.Logger().Error(err)
 			return
 		}
 	}

@@ -4,6 +4,7 @@ import (
 	"math/big"
 	rpcgroups "personal_bot/backend/internal/core/rpc_groups"
 	"personal_bot/backend/internal/core/wallets"
+	"personal_bot/backend/pkg/logger"
 
 	"github.com/gagliardetto/solana-go"
 )
@@ -28,6 +29,7 @@ type Buy struct {
 	RPCGroup       rpcgroups.RPCGroup
 	Retries        *uint16
 	RetriesDelayMS *uint32
+	logger         *logger.TaskLogger
 }
 
 func (b *Buy) New() {
@@ -88,4 +90,12 @@ func (b *Buy) GetTimeCreated() int64 {
 
 func (b *Buy) SetTimeCreated(time int64) {
 	b.TimeCreated = time
+}
+
+func (b *Buy) Logger() *logger.TaskLogger {
+	return b.logger
+}
+
+func (b *Buy) SetLogger(l *logger.TaskLogger) {
+	b.logger = l
 }

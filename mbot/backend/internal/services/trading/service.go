@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"maps"
 	"math"
+	"os"
+	"path/filepath"
 	"personal_bot/backend/app/iterable"
 	"personal_bot/backend/infrastructure/persistence/repository"
 	rpcgroupsModel "personal_bot/backend/internal/core/rpc_groups"
@@ -65,14 +67,21 @@ func (s *Service) Create(ctx context.Context, st strategies.Task) (task strategi
 		return nil, err
 	}
 
+	tlogger, err := logger.NewTaskLogger(st.StrategyTaskId())
+	if err != nil {
+		return nil, err
+	}
+
+	st.SetLogger(tlogger)
+
 	//if we get a buy/sell strategy we precreate the task to speed up running
 	if st.StrategyType() == strategies.BUY {
-		err := s.initBuyStrategy(st)
+		err := s.initBuyStrategy(st, tlogger)
 		if err != nil {
 			return nil, err
 		}
 	} else if st.StrategyType() == strategies.SELL {
-		err := s.initSellStrategy(st)
+		err := s.initSellStrategy(st, tlogger)
 		if err != nil {
 			return nil, err
 		}
@@ -83,7 +92,7 @@ func (s *Service) Create(ctx context.Context, st strategies.Task) (task strategi
 	return st, nil
 }
 
-func (s *Service) initBuyStrategy(st strategies.Task) (err error) {
+func (s *Service) initBuyStrategy(st strategies.Task, tlogger *logger.TaskLogger) (err error) {
 	buyStrategy, ok := st.(*strategies.Buy)
 	if !ok {
 		return fmt.Errorf("expected strategy task to be a Buy Strategy - ended up getting a different type")
@@ -94,7 +103,7 @@ func (s *Service) initBuyStrategy(st strategies.Task) (err error) {
 		return err
 	}
 
-	bt := s.createBuyTask(*buyStrategy, node)
+	bt := s.createBuyTask(*buyStrategy, node, tlogger)
 	createdTask, err := s.taskService.Create(bt)
 	if err != nil {
 		return err
@@ -105,7 +114,7 @@ func (s *Service) initBuyStrategy(st strategies.Task) (err error) {
 	return nil
 }
 
-func (s *Service) createBuyTask(buyTask strategies.Buy, node rpcgroupsModel.GroupItem) *tasks.BuyTask {
+func (s *Service) createBuyTask(buyTask strategies.Buy, node rpcgroupsModel.GroupItem, tlogger *logger.TaskLogger) *tasks.BuyTask {
 	bt := tasks.NewBuyTask(buyTask.Wallet, buyTask.Token,
 		[]tasks.Option{
 			tasks.WithProgram(buyTask.GetProgram()),
@@ -115,6 +124,7 @@ func (s *Service) createBuyTask(buyTask strategies.Buy, node rpcgroupsModel.Grou
 			tasks.WithRPCGroupId(buyTask.RPCGroup.Id),
 			tasks.WithHttpNode(node.Http),
 			tasks.WithWS(node.WS),
+			tasks.WithLogger(tlogger),
 		},
 		[]tasks.BuyOption{
 			tasks.WithBuyAmount(buyTask.BuyAmount),
@@ -124,7 +134,7 @@ func (s *Service) createBuyTask(buyTask strategies.Buy, node rpcgroupsModel.Grou
 	return bt
 }
 
-func (s *Service) initSellStrategy(st strategies.Task) (err error) {
+func (s *Service) initSellStrategy(st strategies.Task, tlogger *logger.TaskLogger) (err error) {
 	sellStrategy, ok := st.(*strategies.Sell)
 	if !ok {
 		return fmt.Errorf("expected strategy task to be a Sell Strategy - ended up getting a different type")
@@ -135,7 +145,7 @@ func (s *Service) initSellStrategy(st strategies.Task) (err error) {
 		return err
 	}
 
-	sellTask := s.createSellTask(*sellStrategy, node)
+	sellTask := s.createSellTask(*sellStrategy, node, tlogger)
 	createdTask, err := s.taskService.Create(sellTask)
 	if err != nil {
 		return err
@@ -145,7 +155,7 @@ func (s *Service) initSellStrategy(st strategies.Task) (err error) {
 	return nil
 }
 
-func (s *Service) createSellTask(sell strategies.Sell, rpcGroup rpcgroupsModel.GroupItem) *tasks.SellTask {
+func (s *Service) createSellTask(sell strategies.Sell, rpcGroup rpcgroupsModel.GroupItem, tlogger *logger.TaskLogger) *tasks.SellTask {
 	st := tasks.NewSellTask(
 		sell.GetWallet(),
 		sell.Token,
@@ -157,6 +167,7 @@ func (s *Service) createSellTask(sell strategies.Sell, rpcGroup rpcgroupsModel.G
 			tasks.WithRPCGroupId(sell.RPCGroupId()),
 			tasks.WithHttpNode(rpcGroup.Http),
 			tasks.WithWS(rpcGroup.WS),
+			tasks.WithLogger(tlogger),
 		},
 		[]tasks.SellOption{
 			tasks.WithSellAmount(sell.SellAmount),
@@ -170,16 +181,19 @@ func (s *Service) createSellTask(sell strategies.Sell, rpcGroup rpcgroupsModel.G
 func (s *Service) Delete(ctx context.Context, id int64) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+
 	if _, ok := s.tasks[id]; !ok {
 		return fmt.Errorf("task not found with id: %d", id)
 	}
 
+	task := s.tasks[id]
+
 	taskCancel, ok := s.running[id]
 	if ok {
 		taskCancel()
+		<-task.Logger().Done()
 	}
 
-	task := s.tasks[id]
 	delete(s.tasks, id)
 
 	err := s.rpcGroupService.Unload(task.RPCGroupId())
@@ -222,6 +236,14 @@ func (s *Service) Delete(ctx context.Context, id int64) error {
 		if err != nil {
 			return err
 		}
+	}
+
+	//delete log file if exists
+	exe, _ := os.Executable()
+	logfile := filepath.Join(filepath.Dir(exe), fmt.Sprintf("logs/task-%d-logs", id))
+	err = os.Remove(logfile)
+	if err != nil {
+		return err
 	}
 
 	return nil
@@ -390,7 +412,15 @@ func (s *Service) Start(id int64) error {
 	}
 
 	ctxCancel, cancel := context.WithCancel(context.Background())
-	err := s.strategy.Run(ctxCancel, task)
+
+	err := task.Logger().Start(ctxCancel)
+	if err != nil {
+		cancel()
+		return err
+	}
+
+	task.Logger().Information("starting strategy task...")
+	err = s.strategy.Run(ctxCancel, task)
 	if err != nil {
 		cancel()
 		return err
@@ -421,6 +451,7 @@ func (s *Service) Stop(id int64) error {
 	for _, child := range childTasks {
 		err := s.taskService.StopTask(child.Id())
 		if err != nil {
+			child.Logger().TaskError(child.Id(), err)
 			logger.Error(err)
 		}
 	}

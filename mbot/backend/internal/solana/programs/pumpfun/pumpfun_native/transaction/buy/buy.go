@@ -125,6 +125,7 @@ func (bt *Transaction) UpdatePosition(ctx context.Context) (tokenAmount, solAmou
 		AddressForUrl:        bondingCurve,
 		AddressForMonitoring: bondingCurve,
 		Program:              bt.BuyTask.Program(),
+		Logger:               bt.BuyTask.Logger(),
 	}
 
 	err = bt.PositionService.ReportBuy(ctx, payload)

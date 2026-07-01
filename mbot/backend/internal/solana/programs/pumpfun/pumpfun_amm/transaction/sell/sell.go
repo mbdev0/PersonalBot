@@ -133,6 +133,7 @@ func (st *Transaction) getAllInstructionsForSell(ctx context.Context, sellTask *
 			MarketCap:     marketCap,
 			AddressForUrl: poolAddy,
 			Program:       st.SellTask.Program(),
+			Logger:        st.SellTask.Logger(),
 		}
 
 		err = st.PositionService.ReportBuy(ctx, payload)

@@ -1,5 +1,7 @@
 package tasks
 
+import "personal_bot/backend/pkg/logger"
+
 type Task interface {
 	Id() int64
 	GetStrategyId() *int64
@@ -12,6 +14,7 @@ type Task interface {
 	GetToken() string
 	Program() string
 	GetRPCGroupId() int64
+	Logger() *logger.TaskLogger
 }
 
 type Configurable interface {
@@ -26,6 +29,7 @@ type Configurable interface {
 	SetRPCGroupId(id int64)
 	SetRetries(retries uint16)
 	SetRetriesDelayMS(retriesDelayMs uint32)
+	SetLogger(logger *logger.TaskLogger)
 }
 
 type ConfigurableTask interface {

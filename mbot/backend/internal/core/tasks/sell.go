@@ -2,6 +2,7 @@ package tasks
 
 import (
 	"personal_bot/backend/internal/core/wallets"
+	"personal_bot/backend/pkg/logger"
 	"sync"
 
 	"github.com/gagliardetto/solana-go"
@@ -32,6 +33,7 @@ type SellTask struct {
 	rpcGroupId     int64
 	retries        uint16
 	retriesDelayMs uint32
+	logger         *logger.TaskLogger
 }
 
 func NewSellTask(wallet wallets.SolanaWallet, token solana.PublicKey, common []Option, sellOpt []SellOption) *SellTask {
@@ -140,3 +142,7 @@ func (st *SellTask) Retries() uint16 { return st.retries }
 func (st *SellTask) RetriesDelayMS() uint32 { return st.retriesDelayMs }
 
 func (st *SellTask) RetryFrom() TaskState { return TxInstructionBuild }
+
+func (st *SellTask) Logger() *logger.TaskLogger { return st.logger }
+
+func (st *SellTask) SetLogger(log *logger.TaskLogger) { st.logger = log }

@@ -5,6 +5,7 @@ import (
 	rpcgroups "personal_bot/backend/internal/core/rpc_groups"
 	"personal_bot/backend/internal/core/wallets"
 	"personal_bot/backend/internal/solana/monitoring/filters"
+	"personal_bot/backend/pkg/logger"
 )
 
 type StrategyFilter func() filters.FilterInfo
@@ -27,6 +28,7 @@ type Afk struct {
 	RPCGroup       rpcgroups.RPCGroup
 	Retries        *uint16
 	RetriesDelayMS *uint32
+	logger         *logger.TaskLogger
 }
 
 func (a *Afk) New() {
@@ -88,4 +90,12 @@ func (a *Afk) GetTimeCreated() int64 {
 
 func (a *Afk) SetTimeCreated(time int64) {
 	a.TimeCreated = time
+}
+
+func (a *Afk) Logger() *logger.TaskLogger {
+	return a.logger
+}
+
+func (a *Afk) SetLogger(l *logger.TaskLogger) {
+	a.logger = l
 }

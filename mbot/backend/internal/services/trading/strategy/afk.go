@@ -35,6 +35,7 @@ func (afk *AFK) Run(ctx context.Context, afkTask *strategies.Afk) {
 	node, err := afk.rpcService.GetNode(afkTask.RPCGroupId())
 	if err != nil {
 		logger.Error(err)
+		afkTask.Logger().Error(err)
 		return
 	}
 
@@ -45,6 +46,7 @@ func (afk *AFK) Run(ctx context.Context, afkTask *strategies.Afk) {
 	}, filterPipeline)
 
 	logger.Information("started afk monitor")
+	afkTask.Logger().Information("started afk monitor")
 
 	counter := 0
 	for {
@@ -65,6 +67,7 @@ func (afk *AFK) Run(ctx context.Context, afkTask *strategies.Afk) {
 				return
 			}
 			logger.Information("found new coin: ", coin.CoinData.Name)
+			afkTask.Logger().Information("found new coin: ", coin.CoinData.Name)
 			afk.handleNewCoin(ctx, afkTask, coin)
 			counter++
 		}
@@ -75,6 +78,7 @@ func (afk *AFK) handleNewCoin(ctx context.Context, afkTask *strategies.Afk, coin
 	bt, err := afk.createAndRunBuyTask(ctx, coin, afkTask)
 	if err != nil {
 		logger.Error(err)
+		afkTask.Logger().Error(err)
 		return
 	}
 
@@ -82,18 +86,25 @@ func (afk *AFK) handleNewCoin(ctx context.Context, afkTask *strategies.Afk, coin
 		pos, ok := afk.positionHub.WaitForCreate(bt.Id())
 		if !ok {
 			logger.Error("timeout whilst waiting for position to be created: ", bt.Id())
+			afkTask.Logger().Error("timeout whilst waiting for position to be created: ", bt.Id())
+
 			return
 		}
 
-		sellStrats := afk.resolveStrategyConfig(afkTask.SellStrategies, pos)
+		sellStrats, err := afk.resolveStrategyConfig(afkTask.SellStrategies, pos)
+		if err != nil {
+			afkTask.Logger().Error(err)
+		}
 		node, err := afk.rpcService.GetNode(afkTask.RPCGroupId())
 		if err != nil {
 			logger.Error(err)
+			afkTask.Logger().Error(err)
 			return
 		}
 
 		err = afk.monitorPositionForSellStrategies(ctx, *pos, afkTask, sellStrats, node)
 		if err != nil {
+			afkTask.Logger().Error(err)
 			return
 		}
 	}
@@ -101,10 +112,10 @@ func (afk *AFK) handleNewCoin(ctx context.Context, afkTask *strategies.Afk, coin
 }
 
 func (afk *AFK) createAndRunBuyTask(ctx context.Context, coin models.Coin, afkTask *strategies.Afk) (bt tasks.Task, err error) {
-
 	coinAddr, err := solana.PublicKeyFromBase58(coin.CoinData.TokenAddr)
 	if err != nil {
 		logger.Error("couldn't read token address correctly: " + err.Error())
+		afkTask.Logger().Error("couldn't read token address correctly: " + err.Error())
 	}
 
 	node, err := afk.rpcService.GetNode(afkTask.RPCGroupId())
@@ -126,6 +137,7 @@ func (afk *AFK) createAndRunBuyTask(ctx context.Context, coin models.Coin, afkTa
 
 	afk.strategyHub.PublishTaskCreation(afkTask.StrategyTaskId(), bt)
 	afk.strategyHub.PublishProgressMessage(afkTask.StrategyTaskId(), fmt.Sprintf("created + running coin for %s", coin.CoinData.Symbol))
+	afkTask.Logger().Information(fmt.Sprintf("created + running coin for %s", coin.CoinData.Symbol))
 
 	err = afk.taskService.StartTask(bt.Id())
 	if err != nil {
@@ -145,6 +157,7 @@ func (afk *AFK) createBuyTask(afkTask *strategies.Afk, tokenAddr solana.PublicKe
 			tasks.WithRPCGroupId(afkTask.RPCGroupId()),
 			tasks.WithHttpNode(rpc.Http),
 			tasks.WithWS(rpc.WS),
+			tasks.WithLogger(afkTask.Logger()),
 		},
 		[]tasks.BuyOption{
 			tasks.WithBuyAmount(afkTask.BuyAmount),

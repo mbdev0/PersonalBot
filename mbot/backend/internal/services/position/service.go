@@ -62,6 +62,7 @@ func (s *Service) ReportBuy(ctx context.Context, buyReportPayload position.Repor
 		AddressForUrl:        buyReportPayload.AddressForUrl,
 		MonitoringAddress:    buyReportPayload.AddressForMonitoring,
 		Program:              buyReportPayload.Program,
+		Logger:               buyReportPayload.Logger,
 	}
 
 	s.positions[newPosition.PositionId] = &newPosition

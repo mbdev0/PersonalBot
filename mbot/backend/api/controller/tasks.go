@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"personal_bot/backend/api/dto"
 	"personal_bot/backend/api/mapper"
+	"personal_bot/backend/internal/core/tasks"
 	"personal_bot/backend/internal/core/wallets"
 	rpcgroups "personal_bot/backend/internal/services/rpc_groups"
 	"personal_bot/backend/internal/services/subscription_hub/task"
 	taskservice "personal_bot/backend/internal/services/task_service"
+	"personal_bot/backend/internal/services/trading"
 	"personal_bot/backend/internal/services/wallet"
 )
 
@@ -16,6 +18,7 @@ type TaskController struct {
 	TaskService     *taskservice.TaskService
 	WalletService   *wallet.Service
 	RPCGroupService *rpcgroups.Service
+	TradingService  *trading.Service
 }
 
 func NewTaskController(ts *taskservice.TaskService, walletService *wallet.Service, rpcGroupService *rpcgroups.Service) *TaskController {
@@ -157,12 +160,43 @@ func (tc *TaskController) TransitionTask(id int64, action dto.ActionType) (err e
 }
 
 func (tc *TaskController) CreateAndRunTask(ctx context.Context, task dto.RequestTask) error {
-	createdTask, err := tc.CreateTask(ctx, task)
+	//we'd have to call strategy service maybe here? that may cause an issue with import cycle
+	wallet, err := tc.WalletService.GetByName(ctx, task.WalletAddressName)
 	if err != nil {
 		return err
 	}
 
-	return tc.TransitionTask(createdTask.TaskId, dto.Run)
+	_, err = tc.RPCGroupService.Load(ctx, task.RPCGroupId)
+	if err != nil {
+		return err
+	}
+
+	rpcGroup, err := tc.RPCGroupService.GetNode(task.RPCGroupId)
+	if err != nil {
+		return err
+	}
+
+	//we should check if the position exists if it occurs in the request task (selling)
+	newTask, err := mapper.MapRequestTaskToTask(&task, wallet, rpcGroup)
+	if err != nil {
+		return err
+	}
+
+	createdTask, err := tc.TaskService.Create(newTask)
+	if err != nil {
+		return err
+	}
+
+	tradingTask, err := tc.TradingService.GetBy(*createdTask.GetStrategyId())
+	if err != nil {
+		return err
+	}
+
+	if c, ok := createdTask.(tasks.Configurable); ok {
+		c.SetLogger(tradingTask.Logger())
+	}
+
+	return tc.TransitionTask(createdTask.Id(), dto.Run)
 }
 
 func (tc *TaskController) Subscribe(id int64) (*task.Subscription, error) {
