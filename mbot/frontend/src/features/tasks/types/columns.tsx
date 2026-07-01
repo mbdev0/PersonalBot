@@ -78,7 +78,30 @@ export const columns: ColumnDef<DisplayRow>[] = [
     accessorKey: 'message',
     header: 'Message',
     size: 480,
-    cell: ({ row }) => <MessageCell message={row.original.ws_message ?? ''} />,
+    cell: ({ row }) => {
+      const message = row.original.ws_message ?? '';
+      const txMessage = row.original.tx_message ?? '';
+      const txMatch = txMessage.match(/[1-9A-HJ-NP-Za-km-z]{87,88}/);
+      const solscanUrl = txMatch ? `https://solscan.io/tx/${txMatch[0]}` : null;
+      return (
+        <div>
+          <MessageCell message={message} />
+          {solscanUrl && (
+            <span className="text-sm text-foreground/50">
+              transaction successfully confirmed:{' '}
+              <a
+                href={solscanUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-400 hover:underline"
+              >
+                link
+              </a>
+            </span>
+          )}
+        </div>
+      );
+    },
   },
   {
     accessorKey: 'status',
