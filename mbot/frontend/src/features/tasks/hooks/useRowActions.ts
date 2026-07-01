@@ -4,6 +4,7 @@ import { TaskRowType, type DisplayRow } from '../types/tableRows';
 import {
   useAddStrategy,
   useDeleteStrategy,
+  useOpenTerminal,
   useStartStrategy,
   useStopStrategy,
 } from './useStrategy';
@@ -21,6 +22,7 @@ export function useRowActions(setEditingRow: (row: DisplayRow | null) => void): 
 
   const deleteStrategyMutation = useDeleteStrategy();
   const duplicateStrategyMutation = useAddStrategy();
+  const openTerminal = useOpenTerminal();
 
   return {
     onStart: (row: DisplayRow) => {
@@ -86,6 +88,13 @@ export function useRowActions(setEditingRow: (row: DisplayRow | null) => void): 
       createAndRunTaskMutation.mutate(task, {
         onError: (e) =>
           toast.error(`Failed to create task ${task.type}`, { description: e.message }),
+      });
+    },
+
+    onOpenTerminal: (row: DisplayRow) => {
+      openTerminal.mutate(row.id, {
+        onError: (e) =>
+          toast.error(`Failed to open terminal ${row.id}`, { description: e.message }),
       });
     },
   };

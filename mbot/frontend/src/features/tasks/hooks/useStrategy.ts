@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   deleteStrategy,
+  openTerminal,
   postStrategy,
   putStrategy,
   startStrategy,
@@ -66,6 +67,16 @@ export function useStartStrategy() {
 export function useStopStrategy() {
   return useMutation({
     mutationFn: (id: number) => stopStrategy(id),
+    onSuccess() {},
+    onError(e) {
+      console.error('error whilst stopping strategy: ', e);
+    },
+  });
+}
+
+export function useOpenTerminal() {
+  return useMutation({
+    mutationFn: (id: number) => openTerminal(id),
     onSuccess() {},
     onError(e) {
       console.error('error whilst stopping strategy: ', e);

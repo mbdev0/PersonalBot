@@ -90,3 +90,14 @@ export async function stopStrategy(id: number) {
 
   return response.status;
 }
+
+export async function openTerminal(id: number) {
+  const url = API_BASE + STRATEGY_BASE + `/terminal/${id}`;
+  const response = await fetch(url, { method: 'GET' });
+
+  if (!response.ok) {
+    throw new Error(`opening terminal with ${id} failed: ${response.status}`);
+  }
+
+  return response.status;
+}
