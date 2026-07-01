@@ -2,6 +2,7 @@ package position
 
 import (
 	"math/big"
+	"personal_bot/backend/pkg/logger"
 
 	"github.com/gagliardetto/solana-go"
 )
@@ -24,6 +25,7 @@ type Position struct {
 	AddressForUrl        string
 	MonitoringAddress    string
 	Program              string
+	Logger               *logger.TaskLogger
 }
 
 // we keep floats as strings to preserve some sort of accuracy
@@ -60,4 +62,5 @@ type ReportBuyPayload struct {
 	AddressForUrl        string
 	AddressForMonitoring string
 	Program              string
+	Logger               *logger.TaskLogger
 }

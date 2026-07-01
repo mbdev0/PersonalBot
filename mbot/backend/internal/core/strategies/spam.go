@@ -4,6 +4,7 @@ import (
 	"math/big"
 	rpcgroups "personal_bot/backend/internal/core/rpc_groups"
 	"personal_bot/backend/internal/core/wallets"
+	"personal_bot/backend/pkg/logger"
 
 	"github.com/gagliardetto/solana-go"
 )
@@ -28,6 +29,7 @@ type Spam struct {
 	NumberOfSubTasks uint32
 	//formatted as unix timestamp
 	StartTime uint64
+	logger    *logger.TaskLogger
 }
 
 func (s *Spam) New() {
@@ -89,4 +91,12 @@ func (s *Spam) GetTimeCreated() int64 {
 
 func (s *Spam) SetTimeCreated(time int64) {
 	s.TimeCreated = time
+}
+
+func (s *Spam) Logger() *logger.TaskLogger {
+	return s.logger
+}
+
+func (s *Spam) SetLogger(l *logger.TaskLogger) {
+	s.logger = l
 }

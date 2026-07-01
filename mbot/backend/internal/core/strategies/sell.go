@@ -3,6 +3,7 @@ package strategies
 import (
 	rpcgroups "personal_bot/backend/internal/core/rpc_groups"
 	"personal_bot/backend/internal/core/wallets"
+	"personal_bot/backend/pkg/logger"
 
 	"github.com/gagliardetto/solana-go"
 )
@@ -24,6 +25,7 @@ type Sell struct {
 	RPCGroup       rpcgroups.RPCGroup
 	Retries        *uint16
 	RetriesDelayMS *uint32
+	logger         *logger.TaskLogger
 }
 
 func (s *Sell) New() {
@@ -84,4 +86,12 @@ func (s *Sell) GetTimeCreated() int64 {
 
 func (s *Sell) SetTimeCreated(time int64) {
 	s.TimeCreated = time
+}
+
+func (s *Sell) Logger() *logger.TaskLogger {
+	return s.logger
+}
+
+func (s *Sell) SetLogger(l *logger.TaskLogger) {
+	s.logger = l
 }

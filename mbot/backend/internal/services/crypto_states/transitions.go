@@ -92,6 +92,7 @@ func Build(deps *Dependencies) transactionModel.Transitions {
 func withNotify(ctx context.Context, deps *Dependencies, fn func() error, task tasks.Task, t transaction.Transaction) error {
 	err := fn()
 	if err != nil && ctx.Err() == nil {
+		task.Logger().TaskError(task.Id(), err)
 		if notifyErr := notifyError(err.Error(), deps, task, t); notifyErr != nil {
 			logger.Error(notifyErr)
 		}
@@ -111,11 +112,13 @@ func notifyCompletion(task tasks.Task, transaction transaction.Transaction, toke
 func notifyBuy(t *tasks.BuyTask, transaction transaction.Transaction, tokenAmount float64, solAmount float64, deps *Dependencies) {
 	addressForAxiom, err := transaction.GetAddressForURL()
 	if err != nil {
+		t.Logger().TaskError(t.Id(), err)
 		logger.Error(err)
 	}
 
 	tradingTask, err := deps.TradingService.GetBy(*t.StrategyId)
 	if err != nil {
+		t.Logger().TaskError(t.Id(), err)
 		logger.Error(err)
 		return
 	}
@@ -132,6 +135,7 @@ func notifyBuy(t *tasks.BuyTask, transaction transaction.Transaction, tokenAmoun
 		AddressForAxiom: addressForAxiom,
 	})
 	if err != nil {
+		t.Logger().TaskError(t.Id(), err)
 		logger.Error(err)
 	}
 }
@@ -139,17 +143,23 @@ func notifyBuy(t *tasks.BuyTask, transaction transaction.Transaction, tokenAmoun
 func notifySell(t *tasks.SellTask, transaction transaction.Transaction, pos *positionModel.Position, tokensSold float64, solReceived float64, deps *Dependencies) {
 	addressForAxiom, err := transaction.GetAddressForURL()
 	if err != nil {
+		t.Logger().TaskError(t.Id(), err)
 		logger.Error(err)
 	}
 
 	if pos == nil {
+		t.Logger().TaskError(t.Id(), "Position is nil")
 		logger.Information("Position is nil")
 		return
 	}
 
 	if pos.TokenRemaining == nil {
 		logger.Information("tokens remaning is nil")
-		logger.Information(*pos)
+		// logger.Information(*pos)
+		if pos != nil {
+			t.Logger().Information(t.Id(), *pos)
+		}
+
 	}
 
 	tokensRemainingRaw, _ := pos.TokenRemaining.Float64()
@@ -171,6 +181,7 @@ func notifySell(t *tasks.SellTask, transaction transaction.Transaction, pos *pos
 	if t.StrategyId != nil {
 		strategyTask, err := deps.TradingService.GetBy(*t.StrategyId)
 		if err != nil {
+			t.Logger().TaskError(t.Id(), err)
 			logger.Error(err)
 			return
 		}
@@ -182,6 +193,7 @@ func notifySell(t *tasks.SellTask, transaction transaction.Transaction, pos *pos
 	err = deps.Notifier.SendSuccessSell(payload)
 
 	if err != nil {
+		t.Logger().TaskError(t.Id(), err)
 		logger.Error(err)
 	}
 }

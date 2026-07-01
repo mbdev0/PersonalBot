@@ -2,6 +2,7 @@ package strategy
 
 import (
 	"context"
+	"fmt"
 	"personal_bot/backend/internal/core/strategies"
 	"personal_bot/backend/internal/core/tasks"
 	"personal_bot/backend/pkg/logger"
@@ -38,6 +39,7 @@ func (s *Spam) timerWork(ctx context.Context, task *strategies.Spam) {
 	for i := 0; i < int(task.NumberOfSubTasks); i++ {
 		bt, err := s.createBuyTask(task)
 		if err != nil {
+			task.Logger().Error(err)
 			logger.Error(err)
 			continue
 		}
@@ -52,6 +54,7 @@ func (s *Spam) timerWork(ctx context.Context, task *strategies.Spam) {
 	}
 
 	for _, t := range precreatedTasks {
+		task.Logger().Information(fmt.Sprintf("starting task: %d", t.Id()))
 		go s.taskService.StartTask(t.Id())
 	}
 
@@ -90,6 +93,7 @@ func (s *Spam) cancelSubTasks(task *strategies.Spam) {
 	for _, t := range tasks {
 		err := s.taskService.StopTask(t.Id())
 		if err != nil {
+			task.Logger().TaskError(t.Id(), err)
 			logger.Error(err)
 		}
 	}
@@ -108,7 +112,9 @@ func (s *Spam) createBuyTask(task *strategies.Spam) (*tasks.BuyTask, error) {
 		tasks.WithHttpNode(node.Http),
 		tasks.WithWS(node.WS),
 		tasks.WithSlippage(task.Slippage),
-		tasks.WithStrategyId(task.StrategyTaskId())}
+		tasks.WithStrategyId(task.StrategyTaskId()),
+		tasks.WithLogger(task.Logger()),
+	}
 
 	if task.Retries != nil {
 		opts = append(opts, tasks.WithRetries(*task.Retries))

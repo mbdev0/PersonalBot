@@ -1,6 +1,9 @@
 package tasks
 
-import "math/big"
+import (
+	"math/big"
+	"personal_bot/backend/pkg/logger"
+)
 
 type Option func(Configurable)
 
@@ -41,6 +44,10 @@ func WithRetries(retries uint16) Option {
 
 func WithRetriesDelayMs(retriesDelayMs uint32) Option {
 	return func(t Configurable) { t.SetRetriesDelayMS(retriesDelayMs) }
+}
+
+func WithLogger(logger *logger.TaskLogger) Option {
+	return func(t Configurable) { t.SetLogger(logger) }
 }
 
 type BuyOption func(*BuyTask)
